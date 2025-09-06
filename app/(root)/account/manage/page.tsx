@@ -1,0 +1,89 @@
+import { Metadata } from "next";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { getServerSession } from "@/lib/get-session";
+
+const PAGE_TITLE = "Login & Security";
+
+export const metadata: Metadata = {
+  title: PAGE_TITLE,
+};
+
+export default async function ProfilePage() {
+  const session = await getServerSession();
+
+  if (!session?.user) {
+    // redirect unauthenticated users to login
+    return (
+      <div className="py-10 text-center">
+        <p>You need to sign in to view this page.</p>
+        <Link href="/sign-in">
+          <Button className="mt-4">Sign In</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-24">
+      <div className="flex gap-2 ">
+        <Link href="/account">Your Account</Link>
+        <span>›</span>
+        <span>{PAGE_TITLE}</span>
+      </div>
+
+      <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
+
+      <Card className="max-w-2xl">
+        {/* Name */}
+        <CardContent className="p-4 flex justify-between flex-wrap">
+          <div>
+            <h3 className="font-bold">Name</h3>
+            <p>{session.user.name}</p>
+          </div>
+          <Link href="/account/manage/name">
+            <Button className="rounded-full w-32" variant="outline">
+              Edit
+            </Button>
+          </Link>
+        </CardContent>
+        <Separator />
+
+        {/* Email */}
+        <CardContent className="p-4 flex justify-between flex-wrap">
+          <div>
+            <h3 className="font-bold">Email</h3>
+            <p>{session.user.email}</p>
+            <p className="text-sm text-gray-500">
+              will be implemented in the next version
+            </p>
+          </div>
+          <Link href="/account/manage/email">
+            <Button className="rounded-full w-32" variant="outline">
+              Edit
+            </Button>
+          </Link>
+        </CardContent>
+        <Separator />
+
+        {/* Password */}
+        <CardContent className="p-4 flex justify-between flex-wrap">
+          <div>
+            <h3 className="font-bold">Password</h3>
+            <p>************</p>
+            <p className="text-sm text-gray-500">
+              will be implemented in the next version
+            </p>
+          </div>
+          <Link href="/account/manage/password">
+            <Button className="rounded-full w-32" variant="outline">
+              Edit
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
