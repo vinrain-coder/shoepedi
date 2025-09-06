@@ -23,7 +23,7 @@ export default async function WebPageAdminPage() {
   const webPages = await getAllWebPages()
   return (
     <div className='space-y-2'>
-      <div className='flex-between'>
+      <div className='flex flex-row flex-wrap justify-between gap-2'>
         <h1 className='h1-bold'>Web Pages</h1>
         <Button asChild variant='default'>
           <Link href='/admin/web-pages/create'>Create WebPage</Link>

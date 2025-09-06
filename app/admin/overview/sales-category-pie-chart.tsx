@@ -6,6 +6,7 @@ import { PieChart, Pie, ResponsiveContainer, Cell } from "recharts";
 
 export default function SalesCategoryPieChart({ data }: { data: any[] }) {
   const RADIAN = Math.PI / 180;
+
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -19,19 +20,26 @@ export default function SalesCategoryPieChart({ data }: { data: any[] }) {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <>
-        <text
-          x={x}
-          y={y}
-          textAnchor={x > cx ? "start" : "end"}
-          dominantBaseline="central"
-          className="text-xs"
-        >
-          {`${data[index]._id} ${data[index].totalSales} sales`}
-        </text>
-      </>
+      <text
+        x={x}
+        y={y}
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        className="text-xs"
+      >
+        {`${data[index]._id} ${data[index].totalSales} sales`}
+      </text>
     );
   };
+
+  // Read primary color from CSS variable
+  const primaryColor =
+    typeof window !== "undefined"
+      ? getComputedStyle(document.documentElement).getPropertyValue("--primary")
+      : "#3b82f6"; // fallback blue
+
+  // You can also define a color palette if you have multiple slices
+  const colors = data.map((_, i) => primaryColor);
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -45,7 +53,7 @@ export default function SalesCategoryPieChart({ data }: { data: any[] }) {
           label={renderCustomizedLabel}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={`hsl(${["--primary"]})`} />
+            <Cell key={`cell-${index}`} fill={colors[index]} />
           ))}
         </Pie>
       </PieChart>

@@ -4,6 +4,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { getMonthName } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import * as React from "react";
 
 type TableChartProps = {
   labelType: "month" | "product";
@@ -15,25 +16,19 @@ type TableChartProps = {
   }[];
 };
 
-import React from "react";
-
 interface ProgressBarProps {
   value: number; // Accepts a number between 0 and 100
   className?: string;
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ value }) => {
-  // Ensure value stays within 0-100 range
   const boundedValue = Math.min(100, Math.max(0, value));
 
   return (
-    <div className="relative w-full h-4 overflow-hidden">
+    <div className="relative w-full h-3 bg-muted border border-border rounded-lg overflow-hidden">
       <div
-        className="bg-primary h-full transition-all duration-300 rounded-lg"
-        style={{
-          width: `${boundedValue}%`,
-          float: "right", // Aligns the bar to start from the right
-        }}
+        className="h-full rounded-lg transition-all duration-300"
+        style={{ width: `${boundedValue}%`, backgroundColor: "orange" }}
       />
     </div>
   );
@@ -43,39 +38,47 @@ export default function TableChart({
   labelType = "month",
   data = [],
 }: TableChartProps) {
+  if (data.length === 0) return null;
+
   const max = Math.max(...data.map((item) => item.value));
+
   const dataWithPercentage = data.map((x) => ({
     ...x,
     label: labelType === "month" ? getMonthName(x.label) : x.label,
     percentage: Math.round((x.value / max) * 100),
   }));
+
   return (
     <div className="space-y-3">
       {dataWithPercentage.map(({ label, id, value, image, percentage }) => (
         <div
           key={label}
-          className="grid grid-cols-[100px_1fr_80px] md:grid-cols-[250px_1fr_80px] gap-2 space-y-4  "
+          className="grid grid-cols-[100px_1fr_80px] md:grid-cols-[250px_1fr_80px] gap-2 items-center"
         >
-          {image ? (
-            <Link className="flex items-end" href={`/admin/products/${id}`}>
+          {/* Label / Image */}
+          {image && id ? (
+            <Link
+              className="flex items-center gap-2"
+              href={`/admin/products/${id}`}
+            >
               <Image
-                className="rounded border  aspect-square object-scale-down max-w-full h-auto mx-auto mr-1"
-                src={image!}
+                className="rounded border aspect-square object-cover w-9 h-9"
+                src={image}
                 alt={label}
                 width={36}
                 height={36}
               />
-              <p className="text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                {label}
-              </p>
+              <span className="text-sm truncate">{label}</span>
             </Link>
           ) : (
-            <div className="flex items-end text-sm">{label}</div>
+            <span className="text-sm truncate">{label}</span>
           )}
 
+          {/* Progress bar */}
           <ProgressBar value={percentage} />
 
-          <div className="text-sm text-right flex items-center">
+          {/* Value */}
+          <div className="text-sm text-right">
             <ProductPrice price={value} plain />
           </div>
         </div>

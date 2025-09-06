@@ -1,14 +1,14 @@
 import { Metadata } from "next";
 import CheckoutForm from "./checkout-form";
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/get-session";
 
 export const metadata: Metadata = {
   title: "Checkout",
 };
 
 export default async function CheckoutPage() {
-  const session = await auth();
+  const session = await getServerSession();
   if (!session?.user) {
     redirect("/sign-in?callbackUrl=/checkout");
   }

@@ -17,12 +17,13 @@ export default async function BlogPage({
 }) {
   const currentPage = Number(searchParams.page) || 1;
 
+  // Fetch blogs
   const { blogs, totalPages } = await getAllBlogs({ page: currentPage });
 
   return (
     <div className="space-y-6">
       <div className="bg-card grid md:grid-cols-3 md:gap-4">
-        <div className="md:col-span-4 space-y-4">
+        <div className="md:col-span-3 space-y-4">
           <div>
             <h1 className="font-bold text-2xl">Latest Blogs</h1>
             <p className="text-gray-600">
@@ -45,6 +46,7 @@ export default async function BlogPage({
           )}
         </div>
       </div>
+
       <BrowsingHistoryList className="mt-16" />
     </div>
   );

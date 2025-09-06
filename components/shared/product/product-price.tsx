@@ -8,23 +8,17 @@ const ProductPrice = ({
   price,
   className,
   listPrice = 0,
-  isDeal = false,
-  forListing = true,
   plain = false,
 }: {
   price: number;
-  isDeal?: boolean;
   listPrice?: number;
   className?: string;
-  forListing?: boolean;
   plain?: boolean;
 }) => {
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
 
-  const discountPercent = Math.round(100 - (price / listPrice) * 100);
-
-  // Format using Intl.NumberFormat with commas for large numbers
+  // Format with commas
   const formatPrice = (value: number) =>
     new Intl.NumberFormat("en-US").format(value);
 
@@ -39,51 +33,24 @@ const ProductPrice = ({
       currency: currency.code,
       currencyDisplay: "narrowSymbol",
     }).format(price)
-  ) : listPrice == 0 ? (
+  ) : listPrice === 0 ? (
     <div className={cn("text-2xl sm:text-3xl", className)}>
       <span className="text-xs align-super">{currency.symbol}</span>
       {formatPrice(price)}
       <span className="text-xs align-super">{floatValue}</span>
     </div>
-  ) : isDeal ? (
-    <div className="space-y-2">
-      <div className="flex justify-center items-center gap-2">
-        <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
-          {discountPercent}% Off
-        </span>
-        <span className="text-red-700 text-xs font-bold">
-          Limited time deal
-        </span>
-      </div>
-      <div
-        className={`flex ${forListing ? "justify-center" : "justify-start"} items-center gap-2 flex-wrap`}
-      >
-        <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
-          {formatPrice(price)}
-          <span className="text-xs align-super">{floatValue}</span>
-        </div>
-        <div className="text-muted-foreground text-xs whitespace-nowrap">
-          Was: KES{" "}
-          <span className="line-through">{formatPrice(listPrice)}</span>
-        </div>
-      </div>
-    </div>
   ) : (
-    <div>
-      <div className="flex justify-center gap-2 flex-wrap items-center">
-        <div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
-          -{discountPercent}%
-        </div>
-        <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
-          {formatPrice(price)}
-          <span className="text-xs align-super">{floatValue}</span>
-        </div>
+    <div className="flex items-center justify-center gap-4 flex-wrap">
+      {/* Discounted Price */}
+      <div className={cn("text-2xl sm:text-3xl font-semibold", className)}>
+        <span className="text-xs align-super">{currency.symbol}</span>
+        {formatPrice(price)}
+        <span className="text-xs align-super">{floatValue}</span>
       </div>
-      <div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
-        List price:{" "}
-        <span className="line-through">KES {formatPrice(listPrice)}</span>
+
+      {/* List Price (strikethrough) */}
+      <div className="text-muted-foreground line-through text-xl">
+        {currency.symbol} {formatPrice(listPrice)}
       </div>
     </div>
   );

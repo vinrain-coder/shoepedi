@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -9,24 +9,21 @@ import {
   removeFromWishlist,
 } from "@/lib/actions/wishlist.actions";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
+import { useWishlistStore } from "@/hooks/useWishlistStore";
 
 interface WishlistButtonProps {
-  productId: string;
-  initialWishlist: string[]; // Pass from parent to avoid extra fetch
+  productId: string; // ✅ only need the ID
 }
 
-const WishlistButton: React.FC<WishlistButtonProps> = ({
-  productId,
-  initialWishlist,
-}) => {
-  const { data: session } = authClient.useSession();
+const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
+  const { data: session } = useSession();
   const router = useRouter();
-  const [isInWishlist, setIsInWishlist] = useState(
-    initialWishlist?.includes(productId) || false
-  );
-
   const [pending, startTransition] = useTransition();
+
+  const { isInWishlist, addProduct, removeProduct } = useWishlistStore();
+
+  const inWishlist = isInWishlist(productId); // ✅ fixed
 
   const toggleWishlist = () => {
     if (!session) {
@@ -39,21 +36,19 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
       return;
     }
 
-    // Optimistic UI update
-    setIsInWishlist(!isInWishlist);
-
     startTransition(async () => {
       try {
-        if (isInWishlist) {
+        if (inWishlist) {
           await removeFromWishlist(productId);
+          removeProduct(productId);
           toast.success("Removed from wishlist");
         } else {
           await addToWishlist(productId);
+          // if you need product details for addProduct, pass them in from parent
+          addProduct({ _id: productId } as any);
           toast.success("Added to wishlist");
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        setIsInWishlist(isInWishlist); // Revert if error
+      } catch {
         toast.error("Something went wrong!");
       }
     });
@@ -62,15 +57,17 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
   return (
     <Button
       onClick={toggleWishlist}
-      className="flex items-center gap-1 w-full rounded-full cursor-pointer"
+      className="flex items-center gap-2 w-full rounded-full"
       variant="outline"
       disabled={pending}
     >
       <Heart
-        size={10}
-        className={`text-red-500 ${isInWishlist ? "fill-red-500" : ""}`}
+        size={18}
+        className={`transition ${
+          inWishlist ? "fill-red-500 text-red-500" : "text-gray-500"
+        }`}
       />
-      {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+      {inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
     </Button>
   );
 };

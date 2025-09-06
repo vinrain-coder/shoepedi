@@ -81,7 +81,7 @@ const ProductList = () => {
   return (
     <div>
       <div className="space-y-2">
-        <div className="flex-between flex-wrap gap-2">
+        <div className="flex flex-row flex-wrap justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2 ">
             <h1 className="font-bold text-lg">Products</h1>
             <div className="flex flex-wrap items-center  gap-2 ">
@@ -111,12 +111,12 @@ const ProductList = () => {
           </Button>
         </div>
         <div>
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Id</TableHead>
                 <TableHead>Image</TableHead>
-                <TableHead>Name</TableHead>
+                <TableHead className="w-12">Name</TableHead>
                 <TableHead className="text-right">Price</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Stock</TableHead>
@@ -143,7 +143,7 @@ const ProductList = () => {
                       <span>No Image</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="w-12 overflow-hidden whitespace-nowrap text-ellipsis">
                     <Link href={`/admin/products/${product._id}`}>
                       {product.name}
                     </Link>

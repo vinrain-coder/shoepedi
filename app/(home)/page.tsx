@@ -16,29 +16,33 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 
 export default async function HomePage() {
-  const { carousels } = await getSetting();
-  const todaysDeals = await getProductsByTag({ tag: "todays-deal" });
-  const bestSellingProducts = await getProductsByTag({ tag: "best-seller" });
+  // Fetch all data in parallel for speed
+  const [
+    settingResult,
+    todaysDeals,
+    bestSellingProducts,
+    allCategories,
+    newArrivals,
+    featureds,
+    bestSellers,
+  ] = await Promise.all([
+    getSetting(),
+    getProductsByTag({ tag: "todays-deal" }),
+    getProductsByTag({ tag: "best-seller" }),
+    getAllCategories(),
+    getProductsForCard({ tag: "new-arrival" }),
+    getProductsForCard({ tag: "featured" }),
+    getProductsForCard({ tag: "best-seller" }),
+  ]);
+  const blogs = await fetchLatestBlogs({ limit: 5 });
 
-  const blogs = await fetchLatestBlogs();
+  const { carousels } = settingResult;
+  const categories = allCategories.slice(0, 4);
 
-  const categories = (await getAllCategories()).slice(0, 4);
-  const newArrivals = await getProductsForCard({
-    tag: "new-arrival",
-  });
-  const featureds = await getProductsForCard({
-    tag: "featured",
-  });
-  const bestSellers = await getProductsForCard({
-    tag: "best-seller",
-  });
   const cards = [
     {
       title: "Categories to explore",
-      link: {
-        text: "See More",
-        href: "/search",
-      },
+      link: { text: "See More", href: "/search" },
       items: categories.map((category) => ({
         name: category,
         image: `/images/${toSlug(category)}.jpg`,
@@ -48,39 +52,33 @@ export default async function HomePage() {
     {
       title: "Explore New Arrivals",
       items: newArrivals,
-      link: {
-        text: "View All",
-        href: "/search?tag=new-arrival",
-      },
+      link: { text: "View All", href: "/search?tag=new-arrival" },
     },
     {
       title: "Discover Best Sellers",
       items: bestSellers,
-      link: {
-        text: "View All",
-        href: "/search?tag=new-arrival",
-      },
+      link: { text: "View All", href: "/search?tag=new-arrival" },
     },
     {
       title: "Featured Products",
       items: featureds,
-      link: {
-        text: "Shop Now",
-        href: "/search?tag=new-arrival",
-      },
+      link: { text: "Shop Now", href: "/search?tag=new-arrival" },
     },
   ];
 
   return (
     <>
       <HomeCarousel items={carousels} />
+
       <div className="md:p-4 md:space-y-4 bg-border">
         <HomeCard cards={cards} />
+
         <Card className="w-full rounded-none">
           <CardContent className="p-4 items-center gap-3">
             <ProductSlider title="Today's Deals" products={todaysDeals} />
           </CardContent>
         </Card>
+
         <Card className="w-full rounded-none">
           <CardContent className="p-4 items-center gap-3">
             <ProductSlider

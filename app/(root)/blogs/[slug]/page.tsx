@@ -21,16 +21,16 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const blog = await getBlogBySlug(params.slug);
+  const [blog, { site }] = await Promise.all([
+    getBlogBySlug(params.slug),
+    getSetting(),
+  ]);
+
   if (!blog) return {};
 
-  const { site } = await getSetting();
-
   let firstImageUrl = extractFirstImageUrl(blog.content);
-
-  if (firstImageUrl && !firstImageUrl.startsWith("http")) {
+  if (firstImageUrl && !firstImageUrl.startsWith("http"))
     firstImageUrl = `${site.url}${firstImageUrl}`;
-  }
 
   const ogImage = firstImageUrl || `${site.url}/default-image.jpg`;
 
@@ -61,7 +61,7 @@ export default async function BlogPage({
   const blog: IBlog | null = await getBlogBySlug(params.slug);
   if (!blog) return notFound();
 
-  incrementBlogViews(params.slug); // Async view increment
+  void incrementBlogViews(params.slug);
 
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-US", {

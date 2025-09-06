@@ -27,7 +27,7 @@ export default async function BlogAdminPage() {
 
   return (
     <div className="space-y-2">
-      <div className="flex-between">
+      <div className="flex flex-row flex-wrap justify-between gap-2">
         <h1 className="h1-bold">Blogs</h1>
         <Button asChild variant="default">
           <Link href="/admin/blogs/create">Create Blog</Link>

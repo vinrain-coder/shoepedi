@@ -1,78 +1,88 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import mongoose, { ObjectId } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
-import User from "@/lib/db/models/user.model";
-import mongoose from "mongoose";
+import { getServerSession } from "@/lib/get-session";
 import { IProduct } from "../db/models/product.model";
-import { getServerSession } from "../get-session";
 
-// Get wishlist product IDs
-export async function getWishlist() {
-  await connectToDatabase();
-  const session = await getServerSession();
-  if (!session) return [];
-
-  const user = await User.findOne({ email: session.user?.email }).select(
-    "wishlist"
-  );
-  return (
-    user?.wishlist.map((id: mongoose.Types.ObjectId) => id.toString()) || []
-  );
+// Helper: get the native MongoDB Db object
+async function getDb() {
+  const conn = await connectToDatabase(); // this returns a Mongoose connection
+  return conn.connection.db; // use the underlying native MongoDB driver
 }
 
-// Add product to wishlist
-export async function addToWishlist(productId: string) {
-  await connectToDatabase();
+// Helper: get current user
+async function getCurrentUser() {
+  const db = await getDb();
   const session = await getServerSession();
-  if (!session) return [];
+  if (!session?.user?.id) return null;
 
-  const user = await User.findOneAndUpdate(
-    { email: session.user?.email },
+  return await db.collection("user").findOne({
+    _id: new mongoose.Types.ObjectId(session.user.id),
+  });
+}
+
+// ✅ Get wishlist product IDs
+export async function getWishlist(): Promise<string[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  return (user.wishlist || []).map((id: ObjectId) => id.toString());
+}
+
+// ✅ Add product to wishlist
+export async function addToWishlist(productId: string): Promise<string[]> {
+  const db = await getDb();
+  const session = await getServerSession();
+  if (!session?.user?.id) return [];
+
+  const result = await db.collection("user").findOneAndUpdate(
+    { _id: new mongoose.Types.ObjectId(session.user.id) },
     { $addToSet: { wishlist: new mongoose.Types.ObjectId(productId) } },
-    { new: true }
-  ).select("wishlist");
-
-  return (
-    user?.wishlist.map((id: mongoose.Types.ObjectId) => id.toString()) || []
+    { returnDocument: "after" }
   );
+
+  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
 }
 
-// Remove product from wishlist
-export async function removeFromWishlist(productId: string) {
-  await connectToDatabase();
+// ✅ Remove product from wishlist
+export async function removeFromWishlist(productId: string): Promise<string[]> {
+  const db = await getDb();
   const session = await getServerSession();
-  if (!session) return [];
+  if (!session?.user?.id) return [];
 
-  const user = await User.findOneAndUpdate(
-    { email: session.user?.email },
+  const result = await db.collection("user").findOneAndUpdate(
+    { _id: new mongoose.Types.ObjectId(session.user.id) },
     { $pull: { wishlist: new mongoose.Types.ObjectId(productId) } },
-    { new: true }
-  ).select("wishlist");
-
-  return (
-    user?.wishlist.map((id: mongoose.Types.ObjectId) => id.toString()) || []
+    { returnDocument: "after" }
   );
+
+  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
 }
 
-// Fetch full product details for wishlist
+// ✅ Fetch full product details for wishlist
 export async function getWishlistProducts(): Promise<IProduct[]> {
-  await connectToDatabase();
-  const session = await getServerSession();
-  if (!session) return [];
+  const db = await getDb();
+  const user = await getCurrentUser();
+  if (!user?.wishlist || user.wishlist.length === 0) return [];
 
-  const user = await User.findOne({ email: session.user?.email })
-    .populate<{ wishlist: IProduct[] }>({
-      path: "wishlist",
-      model: "Product",
+  const products = await db
+    .collection("products")
+    .find({
+      _id: { $in: user.wishlist.map((id: any) => new mongoose.Types.ObjectId(id)) },
     })
-    .lean(); // Convert Mongoose documents to plain JS objects
+    .toArray();
 
-  if (!user?.wishlist) return [];
+  return products.map((p: any) => ({
+    ...p,
+    _id: p._id.toString(),
+  })) as IProduct[];
+}
 
-  // Convert _id fields to strings
-  return user.wishlist.map((product) => ({
-    ...product,
-    _id: product._id.toString(), // Convert ObjectId to string
-  }));
+// ✅ Count wishlist items
+export async function getWishlistCount(): Promise<number> {
+  const user = await getCurrentUser();
+  if (!user) return 0;
+
+  return user.wishlist?.length || 0;
 }

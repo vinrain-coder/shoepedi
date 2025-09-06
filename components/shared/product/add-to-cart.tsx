@@ -18,71 +18,110 @@ import { toast } from "sonner";
 export default function AddToCart({
   item,
   minimal = false,
+  children,
 }: {
   item: OrderItem;
   minimal?: boolean;
+  children?: React.ReactNode; // 👈 new
 }) {
   const router = useRouter();
-
   const { addItem } = useCartStore();
 
   const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
-  const [isBuyNowLoading, setIsBuyNowLoading] = useState(false); // Loading for "Buy Now"
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
 
   const handleAddToCart = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
       const itemId = await addItem(item, quantity);
       router.push(`/cart/${itemId}`);
     } catch (error: any) {
       toast.error(`ERROR! ${error.message}`);
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
   const handleBuyNow = async () => {
-    setIsBuyNowLoading(true); // Start loading for "Buy Now"
+    setIsBuyNowLoading(true);
     try {
       addItem(item, quantity);
       router.push(`/checkout`);
     } catch (error: any) {
       toast.error(`ERROR! ${error.message}`);
     } finally {
-      setIsBuyNowLoading(false); // End loading for "Buy Now"
+      setIsBuyNowLoading(false);
     }
   };
 
-  return minimal ? (
-    <Button
-      className="rounded-full w-auto cursor-pointer"
-      onClick={async () => {
-        setIsLoading(true); // Start loading
-        try {
-          addItem(item, 1);
-          toast.success("Item added to cart", {
-            action: (
-              <Button
-                onClick={() => {
-                  router.push("/cart");
-                }}
-              >
-                Go to Cart
-              </Button>
-            ),
-          });
-        } catch (error: any) {
-          toast.error(`ERROR! ${error.message}`);
-        } finally {
-          setIsLoading(false); // End loading
-        }
-      }}
-      disabled={isLoading} // Disable the button while loading
-    >
-      {isLoading ? "Loading..." : "Add to Cart"}
-    </Button>
-  ) : (
+  // 👉 children mode (for icon buttons)
+  if (children) {
+    return (
+      <span
+        onClick={async () => {
+          setIsLoading(true);
+          try {
+            addItem(item, 1);
+            toast.success("Item added to cart", {
+              action: (
+                <Button
+                  onClick={() => {
+                    router.push("/cart");
+                  }}
+                >
+                  Go to Cart
+                </Button>
+              ),
+            });
+          } catch (error: any) {
+            toast.error(`ERROR! ${error.message}`);
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+        className="cursor-pointer"
+      >
+        {children}
+      </span>
+    );
+  }
+
+  // 👉 minimal mode (default simple button)
+  if (minimal) {
+    return (
+      <Button
+        className="rounded-full w-auto cursor-pointer"
+        onClick={async () => {
+          setIsLoading(true);
+          try {
+            addItem(item, 1);
+            toast.success("Item added to cart", {
+              action: (
+                <Button
+                  onClick={() => {
+                    router.push("/cart");
+                  }}
+                >
+                  Go to Cart
+                </Button>
+              ),
+            });
+          } catch (error: any) {
+            toast.error(`ERROR! ${error.message}`);
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+        disabled={isLoading}
+      >
+        {isLoading ? "Loading..." : "Add to Cart"}
+      </Button>
+    );
+  }
+
+  // 👉 full mode (quantity + add + buy now)
+  return (
     <div className="w-full space-y-2">
       <Select
         value={quantity.toString()}
@@ -104,14 +143,15 @@ export default function AddToCart({
         className="rounded-full w-full cursor-pointer"
         type="button"
         onClick={handleAddToCart}
-        disabled={isLoading} // Disable the button while loading
+        disabled={isLoading}
       >
         {isLoading ? "Loading..." : "Add to Cart"}
       </Button>
+
       <Button
         variant="secondary"
         onClick={handleBuyNow}
-        disabled={isBuyNowLoading} // Disable the button while loading
+        disabled={isBuyNowLoading}
         className="w-full rounded-full cursor-pointer"
       >
         {isBuyNowLoading ? "Loading..." : "Buy Now"}

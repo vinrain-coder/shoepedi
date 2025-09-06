@@ -1,6 +1,6 @@
 "use client";
 import useBrowsingHistory from "@/hooks/use-browsing-history";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ProductSlider from "./product/product-slider";
 import { Separator } from "../ui/separator";
 import { cn } from "@/lib/utils";
@@ -11,18 +11,16 @@ export default function BrowsingHistoryList({
   className?: string;
 }) {
   const { products } = useBrowsingHistory();
+
+  if (products.length === 0) return null;
+
   return (
-    products.length !== 0 && (
-      <div className="bg-background">
-        <Separator className={cn("mb-4", className)} />
-        <ProductList
-          title="Related to items that you've viewed"
-          type="related"
-        />
-        <Separator className="mb-4" />
-        <ProductList title="Your browsing history" hideDetails type="history" />
-      </div>
-    )
+    <div className="bg-background">
+      <Separator className={cn("mb-4", className)} />
+      <ProductList title="Related to items that you've viewed" type="related" />
+      <Separator className="mb-4" />
+      <ProductList title="Your browsing history" hideDetails type="history" />
+    </div>
   );
 }
 
@@ -38,23 +36,59 @@ function ProductList({
   hideDetails?: boolean;
 }) {
   const { products } = useBrowsingHistory();
-  const [data, setData] = React.useState([]);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProducts = async () => {
-      const res = await fetch(
-        `/api/products/browsing-history?type=${type}&excludeId=${excludeId}&categories=${products
-          .map((product) => product.category)
-          .join(",")}&ids=${products.map((product) => product.id).join(",")}`
-      );
-      const data = await res.json();
-      setData(data);
+      if (products.length === 0) return;
+
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({
+          type,
+          excludeId,
+          categories: products.map((p) => p.category).join(","),
+          ids: products.map((p) => p.id).join(","),
+        });
+
+        const res = await fetch(
+          `/api/products/browsing-history?${query.toString()}`
+        );
+        if (!res.ok) return;
+        const result = await res.json();
+        if (isMounted) setData(result);
+      } catch (err) {
+        console.error("Failed to fetch browsing history products:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     };
+
     fetchProducts();
-  }, [excludeId, products, type]);
+    return () => {
+      isMounted = false;
+    };
+  }, [type, excludeId, products]);
+
+  if (loading) {
+    return (
+      <div className="flex gap-4 overflow-x-auto py-4 px-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 w-1/2 sm:w-40 md:w-48 lg:w-56 h-60 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (data.length === 0) return null;
 
   return (
-    data.length > 0 && (
-      <ProductSlider title={title} products={data} hideDetails={hideDetails} />
-    )
+    <ProductSlider title={title} products={data} hideDetails={hideDetails} />
   );
 }

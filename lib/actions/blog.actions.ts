@@ -167,7 +167,7 @@ export async function getMostViewedBlogs(limit: number = 5) {
   }
 }
 
-export async function fetchLatestBlogs() {
+export async function fetchLatestBlogs(p0: { limit: number; }) {
   await connectToDatabase();
   const blogs = await Blog.find({ isPublished: true })
     .sort({ createdAt: -1 })

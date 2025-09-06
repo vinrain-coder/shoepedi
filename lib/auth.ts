@@ -6,10 +6,10 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { passwordSchema } from "./validator";
 import { getDb } from "./db/client";
 
-const db = await getDb(); // ✅ returns a connected Db, not a client/connection
+const db = await getDb(); 
 
 export const auth = betterAuth({
-  database: mongodbAdapter(db), // ✅ correct type
+  database: mongodbAdapter(db), 
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -55,6 +55,10 @@ export const auth = betterAuth({
       role: {
         type: "string",
         input: false,
+      },
+       wishlist: {
+        type: "json",
+        defaultValue: [], 
       },
     },
   },

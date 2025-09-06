@@ -3,29 +3,27 @@ import { notFound } from "next/navigation";
 import { getWebPageBySlug } from "@/lib/actions/web-page.actions";
 import remarkGfm from "remark-gfm";
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>;
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
 }) {
-  const params = await props.params;
-  const { slug } = params;
+  const webPage = await getWebPageBySlug(params.slug);
 
-  const webPage = await getWebPageBySlug(slug);
-  if (!webPage) {
-    return { title: "Web page not found" };
-  }
   return {
-    title: webPage.title,
+    title: webPage?.title || "Web page not found",
   };
 }
 
-export default async function WebPage(props: {
-  params: Promise<{ slug: string }>;
+export default async function WebPage({
+  params,
+}: {
+  params: { slug: string };
 }) {
-  const params = await props.params;
-  const { slug } = params;
-  const webPage = await getWebPageBySlug(slug);
+  // Fetch once
+  const webPage = await getWebPageBySlug(params.slug);
 
-  if (!webPage) notFound();
+  if (!webPage) return notFound();
 
   return (
     <div className="p-1 sm:p-2 md:p-8 max-w-3xl mx-auto">

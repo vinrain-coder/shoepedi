@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
-type CardItem = {
+export type CardItem = {
   title: string;
   link: { text: string; href: string };
   items: {

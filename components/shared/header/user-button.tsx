@@ -1,4 +1,4 @@
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,17 +7,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  UserIcon,
+  ShoppingCartIcon,
+  HeartIcon,
+  ShieldIcon,
+} from "lucide-react"; 
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export default async function UserButton() {
-  // In a Server Component or Server Action
   const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <div className="flex gap-2 items-center">
       <DropdownMenu>
@@ -30,6 +35,7 @@ export default async function UserButton() {
             <ChevronDownIcon />
           </div>
         </DropdownMenuTrigger>
+
         {session ? (
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
@@ -42,23 +48,33 @@ export default async function UserButton() {
                 </p>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuGroup>
-              <Link className="w-full" href="/account">
-                <DropdownMenuItem>Your account</DropdownMenuItem>
+              <Link href="/account" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <UserIcon className="h-4 w-4" /> Account
+                </DropdownMenuItem>
               </Link>
-              <Link className="w-full" href="/account/orders">
-                <DropdownMenuItem>Your orders</DropdownMenuItem>
+              <Link href="/account/orders" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <ShoppingCartIcon className="h-4 w-4" /> Orders
+                </DropdownMenuItem>
               </Link>
-              <Link className="w-full" href="/wishlist">
-                <DropdownMenuItem>Your wishlist</DropdownMenuItem>
+              <Link href="/wishlist" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <HeartIcon className="h-4 w-4" />Wishlist
+                </DropdownMenuItem>
               </Link>
               {session.user.role === "ADMIN" && (
-                <Link className="w-full" href="/admin/overview">
-                  <DropdownMenuItem>Admin</DropdownMenuItem>
+                <Link href="/admin/overview" className="w-full">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <ShieldIcon className="h-4 w-4" /> Admin
+                  </DropdownMenuItem>
                 </Link>
               )}
             </DropdownMenuGroup>
-            <DropdownMenuItem className="p-0 mb-1">
+
+            <DropdownMenuItem className="p-0 mb-1 flex items-center gap-2">
               <SignOutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>

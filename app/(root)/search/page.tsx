@@ -100,17 +100,20 @@ export default async function SearchPage(props: {
 
   const params = { q, category, tag, price, rating, sort, page };
 
-  const categories = await getAllCategories();
-  const tags = await getAllTags();
-  const data = await getAllProducts({
-    category,
-    tag,
-    query: q,
-    price,
-    rating,
-    page: Number(page),
-    sort,
-  });
+  // Fetch categories, tags, and products in parallel
+  const [categories, tags, data] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllProducts({
+      category,
+      tag,
+      query: q,
+      price,
+      rating,
+      page: Number(page),
+      sort,
+    }),
+  ]);
   return (
     <div>
       <div className="my-2 bg-card md:border-b  flex-between flex-col md:flex-row ">

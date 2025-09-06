@@ -9,6 +9,9 @@ import {
   removeFromWishlist,
 } from "@/lib/actions/wishlist.actions";
 import { useSession } from "@/lib/auth-client";
+import { useWishlistStore } from "@/hooks/useWishlistStore";
+import { getProductById } from "@/lib/actions/product.actions"; // helper fetch
+import { Button } from "@/components/ui/button";
 
 interface WishlistIconProps {
   productId: string;
@@ -24,46 +27,53 @@ const WishlistIcon: React.FC<WishlistIconProps> = ({
   const [isInWishlist, setIsInWishlist] = useState(initialInWishlist);
   const [pending, startTransition] = useTransition();
 
+  const { addProduct, removeProduct } = useWishlistStore();
+
   const toggleWishlist = () => {
     if (!session) {
       toast.error("You need to log in to use the wishlist", {
         action: {
-          label: "Sign-in",
+          label: "Sign in",
           onClick: () => router.push("/sign-in"),
         },
       });
       return;
     }
 
-    setIsInWishlist(!isInWishlist); // Optimistic update
+    const prevState = isInWishlist;
+    setIsInWishlist(!prevState);
 
     startTransition(async () => {
       try {
-        if (isInWishlist) {
+        if (prevState) {
           await removeFromWishlist(productId);
+          removeProduct(productId); // ✅ sync store
           toast.success("Removed from wishlist");
         } else {
           await addToWishlist(productId);
+          const product = await getProductById(productId);
+          if (product) addProduct(product); // ✅ sync store
           toast.success("Added to wishlist");
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        setIsInWishlist(isInWishlist); // Revert UI if error occurs
+        setIsInWishlist(prevState);
         toast.error("Something went wrong!");
       }
     });
   };
 
   return (
-    <button
+    <Button
       onClick={toggleWishlist}
       disabled={pending}
-      className="p-2 cursor-pointer"
+      className="p-0.5 rounded-full bg-white shadow hover:bg-gray-100 transition"
     >
       <Heart
-        className={`w-6 h-6 transition ${isInWishlist ? "fill-red-500 text-red-500" : "text-gray-500"}`}
+        className={`w-6 h-6 transition ${
+          isInWishlist ? "fill-red-500 text-red-500" : "text-gray-700"
+        }`}
       />
-    </button>
+    </Button>
   );
 };
 

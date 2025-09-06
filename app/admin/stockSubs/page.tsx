@@ -15,6 +15,12 @@ import Pagination from "@/components/shared/pagination"; // Import Pagination
 import { getAllStockSubscriptions } from "@/lib/actions/stock.actions";
 import NotifyButton from "./notify-button";
 import { getServerSession } from "@/lib/get-session";
+import {
+  ReactElement,
+  JSXElementConstructor,
+  ReactNode,
+  ReactPortal,
+} from "react";
 
 export const metadata: Metadata = {
   title: "Admin Stock Subscriptions",
@@ -79,31 +85,79 @@ export default async function StockSubscriptionsPage({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {subscriptions.length > 0 ? (
-            subscriptions.map((sub) => (
-              <TableRow key={sub._id}>
-                <TableCell>{sub.email}</TableCell>
-                <TableCell>
-                  <Link
-                    href={`/product/${sub.product.slug}`}
-                    className="hover:underline"
-                  >
-                    {sub.product.name}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  {formatDateTime(sub.subscribedAt).dateOnly}{" "}
-                  {formatDateTime(sub.subscribedAt).timeOnly}
-                </TableCell>
+          {subscriptions && subscriptions.length > 0 ? (
+            subscriptions.map(
+              (sub: {
+                _id: any;
+                email: any;
+                product: {
+                  slug: any;
+                  name:
+                    | string
+                    | number
+                    | bigint
+                    | boolean
+                    | ReactElement<unknown, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | ReactPortal
+                    | Promise<
+                        | string
+                        | number
+                        | bigint
+                        | boolean
+                        | ReactPortal
+                        | ReactElement<
+                            unknown,
+                            string | JSXElementConstructor<any>
+                          >
+                        | Iterable<ReactNode>
+                        | null
+                        | undefined
+                      >
+                    | null
+                    | undefined;
+                  _id: string;
+                };
+                subscribedAt: Date;
+                isNotified: any;
+              }) => (
+                <TableRow key={sub?._id ?? Math.random()}>
+                  {/* Email */}
+                  <TableCell>{sub?.email ?? "N/A"}</TableCell>
 
-                <TableCell>{sub.isNotified ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  {!sub.isNotified && (
-                    <NotifyButton productId={sub.product._id} />
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
+                  {/* Product */}
+                  <TableCell>
+                    {sub?.product ? (
+                      <Link
+                        href={`/product/${sub.product.slug}`}
+                        className="hover:underline"
+                      >
+                        {sub.product.name}
+                      </Link>
+                    ) : (
+                      <span>Product not found</span>
+                    )}
+                  </TableCell>
+
+                  {/* Subscribed At */}
+                  <TableCell>
+                    {sub?.subscribedAt
+                      ? `${formatDateTime(sub.subscribedAt).dateOnly} ${formatDateTime(sub.subscribedAt).timeOnly}`
+                      : "N/A"}
+                  </TableCell>
+
+                  {/* Notified */}
+                  <TableCell>{sub?.isNotified ? "Yes" : "No"}</TableCell>
+
+                  {/* Actions */}
+                  <TableCell>
+                    {!sub?.isNotified && sub?.product?._id && (
+                      <NotifyButton productId={sub.product._id} />
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            )
           ) : (
             <TableRow>
               <TableCell colSpan={5} className="text-center">
