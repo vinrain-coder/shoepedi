@@ -94,7 +94,7 @@ export function SignInForm() {
     if (error) {
       setError(error.message || "Something went wrong");
     } else {
-      toast.success(`Signed in with ${provider}`);
+      toast.success(`Signed in with ${provider}. Redirecting...`);
     }
   }
 

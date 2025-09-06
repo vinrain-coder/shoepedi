@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 
 export default function DeleteDialog({
   id,
@@ -28,8 +29,8 @@ export default function DeleteDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          Delete
+        <Button size="sm" variant="outline" title="Delete">
+          <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

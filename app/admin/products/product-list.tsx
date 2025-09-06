@@ -21,7 +21,7 @@ import { IProduct } from "@/lib/db/models/product.model";
 import React, { useEffect, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { formatDateTime, formatId } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, EyeIcon, PenBox } from "lucide-react";
 import Image from "next/image";
 
 type ProductListDataProps = {
@@ -114,22 +114,22 @@ const ProductList = () => {
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Id</TableHead>
-                <TableHead>Image</TableHead>
-                <TableHead className="w-12">Name</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Published</TableHead>
-                <TableHead>Last Update</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead className="w-16">Id</TableHead>
+                <TableHead className="w-20">Image</TableHead>
+                <TableHead className="w-60">Name</TableHead>
+                <TableHead className="w-28 text-right">Price</TableHead>
+                <TableHead className="w-40">Category</TableHead>
+                <TableHead className="w-20">Stock</TableHead>
+                <TableHead className="w-20">Rating</TableHead>
+                <TableHead className="w-24">Published</TableHead>
+                <TableHead className="w-40">Updated</TableHead>
+                <TableHead className="w-36">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data?.products.map((product: IProduct) => (
                 <TableRow key={product._id}>
-                  <TableCell>{formatId(product._id)}</TableCell>
+                  <TableCell className="w-16">{formatId(product._id)}</TableCell>
                   <TableCell>
                     {product.images?.length > 0 ? (
                       <Image
@@ -143,7 +143,7 @@ const ProductList = () => {
                       <span>No Image</span>
                     )}
                   </TableCell>
-                  <TableCell className="w-12 overflow-hidden whitespace-nowrap text-ellipsis">
+                  <TableCell className="truncate">
                     <Link href={`/admin/products/${product._id}`}>
                       {product.name}
                     </Link>
@@ -153,37 +153,42 @@ const ProductList = () => {
                   <TableCell>{product.countInStock}</TableCell>
                   <TableCell>{product.avgRating}</TableCell>
                   <TableCell>{product.isPublished ? "Yes" : "No"}</TableCell>
-                  <TableCell>
+                  <TableCell className="w-40">
                     {formatDateTime(product.updatedAt).dateTime}
                   </TableCell>
-                  <TableCell className="flex gap-1">
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/admin/products/${product._id}`}>Edit</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link target="_blank" href={`/product/${product.slug}`}>
-                        View
-                      </Link>
-                    </Button>
-                    <DeleteDialog
-                      id={product._id}
-                      action={deleteProduct}
-                      callbackAction={() => {
-                        startTransition(async () => {
-                          const data = await getAllProductsForAdmin({
-                            query: inputValue,
+                  <TableCell>
+                    <div className="flex items-center justify-start gap-2">
+                      <Button asChild variant="outline" size="sm" title="Edit">
+                        <Link href={`/admin/products/${product._id}`}>
+                          <PenBox />
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" size="sm" title="View">
+                        <Link target="_blank" href={`/product/${product.slug}`}>
+                          <EyeIcon />
+                        </Link>
+                      </Button>
+                      <DeleteDialog
+                        id={product._id}
+                        action={deleteProduct}
+                        callbackAction={() => {
+                          startTransition(async () => {
+                            const data = await getAllProductsForAdmin({
+                              query: inputValue,
+                            });
+                            setData(data);
                           });
-                          setData(data);
-                        });
-                      }}
-                    />
+                        }}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+
           {(data?.totalPages ?? 0) > 1 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-center">
               <Button
                 variant="outline"
                 onClick={() => handlePageChange("prev")}

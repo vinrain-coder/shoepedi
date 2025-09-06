@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,21 +19,69 @@ export const metadata: Metadata = {
   title: "Admin Blog Pages",
 };
 
-export default async function BlogAdminPage() {
+interface BlogAdminPageProps {
+  searchParams?: { filter?: "all" | "published" | "unpublished" };
+}
+
+export default async function BlogAdminPage({
+  searchParams,
+}: BlogAdminPageProps) {
   const session = await getServerSession();
   if (session?.user.role !== "ADMIN")
     throw new Error("Admin permission required");
 
-  const { blogs, totalPages } = await getAllBlogs({});
+  const filter = searchParams?.filter || "all";
+
+  // Decide the flag for onlyPublished
+  const onlyPublished =
+    filter === "published"
+      ? true
+      : filter === "unpublished"
+        ? false
+        : undefined;
+
+  const { blogs, totalPages } = await getAllBlogs({
+    page: 1,
+    limit: 50,
+    onlyPublished: onlyPublished === undefined ? false : onlyPublished,
+  });
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-row flex-wrap justify-between gap-2">
+      {/* Header + Filters */}
+      <div className="flex flex-row flex-wrap justify-between gap-2 items-center">
         <h1 className="h1-bold">Blogs</h1>
-        <Button asChild variant="default">
-          <Link href="/admin/blogs/create">Create Blog</Link>
-        </Button>
+
+        <div className="flex gap-2">
+          <Button
+            asChild
+            variant={filter === "all" ? "default" : "outline"}
+            size="sm"
+          >
+            <Link href="/admin/blogs?filter=all">All</Link>
+          </Button>
+          <Button
+            asChild
+            variant={filter === "published" ? "default" : "outline"}
+            size="sm"
+          >
+            <Link href="/admin/blogs?filter=published">Published</Link>
+          </Button>
+          <Button
+            asChild
+            variant={filter === "unpublished" ? "default" : "outline"}
+            size="sm"
+          >
+            <Link href="/admin/blogs?filter=unpublished">Unpublished</Link>
+          </Button>
+
+          <Button asChild variant="default" size="sm">
+            <Link href="/admin/blogs/create">Create Blog</Link>
+          </Button>
+        </div>
       </div>
+
+      {/* Table */}
       <div>
         <Table>
           <TableHeader>

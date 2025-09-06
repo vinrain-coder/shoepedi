@@ -17,11 +17,10 @@ import {
 } from "lucide-react"; 
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getServerSession } from "@/lib/get-session";
 
 export default async function UserButton() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
 
   return (
     <div className="flex gap-2 items-center">

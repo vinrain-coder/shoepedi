@@ -6,7 +6,6 @@ import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Blog, { IBlog } from "../db/models/blog.model";
 import { BlogInputSchema, BlogUpdateSchema } from "../validator";
-import { notFound } from "next/navigation";
 
 // 🔹 CREATE BLOG
 export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
@@ -47,27 +46,30 @@ export async function deleteBlog(id: string) {
   }
 }
 
+// 🔹 GET ALL BLOGS (WITH OPTIONAL PUBLISHED FILTER)
 export async function getAllBlogs({
   page = 1,
   limit = 9,
+  onlyPublished = false, // ✅ New optional filter
 }: {
   page?: number;
   limit?: number;
+  onlyPublished?: boolean;
 }) {
   await connectToDatabase();
 
-  const totalBlogs = await Blog.countDocuments({ isPublished: true });
+  const filter = onlyPublished ? { isPublished: true } : {}; // fetch all if false
 
+  const totalBlogs = await Blog.countDocuments(filter);
   const totalPages = Math.ceil(totalBlogs / limit);
 
-  const blogs = await Blog.find({ isPublished: true })
+  const blogs = await Blog.find(filter)
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit)
     .select(
       "_id title slug content category views tags createdAt updatedAt isPublished"
     )
-
     .lean();
 
   return {
@@ -87,10 +89,10 @@ export async function getAllBlogs({
   };
 }
 
+// 🔹 GET BLOG BY SLUG
 export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
   await connectToDatabase();
   const blog = await Blog.findOne({ slug }).lean();
-
   if (!blog) return null;
 
   return {
@@ -100,27 +102,27 @@ export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
   };
 }
 
+// 🔹 GET BLOG BY ID
 export async function getBlogById(blogId: string) {
   await connectToDatabase();
   const blog = await Blog.findById(blogId).lean();
-
   if (!blog) return null;
 
   return {
     ...blog,
-    _id: blog._id.toString(), // ✅ Convert ObjectId to string
+    _id: blog._id.toString(),
     createdAt: blog.createdAt.toISOString(),
     updatedAt: blog.updatedAt.toISOString(),
   };
 }
 
-// 🔹 GET ALL CATEGORIES (UNIQUE)
+// 🔹 GET ALL CATEGORIES
 export async function getAllBlogCategories() {
   await connectToDatabase();
   return await Blog.distinct("category");
 }
 
-// 🔹 GET ALL TAGS (UNIQUE, FORMATTED)
+// 🔹 GET ALL TAGS
 export async function getAllBlogTags() {
   await connectToDatabase();
   const tags = await Blog.aggregate([
@@ -138,6 +140,7 @@ export async function getAllBlogTags() {
   );
 }
 
+// 🔹 INCREMENT BLOG VIEWS
 export async function incrementBlogViews(slug: string) {
   try {
     await connectToDatabase();
@@ -146,33 +149,30 @@ export async function incrementBlogViews(slug: string) {
       { $inc: { views: 1 } },
       { new: true }
     );
-
     return { success: true, views: blog?.views || 0 };
   } catch (error) {
     return { success: false, message: "Failed to update views" };
   }
 }
 
+// 🔹 GET MOST VIEWED BLOGS
 export async function getMostViewedBlogs(limit: number = 5) {
   try {
     await connectToDatabase();
-    const blogs = await Blog.find({ isPublished: true })
-      .sort({ views: -1 }) // ✅ Sort by views (highest first)
+    const blogs = await Blog.find()
+      .sort({ views: -1 })
       .limit(limit)
       .select("title slug coverImage views");
-
     return blogs;
   } catch (error) {
     return [];
   }
 }
 
-export async function fetchLatestBlogs(p0: { limit: number; }) {
+// 🔹 FETCH LATEST BLOGS
+export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
   await connectToDatabase();
-  const blogs = await Blog.find({ isPublished: true })
-    .sort({ createdAt: -1 })
-    .limit(4)
-    .lean(); // ✅ lean returns plain JS objects
+  const blogs = await Blog.find().sort({ createdAt: -1 }).limit(limit).lean();
 
   return blogs.map((blog) => ({
     _id: blog._id.toString(),
@@ -182,6 +182,7 @@ export async function fetchLatestBlogs(p0: { limit: number; }) {
     category: blog.category,
     tags: blog.tags,
     createdAt: blog.createdAt.toISOString(),
+    updatedAt: blog.updatedAt.toISOString(),
+    isPublished: blog.isPublished,
   }));
 }
-

@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
 import { useSession } from "@/lib/auth-client";
 import { redirect } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 
 export default function WishlistClient({ products }: { products: IProduct[] }) {
   const { data: session } = useSession();
@@ -45,8 +46,9 @@ export default function WishlistClient({ products }: { products: IProduct[] }) {
       ) : (
         <div className="text-center mt-10">
           <p className="my-8 text-xl">Oops! Your wishlist is empty.</p>
-          <Link href="/" className={buttonVariants()}>
-            Go to Home
+          <Link href="/search" className={buttonVariants()}>
+            Add Here
+            <ArrowRight />
           </Link>
         </div>
       )}
