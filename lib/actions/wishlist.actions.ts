@@ -36,13 +36,26 @@ export async function addToWishlist(productId: string): Promise<string[]> {
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  const result = await db.collection("users").findOneAndUpdate(
-    { _id: new mongoose.Types.ObjectId(session.user.id) },
-    { $addToSet: { wishlist: new mongoose.Types.ObjectId(productId) } },
-    { returnDocument: "after" }
-  );
+  // Ensure wishlist is an array first
+  await db
+    .collection("users")
+    .updateOne(
+      {
+        _id: new mongoose.Types.ObjectId(session.user.id),
+        wishlist: { $not: { $type: "array" } },
+      },
+      { $set: { wishlist: [] } }
+    );
 
-  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
+  const result = await db
+    .collection("users")
+    .findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(session.user.id) },
+      { $addToSet: { wishlist: new mongoose.Types.ObjectId(productId) } },
+      { returnDocument: "after" }
+    );
+
+  return result.value?.wishlist?.map((id: any) => id.toString()) || [];
 }
 
 // ✅ Remove product from wishlist
@@ -51,11 +64,13 @@ export async function removeFromWishlist(productId: string): Promise<string[]> {
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  const result = await db.collection("users").findOneAndUpdate(
-    { _id: new mongoose.Types.ObjectId(session.user.id) },
-    { $pull: { wishlist: new mongoose.Types.ObjectId(productId) } },
-    { returnDocument: "after" }
-  );
+  const result = await db
+    .collection("users")
+    .findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(session.user.id) },
+      { $pull: { wishlist: new mongoose.Types.ObjectId(productId) } },
+      { returnDocument: "after" }
+    );
 
   return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
 }
@@ -69,7 +84,9 @@ export async function getWishlistProducts(): Promise<IProduct[]> {
   const products = await db
     .collection("products")
     .find({
-      _id: { $in: user.wishlist.map((id: any) => new mongoose.Types.ObjectId(id)) },
+      _id: {
+        $in: user.wishlist.map((id: any) => new mongoose.Types.ObjectId(id)),
+      },
     })
     .toArray();
 
