@@ -14,7 +14,7 @@ export default async function CheckoutLayout({
   const session = await getServerSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   return (

@@ -11,7 +11,7 @@ export default async function AccountLayout({
   const session = await getServerSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   return (
