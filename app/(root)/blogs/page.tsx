@@ -1,4 +1,4 @@
-import { getAllBlogs } from "@/lib/actions/blog.actions";
+import { getPublishedBlogs } from "@/lib/actions/blog.actions";
 import BlogCard from "@/components/shared/blog/blog-card";
 import Pagination from "@/components/shared/pagination";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
@@ -18,7 +18,7 @@ export default async function BlogPage({
   const currentPage = Number(searchParams.page) || 1;
 
   // Fetch blogs
-  const { blogs, totalPages } = await getAllBlogs({ page: currentPage });
+  const { blogs, totalPages } = await getPublishedBlogs({ page: currentPage });
 
   return (
     <div className="space-y-6">

@@ -281,7 +281,8 @@ export default function ReviewList({
                   href={`/sign-in?callbackUrl=/product/${product.slug}`}
                   className="highlight-link"
                 >
-                  Sign <input type="text" />
+                  Sign In
+                  <input type="text" />
                 </Link>{" "}
                 to write a review
               </div>
@@ -295,7 +296,7 @@ export default function ReviewList({
                 <div className="flex-between">
                   <CardTitle>{review.title}</CardTitle>
                   <div className="italic text-sm flex">
-                    <Check className="h-4 w-4" /> Verified Purchase
+                    <Check className="size-4" /> Verified Purchase
                   </div>
                 </div>
                 <CardDescription>{review.comment}</CardDescription>
@@ -304,12 +305,12 @@ export default function ReviewList({
                 <div className="flex space-x-4 text-sm text-muted-foreground">
                   <Rating rating={review.rating} />
                   <div className="flex items-center">
-                    <User className="mr-1 h-3 w-3" />
+                    <User className="mr-1 size-4" />
                     {review.user ? review.user.name : "Deleted User"}
                   </div>
 
                   <div className="flex items-center">
-                    <Calendar className="mr-1 h-3 w-3" />
+                    <Calendar className="mr-1 size-4" />
                     {review.createdAt.toString().substring(0, 10)}
                   </div>
                 </div>

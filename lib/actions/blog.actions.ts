@@ -89,6 +89,22 @@ export async function getAllBlogs({
   };
 }
 
+// get published bogs only
+export async function getPublishedBlogs({
+  page = 1,
+  limit = 9,
+}: {
+  page?: number;
+  limit?: number;
+}) {
+  return getAllBlogs({
+    page,
+    limit,
+    onlyPublished: true, 
+  });
+}
+
+
 // 🔹 GET BLOG BY SLUG
 export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
   await connectToDatabase();

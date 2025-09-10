@@ -15,7 +15,7 @@ export default async function AuthLayout({
   const { site } = await getSetting();
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex flex-col bg-gray-50">
       {/* Header */}
       <header className="flex items-center justify-center py-6 mt-2">
         <Link href="/" className="flex items-center gap-2">

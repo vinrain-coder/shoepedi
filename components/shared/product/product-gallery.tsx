@@ -16,17 +16,18 @@ export default function ProductGallery({
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // Update main image immediately when selectedColor changes
   useEffect(() => {
     if (!colors || colors.length === 0) return;
-
     const colorIndex = colors.indexOf(selectedColor);
-    if (colorIndex !== -1) {
+    if (colorIndex !== -1 && images[colorIndex]) {
       setSelectedImage(colorIndex);
     }
-  }, [selectedColor, colors]);
+  }, [selectedColor, colors, images]);
 
   return (
     <div className="flex gap-2">
+      {/* Thumbnails */}
       <div className="flex flex-col gap-2 mt-8">
         {images.map((image, index) => (
           <button
@@ -44,10 +45,12 @@ export default function ProductGallery({
         ))}
       </div>
 
+      {/* Main Image */}
       <div className="w-full">
         <Zoom>
           <div className="relative h-[500px]">
             <Image
+              key={images[selectedImage]}
               src={images[selectedImage]}
               alt="product image"
               fill

@@ -1,3 +1,5 @@
+"use client";
+
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,13 +16,13 @@ import {
   ShoppingCartIcon,
   HeartIcon,
   ShieldIcon,
-} from "lucide-react"; 
+} from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
-import { getServerSession } from "@/lib/get-session";
+import { authClient } from "@/lib/auth-client";
 
-export default async function UserButton() {
-  const session = await getServerSession();
+export default function UserButton() {
+  const { data: session } = authClient.useSession();
 
   return (
     <div className="flex gap-2 items-center">
@@ -61,7 +63,8 @@ export default async function UserButton() {
               </Link>
               <Link href="/wishlist" className="w-full">
                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                  <HeartIcon className="h-4 w-4" />Wishlist
+                  <HeartIcon className="h-4 w-4" />
+                  Wishlist
                 </DropdownMenuItem>
               </Link>
               {session.user.role === "ADMIN" && (
@@ -73,7 +76,7 @@ export default async function UserButton() {
               )}
             </DropdownMenuGroup>
 
-            <DropdownMenuItem className="p-0 mb-1 flex items-center gap-2">
+            <DropdownMenuItem className="p-0 mb-1 flex items-center gap-4">
               <SignOutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -41,7 +41,7 @@ export default async function Header() {
           <div className="hidden md:block flex-1 max-w-xl">
             <Search />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <NavbarWishlist />
             <Menu />
           </div>

@@ -22,7 +22,7 @@ type RatingSummaryProps = {
   }[];
 };
 
-export default function RatingSummary({
+export default function jRatingSummary({
   asPopover,
   avgRating = 0,
   numReviews = 0,

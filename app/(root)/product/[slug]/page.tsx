@@ -118,8 +118,8 @@ export default async function ProductDetails(props: {
           <div className="col-span-2">
             <ProductGallery
               images={product.images}
-              colors={product.colors}
               selectedColor={selectedColor}
+              colors={product.colors}
             />
           </div>
 
@@ -143,6 +143,7 @@ export default async function ProductDetails(props: {
                 <ProductPrice
                   price={product.price}
                   listPrice={product.listPrice}
+                  isDeal
                 />
               </div>
             </div>

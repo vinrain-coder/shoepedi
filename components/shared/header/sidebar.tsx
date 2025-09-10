@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { X, ChevronRight, UserCircle, MenuIcon } from "lucide-react";
@@ -11,15 +13,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { SignOutButton } from "../sign-out-button";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { authClient } from "@/lib/auth-client";
 
-export default async function Sidebar({
-  categories,
-}: {
-  categories: string[];
-}) {
-  const session = await auth.api.getSession({ headers: await headers() });
+export default function Sidebar({ categories }: { categories: string[] }) {
+  const { data: session } = authClient.useSession();
 
   return (
     <Drawer direction="left">
@@ -107,15 +104,9 @@ export default async function Sidebar({
               </Link>
             </DrawerClose>
             {session ? (
-              <form className="w-full">
-                {/* <Button
-                  className="w-full justify-start item-button text-base py-2 px-4 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
-                  variant="ghost"
-                >
-                  Sign out
-                </Button> */}
+              <div className="w-3/4">
                 <SignOutButton />
-              </form>
+              </div>
             ) : (
               <Link
                 href="/sign-in"
