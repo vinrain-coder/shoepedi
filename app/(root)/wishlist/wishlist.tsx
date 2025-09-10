@@ -6,15 +6,17 @@ import ProductCard from "@/components/shared/product/product-card";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
-import { useSession } from "@/lib/auth-client";
-import { redirect } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { ArrowRight } from "lucide-react";
 
 export default function WishlistClient({ products }: { products: IProduct[] }) {
-  const { data: session } = useSession();
-  if (!session?.user) {
-    redirect("/sign-in?callbackUrl=/wishlist");
-  }
+  const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    if (!session?.user) {
+      window.location.href = "/sign-in?callbackUrl=/wishlist";
+    }
+  }, [session]);
 
   const { products: wishlistProducts, setProducts } = useWishlistStore();
 
