@@ -26,7 +26,7 @@ export default async function AuthLayout({
             height={40}
             priority
           />
-          <h1 className="text-xl font-semibold text-gray-900 hover:text-primary">
+          <h1 className="text-xl font-semibold hover:text-primary">
             {site?.name}
           </h1>
         </Link>
