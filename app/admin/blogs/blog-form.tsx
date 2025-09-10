@@ -107,15 +107,16 @@ const BlogForm = ({
                       className="pl-8"
                       {...field}
                     />
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       onClick={() =>
                         form.setValue("slug", toSlug(form.getValues("title")))
                       }
-                      className="absolute right-2 top-2.5"
+                      className="absolute right-2 top-2.5 text-white bg-primary"
                     >
                       Generate
-                    </button>
+                    </Button>
                   </div>
                 </FormControl>
                 <FormMessage />

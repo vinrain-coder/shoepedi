@@ -158,15 +158,16 @@ const ProductForm = ({
                       className="pl-8"
                       {...field}
                     />
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       onClick={() => {
                         form.setValue("slug", toSlug(form.getValues("name")));
                       }}
                       className="absolute right-2 top-2.5"
                     >
                       Generate
-                    </button>
+                    </Button>
                   </div>
                 </FormControl>
 
