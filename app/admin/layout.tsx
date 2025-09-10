@@ -4,8 +4,6 @@ import React from "react";
 import Menu from "@/components/shared/header/menu";
 import { AdminNav } from "./admin-nav";
 import { getSetting } from "@/lib/actions/setting.actions";
-import { getServerSession } from "@/lib/get-session";
-import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
   children,
@@ -13,13 +11,6 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const { site } = await getSetting();
-
-  const session = await getServerSession();
-
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/sign-in");
-  }
-
   return (
     <>
       <div className="flex flex-col">
