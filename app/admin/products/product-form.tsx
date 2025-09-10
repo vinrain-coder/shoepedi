@@ -500,7 +500,7 @@ const ProductForm = ({
             control={form.control}
             name="isPublished"
             render={({ field }) => (
-              <FormItem className="space-x-2 items-center">
+              <FormItem className="flex items-center space-x-2">
                 <FormControl>
                   <Checkbox
                     checked={field.value}

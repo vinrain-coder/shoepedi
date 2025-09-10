@@ -49,7 +49,9 @@ export function SignInForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
+
+  const redirect =
+    searchParams.get("redirect") || searchParams.get("callbackUrl") || "/";
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -76,7 +78,7 @@ export function SignInForm() {
       setError(error.message || "Something went wrong");
     } else {
       toast.success("Signed in successfully");
-      router.push(redirect ?? "/");
+      router.push(redirect);
     }
   }
 
@@ -86,7 +88,7 @@ export function SignInForm() {
 
     const { error } = await authClient.signIn.social({
       provider,
-      callbackURL: redirect ?? "/",
+      callbackURL: redirect,
     });
 
     setLoadingProvider(null);
@@ -218,7 +220,9 @@ export function SignInForm() {
         <p className="text-sm text-muted-foreground">
           Don’t have an account?{" "}
           <Link
-            href={`/sign-up${redirect ? `?redirect=${redirect}` : ""}`}
+            href={`/sign-up${
+              redirect && redirect !== "/" ? `?redirect=${redirect}` : ""
+            }`}
             className="font-medium underline"
           >
             Sign up

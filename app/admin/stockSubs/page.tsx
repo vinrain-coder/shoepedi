@@ -74,7 +74,7 @@ export default async function StockSubscriptionsPage({
       </div>
 
       {/* Table */}
-      <Table>
+      <Table className="border-separate border-spacing-y-3">
         <TableHeader>
           <TableRow>
             <TableHead>Email</TableHead>

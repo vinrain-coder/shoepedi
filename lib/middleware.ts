@@ -7,32 +7,53 @@ const authRoutes = [
   "/sign-up",
   "/verify-email",
   "/forgot-password",
+  "/reset-password",
 ];
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const sessionCookie = getSessionCookie(req);
-
-  const res = NextResponse.next();
   const isLoggedIn = !!sessionCookie;
 
-  const isOnProtectedRoute = protectedRoutes.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
+  const path = nextUrl.pathname;
 
-  const isOnAuthRoute = authRoutes.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
+  // Normalize callbackUrl → redirect
+  if (nextUrl.searchParams.has("callbackUrl")) {
+    const redirectUrl = nextUrl.clone();
+    const callbackUrl = nextUrl.searchParams.get("callbackUrl");
 
-  if (isOnProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
+    redirectUrl.searchParams.delete("callbackUrl");
+    if (callbackUrl) {
+      redirectUrl.searchParams.set("redirect", callbackUrl);
+    }
+
+    return NextResponse.redirect(redirectUrl);
   }
 
+  // Check if route is protected (including nested ones like /admin/overview)
+  const isOnProtectedRoute = protectedRoutes.some(
+    (route) => path === route || path.startsWith(`${route}/`)
+  );
+
+  // Check if route is an auth page (sign-in, sign-up, etc.)
+  const isOnAuthRoute = authRoutes.some(
+    (route) => path === route || path.startsWith(`${route}/`)
+  );
+
+  // 🚨 If user not logged in but tries protected route → redirect to sign-in
+  if (isOnProtectedRoute && !isLoggedIn) {
+    const signInUrl = new URL("/sign-in", req.url);
+    signInUrl.searchParams.set("redirect", path);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // 🚨 If user *is* logged in but tries to access auth routes → redirect home
   if (isOnAuthRoute && isLoggedIn) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  return res;
+  // ✅ Allow request
+  return NextResponse.next();
 }
 
 export const config = {

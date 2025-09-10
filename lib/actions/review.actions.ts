@@ -13,6 +13,7 @@ import { formatError } from "../utils";
 import { ReviewInputSchema } from "../validator";
 import { IReviewDetails } from "@/types";
 import { getSetting } from "./setting.actions";
+import { getServerSession } from "../get-session";
 
 export async function createUpdateReview({
   data,
@@ -22,7 +23,7 @@ export async function createUpdateReview({
   path: string;
 }) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     if (!session) {
       throw new Error("User is not authenticated");
     }
@@ -136,7 +137,7 @@ export const getReviewByProductId = async ({
   productId: string;
 }) => {
   await connectToDatabase();
-  const session = await auth();
+  const session = await getServerSession();
   if (!session) {
     throw new Error("User is not authenticated");
   }
