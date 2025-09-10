@@ -1,4 +1,4 @@
-import { SessionGuard } from "@/components/shared/session-guard";
+import SessionGuard from "@/components/shared/session-guard";
 import { getServerSession } from "@/lib/get-session";
 import { HelpCircle } from "lucide-react";
 import Image from "next/image";

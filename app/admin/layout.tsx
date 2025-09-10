@@ -6,7 +6,7 @@ import { AdminNav } from "./admin-nav";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
-import { SessionGuard } from "@/components/shared/session-guard";
+import SessionGuard from "@/components/shared/session-guard";
 
 export default async function AdminLayout({
   children,

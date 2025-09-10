@@ -1,29 +1,62 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client"; // from better-auth
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
-export function SessionGuard({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode;
+}
+
+export default function SessionGuard({ children }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: session } = await authClient.getSession();
+    let isMounted = true;
 
-      if (!session) {
-        router.replace("/sign-in?redirect=" + encodeURIComponent(window.location.pathname));
+    const checkSession = async () => {
+      try {
+        const { data: session } = await authClient.getSession();
+
+        if (!session && isMounted) {
+          router.replace(
+            `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`
+          );
+        }
+      } catch (err) {
+        console.error("Error checking session", err);
+        if (isMounted) {
+          router.replace(
+            `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`
+          );
+        }
+      } finally {
+        if (isMounted) setChecking(false);
       }
     };
 
-    // Run immediately
     checkSession();
 
-    // Optionally poll every few seconds for expired session
-    const interval = setInterval(checkSession, 10_000);
+    // // Listen for logout events and redirect immediately
+    // const unsub = authClient.on("signOut", () => {
+    //   router.replace(
+    //     `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`
+    //   );
+    // });
 
-    return () => clearInterval(interval);
-  }, [router]);
+    return () => {
+      isMounted = false;
+      // unsub?.();
+    };
+  }, [pathname, router]);
+
+  if (checking) {
+    return (
+      <div className="flex h-screen items-center justify-center">Loading...</div>
+    );
+  }
 
   return <>{children}</>;
 }

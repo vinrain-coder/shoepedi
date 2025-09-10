@@ -1,4 +1,4 @@
-import { SessionGuard } from "@/components/shared/session-guard";
+import SessionGuard from "@/components/shared/session-guard";
 import { getServerSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
 import React from "react";
