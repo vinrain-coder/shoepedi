@@ -17,7 +17,7 @@ async function getCurrentUser() {
   const session = await getServerSession();
   if (!session?.user?.id) return null;
 
-  return await db.collection("user").findOne({
+  return await db.collection("users").findOne({
     _id: new mongoose.Types.ObjectId(session.user.id),
   });
 }
@@ -36,7 +36,7 @@ export async function addToWishlist(productId: string): Promise<string[]> {
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  const result = await db.collection("user").findOneAndUpdate(
+  const result = await db.collection("users").findOneAndUpdate(
     { _id: new mongoose.Types.ObjectId(session.user.id) },
     { $addToSet: { wishlist: new mongoose.Types.ObjectId(productId) } },
     { returnDocument: "after" }
@@ -51,7 +51,7 @@ export async function removeFromWishlist(productId: string): Promise<string[]> {
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  const result = await db.collection("user").findOneAndUpdate(
+  const result = await db.collection("users").findOneAndUpdate(
     { _id: new mongoose.Types.ObjectId(session.user.id) },
     { $pull: { wishlist: new mongoose.Types.ObjectId(productId) } },
     { returnDocument: "after" }
