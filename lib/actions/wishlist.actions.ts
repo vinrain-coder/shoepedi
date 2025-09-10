@@ -7,7 +7,7 @@ import { IProduct } from "../db/models/product.model";
 
 // Helper: get the native MongoDB Db object
 async function getDb() {
-  const conn = await connectToDatabase(); // this returns a Mongoose connection
+  const conn = await connectToDatabase(); // returns a Mongoose connection
   return conn.connection.db; // use the underlying native MongoDB driver
 }
 
@@ -27,7 +27,9 @@ export async function getWishlist(): Promise<string[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
-  return (user.wishlist || []).map((id: ObjectId) => id.toString());
+  return (Array.isArray(user.wishlist) ? user.wishlist : []).map(
+    (id: ObjectId) => id.toString()
+  );
 }
 
 // ✅ Add product to wishlist
@@ -35,17 +37,6 @@ export async function addToWishlist(productId: string): Promise<string[]> {
   const db = await getDb();
   const session = await getServerSession();
   if (!session?.user?.id) return [];
-
-  // Ensure wishlist is an array first
-  await db
-    .collection("users")
-    .updateOne(
-      {
-        _id: new mongoose.Types.ObjectId(session.user.id),
-        wishlist: { $not: { $type: "array" } },
-      },
-      { $set: { wishlist: [] } }
-    );
 
   const result = await db
     .collection("users")
@@ -55,7 +46,9 @@ export async function addToWishlist(productId: string): Promise<string[]> {
       { returnDocument: "after" }
     );
 
-  return result.value?.wishlist?.map((id: any) => id.toString()) || [];
+  return (
+    Array.isArray(result.value?.wishlist) ? result.value.wishlist : []
+  ).map((id: ObjectId) => id.toString());
 }
 
 // ✅ Remove product from wishlist
@@ -72,14 +65,21 @@ export async function removeFromWishlist(productId: string): Promise<string[]> {
       { returnDocument: "after" }
     );
 
-  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
+  return (
+    Array.isArray(result.value?.wishlist) ? result.value.wishlist : []
+  ).map((id: ObjectId) => id.toString());
 }
 
 // ✅ Fetch full product details for wishlist
 export async function getWishlistProducts(): Promise<IProduct[]> {
   const db = await getDb();
   const user = await getCurrentUser();
-  if (!user?.wishlist || user.wishlist.length === 0) return [];
+  if (
+    !user?.wishlist ||
+    !Array.isArray(user.wishlist) ||
+    user.wishlist.length === 0
+  )
+    return [];
 
   const products = await db
     .collection("products")
@@ -101,5 +101,5 @@ export async function getWishlistCount(): Promise<number> {
   const user = await getCurrentUser();
   if (!user) return 0;
 
-  return user.wishlist?.length || 0;
+  return Array.isArray(user.wishlist) ? user.wishlist.length : 0;
 }
