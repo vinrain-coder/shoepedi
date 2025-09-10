@@ -1,4 +1,3 @@
-// hooks/useWishlistStore.ts
 import { create } from "zustand";
 import { IProduct } from "@/lib/db/models/product.model";
 

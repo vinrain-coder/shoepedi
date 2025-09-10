@@ -11,9 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
+import { getProductById } from "@/lib/actions/product.actions";
 
 interface WishlistButtonProps {
-  productId: string; // ✅ only need the ID
+  productId: string;
 }
 
 const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
@@ -22,8 +23,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
   const [pending, startTransition] = useTransition();
 
   const { isInWishlist, addProduct, removeProduct } = useWishlistStore();
-
-  const inWishlist = isInWishlist(productId); // ✅ fixed
+  const inWishlist = isInWishlist(productId);
 
   const toggleWishlist = () => {
     if (!session) {
@@ -36,19 +36,31 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
       return;
     }
 
+    // optimistic update
+    if (inWishlist) {
+      removeProduct(productId);
+    } else {
+      addProduct({ _id: productId } as any);
+    }
+
     startTransition(async () => {
       try {
         if (inWishlist) {
           await removeFromWishlist(productId);
-          removeProduct(productId);
           toast.success("Removed from wishlist");
         } else {
           await addToWishlist(productId);
-          // if you need product details for addProduct, pass them in from parent
-          addProduct({ _id: productId } as any);
+          const product = await getProductById(productId);
+          if (product) addProduct(product); // replace temp
           toast.success("Added to wishlist");
         }
       } catch {
+        // revert
+        if (inWishlist) {
+          addProduct({ _id: productId } as any);
+        } else {
+          removeProduct(productId);
+        }
         toast.error("Something went wrong!");
       }
     });
@@ -62,7 +74,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
       disabled={pending}
     >
       <Heart
-        size={18}
+        size={20}
         className={`transition ${
           inWishlist ? "fill-red-500 text-red-500" : "text-gray-500"
         }`}

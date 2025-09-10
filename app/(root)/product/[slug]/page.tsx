@@ -21,16 +21,13 @@ import OrderViaWhatsApp from "@/components/shared/product/order-via-whatsapp";
 import WishlistButton from "@/components/shared/product/wishlist-button";
 import { getServerSession } from "@/lib/get-session";
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>;
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
 }) {
-  const params = await props.params;
-
-  // Fetch product and site setting in parallel
-  const [product, { site }] = await Promise.all([
-    getProductBySlug(params.slug),
-    getSetting(),
-  ]);
+  const product = await getProductBySlug(params.slug);
+  const { site } = await getSetting();
 
   if (!product) return { title: "Product not found" };
 
@@ -79,19 +76,17 @@ export async function generateMetadata(props: {
   };
 }
 
-export default async function ProductDetails(props: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page: string; color: string; size: string }>;
+export default async function ProductDetails({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { page?: string; color?: string; size?: string };
 }) {
-  const [searchParams, params, session] = await Promise.all([
-    props.searchParams,
-    props.params,
-    getServerSession(),
-  ]);
+  const session = await getServerSession();
 
   const { slug } = params;
 
-  // Fetch product and related products in parallel
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
 
@@ -101,7 +96,7 @@ export default async function ProductDetails(props: {
     page: Number(searchParams.page || "1"),
   });
 
-  const [relatedProducts] = await Promise.all([relatedProductsPromise]);
+  const relatedProducts = await relatedProductsPromise;
 
   const selectedColor = searchParams.color || product.colors[0];
   const selectedSize = searchParams.size || product.sizes[0];

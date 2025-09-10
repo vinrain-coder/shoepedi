@@ -15,30 +15,30 @@ export default async function AuthLayout({
   const { site } = await getSetting();
 
   return (
-    <div className="flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-center py-6 mt-2">
+      <div className="flex items-center justify-center py-4">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/icons/logo.svg"
             alt="logo"
-            width={48} // slightly smaller for balance
-            height={48}
+            width={40}
+            height={40}
             priority
           />
-          <h1 className="text-3xl font-semibold text-gray-900 hover:text-primary">
+          <h1 className="text-xl font-semibold text-gray-900 hover:text-primary">
             {site?.name}
           </h1>
         </Link>
-      </header>
+      </div>
 
       {/* Main content */}
-      <main className="flex flex-1 items-center justify-center px-4 -mt-4">
-        <div className="w-full max-w-md">{children}</div>
-      </main>
+      <div className="flex justify-center px-4">
+        <div className="w-full max-w-md rounded-xl shadow p-6">{children}</div>
+      </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-4">
+      <div className="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-8">
         <div className="flex justify-center space-x-6 mb-2">
           <Link href="/page/conditions-of-use" className="hover:underline">
             Conditions of Use
@@ -51,7 +51,7 @@ export default async function AuthLayout({
           </Link>
         </div>
         <p>{site?.copyright}</p>
-      </footer>
+      </div>
     </div>
   );
 }
