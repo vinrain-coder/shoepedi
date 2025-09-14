@@ -8,10 +8,10 @@ export interface IReview extends Document, IReviewInput {
 }
 const reviewSchema = new Schema<IReview>(
   {
-    user: {
-      type: Schema.Types.ObjectId as unknown as typeof String,
-      ref: "User",
-    },
+    // user: {
+    //   type: Schema.Types.ObjectId as unknown as typeof String,
+    //   ref: "User",
+    // },
     isVerifiedPurchase: {
       type: Boolean,
       required: true,
