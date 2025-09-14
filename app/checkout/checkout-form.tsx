@@ -39,9 +39,13 @@ import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
-import { PaystackButton } from "react-paystack";
 import { authClient } from "@/lib/auth-client";
-import PaystackInline from "./paystack-inline";
+import dynamic from "next/dynamic";
+
+const PaystackInline = dynamic(
+  () => import("./paystack-inline"),
+  { ssr: false } // <-- only render on the client
+);
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -135,14 +139,15 @@ const CheckoutForm = () => {
       taxPrice,
       totalPrice,
     });
+
     if (res.success) {
-      toast.success(res.message);
-      clearCart();
-      router.push(`/checkout/${res.data?.orderId}`);
+      setCreatedOrder(res.data);
+      toast.success("Order created! Proceed to payment.");
     } else {
       toast.error(res.message);
     }
   };
+
   const handleSelectPaymentMethod = () => {
     setIsAddressSelected(true);
     setIsPaymentMethodSelected(true);
@@ -686,10 +691,10 @@ const CheckoutForm = () => {
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Paystack" ? (
+                  {paymentMethod === "Paystack" && createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)} 
+                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder.id}
                       onSuccess={() =>
