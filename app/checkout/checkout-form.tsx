@@ -689,11 +689,11 @@ const CheckoutForm = () => {
                   {paymentMethod === "Paystack" ? (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
+                      amount={Math.round(totalPrice * 100)} 
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={createdOrder._id}
+                      orderId={createdOrder.id}
                       onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
+                        router.push(`/account/orders/${createdOrder.id}`)
                       }
                     />
                   ) : (
