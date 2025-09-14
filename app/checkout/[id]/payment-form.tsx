@@ -21,19 +21,23 @@ import StripeForm from "./stripe-form";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "sonner";
+import { PaystackButton } from "react-paystack";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
 );
+
 export default function OrderDetailsForm({
   order,
   paypalClientId,
   clientSecret,
+  paystackPublicKey,
 }: {
   order: IOrder;
   paypalClientId: string;
   isAdmin: boolean;
   clientSecret: string | null;
+  paystackPublicKey?: string | null;
 }) {
   const router = useRouter();
   const {
@@ -143,16 +147,41 @@ export default function OrderDetailsForm({
               </Elements>
             )}
 
-            {!isPaid &&
-              (paymentMethod === "Cash On Delivery" ||
-                paymentMethod === "Manual Payment") && (
-                <Button
-                  className="w-full rounded-full cursor-pointer"
-                  onClick={() => router.push(`/account/orders/${order._id}`)}
-                >
-                  View Order
-                </Button>
-              )}
+            {!isPaid && paymentMethod === "Paystack" && paystackPublicKey && (
+              <PaystackButton
+                email={(order.user as { name: string; email: string }).email}
+                amount={Math.round(order.totalPrice * 100)}
+                publicKey={paystackPublicKey}
+                text="Pay with Paystack"
+                onSuccess={async (reference) => {
+                  const res = await fetch("/api/paystack/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      reference: reference.reference,
+                      orderId: order._id,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.status && data.data.status === "success") {
+                    toast.success("Payment successful!");
+                    router.push(`/account/orders/${order._id}`);
+                  } else {
+                    toast.error("Payment verification failed");
+                  }
+                }}
+                onClose={() => toast.error("Payment popup closed")}
+              />
+            )}
+
+            {!isPaid && paymentMethod === "Cash On Delivery" && (
+              <Button
+                className="w-full rounded-full cursor-pointer"
+                onClick={() => router.push(`/account/orders/${order._id}`)}
+              >
+                View Order
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

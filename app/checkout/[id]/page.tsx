@@ -34,11 +34,18 @@ const CheckoutPaymentPage = async (props: {
     });
     client_secret = paymentIntent.client_secret;
   }
+  
+  let paystackPublicKey = null;
+  if (order.paymentMethod === "Paystack" && !order.isPaid) {
+    paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+  }
+
   return (
     <PaymentForm
       order={order}
       paypalClientId={process.env.PAYPAL_CLIENT_ID || "sb"}
       clientSecret={client_secret}
+      paystackPublicKey={paystackPublicKey}
       isAdmin={session?.user?.role === "ADMIN" || false}
     />
   );
