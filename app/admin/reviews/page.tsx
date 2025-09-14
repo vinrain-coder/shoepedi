@@ -43,7 +43,6 @@ export default async function ReviewsPage(props: {
             <TableRow>
               <TableHead>Id</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>User</TableHead>
               <TableHead>Image</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Rating</TableHead>
@@ -59,9 +58,6 @@ export default async function ReviewsPage(props: {
                 <TableCell>{formatId(review._id)}</TableCell>
                 <TableCell>
                   {formatDateTime(review.createdAt!).dateTime}
-                </TableCell>
-                <TableCell>
-                  {review.user ? review.user.name : "Deleted User"}
                 </TableCell>
                 <TableCell>
                   {review.product?.images?.length > 0 ? (

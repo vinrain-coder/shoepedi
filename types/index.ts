@@ -7,7 +7,6 @@ import {
   OrderItemSchema,
   PaymentMethodSchema,
   ProductInputSchema,
-  ResetPasswordSchema,
   ReviewInputSchema,
   SettingInputSchema,
   ShippingAddressSchema,
@@ -93,6 +92,3 @@ export type IBlogInput = z.infer<typeof BlogInputSchema>;
 
 // stock subscription
 export type StockSubscription = z.infer<typeof StockSubscriptionSchema>;
-
-// reset password
-export type PasswordResetToken = z.infer<typeof ResetPasswordSchema>;

@@ -1,26 +1,28 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import { IUserInput } from "@/types";
+import { Document, Model, model, models, Schema, Types } from "mongoose";
 
-export interface IUser extends Document {
+export interface IUser extends Document, IUserInput {
   _id: string;
-  name?: string;
-  email: string;
-  role?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  wishlist: Types.ObjectId[];
 }
 
 const userSchema = new Schema<IUser>(
   {
-    name: { type: String },
-    email: { type: String, required: true },
-    role: { type: String, default: "USER" },
+    email: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    role: { type: String, required: true, default: "User" },
+    password: { type: String },
+    image: { type: String },
+    emailVerified: { type: Boolean, default: false },
+    wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
   },
   {
-    collection: "users", // ✅ use the BetterAuth collection
     timestamps: true,
   }
 );
 
-// Avoid model overwrite on hot-reload
-const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+const User = (models.User as Model<IUser>) || model<IUser>("User", userSchema);
 
 export default User;
