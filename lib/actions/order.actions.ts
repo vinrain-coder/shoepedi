@@ -538,3 +538,19 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
 
   return result;
 }
+
+//mark paystack order as paid
+export async function markPaystackOrderAsPaid(
+  orderId: string,
+  paymentInfo: { paymentMethod: string; paymentReference: string }
+) {
+  return Order.findByIdAndUpdate(
+    orderId,
+    {
+      isPaid: true,
+      paidAt: new Date(),
+      paymentResult: paymentInfo,
+    },
+    { new: true }
+  );
+}
