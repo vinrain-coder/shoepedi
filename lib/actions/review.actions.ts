@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { auth } from "@/lib/auth";
+
 import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
 import Review, { IReview } from "../db/models/review.model";
@@ -101,7 +103,6 @@ const updateProductReview = async (productId: string) => {
   });
 };
 
-// get all reviews
 export async function getReviews({
   productId,
   limit,
@@ -147,6 +148,7 @@ export const getReviewByProductId = async ({
   return review ? (JSON.parse(JSON.stringify(review)) as IReview) : null;
 };
 
+// get all reviews (admin panel)
 export async function getAllReviews({
   page = 1,
   limit = 10,
@@ -159,8 +161,9 @@ export async function getAllReviews({
   const skip = (page - 1) * limit;
 
   const total = await Review.countDocuments();
+
   const reviews = await Review.find()
-    .populate("user", "name email")
+    .populate("user", "name email role") // ✅ safe, consistent
     .populate("product", "name slug images")
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -184,6 +187,7 @@ export async function deleteReview(id: string) {
       message: "Review deleted successfully",
     };
   } catch (error) {
+    console.error("Failed to delete review:", error);
     return {
       success: false,
       message: "Failed to delete review",
