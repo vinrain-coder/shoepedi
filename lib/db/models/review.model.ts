@@ -1,25 +1,33 @@
+import { Types, Document, Model, model, models, Schema } from "mongoose";
 import { IReviewInput } from "@/types";
-import { Document, Model, model, models, Schema } from "mongoose";
 
-export interface IReview extends Document, IReviewInput {
+// Fix the type to allow ObjectId or string
+export interface IReview
+  extends Omit<IReviewInput, "user" | "product">,
+    Document {
   _id: string;
+  user: Types.ObjectId | string; // better-auth "users" collection
+  product: Types.ObjectId | string; // reference to Product
   createdAt: Date;
   updatedAt: Date;
 }
+
 const reviewSchema = new Schema<IReview>(
   {
-    // user: {
-    //   type: Schema.Types.ObjectId as unknown as typeof String,
-    //   ref: "User",
-    // },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "users", // ✅ match better-auth collection name
+      required: true,
+    },
     isVerifiedPurchase: {
       type: Boolean,
       required: true,
       default: false,
     },
     product: {
-      type: Schema.Types.ObjectId as unknown as typeof String,
-      ref: "Product",
+      type: Schema.Types.ObjectId,
+      ref: "Product", // ✅ normal Product model
+      required: true,
     },
     rating: {
       type: Number,
@@ -36,9 +44,7 @@ const reviewSchema = new Schema<IReview>(
       required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const Review =
