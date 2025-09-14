@@ -161,7 +161,7 @@ export async function getAllReviews({
   const total = await Review.countDocuments();
   const reviews = await Review.find()
     .populate("user", "name email")
-    .populate("product", "name slug")
+    .populate("product", "name slug images")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -190,4 +190,3 @@ export async function deleteReview(id: string) {
     };
   }
 }
-

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
@@ -14,7 +15,6 @@ import {
 import { deleteReview, getAllReviews } from "@/lib/actions/review.actions";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Admin Reviews",
@@ -64,7 +64,7 @@ export default async function ReviewsPage(props: {
                   {review.user ? review.user.name : "Deleted User"}
                 </TableCell>
                 <TableCell>
-                  {review.product.images?.length > 0 ? (
+                  {review.product?.images?.length > 0 ? (
                     <Image
                       src={review.product.images[0]}
                       alt={review.product.name}
@@ -73,7 +73,7 @@ export default async function ReviewsPage(props: {
                       className="object-cover rounded-md border"
                     />
                   ) : (
-                    <span>No Image</span>
+                    <span className="text-gray-500">No Image</span>
                   )}
                 </TableCell>
                 <TableCell>
