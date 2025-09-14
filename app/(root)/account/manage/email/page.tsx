@@ -38,7 +38,7 @@ export default async function ProfilePage() {
           <p className="text-sm">
             If you want to change the email associated with your {site.name}
             &apos;s account, you may do so below. Be sure to click the{" "}
-            <strong>Save Changes</strong> button when you are done.
+            <strong>Request Change</strong> button when you are done.
           </p>
 
           <EmailForm currentEmail={user.email} />

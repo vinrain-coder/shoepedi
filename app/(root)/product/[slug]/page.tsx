@@ -21,12 +21,9 @@ import OrderViaWhatsApp from "@/components/shared/product/order-via-whatsapp";
 import WishlistButton from "@/components/shared/product/wishlist-button";
 import { getServerSession } from "@/lib/get-session";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const product = await getProductBySlug(params.slug);
+export async function generateMetadata({ params }: { params: any }) {
+  const { slug } = await params; // ✅ destructure after awaiting
+  const product = await getProductBySlug(slug);
   const { site } = await getSetting();
 
   if (!product) return { title: "Product not found" };
@@ -80,26 +77,25 @@ export default async function ProductDetails({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { page?: string; color?: string; size?: string };
+  params: any;
+  searchParams: any;
 }) {
-  const session = await getServerSession();
+  const { slug } = await params; // ✅ await first
+  const query = await searchParams; // ✅ await
 
-  const { slug } = params;
+  const session = await getServerSession();
 
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
 
-  const relatedProductsPromise = getRelatedProductsByCategory({
+  const relatedProducts = await getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
-    page: Number(searchParams.page || "1"),
+    page: Number(query.page || "1"),
   });
 
-  const relatedProducts = await relatedProductsPromise;
-
-  const selectedColor = searchParams.color || product.colors[0];
-  const selectedSize = searchParams.size || product.sizes[0];
+  const selectedColor = query.color || product.colors[0];
+  const selectedSize = query.size || product.sizes[0];
 
   return (
     <div>

@@ -56,9 +56,7 @@ export default async function ProfilePage() {
           <div>
             <h3 className="font-bold">Email</h3>
             <p>{session.user.email}</p>
-            <p className="text-sm text-gray-500">
-              will be implemented in the next version
-            </p>
+            
           </div>
           <Link href="/account/manage/email">
             <Button className="rounded-full w-32" variant="outline">
@@ -73,9 +71,7 @@ export default async function ProfilePage() {
           <div>
             <h3 className="font-bold">Password</h3>
             <p>************</p>
-            <p className="text-sm text-gray-500">
-              will be implemented in the next version
-            </p>
+           
           </div>
           <Link href="/account/manage/password">
             <Button className="rounded-full w-32" variant="outline">

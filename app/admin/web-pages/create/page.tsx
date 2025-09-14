@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function CreateWebPagePage() {
   return (
     <>
-      <h1 className="h1-bold">Create WebPage</h1>
+      <h1 className="h1-bold">Create</h1>
 
       <div className="my-8">
         <WebPageForm type="Create" />

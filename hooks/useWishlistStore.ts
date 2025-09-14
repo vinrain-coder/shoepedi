@@ -10,7 +10,7 @@ export interface WishlistState {
   addProduct: (product: IProduct) => void;
   removeProduct: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
-  setCount: (count: number) => void; // ✅ added
+  setCount: (count: number) => void;
 }
 
 export const useWishlistStore = create<WishlistState>((set, get) => ({
@@ -18,32 +18,44 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
   ids: [],
   count: 0,
 
-  setProducts: (products) =>
+  setProducts: (products) => {
+    const unique = [
+      ...new Map(products.map((p) => [p._id.toString(), p])).values(),
+    ];
     set({
-      products,
-      ids: products.map((p) => p._id.toString()),
-      count: products.length,
-    }),
+      products: unique,
+      ids: unique.map((p) => p._id.toString()),
+      count: unique.length,
+    });
+  },
 
   addProduct: (product) => {
     const id = product._id.toString();
     if (get().ids.includes(id)) return;
-    set((state) => ({
-      products: [...state.products, product],
-      ids: [...state.ids, id],
-      count: state.count + 1,
-    }));
+    set((state) => {
+      const updated = [...state.products, product];
+      return {
+        products: updated,
+        ids: [...state.ids, id],
+        count: updated.length,
+      };
+    });
   },
 
   removeProduct: (productId) => {
-    set((state) => ({
-      products: state.products.filter((p) => p._id.toString() !== productId),
-      ids: state.ids.filter((id) => id !== productId),
-      count: Math.max(state.count - 1, 0),
-    }));
+    set((state) => {
+      const updated = state.products.filter(
+        (p) => p._id.toString() !== productId
+      );
+      return {
+        products: updated,
+        ids: updated.map((p) => p._id.toString()),
+        count: updated.length,
+      };
+    });
   },
 
   isInWishlist: (productId) => get().ids.includes(productId),
 
-  setCount: (count) => set({ count }), // ✅ new action
+  setCount: (count) => set({ count }),
 }));

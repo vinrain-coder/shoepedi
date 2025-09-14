@@ -50,12 +50,12 @@ export default function DeleteDialog({
             onClick={() =>
               startTransition(async () => {
                 const res = await action(id);
-                if (!res.success) {
-                  toast.success(res.message);
-                } else {
+                if (res.success) {
                   setOpen(false);
-                  toast.error(res.message);
+                  toast.success(res.message);
                   if (callbackAction) callbackAction();
+                } else {
+                  toast.error(res.message);
                 }
               })
             }

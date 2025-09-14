@@ -49,7 +49,7 @@ export default async function PasswordPage() {
           <p className="text-sm">
             If you want to change the password associated with your {site.name}
             &apos;s account, you may do so below. Be sure to click the{" "}
-            <strong>Save Changes</strong> button when you are done.
+            <strong> Change password</strong> button when you are done.
           </p>
 
           <PasswordForm />

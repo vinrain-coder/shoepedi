@@ -1,6 +1,6 @@
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Metadata } from "next";
-import WishlistClient from "./wishlist";
+import WishlistClient from "./wishlist-client";
 import { getWishlistProducts } from "@/lib/actions/wishlist.actions";
 
 export const metadata: Metadata = {

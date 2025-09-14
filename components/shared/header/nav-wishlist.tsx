@@ -13,10 +13,9 @@ export default function NavbarWishlist() {
   const { count, setCount } = useWishlistStore();
   const router = useRouter();
 
-  // Load wishlist count when user logs in
   useEffect(() => {
     if (!session) {
-      setCount(0); // reset to 0 when signed out
+      setCount(0);
       return;
     }
 
@@ -35,10 +34,7 @@ export default function NavbarWishlist() {
   const handleClick = () => {
     if (!session) {
       toast.error("You need to log in to access your wishlist", {
-        action: {
-          label: "Sign in",
-          onClick: () => router.push("/sign-in"),
-        },
+        action: { label: "Sign in", onClick: () => router.push("/sign-in") },
       });
       return;
     }
@@ -52,15 +48,14 @@ export default function NavbarWishlist() {
       className="relative flex items-center gap-1 p-2 cursor-pointer"
     >
       <Heart className="w-6 h-6 text-white" />
-      {/* Always show badge (even if 0) */}
       <span
         className="
-    absolute -top-0 -right-0.5
-    flex min-h-[18px] min-w-[18px]
-    items-center justify-center
-    rounded-full bg-red-500 px-1
-    text-[10px] leading-none text-white font-semiboldbold
-  "
+          absolute -top-0 -right-0.5
+          flex min-h-[18px] min-w-[18px]
+          items-center justify-center
+          rounded-full bg-red-500 px-1
+          text-[10px] leading-none text-white font-semibold
+        "
       >
         {count}
       </span>

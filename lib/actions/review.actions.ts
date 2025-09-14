@@ -147,3 +147,48 @@ export const getReviewByProductId = async ({
   });
   return review ? (JSON.parse(JSON.stringify(review)) as IReview) : null;
 };
+
+export async function getAllReviews({
+  page = 1,
+  limit = 10,
+}: {
+  page?: number;
+  limit?: number;
+}) {
+  await connectToDatabase();
+
+  const skip = (page - 1) * limit;
+
+  const total = await Review.countDocuments();
+  const reviews = await Review.find()
+    .populate("user", "name email")
+    .populate("product", "name slug")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  return {
+    data: JSON.parse(JSON.stringify(reviews)),
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function deleteReview(id: string) {
+  try {
+    await connectToDatabase();
+    await Review.findByIdAndDelete(id);
+
+    return {
+      success: true,
+      message: "Review deleted successfully",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "Failed to delete review",
+    };
+  }
+}
+

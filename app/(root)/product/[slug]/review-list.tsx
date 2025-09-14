@@ -275,16 +275,15 @@ export default function ReviewList({
                 </DialogContent>
               </Dialog>
             ) : (
-              <div>
+              <div className="mt-4 text-md text-muted-foreground">
                 Please{" "}
                 <Link
                   href={`/sign-in?callbackUrl=/product/${product.slug}`}
-                  className="highlight-link"
+                  className="text-primary font-medium underline hover:text-primary/80 transition-colors"
                 >
-                  Sign In
-                  <input type="text" />
+                  Sign in
                 </Link>{" "}
-                to write a review
+                to write a review.
               </div>
             )}
           </div>

@@ -8,20 +8,20 @@ import { buttonVariants } from "@/components/ui/button";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
 import { authClient } from "@/lib/auth-client";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function WishlistClient({ products }: { products: IProduct[] }) {
   const { data: session } = authClient.useSession();
-
-  useEffect(() => {
-    if (!session?.user) {
-      window.location.href = "/sign-in?callbackUrl=/wishlist";
-    }
-  }, [session]);
-
+  const router = useRouter();
   const { products: wishlistProducts, setProducts } = useWishlistStore();
 
   useEffect(() => {
-    // Normalize products to plain JSON
+    if (!session?.user) {
+      router.push("/sign-in?callbackUrl=/wishlist");
+    }
+  }, [session, router]);
+
+  useEffect(() => {
     const normalized = products.map((p: any) => ({
       ...p,
       _id: p._id.toString(),
@@ -34,16 +34,14 @@ export default function WishlistClient({ products }: { products: IProduct[] }) {
       <h2 className="text-2xl font-bold mb-4">Your Wishlist</h2>
       {wishlistProducts.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[...new Map(wishlistProducts.map((p) => [p._id, p])).values()].map(
-            (product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                isInWishlist={true}
-                hideDetails
-              />
-            )
-          )}
+          {wishlistProducts.map((product) => (
+            <ProductCard
+              key={product._id}
+              product={product}
+              isInWishlist
+              hideDetails
+            />
+          ))}
         </div>
       ) : (
         <div className="text-center mt-10">

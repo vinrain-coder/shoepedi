@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -33,6 +34,10 @@ const links = [
   {
     title: "StockSubs",
     href: "/admin/stockSubs",
+  },
+  {
+    title: "Reviews",
+    href: "/admin/reviews",
   },
   {
     title: "Settings",

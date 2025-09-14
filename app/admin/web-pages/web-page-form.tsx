@@ -148,16 +148,23 @@ const WebPageForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <MarkdownEditor
-                    {...field}
-                    style={{ height: "500px" }}
-                    onChange={({ text }) => form.setValue("content", text)}
-                    renderHTML={(text) => <ReactMarkdown>{text}</ReactMarkdown>}
-                  />
+                <>
+                  <FormControl>
+                    <MarkdownEditor
+                      {...field}
+                      style={{ height: "500px" }}
+                      onChange={({ text }) => form.setValue("content", text)}
+                      renderHTML={(text) => (
+                        <ReactMarkdown>{text}</ReactMarkdown>
+                      )}
+                    />
 
-                  <AutoResizeTextarea placeholder='Enter content' {...field} />
-                </FormControl>
+                    <AutoResizeTextarea
+                      placeholder="Enter content"
+                      {...field}
+                    />
+                  </FormControl>
+                </>
                 <FormMessage />
               </FormItem>
             )}

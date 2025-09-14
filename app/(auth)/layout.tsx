@@ -33,7 +33,7 @@ export default async function AuthLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex justify-center px-4">
+      <div className="flex justify-center px-1">
         <div className="w-full max-w-md rounded-xl shadow p-6">{children}</div>
       </div>
 
