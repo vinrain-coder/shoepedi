@@ -39,6 +39,8 @@ import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
+import { PaystackButton } from "react-paystack";
+import { authClient } from "@/lib/auth-client";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -239,6 +241,7 @@ const CheckoutForm = () => {
     </Card>
   );
 
+  const { data: session } = authClient.useSession();
   return (
     <main className="max-w-6xl mx-auto highlight-link">
       <div className="grid md:grid-cols-4 gap-6">
@@ -681,12 +684,41 @@ const CheckoutForm = () => {
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  <Button
-                    onClick={handlePlaceOrder}
-                    className="rounded-full cursor-pointer"
-                  >
-                    Place Your Order
-                  </Button>
+                  {paymentMethod === "Paystack" ? (
+                    <PaystackButton
+                      email={session?.user.email as string}
+                      amount={Math.round(totalPrice * 100)} // Paystack expects kobo
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      text="Pay with Paystack"
+                      onSuccess={async (reference) => {
+                        const res = await fetch("/api/paystack/verify", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            reference: reference.reference,
+                            orderId: "TEMP_ORDER_ID", // you’ll pass actual order._id after creating
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.status && data.data.status === "success") {
+                          toast.success("Payment successful!");
+                          clearCart();
+                          router.push(`/account/orders/${data.orderId}`);
+                        } else {
+                          toast.error("Payment verification failed");
+                        }
+                      }}
+                      onClose={() => toast.error("Payment popup closed")}
+                    />
+                  ) : (
+                    <Button
+                      onClick={handlePlaceOrder}
+                      className="rounded-full cursor-pointer"
+                    >
+                      Place Your Order
+                    </Button>
+                  )}
+
                   <div className="flex-1">
                     <p className="font-bold text-lg">
                       Order Total: <ProductPrice price={totalPrice} plain />
