@@ -151,7 +151,7 @@ const CheckoutForm = () => {
       const order = res.data as IOrder; // Ensure this is the full order object
       toast.success("Order created!");
 
-      clearCart;
+      clearCart();
 
       if (paymentMethod === "Cash On Delivery") {
         // Redirect immediately for COD
@@ -176,7 +176,15 @@ const CheckoutForm = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
   const [createdOrder, setCreatedOrder] = useState<any>(null);
-  const CheckoutSummary = () => (
+  const CheckoutSummary = ({
+    createdOrder,
+    paymentMethod,
+    handlePlaceOrder,
+  }: {
+    createdOrder: IOrder | null;
+    paymentMethod: string;
+    handlePlaceOrder: () => void;
+  }) => (
     <Card>
       <CardContent className="p-4">
         {!isAddressSelected && (
@@ -706,7 +714,19 @@ const CheckoutForm = () => {
           {isPaymentMethodSelected && isAddressSelected && (
             <div className="mt-6">
               <div className="block md:hidden">
-                <CheckoutSummary />
+                <CheckoutSummary
+                  createdOrder={createdOrder}
+                  paymentMethod={paymentMethod}
+                  handlePlaceOrder={handlePlaceOrder}
+                />
+              </div>
+
+              <div className="hidden md:block">
+                <CheckoutSummary
+                  createdOrder={createdOrder}
+                  paymentMethod={paymentMethod}
+                  handlePlaceOrder={handlePlaceOrder}
+                />
               </div>
 
               <Card className="hidden md:block ">
@@ -755,7 +775,11 @@ const CheckoutForm = () => {
           <CheckoutFooter />
         </div>
         <div className="hidden md:block">
-          <CheckoutSummary />
+          <CheckoutSummary
+            createdOrder={createdOrder}
+            paymentMethod={paymentMethod}
+            handlePlaceOrder={handlePlaceOrder}
+          />
         </div>
       </div>
     </main>
