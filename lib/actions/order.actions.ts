@@ -21,20 +21,22 @@ export const createOrder = async (clientSideCart: Cart) => {
     await connectToDatabase();
     const session = await getServerSession();
     if (!session) throw new Error("User not authenticated");
-    // recalculate price and delivery date on the server
+
     const createdOrder = await createOrderFromCart(
       clientSideCart,
       session.user.id!
     );
+
     return {
       success: true,
       message: "Order placed successfully",
-      data: { orderId: createdOrder._id.toString() },
+      data: createdOrder, // <-- return full order
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
 };
+
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string

@@ -41,6 +41,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
+import { IOrder } from "@/lib/db/models/order.model";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -126,25 +127,44 @@ const CheckoutForm = () => {
     useState<boolean>(false);
 
   const handlePlaceOrder = async () => {
-    const res = await createOrder({
-      items,
-      shippingAddress,
-      expectedDeliveryDate: calculateFutureDate(
-        availableDeliveryDates[deliveryDateIndex!].daysToDeliver
-      ),
-      deliveryDateIndex,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      taxPrice,
-      totalPrice,
-    });
+    try {
+      // Create the order on the server
+      const res = await createOrder({
+        items,
+        shippingAddress,
+        expectedDeliveryDate: calculateFutureDate(
+          availableDeliveryDates[deliveryDateIndex!].daysToDeliver
+        ),
+        deliveryDateIndex,
+        paymentMethod,
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
+      });
 
-    if (res.success) {
-      setCreatedOrder(res.data);
-      toast.success("Order created! Proceed to payment.");
-    } else {
-      toast.error(res.message);
+      if (!res.success || !res.data) {
+        toast.error(res.message || "Failed to create order");
+        return;
+      }
+
+      const order = res.data as IOrder; // Ensure this is the full order object
+      toast.success("Order created!");
+
+      clearCart;
+
+      if (paymentMethod === "Cash On Delivery") {
+        // Redirect immediately for COD
+        router.push(`/account/orders/${order._id}`);
+        return;
+      }
+
+      // For online payment (Paystack), store order to render Paystack button
+      setCreatedOrder(order);
+      toast.success("Proceed to payment.");
+    } catch (error: any) {
+      console.error("Error placing order:", error);
+      toast.error(error?.message || "Something went wrong");
     }
   };
 
