@@ -150,6 +150,7 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
+  const [createdOrder, setCreatedOrder] = useState<any>(null);
   const CheckoutSummary = () => (
     <Card>
       <CardContent className="p-4">
@@ -690,9 +691,9 @@ const CheckoutForm = () => {
                       email={session?.user.email as string}
                       amount={Math.round(totalPrice * 100)} // Paystack wants kobo
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={order._id}
+                      orderId={createdOrder._id}
                       onSuccess={() =>
-                        router.push(`/account/orders/${order._id}`)
+                        router.push(`/account/orders/${createdOrder._id}`)
                       }
                     />
                   ) : (
