@@ -41,6 +41,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { PaystackButton } from "react-paystack";
 import { authClient } from "@/lib/auth-client";
+import PaystackInline from "./paystack-inline";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -685,30 +686,14 @@ const CheckoutForm = () => {
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
                   {paymentMethod === "Paystack" ? (
-                    <PaystackButton
+                    <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)} // Paystack expects kobo
+                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      text="Pay with Paystack"
-                      onSuccess={async (reference) => {
-                        const res = await fetch("/api/paystack/verify", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            reference: reference.reference,
-                            orderId: "TEMP_ORDER_ID", // you’ll pass actual order._id after creating
-                          }),
-                        });
-                        const data = await res.json();
-                        if (data.status && data.data.status === "success") {
-                          toast.success("Payment successful!");
-                          clearCart();
-                          router.push(`/account/orders/${data.orderId}`);
-                        } else {
-                          toast.error("Payment verification failed");
-                        }
-                      }}
-                      onClose={() => toast.error("Payment popup closed")}
+                      orderId={order._id}
+                      onSuccess={() =>
+                        router.push(`/account/orders/${order._id}`)
+                      }
                     />
                   ) : (
                     <Button
