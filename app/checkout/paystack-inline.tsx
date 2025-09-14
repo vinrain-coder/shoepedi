@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+// Extend Window interface for TypeScript
+declare global {
+  interface Window {
+    PaystackPop?: any;
+  }
+}
 
 interface PaystackInlineProps {
   email: string;
-  amount: number; // in kobo (multiply KES by 100)
+  amount: number; // in kobo
   publicKey: string;
   orderId: string;
   onSuccess?: (reference: any) => void;
@@ -20,25 +27,39 @@ export default function PaystackInline({
   onSuccess,
   onClose,
 }: PaystackInlineProps) {
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
   useEffect(() => {
-    // Load Paystack script if not already loaded
     if (!document.querySelector("#paystack-script")) {
       const script = document.createElement("script");
       script.id = "paystack-script";
       script.src = "https://js.paystack.co/v1/inline.js";
       script.async = true;
+      script.onload = () => setIsScriptLoaded(true);
+      script.onerror = () => toast.error("Failed to load Paystack script");
       document.body.appendChild(script);
+    } else {
+      setIsScriptLoaded(true);
     }
   }, []);
 
   const payWithPaystack = () => {
-    // @ts-ignore (Paystack adds handler globally)
+    if (!isScriptLoaded) {
+      toast.error("Payment system not loaded yet. Please try again.");
+      return;
+    }
+
+    if (!window.PaystackPop) {
+      toast.error("Paystack not available. Refresh the page and try again.");
+      return;
+    }
+
     const handler = window.PaystackPop.setup({
       key: publicKey,
       email,
-      amount, // Paystack expects kobo
+      amount,
       currency: "KES",
-      ref: `${orderId}-${Date.now()}`, // unique reference
+      ref: `${orderId}-${Date.now()}`,
       onClose: () => {
         toast.error("Payment popup closed");
         if (onClose) onClose();
@@ -53,6 +74,7 @@ export default function PaystackInline({
               orderId,
             }),
           });
+
           const data = await res.json();
 
           if (data.status && data.data.status === "success") {

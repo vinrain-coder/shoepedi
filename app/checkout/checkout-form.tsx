@@ -190,18 +190,67 @@ const CheckoutForm = () => {
           </div>
         )}
         {isPaymentMethodSelected && isAddressSelected && (
-          <div>
-            <Button
-              onClick={handlePlaceOrder}
-              className="rounded-full w-full cursor-pointer"
-            >
-              Place Your Order
-            </Button>
-            <p className="text-xs text-center py-2">
-              By placing your order, you agree to {site.name}&apos;s{" "}
-              <Link href="/page/privacy-policy">privacy notice</Link> and
-              <Link href="/page/conditions-of-use"> conditions of use</Link>.
-            </p>
+          <div className="mt-6">
+            {/* Mobile view */}
+            <div className="block md:hidden">
+              <CheckoutSummary />
+              {paymentMethod === "Paystack" && createdOrder ? (
+                <PaystackInline
+                  email={session?.user.email as string}
+                  amount={Math.round(totalPrice * 100)}
+                  publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                  orderId={createdOrder.id}
+                  onSuccess={() =>
+                    router.push(`/account/orders/${createdOrder.id}`)
+                  }
+                />
+              ) : (
+                <Button
+                  onClick={handlePlaceOrder}
+                  className="rounded-full cursor-pointer mt-2"
+                >
+                  Place Your Order
+                </Button>
+              )}
+            </div>
+
+            {/* Desktop view */}
+            <Card className="hidden md:block">
+              <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
+                {paymentMethod === "Paystack" && createdOrder ? (
+                  <PaystackInline
+                    email={session?.user.email as string}
+                    amount={Math.round(totalPrice * 100)}
+                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={createdOrder.id}
+                    onSuccess={() =>
+                      router.push(`/account/orders/${createdOrder.id}`)
+                    }
+                  />
+                ) : (
+                  <Button
+                    onClick={handlePlaceOrder}
+                    className="rounded-full cursor-pointer"
+                  >
+                    Place Your Order
+                  </Button>
+                )}
+
+                <div className="flex-1 mt-2 md:mt-0">
+                  <p className="font-bold text-lg">
+                    Order Total: <ProductPrice price={totalPrice} plain />
+                  </p>
+                  <p className="text-xs">
+                    By placing your order, you agree to {site.name}&apos;s{" "}
+                    <Link href="/page/privacy-policy">privacy notice</Link> and{" "}
+                    <Link href="/page/conditions-of-use">
+                      conditions of use
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
