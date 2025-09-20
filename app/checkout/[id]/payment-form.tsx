@@ -16,15 +16,11 @@ export default function OrderDetailsPage({
 }) {
   const {
     shippingAddress,
-    items,
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
-    paymentMethod,
+    items = [],
+    totalPrice = 0,
+    paymentMethod = "Cash On Delivery",
     expectedDeliveryDate,
-    isPaid,
-  } = order;
+  } = order || {};
 
   const CheckoutSummary = ({
     createdOrder,
@@ -45,7 +41,9 @@ export default function OrderDetailsPage({
           <PaystackInline
             email={sessionEmail}
             amount={Math.round(totalPrice * 100)} // Paystack expects kobo
-            publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+            publicKey={
+              paystackPublicKey || process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!
+            }
             orderId={createdOrder._id}
             onSuccessUrl={`/account/orders/${createdOrder._id}`}
             onCancelUrl={`/account/orders/${createdOrder._id}`}
@@ -83,11 +81,15 @@ export default function OrderDetailsPage({
             <div className="grid md:grid-cols-3 my-3 pb-3">
               <div className="text-lg font-bold">Shipping Address</div>
               <div className="col-span-2">
-                <p>
-                  {shippingAddress.fullName} <br />
-                  {shippingAddress.street} <br />
-                  {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
-                </p>
+                {shippingAddress ? (
+                  <p>
+                    {shippingAddress.fullName} <br />
+                    {shippingAddress.street} <br />
+                    {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
+                  </p>
+                ) : (
+                  <p>No shipping address provided</p>
+                )}
               </div>
             </div>
           </div>
@@ -97,7 +99,7 @@ export default function OrderDetailsPage({
             <div className="grid md:grid-cols-3 my-3 pb-3">
               <div className="text-lg font-bold">Payment Method</div>
               <div className="col-span-2">
-                <p>{paymentMethod}</p>
+                <p>{paymentMethod || "Not selected"}</p>
               </div>
             </div>
           </div>
@@ -107,14 +109,21 @@ export default function OrderDetailsPage({
             <div className="flex text-lg font-bold">Items and Shipping</div>
             <div className="col-span-2">
               <p>
-                Delivery date: {formatDateTime(expectedDeliveryDate).dateOnly}
+                Delivery date:{" "}
+                {expectedDeliveryDate
+                  ? formatDateTime(expectedDeliveryDate)?.dateOnly
+                  : "Not set"}
               </p>
               <ul>
-                {items.map((item) => (
-                  <li key={item.slug}>
-                    {item.name} x {item.quantity} = {item.price}
-                  </li>
-                ))}
+                {items.length > 0 ? (
+                  items.map((item) => (
+                    <li key={item.slug || Math.random()}>
+                      {item.name} x {item.quantity} = {item.price}
+                    </li>
+                  ))
+                ) : (
+                  <li>No items in this order</li>
+                )}
               </ul>
             </div>
           </div>
@@ -125,7 +134,7 @@ export default function OrderDetailsPage({
               paymentMethod={paymentMethod}
               handlePlaceOrder={() => {}}
               totalPrice={totalPrice}
-              sessionEmail={null} // you can pass the session email if you have it
+              sessionEmail={null} // or pass session email
             />
           </div>
 
@@ -134,11 +143,11 @@ export default function OrderDetailsPage({
 
         <div className="hidden md:block">
           <CheckoutSummary
-            createdOrder={order} // use the actual order object
+            createdOrder={order}
             paymentMethod={paymentMethod}
             handlePlaceOrder={() => {}}
             totalPrice={totalPrice}
-            sessionEmail={null} // you can pass the session email if you have it
+            sessionEmail={null}
           />
         </div>
       </div>
