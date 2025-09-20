@@ -126,10 +126,9 @@ const CheckoutForm = () => {
   const [isDeliveryDateSelected, setIsDeliveryDateSelected] =
     useState<boolean>(false);
 
-  // inside CheckoutForm
-
   const handlePlaceOrder = async () => {
     try {
+      // Create the order on the server
       const res = await createOrder({
         items,
         shippingAddress,
@@ -149,17 +148,20 @@ const CheckoutForm = () => {
         return;
       }
 
-      const order = res.data as IOrder;
+      const order = res.data as IOrder; // Ensure this is the full order object
       toast.success("Order created!");
+
       clearCart();
 
       if (paymentMethod === "Cash On Delivery") {
+        // Redirect immediately for COD
         router.push(`/account/orders/${order._id}`);
         return;
       }
 
-      // save order so PaystackInline renders
+      // For online payment (Paystack), store order to render Paystack button
       setCreatedOrder(order);
+      toast.success("Proceed to payment.");
     } catch (error: any) {
       console.error("Error placing order:", error);
       toast.error(error?.message || "Something went wrong");
@@ -173,7 +175,8 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const [createdOrder, setCreatedOrder] = useState<any>(null);
+  const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
+
   const CheckoutSummary = ({
     createdOrder,
     paymentMethod,
@@ -216,35 +219,18 @@ const CheckoutForm = () => {
           </div>
         )}
         {isPaymentMethodSelected && isAddressSelected && (
-          <div className="mt-6">
-            <Card>
-              <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                {paymentMethod === "Paystack" && createdOrder ? (
-                  <PaystackInline
-                    email={session?.user.email as string}
-                    amount={Math.round(totalPrice * 100)}
-                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={createdOrder._id}
-                    onSuccess={() =>
-                      router.push(`/account/orders/${createdOrder._id}`)
-                    }
-                  />
-                ) : (
-                  <Button
-                    onClick={handlePlaceOrder}
-                    className="rounded-full cursor-pointer"
-                  >
-                    Place Your Order
-                  </Button>
-                )}
-
-                <div className="flex-1">
-                  <p className="font-bold text-lg">
-                    Order Total: <ProductPrice price={totalPrice} plain />
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <div>
+            <Button
+              onClick={handlePlaceOrder}
+              className="rounded-full w-full cursor-pointer"
+            >
+              Place Your Order
+            </Button>
+            <p className="text-xs text-center py-2">
+              By placing your order, you agree to {site.name}&apos;s{" "}
+              <Link href="/page/privacy-policy">privacy notice</Link> and
+              <Link href="/page/conditions-of-use"> conditions of use</Link>.
+            </p>
           </div>
         )}
 
@@ -746,20 +732,21 @@ const CheckoutForm = () => {
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Paystack" && createdOrder ? (
+                  {paymentMethod === "Paystack" &&
+                  createdOrder &&
+                  session?.user.email ? (
                     <PaystackInline
-                      email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
+                      email={session.user.email}
+                      amount={Math.round(totalPrice * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
-                      onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
-                      }
+                      onSuccessUrl={`/account/orders/${createdOrder._id}`}
+                      onCancelUrl={`/account/orders/${createdOrder._id}`}
                     />
                   ) : (
                     <Button
                       onClick={handlePlaceOrder}
-                      className="rounded-full cursor-pointer"
+                      disabled={items.length === 0}
                     >
                       Place Your Order
                     </Button>
