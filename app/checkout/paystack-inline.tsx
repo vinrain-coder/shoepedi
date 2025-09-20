@@ -1,14 +1,3 @@
-"use client";
-
-import React from "react";
-
-// Tell TypeScript that PaystackPop exists on window
-declare global {
-  interface Window {
-    PaystackPop: any;
-  }
-}
-
 interface PaystackInlineProps {
   email: string;
   amount: number; // amount in kobo
@@ -16,6 +5,13 @@ interface PaystackInlineProps {
   orderId: string;
   onSuccessUrl?: string; // redirect after success
   onCancelUrl?: string; // redirect after cancel
+}
+
+// Extend the window object so TypeScript knows about PaystackPop
+declare global {
+  interface Window {
+    PaystackPop: any;
+  }
 }
 
 export function PaystackInline({
@@ -26,49 +22,31 @@ export function PaystackInline({
   onSuccessUrl = "/account/orders",
   onCancelUrl = "/account/orders",
 }: PaystackInlineProps) {
-  const [scriptLoaded, setScriptLoaded] = React.useState(false);
-
-  // Load Paystack script once
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (!window.PaystackPop) {
-      const script = document.createElement("script");
-      script.src = "https://js.paystack.co/v1/inline.js";
-      script.async = true;
-      script.onload = () => setScriptLoaded(true);
-      document.body.appendChild(script);
-    } else {
-      setScriptLoaded(true);
-    }
-  }, []);
-
-  const handleClick = () => {
-    if (!scriptLoaded || !window.PaystackPop) return;
-
-    const handler = window.PaystackPop.setup({
-      key: publicKey,
-      email,
-      amount,
-      ref: "order_" + orderId + "_" + Date.now(),
-      onClose: () => {
-        window.location.href = onCancelUrl;
-      },
-      callback: () => {
-        window.location.href = onSuccessUrl;
-      },
-    });
-    handler.openIframe();
+  const handler = () => {
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    script.onload = () => {
+      if (window.PaystackPop) {
+        const paystackHandler = window.PaystackPop.setup({
+          key: publicKey,
+          email,
+          amount,
+          ref: "order_" + orderId + "_" + Date.now(),
+          onClose: () => {
+            window.location.href = onCancelUrl;
+          },
+          callback: () => {
+            window.location.href = onSuccessUrl;
+          },
+        });
+        paystackHandler.openIframe();
+      } else {
+        console.error("PaystackPop is not available on window");
+      }
+    };
+    document.body.appendChild(script);
   };
 
-  // Render a hidden button or call this function from your existing "Place Order" button
-  return (
-    <button
-      onClick={handleClick}
-      style={{ display: "none" }}
-      id="paystack-trigger"
-    >
-      Pay
-    </button>
-  );
+  handler();
 }

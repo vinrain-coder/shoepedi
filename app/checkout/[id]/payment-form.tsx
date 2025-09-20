@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime } from "@/lib/utils";
@@ -8,13 +10,15 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { PaystackInline } from "../paystack-inline";
 
+interface OrderDetailsPageProps {
+  order: IOrder;
+  paystackPublicKey?: string | null;
+}
+
 export default function OrderDetailsPage({
   order,
   paystackPublicKey,
-}: {
-  order: IOrder;
-  paystackPublicKey?: string | null;
-}) {
+}: OrderDetailsPageProps) {
   const {
     shippingAddress,
     items = [],
@@ -24,7 +28,6 @@ export default function OrderDetailsPage({
   } = order || {};
 
   const { data: session } = authClient.useSession();
-
 
   const CheckoutSummary = ({
     createdOrder,
@@ -36,10 +39,10 @@ export default function OrderDetailsPage({
     paymentMethod: string;
     handlePlaceOrder: () => void;
     totalPrice: number;
-    sessionEmail?: string | null;
   }) => (
     <Card>
       <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
+        {/* Button logic */}
         {paymentMethod === "Paystack" &&
         createdOrder &&
         session?.user?.email ? (
@@ -87,6 +90,7 @@ export default function OrderDetailsPage({
   return (
     <main className="max-w-6xl mx-auto">
       <div className="grid md:grid-cols-4 gap-6">
+        {/* Left section */}
         <div className="md:col-span-3">
           {/* Shipping Address */}
           <div>
@@ -140,26 +144,26 @@ export default function OrderDetailsPage({
             </div>
           </div>
 
+          {/* Mobile CheckoutSummary */}
           <div className="block md:hidden">
             <CheckoutSummary
-              createdOrder={order} // use the actual order object
+              createdOrder={order} // actual order
               paymentMethod={paymentMethod}
               handlePlaceOrder={() => {}}
               totalPrice={totalPrice}
-              sessionEmail={null} // or pass session email
             />
           </div>
 
           <CheckoutFooter />
         </div>
 
+        {/* Desktop CheckoutSummary */}
         <div className="hidden md:block">
           <CheckoutSummary
             createdOrder={order}
             paymentMethod={paymentMethod}
             handlePlaceOrder={() => {}}
             totalPrice={totalPrice}
-            sessionEmail={null}
           />
         </div>
       </div>
