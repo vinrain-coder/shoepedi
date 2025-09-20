@@ -40,13 +40,7 @@ import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import dynamic from "next/dynamic";
 import { IOrder } from "@/lib/db/models/order.model";
-
-const PaystackInline = dynamic(
-  () => import("./paystack-inline"),
-  { ssr: false } // <-- only render on the client
-);
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -551,11 +545,15 @@ const CheckoutForm = () => {
                     }
                   </p>
                   <ul>
-                    {items.map((item, _index) => (
-                      <li key={_index}>
-                        {item.name} x {item.quantity} = {item.price}
-                      </li>
-                    ))}
+                    {items?.length ? (
+                      items.map((item) => (
+                        <li key={item.slug}>
+                          {item.name} x {item.quantity} = {item.price}
+                        </li>
+                      ))
+                    ) : (
+                      <p>No items in cart</p>
+                    )}
                   </ul>
                 </div>
                 <div className="col-span-2">
