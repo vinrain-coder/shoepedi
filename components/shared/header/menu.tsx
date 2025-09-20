@@ -29,9 +29,9 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         <Sheet>
           <SheetTrigger className="align-middle header-button">
             {session ? (
-              <UserRoundPlus className="h-7 w-7" />
-            ) : (
               <UserRoundCheck className="h-7 w-7" />
+            ) : (
+              <UserRoundPlus className="h-7 w-7" />
             )}
           </SheetTrigger>
           <SheetContent className="bg-black text-white flex flex-col items-start">

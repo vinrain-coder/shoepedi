@@ -3,9 +3,10 @@ import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime } from "@/lib/utils";
 import CheckoutFooter from "../checkout-footer";
 import ProductPrice from "@/components/shared/product/product-price";
-import PaystackInline from "../paystack-inline";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+import { PaystackInline } from "../paystack-inline";
 
 export default function OrderDetailsPage({
   order,
@@ -22,12 +23,14 @@ export default function OrderDetailsPage({
     expectedDeliveryDate,
   } = order || {};
 
+  const { data: session } = authClient.useSession();
+
+
   const CheckoutSummary = ({
     createdOrder,
     paymentMethod,
     handlePlaceOrder,
     totalPrice,
-    sessionEmail,
   }: {
     createdOrder: IOrder | null;
     paymentMethod: string;
@@ -37,17 +40,26 @@ export default function OrderDetailsPage({
   }) => (
     <Card>
       <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-        {paymentMethod === "Paystack" && createdOrder && sessionEmail ? (
-          <PaystackInline
-            email={sessionEmail}
-            amount={Math.round(totalPrice * 100)} // Paystack expects kobo
-            publicKey={
-              paystackPublicKey || process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!
-            }
-            orderId={createdOrder._id}
-            onSuccessUrl={`/account/orders/${createdOrder._id}`}
-            onCancelUrl={`/account/orders/${createdOrder._id}`}
-          />
+        {paymentMethod === "Paystack" &&
+        createdOrder &&
+        session?.user?.email ? (
+          <Button
+            onClick={() => {
+              PaystackInline({
+                email: session.user.email,
+                amount: Math.round(totalPrice * 100),
+                publicKey:
+                  paystackPublicKey ||
+                  process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+                orderId: createdOrder._id,
+                onSuccessUrl: `/account/orders/${createdOrder._id}`,
+                onCancelUrl: `/account/orders/${createdOrder._id}`,
+              });
+            }}
+            className="rounded-full cursor-pointer"
+          >
+            Pay Now
+          </Button>
         ) : (
           <Button
             onClick={handlePlaceOrder}

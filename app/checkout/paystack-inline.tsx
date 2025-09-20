@@ -1,3 +1,14 @@
+"use client";
+
+import React from "react";
+
+// Tell TypeScript that PaystackPop exists on window
+declare global {
+  interface Window {
+    PaystackPop: any;
+  }
+}
+
 interface PaystackInlineProps {
   email: string;
   amount: number; // amount in kobo
@@ -7,7 +18,7 @@ interface PaystackInlineProps {
   onCancelUrl?: string; // redirect after cancel
 }
 
-export default function PaystackInline({
+export function PaystackInline({
   email,
   amount,
   publicKey,
@@ -15,33 +26,41 @@ export default function PaystackInline({
   onSuccessUrl = "/account/orders",
   onCancelUrl = "/account/orders",
 }: PaystackInlineProps) {
-  return (
-    <script
-      dangerouslySetInnerHTML={{
-        __html: `
-          (function() {
-            const script = document.createElement('script');
-            script.src = "https://js.paystack.co/v1/inline.js";
-            script.async = true;
-            script.onload = function() {
-              var handler = window.PaystackPop.setup({
-                key: "${publicKey}",
-                email: "${email}",
-                amount: ${amount},
-                ref: "order_${orderId}_" + Date.now(),
-                onClose: function() {
-                  window.location.href = "${onCancelUrl}";
-                },
-                callback: function(response) {
-                  window.location.href = "${onSuccessUrl}";
-                }
-              });
-              handler.openIframe();
-            };
-            document.body.appendChild(script);
-          })();
-        `,
-      }}
-    />
-  );
+  // Only run this on the client
+  if (typeof window === "undefined") return null;
+
+  const handler = () => {
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    script.onload = () => {
+      // Use window.PaystackPop
+      const paystackHandler = window.PaystackPop.setup({
+        key: publicKey,
+        email,
+        amount,
+        ref: "order_" + orderId + "_" + Date.now(),
+        onClose: () => {
+          window.location.href = onCancelUrl;
+        },
+        callback: () => {
+          window.location.href = onSuccessUrl;
+        },
+      });
+      paystackHandler.openIframe();
+    };
+    document.body.appendChild(script);
+  };
+
+  // Run handler once after component mounts
+  // Avoid multiple triggers on re-render
+  const [called, setCalled] = React.useState(false);
+  React.useEffect(() => {
+    if (!called) {
+      handler();
+      setCalled(true);
+    }
+  }, [called]);
+
+  return null; // No actual UI needed, popup handles itself
 }
