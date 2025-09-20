@@ -1,27 +1,11 @@
-import dynamic from "next/dynamic";
+import { HomeCarousel } from "@/components/shared/home/home-carousel";
+import { AboutCarousel } from "@/components/shared/home/about-carousel";
 import BlogSlider from "@/components/shared/blog/blog-slider";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { HomeCard } from "@/components/shared/home/home-card";
 import ProductSlider from "@/components/shared/product/product-slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchLatestBlogs } from "@/lib/actions/blog.actions";
-
-const HomeCarousel = dynamic(
-  () =>
-    import("@/components/shared/home/home-carousel").then(
-      (m) => m.HomeCarousel
-    ),
-  { ssr: false }
-);
-
-const AboutCarousel = dynamic(
-  () =>
-    import("@/components/shared/home/about-carousel").then(
-      (m) => m.AboutCarousel
-    ),
-  { ssr: false }
-);
-
 import {
   getProductsForCard,
   getProductsByTag,
