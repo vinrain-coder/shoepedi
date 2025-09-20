@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 interface PaystackInlineProps {
   email: string;
-  amount: number; // in kobo (multiply KES by 100)
+  amount: number; // amount in kobo (multiply by 100)
   publicKey: string;
   orderId: string;
   onSuccess?: (reference: any) => void;
@@ -14,7 +14,9 @@ interface PaystackInlineProps {
 
 declare global {
   interface Window {
-    PaystackPop?: any;
+    PaystackPop?: {
+      setup: (options: any) => { openIframe: () => void };
+    };
   }
 }
 
@@ -26,75 +28,44 @@ export default function PaystackInline({
   onSuccess,
   onClose,
 }: PaystackInlineProps) {
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-
+  // Load Paystack script and trigger payment
   useEffect(() => {
-    if (window.PaystackPop) {
-      setIsScriptLoaded(true);
-      return;
-    }
+    const ensureScript = () =>
+      new Promise<void>((resolve, reject) => {
+        if (window.PaystackPop) return resolve();
 
-    const script = document.createElement("script");
-    script.id = "paystack-script";
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => setIsScriptLoaded(true);
-    script.onerror = () => toast.error("Failed to load Paystack script");
-    document.body.appendChild(script);
+        const script = document.createElement("script");
+        script.src = "https://js.paystack.co/v1/inline.js";
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Paystack"));
+        document.body.appendChild(script);
+      });
 
-    return () => {
-      script.remove();
-    };
-  }, []);
+    ensureScript()
+      .then(() => {
+        const handler = window.PaystackPop!.setup({
+          key: publicKey,
+          email,
+          amount,
+          ref: `order_${orderId}_${Date.now()}`,
+          onClose: () => {
+            toast.error("Payment cancelled");
+            onClose?.();
+          },
+          callback: (response: any) => {
+            toast.success("Payment successful");
+            onSuccess?.(response);
+          },
+        });
 
-  const payWithPaystack = () => {
-    if (!isScriptLoaded || !window.PaystackPop) {
-      toast.error("Payment system not ready. Please try again.");
-      return;
-    }
+        handler.openIframe();
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Unable to start Paystack");
+      });
+  }, [email, amount, publicKey, orderId, onSuccess, onClose]);
 
-    const handler = window.PaystackPop.setup({
-      key: publicKey,
-      email,
-      amount,
-      currency: "KES",
-      ref: `${orderId}-${Date.now()}`,
-      onClose: function () {
-        toast.error("Payment popup closed");
-        if (onClose) onClose();
-      },
-      callback: function (response: any) {
-        fetch("/api/paystack/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reference: response.reference,
-            orderId,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.status && data.data.status === "success") {
-              toast.success("Payment successful!");
-              if (onSuccess) onSuccess(response);
-            } else {
-              toast.error("Payment verification failed");
-            }
-          })
-          .catch(() => toast.error("Verification request failed"));
-      },
-    });
-
-    handler.openIframe();
-  };
-
-  return (
-    <button
-      onClick={payWithPaystack}
-      disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full bg-green-600 text-white py-2 px-4 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-    >
-      Pay with Paystack
-    </button>
-  );
+  return null; // No UI needed, popup opens automatically
 }

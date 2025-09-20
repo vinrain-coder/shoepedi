@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,7 @@ export default async function BlogAdminPage({
         ? false
         : undefined;
 
-  const { blogs, totalPages } = await getAllBlogs({
+  const { blogs } = await getAllBlogs({
     page: 1,
     limit: 50,
     onlyPublished: onlyPublished === undefined ? false : onlyPublished,

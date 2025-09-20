@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { auth } from "@/lib/auth";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";

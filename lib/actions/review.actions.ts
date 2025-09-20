@@ -4,8 +4,6 @@ import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { auth } from "@/lib/auth";
-
 import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
 import Review, { IReview } from "../db/models/review.model";

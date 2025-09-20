@@ -59,7 +59,6 @@ AskReviewOrderItemsEmail.PreviewProps = {
         countInStock: 10,
       },
     ],
-    paymentMethod: "PayPal",
     expectedDeliveryDate: new Date(),
     isDelivered: true,
   } as IOrder,

@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
 import { EmailForm } from "./email-form";
-import { User } from "lucide-react";
 import { unauthorized } from "next/navigation";
 
 const PAGE_TITLE = "Change Your Name";

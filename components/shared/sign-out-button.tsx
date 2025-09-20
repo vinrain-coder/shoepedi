@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 export const SignOutButton = () => {
   const [isPending, setIsPending] = useState(false);
-  const router = useRouter();
 
   async function handleClick() {
     await signOut({

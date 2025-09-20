@@ -7,13 +7,12 @@ import React from "react";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import { IProduct } from "@/lib/db/models/product.model";
 
 import Rating from "./rating";
-import { cn, formatNumber, generateId, round2 } from "@/lib/utils";
+import { formatNumber, generateId, round2 } from "@/lib/utils";
 import ProductPrice from "./product-price";
 import ImageHover from "./image-hover";
 import AddToCart from "./add-to-cart";

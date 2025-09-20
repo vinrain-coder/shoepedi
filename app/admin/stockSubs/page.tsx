@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Metadata } from "next";
-import { auth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/utils";
 import Pagination from "@/components/shared/pagination"; // Import Pagination
 import { getAllStockSubscriptions } from "@/lib/actions/stock.actions";

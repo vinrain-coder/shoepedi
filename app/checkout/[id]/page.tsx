@@ -3,7 +3,6 @@ import React from "react";
 
 import { getOrderById } from "@/lib/actions/order.actions";
 import PaymentForm from "./payment-form";
-import Stripe from "stripe";
 import { getServerSession } from "@/lib/get-session";
 
 export const metadata = {
@@ -24,17 +23,6 @@ const CheckoutPaymentPage = async (props: {
 
   const session = await getServerSession();
 
-  let client_secret = null;
-  if (order.paymentMethod === "Stripe" && !order.isPaid) {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(order.totalPrice * 100),
-      currency: "KES",
-      metadata: { orderId: order._id },
-    });
-    client_secret = paymentIntent.client_secret;
-  }
-  
   let paystackPublicKey = null;
   if (order.paymentMethod === "Paystack" && !order.isPaid) {
     paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
@@ -43,8 +31,6 @@ const CheckoutPaymentPage = async (props: {
   return (
     <PaymentForm
       order={order}
-      paypalClientId={process.env.PAYPAL_CLIENT_ID || "sb"}
-      clientSecret={client_secret}
       paystackPublicKey={paystackPublicKey}
       isAdmin={session?.user?.role === "ADMIN" || false}
     />

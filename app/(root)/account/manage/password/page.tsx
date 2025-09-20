@@ -15,16 +15,6 @@ export const metadata: Metadata = {
   title: PAGE_TITLE,
 };
 
-const resetPasswordSchema = z.object({
-  newPassword: passwordSchema,
-});
-
-type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
-
-interface ResetPasswordFormProps {
-  token: string;
-}
-
 export default async function PasswordPage() {
   const session = await getServerSession();
   const user = session?.user;
