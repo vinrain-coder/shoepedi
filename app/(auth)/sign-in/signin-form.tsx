@@ -78,6 +78,7 @@ export function SignInForm() {
       setError(error.message || "Something went wrong");
     } else {
       toast.success("Signed in successfully");
+      //@ts-expect-error
       router.push(redirect);
     }
   }
@@ -220,6 +221,7 @@ export function SignInForm() {
         <p className="text-sm text-muted-foreground">
           Don’t have an account?{" "}
           <Link
+            //@ts-expect-error
             href={`/sign-up${
               redirect && redirect !== "/" ? `?redirect=${redirect}` : ""
             }`}

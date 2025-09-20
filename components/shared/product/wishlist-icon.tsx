@@ -6,21 +6,31 @@ import { useWishlistToggle } from "@/hooks/useWishlistToggle";
 
 interface WishlistIconProps {
   productId: string;
+  initialInWishlist?: boolean; // ✅ added optional prop
 }
 
-const WishlistIcon: React.FC<WishlistIconProps> = ({ productId }) => {
-  const { inWishlist, toggleWishlist, pending } = useWishlistToggle(productId);
+const WishlistIcon: React.FC<WishlistIconProps> = ({
+  productId,
+  initialInWishlist = false, // default to false
+}) => {
+  const { inWishlist, toggleWishlist, pending } = useWishlistToggle(
+    productId,
+    initialInWishlist // pass initial state to your hook
+  );
 
   return (
-    <Button
+    <button
       onClick={toggleWishlist}
       disabled={pending}
-      className="p-0.5 rounded-full bg-white shadow hover:bg-gray-100 transition"
+      className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
     >
       <Heart
-        className={`w-6 h-6 transition ${inWishlist ? "fill-red-500 text-red-500" : "text-gray-700"}`}
+        className={`transition ${
+          inWishlist ? "fill-red-500 text-red-500" : "text-gray-700"
+        }`}
+        size={16}
       />
-    </Button>
+    </button>
   );
 };
 

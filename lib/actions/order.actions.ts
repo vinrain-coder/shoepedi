@@ -477,18 +477,42 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
   return result;
 }
 
-//mark paystack order as paid
 export async function markPaystackOrderAsPaid(
   orderId: string,
-  paymentInfo: { paymentMethod: string; paymentReference: string }
+  paymentInfo: {
+    id: string;
+    status: string;
+    email_address: string;
+    pricePaid: string;
+  }
 ) {
-  return Order.findByIdAndUpdate(
-    orderId,
-    {
-      isPaid: true,
-      paidAt: new Date(),
-      paymentResult: paymentInfo,
-    },
-    { new: true }
-  );
+  try {
+    await connectToDatabase();
+
+    const order = await Order.findById(orderId).populate<{
+      user: { email: string; name: string };
+    }>("user", "name email");
+
+    if (!order) throw new Error("Order not found");
+    if (order.isPaid) throw new Error("Order is already paid");
+
+    order.isPaid = true;
+    order.paidAt = new Date();
+    order.paymentResult = paymentInfo; // now matches model type
+    await order.save();
+
+    if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost")) {
+      await updateProductStock(order._id);
+    }
+
+    if (order.user?.email) {
+      await sendPurchaseReceipt({ order });
+    }
+
+    revalidatePath(`/account/orders/${orderId}`);
+
+    return { success: true, message: "Order paid successfully" };
+  } catch (err) {
+    return { success: false, message: formatError(err) };
+  }
 }

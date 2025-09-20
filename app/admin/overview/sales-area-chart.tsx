@@ -18,7 +18,7 @@ import {
 
 interface CustomTooltipProps extends TooltipProps<number, string> {
   active?: boolean;
-  payload?: { value: number }[];
+  payload?: { value: number | undefined }[];
   label?: string;
 }
 
@@ -27,13 +27,13 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   payload,
   label,
 }) => {
-  if (active && payload && payload.length) {
+  if (active && payload && payload.length && payload[0].value !== undefined) {
     return (
       <Card>
         <CardContent className="p-2">
           <p>{label && formatDateTime(new Date(label)).dateOnly}</p>
           <p className="text-primary text-xl">
-            <ProductPrice price={payload[0].value} plain />
+            <ProductPrice price={payload[0].value ?? 0} plain />
           </p>
         </CardContent>
       </Card>
@@ -44,9 +44,14 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
 const CustomXAxisTick: React.FC<any> = ({ x, y, payload }) => {
   return (
-    <text x={x} y={y + 10} textAnchor="left" fill="#666" className="text-xs">
+    <text
+      x={x}
+      y={y + 10}
+      textAnchor="middle"
+      fill="var(--primary)"
+      className="text-xs"
+    >
       {formatDateTime(new Date(payload.value)).dateOnly}
-      {/* {`${payload.value.split('/')[1]}/${payload.value.split('/')[2]}`} */}
     </text>
   );
 };
@@ -55,17 +60,25 @@ export default function SalesAreaChart({ data }: { data: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart data={data}>
-        <CartesianGrid horizontal={true} vertical={false} stroke="" />
+        <CartesianGrid
+          horizontal={true}
+          vertical={false}
+          stroke="var(--border)"
+        />
         <XAxis dataKey="date" tick={<CustomXAxisTick />} interval={3} />
-        <YAxis fontSize={12} tickFormatter={(value: number) => `$${value}`} />
+        <YAxis
+          fontSize={12}
+          tickFormatter={(value: number) => `$${value}`}
+          stroke="var(--primary)"
+        />
         <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
           dataKey="totalSales"
-          stroke={[]}
+          stroke="var(--primary)"
           strokeWidth={2}
-          fill={`hsl(${["--primary"]})`}
-          fillOpacity={0.8}
+          fill="var(--primary)"
+          fillOpacity={0.2}
         />
       </AreaChart>
     </ResponsiveContainer>

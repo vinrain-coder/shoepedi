@@ -111,7 +111,7 @@ export default function SubscribeButton({
         </Button>
       </DrawerTrigger>
 
-      <DrawerContent className="p-6 rounded-t-lg shadow-lg w-full max-w-md mx-auto">
+      <DrawerContent className="w-full max-w-none p-4 flex flex-col gap-4">
         <DrawerTitle className="text-lg font-semibold mb-4">
           Get Notified When Available
         </DrawerTitle>

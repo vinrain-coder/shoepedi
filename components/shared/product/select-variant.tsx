@@ -11,38 +11,32 @@ export default function SelectVariant({
   size,
 }: {
   product: IProduct;
-  color: string;
-  size: string;
+  color?: string;
+  size?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Local state for instant UI updates
   const [selectedColor, setSelectedColor] = useState(
     color || product.colors[0]
   );
   const [selectedSize, setSelectedSize] = useState(size || product.sizes[0]);
 
-  // Sync local state with URL parameters when they change
   useEffect(() => {
     setSelectedColor(color || product.colors[0]);
     setSelectedSize(size || product.sizes[0]);
-  }, [color, size, product.colors, product.sizes]); // ✅ Updated dependencies
+  }, [color, size, product.colors, product.sizes]);
 
-  // Function to update the variant instantly and then update the URL
   const updateVariant = (newColor: string, newSize: string) => {
     setSelectedColor(newColor);
     setSelectedSize(newSize);
 
-    // Update the URL without reloading the page
     const params = new URLSearchParams(searchParams.toString());
     params.set("color", newColor);
     params.set("size", newSize);
 
-    // Use setTimeout to allow UI to update first before changing the URL
-    setTimeout(() => {
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }, 0);
+    // Use router.replace with scroll: false to prevent jumping
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
 
   return (
@@ -70,6 +64,7 @@ export default function SelectVariant({
           ))}
         </div>
       )}
+
       {product.sizes.length > 0 && (
         <div className="mt-2 space-x-2 space-y-2">
           <div>Size:</div>

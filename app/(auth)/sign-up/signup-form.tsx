@@ -70,6 +70,7 @@ export function SignUpForm() {
       email,
       password,
       name,
+      wishlist: [] as unknown as never, // cast to satisfy TS
       callbackURL: "/verify-email",
     });
 

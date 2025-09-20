@@ -94,7 +94,7 @@ export const AdminUserButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between bg-white/5 hover:bg-white/10 overflow-hidden gap-x-2">
+        <Button className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between overflow-hidden gap-x-2">
           <Avatar>
             {session.user.image ? (
               <AvatarImage src={session.user.image} alt={session.user.email} />
@@ -113,7 +113,7 @@ export const AdminUserButton = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col gap-1">
             <span className="font-medium truncate">{session.user.name}</span>
-            <span className="font-normal text-sm text-muted-foreground truncate">
+            <span className="font-normal text-sm truncate">
               {session.user.email}
             </span>
           </div>

@@ -2,13 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { IProduct } from "@/lib/db/models/product.model";
 
 import Rating from "./rating";
@@ -18,8 +14,9 @@ import ImageHover from "./image-hover";
 import AddToCart from "./add-to-cart";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart } from "lucide-react";
+import { Eye, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ProductQuickView from "./quick-view";
 
 const ProductCard = ({
   product,
@@ -34,6 +31,8 @@ const ProductCard = ({
   hideAddToCart?: boolean;
   isInWishlist?: boolean;
 }) => {
+  const [showQuickView, setShowQuickView] = useState(false);
+
   const discount =
     product.listPrice && product.listPrice > product.price
       ? Math.round(
@@ -73,10 +72,23 @@ const ProductCard = ({
             initialInWishlist={isInWishlist}
           />
           <AddToCart item={cartItem}>
-            <Button className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition">
+            <button className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer">
               <ShoppingCart size={16} className="text-gray-700" />
-            </Button>
+            </button>
           </AddToCart>
+          <button
+            className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
+            onClick={() => setShowQuickView(true)}
+            title="Quick View"
+          >
+            <Eye size={16} className="text-gray-700" />
+          </button>
+
+          <ProductQuickView
+            productId={product._id.toString()}
+            isOpen={showQuickView}
+            onClose={() => setShowQuickView(false)}
+          />
         </div>
       )}
 

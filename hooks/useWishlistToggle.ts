@@ -11,7 +11,7 @@ import { useSession } from "@/lib/auth-client";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
 import { getProductById } from "@/lib/actions/product.actions";
 
-export function useWishlistToggle(productId: string) {
+export function useWishlistToggle(productId: string, initialInWishlist: boolean) {
   const { data: session } = useSession();
   const router = useRouter();
   const [pending, startTransition] = useTransition();

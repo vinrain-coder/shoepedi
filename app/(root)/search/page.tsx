@@ -116,7 +116,7 @@ export default async function SearchPage(props: {
   ]);
   return (
     <div>
-      <div className="my-2 bg-card md:border-b  flex-between flex-col md:flex-row ">
+      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row ">
         <div className="flex items-center">
           {data.totalProducts === 0
             ? "No results"

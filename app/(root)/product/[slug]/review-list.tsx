@@ -281,7 +281,7 @@ export default function ReviewList({
 
                 {isMobile ? (
                   <Drawer open={open} onOpenChange={setOpen}>
-                    <DrawerContent className="w-[95%] max-w-none p-4 flex flex-col gap-4">
+                    <DrawerContent className="w-full max-w-none p-4 flex flex-col gap-4">
                       <DrawerHeader className="pb-2">
                         <DrawerTitle className="text-lg font-bold">
                           Review

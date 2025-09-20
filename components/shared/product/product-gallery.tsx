@@ -1,29 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 
-export default function ProductGallery({
-  images,
-  selectedColor,
-  colors,
-}: {
-  images: string[];
-  selectedColor: string;
-  colors: string[];
-}) {
+export default function ProductGallery({ images }: { images: string[] }) {
   const [selectedImage, setSelectedImage] = useState(0);
-
-  // Update main image immediately when selectedColor changes
-  useEffect(() => {
-    if (!colors || colors.length === 0) return;
-    const colorIndex = colors.indexOf(selectedColor);
-    if (colorIndex !== -1 && images[colorIndex]) {
-      setSelectedImage(colorIndex);
-    }
-  }, [selectedColor, colors, images]);
 
   return (
     <div className="flex gap-2">
