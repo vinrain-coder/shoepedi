@@ -205,11 +205,11 @@ export default function ReviewList({
                   value={field.value.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select rating" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="w-full">
                     {Array.from({ length: 5 }).map((_, index) => (
                       <SelectItem key={index} value={(index + 1).toString()}>
                         <div className="flex items-center gap-1">
@@ -226,7 +226,11 @@ export default function ReviewList({
           />
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            className="w-full"
+          >
             {form.formState.isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </div>
@@ -277,22 +281,34 @@ export default function ReviewList({
 
                 {isMobile ? (
                   <Drawer open={open} onOpenChange={setOpen}>
-                    <DrawerContent className="w-[95%] max-w-none">
-                      <DrawerHeader>
-                        <DrawerTitle>Review</DrawerTitle>
+                    <DrawerContent className="w-[95%] max-w-none p-4 flex flex-col gap-4">
+                      <DrawerHeader className="pb-2">
+                        <DrawerTitle className="text-lg font-bold">
+                          Review
+                        </DrawerTitle>
                       </DrawerHeader>
-                      <ReviewFormContent />
-                      <DrawerFooter />
+
+                      <div className="flex-1">
+                        <ReviewFormContent />
+                      </div>
+
+                      <DrawerFooter className="pt-2" />
                     </DrawerContent>
                   </Drawer>
                 ) : (
                   <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Write a customer review</DialogTitle>
+                    <DialogContent className="sm:max-w-[425px] p-6 flex flex-col gap-4">
+                      <DialogHeader className="pb-2">
+                        <DialogTitle className="text-lg font-bold">
+                          Write a customer review
+                        </DialogTitle>
                       </DialogHeader>
-                      <ReviewFormContent />
-                      <DialogFooter />
+
+                      <div className="flex-1">
+                        <ReviewFormContent />
+                      </div>
+
+                      <DialogFooter className="pt-2" />
                     </DialogContent>
                   </Dialog>
                 )}

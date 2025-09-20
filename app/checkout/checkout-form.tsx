@@ -713,14 +713,6 @@ const CheckoutForm = () => {
           </div>
           {isPaymentMethodSelected && isAddressSelected && (
             <div className="mt-6">
-              <div className="block md:hidden">
-                <CheckoutSummary
-                  createdOrder={createdOrder}
-                  paymentMethod={paymentMethod}
-                  handlePlaceOrder={handlePlaceOrder}
-                />
-              </div>
-
               {/* Mobile summary */}
               <div className="block md:hidden">
                 <CheckoutSummary
@@ -786,13 +778,13 @@ const CheckoutForm = () => {
           )}
           <CheckoutFooter />
         </div>
-        {/* <div className="hidden md:block">
+        <div className="hidden md:block">
           <CheckoutSummary
             createdOrder={createdOrder}
             paymentMethod={paymentMethod}
             handlePlaceOrder={handlePlaceOrder}
           />
-        </div> */}
+        </div>
       </div>
     </main>
   );
