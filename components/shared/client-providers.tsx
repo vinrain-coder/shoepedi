@@ -5,7 +5,7 @@ import CartSidebar from "./cart-sidebar";
 import { ThemeProvider } from "./theme-provider";
 import AppInitializer from "./app-initializer";
 import { ClientSetting } from "@/types";
-import { Toaster } from "sonner";
+import { Toaster } from "../ui/sonner";
 
 export default function ClientProviders({
   setting,

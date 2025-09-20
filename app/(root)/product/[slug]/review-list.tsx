@@ -1,4 +1,5 @@
 "use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar, Check, StarIcon, User } from "lucide-react";
 import Link from "next/link";
@@ -19,11 +20,17 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "@/components/ui/drawer"; // Make sure you have a Drawer component
 import {
   Form,
   FormControl,
@@ -52,6 +59,7 @@ import { Separator } from "@/components/ui/separator";
 import { IReviewDetails } from "@/types";
 import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const reviewFormDefaultValues = {
   title: "",
@@ -66,10 +74,14 @@ export default function ReviewList({
   userId: string | undefined;
   product: IProduct;
 }) {
+  const isMobile = useIsMobile();
+
   const [page, setPage] = useState(2);
   const [totalPages, setTotalPages] = useState(0);
   const [reviews, setReviews] = useState<IReviewDetails[]>([]);
   const { ref, inView } = useInView({ triggerOnce: true });
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
   const reload = async () => {
     try {
       const res = await getReviews({
@@ -78,7 +90,6 @@ export default function ReviewList({
       });
       setReviews([...res.data]);
       setTotalPages(res.totalPages);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error("Error fetching reviews");
     }
@@ -94,7 +105,6 @@ export default function ReviewList({
     setPage(page + 1);
   };
 
-  const [loadingReviews, setLoadingReviews] = useState(false);
   useEffect(() => {
     const loadReviews = async () => {
       setLoadingReviews(true);
@@ -119,6 +129,7 @@ export default function ReviewList({
     defaultValues: reviewFormDefaultValues,
   });
   const [open, setOpen] = useState(false);
+
   const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
     const res = await createUpdateReview({
       data: { ...values, product: product._id.toString() },
@@ -148,11 +159,93 @@ export default function ReviewList({
     }
     setOpen(true);
   };
+
+  const ReviewFormContent = () => (
+    <Form {...form}>
+      <form
+        method="post"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
+        <div className="flex flex-col gap-5">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="comment"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Comment</FormLabel>
+                <FormControl>
+                  <AutoResizeTextarea placeholder="Enter comment" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="rating"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rating</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rating" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <SelectItem key={index} value={(index + 1).toString()}>
+                        <div className="flex items-center gap-1">
+                          {index + 1}
+                          <StarIcon className="h-4 w-4" />
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Submitting..." : "Submit"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+
   return (
     <div className="space-y-2">
       {reviews.length === 0 && <div>No reviews yet</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div
+        className={
+          isMobile
+            ? "flex flex-col gap-6"
+            : "grid grid-cols-1 md:grid-cols-4 gap-8"
+        }
+      >
+        {/* Left column (summary + form) */}
         <div className="flex flex-col gap-2">
           {reviews.length !== 0 && (
             <RatingSummary
@@ -166,114 +259,44 @@ export default function ReviewList({
             <h3 className="font-bold text-lg lg:text-xl">
               Review this product
             </h3>
-            <p className="text-sm">Share your thoughts with other customers</p>
+            <p className="text-sm">
+              {isMobile
+                ? "Share your thoughts"
+                : "Share your thoughts with other customers"}
+            </p>
             {userId ? (
-              <Dialog open={open} onOpenChange={setOpen}>
+              <>
                 <Button
                   onClick={handleOpenForm}
                   variant="outline"
-                  className=" rounded-full w-full"
+                  className="rounded-full w-full"
+                  size={isMobile ? "sm" : "default"}
                 >
-                  Write a customer review
+                  Write a review
                 </Button>
 
-                <DialogContent className="sm:max-w-[425px]">
-                  <Form {...form}>
-                    <form method="post" onSubmit={form.handleSubmit(onSubmit)}>
+                {isMobile ? (
+                  <Drawer open={open} onOpenChange={setOpen}>
+                    <DrawerContent className="w-[95%] max-w-none">
+                      <DrawerHeader>
+                        <DrawerTitle>Review</DrawerTitle>
+                      </DrawerHeader>
+                      <ReviewFormContent />
+                      <DrawerFooter />
+                    </DrawerContent>
+                  </Drawer>
+                ) : (
+                  <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
                       <DialogHeader>
                         <DialogTitle>Write a customer review</DialogTitle>
-                        <DialogDescription>
-                          Share your thoughts with other customers
-                        </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="flex flex-col gap-5  ">
-                          <FormField
-                            control={form.control}
-                            name="title"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Enter title" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="comment"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Comment</FormLabel>
-                                <FormControl>
-                                  <AutoResizeTextarea
-                                    placeholder="Enter comment"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <FormField
-                            control={form.control}
-                            name="rating"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Rating</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value.toString()}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select a rating" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {Array.from({ length: 5 }).map(
-                                      (_, index) => (
-                                        <SelectItem
-                                          key={index}
-                                          value={(index + 1).toString()}
-                                        >
-                                          <div className="flex items-center gap-1">
-                                            {index + 1}{" "}
-                                            <StarIcon className="h-4 w-4" />
-                                          </div>
-                                        </SelectItem>
-                                      )
-                                    )}
-                                  </SelectContent>
-                                </Select>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-
-                      <DialogFooter>
-                        <Button
-                          type="submit"
-                          size="lg"
-                          disabled={form.formState.isSubmitting}
-                        >
-                          {form.formState.isSubmitting
-                            ? "Submitting..."
-                            : "Submit"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+                      <ReviewFormContent />
+                      <DialogFooter />
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </>
             ) : (
               <div className="mt-4 text-md text-muted-foreground">
                 Please{" "}
@@ -288,26 +311,35 @@ export default function ReviewList({
             )}
           </div>
         </div>
+
+        {/* Right column (reviews) */}
         <div className="md:col-span-3 flex flex-col gap-3">
           {reviews.map((review: IReviewDetails) => (
             <Card key={review._id}>
               <CardHeader>
                 <div className="flex-between">
-                  <CardTitle>{review.title}</CardTitle>
-                  <div className="italic text-sm flex">
-                    <Check className="size-4" /> Verified Purchase
-                  </div>
+                  <CardTitle className={isMobile ? "text-base" : ""}>
+                    {review.title}
+                  </CardTitle>
+                  {!isMobile && (
+                    <div className="italic text-sm flex">
+                      <Check className="size-4" /> Verified Purchase
+                    </div>
+                  )}
                 </div>
                 <CardDescription>{review.comment}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex space-x-4 text-sm text-muted-foreground">
+                <div
+                  className={`flex flex-wrap gap-3 text-sm text-muted-foreground ${
+                    isMobile ? "text-xs" : ""
+                  }`}
+                >
                   <Rating rating={review.rating} />
                   <div className="flex items-center">
                     <User className="mr-1 size-4" />
                     {review.user ? review.user.name : "Deleted User"}
                   </div>
-
                   <div className="flex items-center">
                     <Calendar className="mr-1 size-4" />
                     {review.createdAt.toString().substring(0, 10)}
@@ -316,13 +348,16 @@ export default function ReviewList({
               </CardContent>
             </Card>
           ))}
-          <div ref={ref}>
+          <div ref={ref} className="text-center">
             {page <= totalPages && (
-              <Button variant={"link"} onClick={loadMoreReviews}>
+              <Button
+                variant="link"
+                onClick={loadMoreReviews}
+                size={isMobile ? "sm" : "default"}
+              >
                 See more reviews
               </Button>
             )}
-
             {page < totalPages && loadingReviews && "Loading..."}
           </div>
         </div>

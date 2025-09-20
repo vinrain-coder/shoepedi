@@ -1,3 +1,5 @@
+"use client";
+
 import { UserRoundCheck, UserRoundPlus } from "lucide-react";
 import {
   Sheet,
@@ -12,9 +14,9 @@ import UserButton from "./user-button";
 import ThemeSwitcher from "./theme-switcher";
 import { authClient } from "@/lib/auth-client";
 
-const { data: session } = authClient.useSession();
-
 const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
+  const { data: session } = authClient.useSession();
+
   return (
     <div className="flex justify-end">
       <nav className="md:flex gap-3 hidden w-full">
