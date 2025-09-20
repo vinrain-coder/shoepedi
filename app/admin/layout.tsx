@@ -13,7 +13,7 @@ export default async function AdminLayout({
         <DashboardSidebar />
         <div className="flex-1 flex flex-col">
           <AdminNav />
-          {children}
+          <div className="p-4 flex-1">{children}</div>
         </div>
       </main>
     </SidebarProvider>

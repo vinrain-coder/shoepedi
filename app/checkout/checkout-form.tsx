@@ -721,12 +721,24 @@ const CheckoutForm = () => {
                 />
               </div>
 
-              <div className="hidden md:block">
+              {/* Mobile summary */}
+              <div className="block md:hidden">
                 <CheckoutSummary
                   createdOrder={createdOrder}
                   paymentMethod={paymentMethod}
                   handlePlaceOrder={handlePlaceOrder}
                 />
+                {paymentMethod === "Paystack" && createdOrder && (
+                  <PaystackInline
+                    email={session?.user.email as string}
+                    amount={Math.round(totalPrice * 100)}
+                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={createdOrder._id}
+                    onSuccess={() =>
+                      router.push(`/account/orders/${createdOrder._id}`)
+                    }
+                  />
+                )}
               </div>
 
               <Card className="hidden md:block ">
@@ -774,13 +786,13 @@ const CheckoutForm = () => {
           )}
           <CheckoutFooter />
         </div>
-        <div className="hidden md:block">
+        {/* <div className="hidden md:block">
           <CheckoutSummary
             createdOrder={createdOrder}
             paymentMethod={paymentMethod}
             handlePlaceOrder={handlePlaceOrder}
           />
-        </div>
+        </div> */}
       </div>
     </main>
   );
