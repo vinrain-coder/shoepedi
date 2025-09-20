@@ -26,41 +26,49 @@ export function PaystackInline({
   onSuccessUrl = "/account/orders",
   onCancelUrl = "/account/orders",
 }: PaystackInlineProps) {
-  // Only run this on the client
-  if (typeof window === "undefined") return null;
+  const [scriptLoaded, setScriptLoaded] = React.useState(false);
 
-  const handler = () => {
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => {
-      // Use window.PaystackPop
-      const paystackHandler = window.PaystackPop.setup({
-        key: publicKey,
-        email,
-        amount,
-        ref: "order_" + orderId + "_" + Date.now(),
-        onClose: () => {
-          window.location.href = onCancelUrl;
-        },
-        callback: () => {
-          window.location.href = onSuccessUrl;
-        },
-      });
-      paystackHandler.openIframe();
-    };
-    document.body.appendChild(script);
+  // Load Paystack script once
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!window.PaystackPop) {
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v1/inline.js";
+      script.async = true;
+      script.onload = () => setScriptLoaded(true);
+      document.body.appendChild(script);
+    } else {
+      setScriptLoaded(true);
+    }
+  }, []);
+
+  const handleClick = () => {
+    if (!scriptLoaded || !window.PaystackPop) return;
+
+    const handler = window.PaystackPop.setup({
+      key: publicKey,
+      email,
+      amount,
+      ref: "order_" + orderId + "_" + Date.now(),
+      onClose: () => {
+        window.location.href = onCancelUrl;
+      },
+      callback: () => {
+        window.location.href = onSuccessUrl;
+      },
+    });
+    handler.openIframe();
   };
 
-  // Run handler once after component mounts
-  // Avoid multiple triggers on re-render
-  const [called, setCalled] = React.useState(false);
-  React.useEffect(() => {
-    if (!called) {
-      handler();
-      setCalled(true);
-    }
-  }, [called]);
-
-  return null; // No actual UI needed, popup handles itself
+  // Render a hidden button or call this function from your existing "Place Order" button
+  return (
+    <button
+      onClick={handleClick}
+      style={{ display: "none" }}
+      id="paystack-trigger"
+    >
+      Pay
+    </button>
+  );
 }
