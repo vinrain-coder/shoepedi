@@ -1,78 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React from "react";
+import ThemeSwitcher from "@/components/shared/header/theme-switcher";
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
+import { PanelLeftCloseIcon, PanelLeftIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-
-const links = [
-  {
-    title: "Overview",
-    href: "/admin/overview",
-  },
-  {
-    title: "Products",
-    href: "/admin/products",
-  },
-  {
-    title: "Orders",
-    href: "/admin/orders",
-  },
-  {
-    title: "Users",
-    href: "/admin/users",
-  },
-  {
-    title: "Pages",
-    href: "/admin/web-pages",
-  },
-  {
-    title: "Blogs",
-    href: "/admin/blogs",
-  },
-  {
-    title: "StockSubs",
-    href: "/admin/stockSubs",
-  },
-  {
-    title: "Reviews",
-    href: "/admin/reviews",
-  },
-  {
-    title: "Settings",
-    href: "/admin/settings",
-  },
-];
-
-export function AdminNav({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLElement>) {
-  const pathname = usePathname();
+export const AdminNav = () => {
+  const { state, toggleSidebar, isMobile } = useSidebar();
 
   return (
-    <nav
-      className={cn(
-        "flex items-center flex-wrap overflow-hidden gap-1 md:gap-2",
-        className
-      )}
-      {...props}
-    >
-      {links.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "px-2 py-2 rounded-lg hover:text-primary active:bg-gray-300 transition duration-200",
-            pathname.includes(item.href)
-              ? "font-semibold text-primary"
-              : "text-muted-foreground"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
+    <nav className="flex px-4 gap-x-2 items-center py-3 border-b bg-background">
+      <Button className="size-9 variant-outline" onClick={toggleSidebar}>
+        {state === "collapsed" || isMobile ? (
+          <PanelLeftIcon className="size-4" />
+        ) : (
+          <PanelLeftCloseIcon className="size-4" />
+        )}
+      </Button>
+
+      <div className="ml-auto">
+        <ThemeSwitcher />
+      </div>
     </nav>
   );
-}
+};

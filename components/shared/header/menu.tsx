@@ -1,4 +1,4 @@
-import { MenuIcon } from "lucide-react";
+import { UserRoundCheck, UserRoundPlus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +10,9 @@ import {
 import CartButton from "./cart-button";
 import UserButton from "./user-button";
 import ThemeSwitcher from "./theme-switcher";
+import { authClient } from "@/lib/auth-client";
+
+const { data: session } = authClient.useSession();
 
 const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
   return (
@@ -23,7 +26,11 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         {!forAdmin && <CartButton />}
         <Sheet>
           <SheetTrigger className="align-middle header-button">
-            <MenuIcon className="h-7 w-7" />
+            {session ? (
+              <UserRoundPlus className="h-7 w-7" />
+            ) : (
+              <UserRoundCheck className="h-7 w-7" />
+            )}
           </SheetTrigger>
           <SheetContent className="bg-black text-white flex flex-col items-start">
             <SheetHeader className="w-full">
