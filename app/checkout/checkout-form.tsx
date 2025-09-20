@@ -729,49 +729,6 @@ const CheckoutForm = () => {
                   handlePlaceOrder={handlePlaceOrder}
                 />
               </div>
-
-              <Card className="hidden md:block ">
-                <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Paystack" &&
-                  createdOrder &&
-                  session?.user.email ? (
-                    <PaystackInline
-                      email={session.user.email}
-                      amount={Math.round(totalPrice * 100)}
-                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={createdOrder._id}
-                      onSuccessUrl={`/account/orders/${createdOrder._id}`}
-                      onCancelUrl={`/account/orders/${createdOrder._id}`}
-                    />
-                  ) : (
-                    <Button
-                      onClick={handlePlaceOrder}
-                      disabled={items.length === 0}
-                    >
-                      Place Your Order
-                    </Button>
-                  )}
-
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">
-                      Order Total: <ProductPrice price={totalPrice} plain />
-                    </p>
-                    <p className="text-xs">
-                      {" "}
-                      By placing your order, you agree to {
-                        site.name
-                      }&apos;s{" "}
-                      <Link href="/page/privacy-policy">privacy notice</Link>{" "}
-                      and
-                      <Link href="/page/conditions-of-use">
-                        {" "}
-                        conditions of use
-                      </Link>
-                      .
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           )}
           <CheckoutFooter />
