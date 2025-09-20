@@ -1,52 +1,100 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 interface PaystackInlineProps {
   email: string;
-  amount: number; // amount in kobo
+  amount: number; // in kobo (multiply KES by 100)
   publicKey: string;
   orderId: string;
-  onSuccessUrl?: string; // redirect after success
-  onCancelUrl?: string; // redirect after cancel
+  onSuccess?: (reference: any) => void;
+  onClose?: () => void;
 }
 
-// Extend the window object so TypeScript knows about PaystackPop
 declare global {
   interface Window {
-    PaystackPop: any;
+    PaystackPop?: any;
   }
 }
 
-export function PaystackInline({
+export default function PaystackInline({
   email,
   amount,
   publicKey,
   orderId,
-  onSuccessUrl = "/account/orders",
-  onCancelUrl = "/account/orders",
+  onSuccess,
+  onClose,
 }: PaystackInlineProps) {
-  const handler = () => {
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
+  useEffect(() => {
+    if (window.PaystackPop) {
+      setIsScriptLoaded(true);
+      return;
+    }
+
     const script = document.createElement("script");
+    script.id = "paystack-script";
     script.src = "https://js.paystack.co/v1/inline.js";
     script.async = true;
-    script.onload = () => {
-      if (window.PaystackPop) {
-        const paystackHandler = window.PaystackPop.setup({
-          key: publicKey,
-          email,
-          amount,
-          ref: "order_" + orderId + "_" + Date.now(),
-          onClose: () => {
-            window.location.href = onCancelUrl;
-          },
-          callback: () => {
-            window.location.href = onSuccessUrl;
-          },
-        });
-        paystackHandler.openIframe();
-      } else {
-        console.error("PaystackPop is not available on window");
-      }
-    };
+    script.onload = () => setIsScriptLoaded(true);
+    script.onerror = () => toast.error("Failed to load Paystack script");
     document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, []);
+
+  const payWithPaystack = () => {
+    if (!isScriptLoaded || !window.PaystackPop) {
+      toast.error("Payment system not ready. Please try again.");
+      return;
+    }
+
+    const handler = window.PaystackPop.setup({
+      key: publicKey,
+      email,
+      amount,
+      currency: "KES",
+      ref: `${orderId}-${Date.now()}`,
+      onClose: function () {
+        toast.error("Payment popup closed");
+        if (onClose) onClose();
+      },
+      callback: function (response: any) {
+        fetch("/api/paystack/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reference: response.reference,
+            orderId,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status && data.data.status === "success") {
+              toast.success("Payment successful!");
+              if (onSuccess) onSuccess(response);
+            } else {
+              toast.error("Payment verification failed");
+            }
+          })
+          .catch(() => toast.error("Verification request failed"));
+      },
+    });
+
+    handler.openIframe();
   };
 
-  handler();
+  return (
+    <button
+      onClick={payWithPaystack}
+      disabled={!isScriptLoaded}
+      className="w-1/3 rounded-full bg-green-600 text-white py-2 px-4 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+    >
+      Pay with Paystack
+    </button>
+  );
 }

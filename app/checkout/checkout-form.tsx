@@ -40,7 +40,13 @@ import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import dynamic from "next/dynamic";
 import { IOrder } from "@/lib/db/models/order.model";
+
+const PaystackInline = dynamic(
+  () => import("./paystack-inline"),
+  { ssr: false } // <-- only render on the client
+);
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -169,8 +175,7 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
-
+  const [createdOrder, setCreatedOrder] = useState<any>(null);
   const CheckoutSummary = ({
     createdOrder,
     paymentMethod,
@@ -545,15 +550,11 @@ const CheckoutForm = () => {
                     }
                   </p>
                   <ul>
-                    {items?.length ? (
-                      items.map((item) => (
-                        <li key={item.slug}>
-                          {item.name} x {item.quantity} = {item.price}
-                        </li>
-                      ))
-                    ) : (
-                      <p>No items in cart</p>
-                    )}
+                    {items.map((item, _index) => (
+                      <li key={_index}>
+                        {item.name} x {item.quantity} = {item.price}
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div className="col-span-2">
@@ -727,6 +728,48 @@ const CheckoutForm = () => {
                   handlePlaceOrder={handlePlaceOrder}
                 />
               </div>
+
+              <Card className="hidden md:block ">
+                <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
+                  {paymentMethod === "Paystack" && createdOrder ? (
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder._id}
+                      onSuccess={() =>
+                        router.push(`/account/orders/${createdOrder._id}`)
+                      }
+                    />
+                  ) : (
+                    <Button
+                      onClick={handlePlaceOrder}
+                      className="rounded-full cursor-pointer"
+                    >
+                      Place Your Order
+                    </Button>
+                  )}
+
+                  <div className="flex-1">
+                    <p className="font-bold text-lg">
+                      Order Total: <ProductPrice price={totalPrice} plain />
+                    </p>
+                    <p className="text-xs">
+                      {" "}
+                      By placing your order, you agree to {
+                        site.name
+                      }&apos;s{" "}
+                      <Link href="/page/privacy-policy">privacy notice</Link>{" "}
+                      and
+                      <Link href="/page/conditions-of-use">
+                        {" "}
+                        conditions of use
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
           <CheckoutFooter />
