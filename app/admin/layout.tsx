@@ -12,7 +12,9 @@ export default async function AdminLayout({
       <main className="flex min-h-screen w-screen bg-muted">
         <DashboardSidebar />
         <div className="flex-1 flex flex-col">
-          <AdminNav />
+          <div className="sticky top-0 z-50">
+            <AdminNav />
+          </div>
           <div className="flex-1 p-4 overflow-x-auto">{children}</div>
         </div>
       </main>

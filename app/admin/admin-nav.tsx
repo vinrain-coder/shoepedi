@@ -10,6 +10,7 @@ export const AdminNav = () => {
 
   return (
     <nav className="flex items-center justify-between px-4 py-3 border-b bg-background">
+      {/* Sidebar toggle button */}
       <Button className="size-9 variant-outline" onClick={toggleSidebar}>
         {state === "collapsed" || isMobile ? (
           <PanelLeftIcon className="size-4" />
@@ -18,7 +19,8 @@ export const AdminNav = () => {
         )}
       </Button>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* ThemeSwitcher */}
+      <div className="flex items-center gap-2">
         <ThemeSwitcher />
       </div>
     </nav>
