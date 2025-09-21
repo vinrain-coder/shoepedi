@@ -9,7 +9,7 @@ export const AdminNav = () => {
   const { state, toggleSidebar, isMobile } = useSidebar();
 
   return (
-    <nav className="flex items-center justify-between px-4 py-3 border-b bg-background">
+    <nav className="flex items-center px-4 py-3 border-b bg-background">
       {/* Sidebar toggle button */}
       <Button className="size-9 variant-outline" onClick={toggleSidebar}>
         {state === "collapsed" || isMobile ? (
@@ -19,8 +19,8 @@ export const AdminNav = () => {
         )}
       </Button>
 
-      {/* ThemeSwitcher */}
-      <div className="flex items-center gap-2">
+      {/* ThemeSwitcher aligned right */}
+      <div className="ml-auto flex items-center gap-2">
         <ThemeSwitcher />
       </div>
     </nav>
