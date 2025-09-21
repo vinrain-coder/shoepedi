@@ -94,7 +94,10 @@ export const AdminUserButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between overflow-hidden gap-x-2">
+        <Button
+          variant="outline"
+          className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between overflow-hidden gap-x-2"
+        >
           <Avatar>
             {session.user.image ? (
               <AvatarImage src={session.user.image} alt={session.user.email} />

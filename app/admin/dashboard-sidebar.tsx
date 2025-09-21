@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-
 import { AdminUserButton } from "./AdminUserButton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -36,8 +37,6 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-
-import { Separator } from "@/components/ui/separator";
 
 const managementLinks = [
   { title: "Overview", href: "/admin/overview", icon: LayoutDashboard },
@@ -73,6 +72,11 @@ export const DashboardSidebar = ({
 }: DashboardSidebarProps) => {
   const pathname = usePathname();
   const [showMore, setShowMore] = useState(false);
+  const isMobile = useIsMobile();
+
+  const handleLinkClick = (href: string) => {
+    if (isMobile) onClose();
+  };
 
   const renderLinks = (links: { title: string; href: string; icon: any }[]) => (
     <SidebarMenu>
@@ -87,18 +91,15 @@ export const DashboardSidebar = ({
             )}
             isActive={pathname === item.href}
           >
-            <Link
-              href={item.href}
-              onClick={() => {
-                onClose(); // Close sidebar on mobile
-              }}
-              className="flex items-center gap-2"
+            <button
+              onClick={() => handleLinkClick(item.href)}
+              className="flex items-center gap-2 w-full text-left"
             >
               <item.icon className="size-5" />
               <span className="text-sm font-medium tracking-tight">
                 {item.title}
               </span>
-            </Link>
+            </button>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
@@ -126,7 +127,7 @@ export const DashboardSidebar = ({
         </div>
 
         {/* Sidebar Content */}
-        <SidebarContent className="flex-1 overflow-y-auto px-2">
+        <SidebarContent className="flex-1 overflow-y-auto lg:overflow-y-visible px-2">
           {/* Management */}
           <SidebarGroup>
             <SidebarGroupLabel>Management</SidebarGroupLabel>
@@ -178,7 +179,7 @@ export const DashboardSidebar = ({
       </Sidebar>
 
       {/* Overlay for mobile */}
-      {isOpen && (
+      {isOpen && isMobile && (
         <div
           className="fixed inset-0 bg-black/40 lg:hidden"
           onClick={onClose}
