@@ -11,7 +11,6 @@ import { getSetting } from "./setting.actions";
 import mongoose from "mongoose";
 import { UTApi } from "uploadthing/server";
 import { notFound } from "next/navigation";
-import { fetchWithCache } from "../db/fetch-with-cache";
 
 const utapi = new UTApi(); // Initialize UTApi instance
 
@@ -82,26 +81,19 @@ export async function deleteProduct(id: string) {
 }
 
 // GET ONE PRODUCT BY ID
-export async function getProductById(id: string): Promise<IProduct | null> {
-  return fetchWithCache<IProduct>({
-    key: `productId:${id}`,
-    queryFn: async () => Product.findById(id),
-  });
+export async function getProductById(productId: string) {
+  await connectToDatabase();
+  const product = await Product.findById(productId);
+  return JSON.parse(JSON.stringify(product)) as IProduct;
 }
 
-// GET PRODUCTS BY IDS
-export async function getProductsByIds(ids: string[]): Promise<IProduct[]> {
-  const key = `products:${ids.join(",")}`;
-  return (
-    (await fetchWithCache<IProduct[]>({
-      key,
-      queryFn: async () => {
-        const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
-        return Product.find({ _id: { $in: objectIds } });
-      },
-      fallback: [],
-    })) ?? []
-  );
+export async function getProductsByIds(productIds: string[]) {
+  await connectToDatabase();
+
+  const objectIds = productIds.map((id) => new mongoose.Types.ObjectId(id));
+  const products = await Product.find({ _id: { $in: objectIds } });
+
+  return JSON.parse(JSON.stringify(products)) as IProduct[];
 }
 
 // GET ALL PRODUCTS FOR ADMIN
@@ -214,27 +206,23 @@ export async function getProductsByTag({
   tag: string;
   limit?: number;
 }) {
-  return fetchWithCache<IProduct[]>({
-    key: `productsByTag:${tag}:${limit}`,
-    queryFn: async () =>
-      Product.find({ tags: { $in: [tag] }, isPublished: true })
-        .sort({ createdAt: "desc" })
-        .limit(limit),
-    fallback: [],
-  });
+  await connectToDatabase();
+  const products = await Product.find({
+    tags: { $in: [tag] },
+    isPublished: true,
+  })
+    .sort({ createdAt: "desc" })
+    .limit(limit);
+  return JSON.parse(JSON.stringify(products)) as IProduct[];
 }
 
 // GET ONE PRODUCT BY SLUG
-export async function getProductBySlug(slug: string): Promise<IProduct> {
-  const product = await fetchWithCache<IProduct>({
-    key: `product:${slug}`,
-    queryFn: async () => Product.findOne({ slug, isPublished: true }),
-  });
-
+export async function getProductBySlug(slug: string) {
+  await connectToDatabase();
+  const product = await Product.findOne({ slug, isPublished: true });
   if (!product) return notFound();
-  return product;
+  return JSON.parse(JSON.stringify(product)) as IProduct;
 }
-
 // GET RELATED PRODUCTS: PRODUCTS WITH SAME CATEGORY
 export async function getRelatedProductsByCategory({
   category,
