@@ -14,7 +14,8 @@ import {
 import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
+export const dynamic = "force-static";
 
 export default async function HomePage() {
   // Fetch all data in parallel for speed
@@ -99,7 +100,7 @@ export default async function HomePage() {
         <AboutCarousel />
       </div>
 
-      <div className="p-4 bg-background">
+      <div className="p-4 bg-background flex justify-center">
         <BlogSlider title="Our Latest Stories" blogs={blogs} />
       </div>
     </>
