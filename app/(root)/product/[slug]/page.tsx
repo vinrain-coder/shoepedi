@@ -108,9 +108,11 @@ export default async function ProductDetails({
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="col-span-2">
             <ProductGallery
-              images={product.images}
-              selectedColor={selectedColor}
-              colors={product.colors}
+              images={
+                product.images?.filter(
+                  (img: string) => img && img.trim() !== ""
+                ) || []
+              }
             />
           </div>
 

@@ -146,18 +146,29 @@ export default function ReviewList({
   };
 
   const handleOpenForm = async () => {
-    form.setValue("product", product._id.toString());
-    form.setValue("user", userId!);
-    form.setValue("isVerifiedPurchase", true);
-    const review = await getReviewByProductId({
-      productId: product._id.toString(),
-    });
-    if (review) {
-      form.setValue("title", review.title);
-      form.setValue("comment", review.comment);
-      form.setValue("rating", review.rating);
-    }
+    // Open instantly
     setOpen(true);
+
+    // Prefill basic values right away
+    form.setValue("product", product._id.toString());
+    if (userId) {
+      form.setValue("user", userId);
+      form.setValue("isVerifiedPurchase", true);
+    }
+
+    // Then fetch the existing review in the background
+    try {
+      const review = await getReviewByProductId({
+        productId: product._id.toString(),
+      });
+      if (review) {
+        form.setValue("title", review.title);
+        form.setValue("comment", review.comment);
+        form.setValue("rating", review.rating);
+      }
+    } catch (err) {
+      console.error("Failed to load review", err);
+    }
   };
 
   const ReviewFormContent = () => (
@@ -268,63 +279,7 @@ export default function ReviewList({
                 ? "Share your thoughts"
                 : "Share your thoughts with other customers"}
             </p>
-            {userId ? (
-              <>
-                <Button
-                  onClick={handleOpenForm}
-                  variant="outline"
-                  className="rounded-full w-full"
-                  size={isMobile ? "sm" : "default"}
-                >
-                  Write a review
-                </Button>
-
-                {isMobile ? (
-                  <Drawer open={open} onOpenChange={setOpen}>
-                    <DrawerContent className="w-full max-w-none p-4 flex flex-col gap-4">
-                      <DrawerHeader className="pb-2">
-                        <DrawerTitle className="text-lg font-bold">
-                          Review
-                        </DrawerTitle>
-                      </DrawerHeader>
-
-                      <div className="flex-1">
-                        <ReviewFormContent />
-                      </div>
-
-                      <DrawerFooter className="pt-2" />
-                    </DrawerContent>
-                  </Drawer>
-                ) : (
-                  <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogContent className="sm:max-w-[425px] p-6 flex flex-col gap-4">
-                      <DialogHeader className="pb-2">
-                        <DialogTitle className="text-lg font-bold">
-                          Write a customer review
-                        </DialogTitle>
-                      </DialogHeader>
-
-                      <div className="flex-1">
-                        <ReviewFormContent />
-                      </div>
-
-                      <DialogFooter className="pt-2" />
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </>
-            ) : (
-              <div className="mt-4 text-md text-muted-foreground">
-                Please{" "}
-                <Link
-                  href={`/sign-in?callbackUrl=/product/${product.slug}`}
-                  className="text-primary font-medium underline hover:text-primary/80 transition-colors"
-                >
-                  Sign in
-                </Link>{" "}
-                to write a review.
-              </div>
-            )}
+            ç
           </div>
         </div>
 

@@ -100,7 +100,7 @@ export const DashboardSidebar = () => {
         <Separator className="opacity-10 text-[#5D6B68]" />
       </div>
 
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between h-full">
         <SidebarGroup>
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -138,11 +138,15 @@ export const DashboardSidebar = () => {
             {showMore && <div className="pl-4">{renderLinks(moreLinks)}</div>}
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="px-2 py-4">
+          <AdminUserButton />
+        </div>
       </SidebarContent>
 
-      <SidebarFooter className="text-white">
+      {/* <SidebarFooter className="text-white">
         <AdminUserButton />
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 };

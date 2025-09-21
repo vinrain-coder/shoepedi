@@ -14,6 +14,8 @@ import {
 import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 
+export const revalidate = 3600;
+
 export default async function HomePage() {
   // Fetch all data in parallel for speed
   const [

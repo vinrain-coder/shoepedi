@@ -9,7 +9,7 @@ export default async function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <main className="flex h-screen w-screen bg-muted">
+      <main className="flex min-h-screen w-screen bg-muted">
         <DashboardSidebar />
         <div className="flex-1 flex flex-col">
           <AdminNav />

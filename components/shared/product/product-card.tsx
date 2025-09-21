@@ -72,7 +72,10 @@ const ProductCard = ({
             initialInWishlist={isInWishlist}
           />
           <AddToCart item={cartItem}>
-            <button className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer">
+            <button
+              className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
+              title="Add to Cart"
+            >
               <ShoppingCart size={16} className="text-gray-700" />
             </button>
           </AddToCart>
@@ -83,12 +86,6 @@ const ProductCard = ({
           >
             <Eye size={16} className="text-gray-700" />
           </button>
-
-          <ProductQuickView
-            productId={product._id.toString()}
-            isOpen={showQuickView}
-            onClose={() => setShowQuickView(false)}
-          />
         </div>
       )}
 
@@ -131,44 +128,34 @@ const ProductCard = ({
     </div>
   );
 
-  return hideBorder ? (
-    <div className="flex flex-col relative">
-      <ProductImage withFloatingIcons />
-      {!hideDetails && <ProductDetails />}
-    </div>
-  ) : (
-    <Card className="flex flex-col relative hover:shadow-md rounded-md overflow-hidden transition p-0 m-0">
-      <CardHeader className="p-0">
-        <ProductImage withFloatingIcons />
-      </CardHeader>
+  return (
+    <>
+      {hideBorder ? (
+        <div className="flex flex-col relative">
+          <ProductImage withFloatingIcons />
+          {!hideDetails && <ProductDetails />}
+        </div>
+      ) : (
+        <Card className="flex flex-col relative hover:shadow-md rounded-md overflow-hidden transition p-0 m-0">
+          <CardHeader className="p-0">
+            <ProductImage withFloatingIcons />
+          </CardHeader>
 
-      {!hideDetails && (
-        <>
-          <CardContent className="px-1 py-1 mb-1">
-            <ProductDetails />
-          </CardContent>
-
-          {/* <CardFooter className="flex justify-between items-center px-2 py-1.5">
-            {product.countInStock === 0 ? (
-              <Badge
-                variant="destructive"
-                className="px-3 py-0.5 text-xs font-semibold rounded-none shadow-md"
-              >
-                Out of Stock
-              </Badge>
-            ) : (
-              !hideAddToCart && (
-                <AddToCart item={cartItem}>
-                  <Button size="sm" className="flex items-center gap-1 text-xs">
-                    <ShoppingCart size={14} /> Add
-                  </Button>
-                </AddToCart>
-              )
-            )}
-          </CardFooter> */}
-        </>
+          {!hideDetails && (
+            <CardContent className="px-1 py-1 mb-1">
+              <ProductDetails />
+            </CardContent>
+          )}
+        </Card>
       )}
-    </Card>
+
+      {/* Quick View modal - outside absolute div */}
+      <ProductQuickView
+        product={product}
+        isOpen={showQuickView}
+        onClose={() => setShowQuickView(false)}
+      />
+    </>
   );
 };
 
