@@ -223,6 +223,7 @@ const CheckoutForm = () => {
             <Button
               onClick={handlePlaceOrder}
               className="rounded-full w-full cursor-pointer"
+              hidden={paymentMethod === "Paystack" && !!createdOrder} 
             >
               Place Your Order
             </Button>
