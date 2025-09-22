@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
 import { IOrder } from "@/lib/db/models/order.model";
+import { AlertCircle } from "lucide-react";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -490,6 +491,7 @@ const CheckoutForm = () => {
                   <span className="w-8">2 </span>
                   <span>Choose a payment method</span>
                 </div>
+
                 <Card className="md:ml-8 my-4">
                   <CardContent className="p-4">
                     <RadioGroup
@@ -511,7 +513,17 @@ const CheckoutForm = () => {
                         </div>
                       ))}
                     </RadioGroup>
+
+                    <div className="flex items-start gap-2 text-sm text-muted-foreground mt-3">
+                      <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                      <p>
+                        <span className="font-medium">Cash on Delivery</span> is
+                        only available for orders shipped within{" "}
+                        <span className="font-semibold">Nairobi</span>.
+                      </p>
+                    </div>
                   </CardContent>
+
                   <CardFooter className="p-4">
                     <Button
                       onClick={handleSelectPaymentMethod}
@@ -749,6 +761,7 @@ const CheckoutForm = () => {
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer"
+                      hidden={paymentMethod === "Paystack" && !!createdOrder}
                     >
                       Place Your Order
                     </Button>

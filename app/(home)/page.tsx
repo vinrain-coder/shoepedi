@@ -5,7 +5,7 @@ import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { HomeCard } from "@/components/shared/home/home-card";
 import ProductSlider from "@/components/shared/product/product-slider";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchLatestBlogs } from "@/lib/actions/blog.actions";
+import { getPublishedBlogs } from "@/lib/actions/blog.actions";
 import {
   getProductsForCard,
   getProductsByTag,
@@ -36,7 +36,7 @@ export default async function HomePage() {
     getProductsForCard({ tag: "featured" }),
     getProductsForCard({ tag: "best-seller" }),
   ]);
-  const blogs = await fetchLatestBlogs({ limit: 5 });
+  const { blogs } = await getPublishedBlogs({ limit: 5 });
 
   const { carousels } = settingResult;
   const categories = allCategories.slice(0, 4);

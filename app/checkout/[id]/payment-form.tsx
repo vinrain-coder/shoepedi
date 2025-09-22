@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { PaystackButton } from "react-paystack";
+import { useState } from "react";
 
 export default function OrderDetailsForm({
   order,
@@ -21,6 +22,7 @@ export default function OrderDetailsForm({
   paystackPublicKey?: string | null;
 }) {
   const router = useRouter();
+  const [showPaystack, setShowPaystack] = useState(false);
   const {
     shippingAddress,
     items,
@@ -81,30 +83,43 @@ export default function OrderDetailsForm({
             </div>
 
             {!isPaid && paymentMethod === "Paystack" && paystackPublicKey && (
-              <PaystackButton
-                email={(order.user as { name: string; email: string }).email}
-                amount={Math.round(order.totalPrice * 100)}
-                publicKey={paystackPublicKey}
-                text="Pay with Paystack"
-                onSuccess={async (reference) => {
-                  const res = await fetch("/api/paystack/verify", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      reference: reference.reference,
-                      orderId: order._id,
-                    }),
-                  });
-                  const data = await res.json();
-                  if (data.status && data.data.status === "success") {
-                    toast.success("Payment successful!");
-                    router.push(`/account/orders/${order._id}`);
-                  } else {
-                    toast.error("Payment verification failed");
-                  }
-                }}
-                onClose={() => toast.error("Payment popup closed")}
-              />
+              <>
+                {!showPaystack ? (
+                  <Button
+                    className="w-full rounded-full"
+                    onClick={() => setShowPaystack(true)}
+                  >
+                    Pay Order
+                  </Button>
+                ) : (
+                  <PaystackButton
+                    email={
+                      (order.user as { name: string; email: string }).email
+                    }
+                    amount={Math.round(order.totalPrice * 100)}
+                    publicKey={paystackPublicKey}
+                    text="Pay with Paystack"
+                    onSuccess={async (reference) => {
+                      const res = await fetch("/api/paystack/verify", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          reference: reference.reference,
+                          orderId: order._id,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (data.status && data.data.status === "success") {
+                        toast.success("Payment successful!");
+                        router.push(`/account/orders/${order._id}`);
+                      } else {
+                        toast.error("Payment verification failed");
+                      }
+                    }}
+                    onClose={() => toast.error("Payment popup closed")}
+                  />
+                )}
+              </>
             )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (

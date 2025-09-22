@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -89,12 +90,12 @@ export default function PaystackInline({
   };
 
   return (
-    <button
+    <Button
       onClick={payWithPaystack}
       disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full bg-green-600 text-white py-2 px-4 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      className="w-1/3 rounded-full"
     >
-      Pay with Paystack
-    </button>
+      Complete Payment
+    </Button>
   );
 }
