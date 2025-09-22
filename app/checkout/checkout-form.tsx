@@ -228,7 +228,7 @@ const CheckoutForm = () => {
             <Button
               onClick={handlePlaceOrder}
               className="rounded-full w-full cursor-pointer"
-              hidden={paymentMethod === "Paystack" && !!createdOrder}
+              hidden={paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && !!createdOrder}
             >
               Place Your Order
             </Button>
@@ -738,7 +738,7 @@ const CheckoutForm = () => {
                   paymentMethod={paymentMethod}
                   handlePlaceOrder={handlePlaceOrder}
                 />
-                {paymentMethod === "Paystack" && createdOrder && (
+                {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && createdOrder && (
                   <PaystackInline
                     email={session?.user.email as string}
                     amount={Math.round(totalPrice * 100)}
@@ -753,7 +753,7 @@ const CheckoutForm = () => {
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Paystack" && createdOrder ? (
+                  {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
                       amount={Math.round(totalPrice * 100)} // Paystack wants kobo
@@ -767,7 +767,7 @@ const CheckoutForm = () => {
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer"
-                      hidden={paymentMethod === "Paystack" && !!createdOrder}
+                      hidden={paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && !!createdOrder}
                     >
                       Place Your Order
                     </Button>

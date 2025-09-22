@@ -8,8 +8,6 @@ import CheckoutFooter from "../checkout-footer";
 import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ProductPrice from "@/components/shared/product/product-price";
-import { toast } from "sonner";
-import { PaystackButton } from "react-paystack";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 
@@ -20,7 +18,6 @@ const PaystackInline = dynamic(
 
 export default function OrderDetailsForm({
   order,
-  paystackPublicKey,
 }: {
   order: IOrder;
   isAdmin: boolean;
@@ -89,15 +86,20 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            {!isPaid && paymentMethod === "Paystack" && (
-              <PaystackInline
-                email={session?.user.email as string}
-                amount={Math.round(totalPrice * 100)}
-                publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                orderId={order._id}
-                onSuccess={() => router.push(`/account/orders/${order._id}`)}
-              />
-            )}
+            {!isPaid &&
+              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && (
+                <>
+                  <PaystackInline
+                    email={session?.user.email as string}
+                    amount={Math.round(totalPrice * 100)}
+                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={order._id}
+                    onSuccess={() =>
+                      router.push(`/account/orders/${order._id}`)
+                    }
+                  />
+                </>
+              )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (
               <Button
