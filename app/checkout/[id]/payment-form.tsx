@@ -89,7 +89,7 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            {!isPaid && paymentMethod === "Paystack" && paystackPublicKey && (
+            {!isPaid && paymentMethod === "Paystack" && (
               <PaystackInline
                 email={session?.user.email as string}
                 amount={Math.round(totalPrice * 100)}

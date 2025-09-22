@@ -149,6 +149,11 @@ const CheckoutForm = () => {
         return;
       }
 
+      if (createdOrder) {
+        toast.error("This order is already created. Proceed to payment.");
+        return;
+      }
+
       const order = res.data as IOrder; // Ensure this is the full order object
       toast.success("Order created!");
 
@@ -223,7 +228,7 @@ const CheckoutForm = () => {
             <Button
               onClick={handlePlaceOrder}
               className="rounded-full w-full cursor-pointer"
-              hidden={paymentMethod === "Paystack" && !!createdOrder} 
+              hidden={paymentMethod === "Paystack" && !!createdOrder}
             >
               Place Your Order
             </Button>
