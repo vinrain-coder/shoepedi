@@ -238,7 +238,7 @@ export const PaymentMethodSchema = z.object({
 
 export const DeliveryDateSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  daysToDeliver: z.number().min(0, "Days to deliver must be at least 0"),
+  daysToDeliver: z.coerce.number().min(0, "Days to deliver must be at least 0"),
   shippingPrice: z.coerce.number().min(0, "Shipping price must be at least 0"),
   freeShippingMinPrice: z.coerce
     .number()

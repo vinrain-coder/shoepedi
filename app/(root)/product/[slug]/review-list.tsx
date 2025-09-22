@@ -30,7 +30,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
-} from "@/components/ui/drawer"; // Make sure you have a Drawer component
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -61,10 +61,14 @@ import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// ✅ include all schema fields
 const reviewFormDefaultValues = {
+  product: "",
+  user: "",
+  isVerifiedPurchase: true,
   title: "",
   comment: "",
-  rating: 0,
+  rating: undefined as unknown as number, // start undefined so placeholder shows
 };
 
 export default function ReviewList({
@@ -81,6 +85,7 @@ export default function ReviewList({
   const [reviews, setReviews] = useState<IReviewDetails[]>([]);
   const { ref, inView } = useInView({ triggerOnce: true });
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const reload = async () => {
     try {
@@ -128,7 +133,6 @@ export default function ReviewList({
     resolver: zodResolver(ReviewInputSchema),
     defaultValues: reviewFormDefaultValues,
   });
-  const [open, setOpen] = useState(false);
 
   const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
     const res = await createUpdateReview({
@@ -146,15 +150,13 @@ export default function ReviewList({
   };
 
   const handleOpenForm = async () => {
-    // Open right away
     setOpen(true);
 
-    // Set initial values (product, user, etc.)
+    // set schema-required values
     form.setValue("product", product._id.toString());
-    form.setValue("user", userId!);
+    if (userId) form.setValue("user", userId);
     form.setValue("isVerifiedPurchase", true);
 
-    // Then fetch existing review asynchronously
     try {
       const review = await getReviewByProductId({
         productId: product._id.toString(),
@@ -177,6 +179,7 @@ export default function ReviewList({
         className="space-y-4"
       >
         <div className="flex flex-col gap-5">
+          {/* Title */}
           <FormField
             control={form.control}
             name="title"
@@ -190,6 +193,7 @@ export default function ReviewList({
               </FormItem>
             )}
           />
+          {/* Comment */}
           <FormField
             control={form.control}
             name="comment"
@@ -203,6 +207,7 @@ export default function ReviewList({
               </FormItem>
             )}
           />
+          {/* Rating */}
           <FormField
             control={form.control}
             name="rating"
@@ -210,8 +215,8 @@ export default function ReviewList({
               <FormItem>
                 <FormLabel>Rating</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value.toString()}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value ? field.value.toString() : ""}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -367,7 +372,7 @@ export default function ReviewList({
                   </div>
                   <div className="flex items-center">
                     <Calendar className="mr-1 size-4" />
-                    {review.createdAt.toString().substring(0, 10)}
+                    {new Date(review.createdAt).toISOString().substring(0, 10)}
                   </div>
                 </div>
               </CardContent>
