@@ -23,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Drawer,
@@ -30,6 +32,9 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
+  DrawerClose,
+  DrawerTrigger,
+  DrawerDescription,
 } from "@/components/ui/drawer";
 import {
   Form,
@@ -171,98 +176,11 @@ export default function ReviewList({
     }
   };
 
-  const ReviewFormContent = () => (
-    <Form {...form}>
-      <form
-        method="post"
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
-        <div className="flex flex-col gap-5">
-          {/* Title */}
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Comment */}
-          <FormField
-            control={form.control}
-            name="comment"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Comment</FormLabel>
-                <FormControl>
-                  <AutoResizeTextarea placeholder="Enter comment" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Rating */}
-          <FormField
-            control={form.control}
-            name="rating"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating</FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value ? field.value.toString() : ""}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select rating" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="w-full">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <SelectItem key={index} value={(index + 1).toString()}>
-                        <div className="flex items-center gap-1">
-                          {index + 1}
-                          <StarIcon className="h-4 w-4" />
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className="w-full"
-          >
-            {form.formState.isSubmitting ? "Submitting..." : "Submit"}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
-
   return (
     <div className="space-y-2">
       {reviews.length === 0 && <div>No reviews yet</div>}
 
-      <div
-        className={
-          isMobile
-            ? "flex flex-col gap-6"
-            : "grid grid-cols-1 md:grid-cols-4 gap-8"
-        }
-      >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Left column (summary + form) */}
         <div className="flex flex-col gap-2">
           {reviews.length !== 0 && (
@@ -284,45 +202,231 @@ export default function ReviewList({
             </p>
             {userId ? (
               <>
-                <Button
-                  onClick={handleOpenForm}
-                  variant="outline"
-                  className="rounded-full w-full"
-                  size={isMobile ? "sm" : "default"}
-                >
-                  Write a review
-                </Button>
-
                 {isMobile ? (
-                  <Drawer open={open} onOpenChange={setOpen}>
-                    <DrawerContent className="w-full max-w-none p-4 flex flex-col gap-4">
-                      <DrawerHeader className="pb-2">
-                        <DrawerTitle className="text-lg font-bold">
-                          Review
-                        </DrawerTitle>
+                  <Drawer>
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="rounded-full w-full"
+                        size="sm"
+                      >
+                        Write a review
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                      <DrawerHeader>
+                        <DrawerTitle>Write a customer review</DrawerTitle>
+                        <DrawerDescription>
+                          Share your thoughts with other customers
+                        </DrawerDescription>
                       </DrawerHeader>
 
-                      <div className="flex-1">
-                        <ReviewFormContent />
-                      </div>
+                      <div className="px-4 py-2">
+                        <Form {...form}>
+                          <form
+                            method="post"
+                            onSubmit={form.handleSubmit(onSubmit)}
+                          >
+                            <div className="flex flex-col gap-5">
+                              <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Title</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter Title"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
 
-                      <DrawerFooter className="pt-2" />
+                              <FormField
+                                control={form.control}
+                                name="comment"
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Comment</FormLabel>
+                                    <FormControl>
+                                      <AutoResizeTextarea
+                                        placeholder="Enter Comment"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="rating"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Rating</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value.toString()}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select a Rating" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 5 }).map(
+                                          (_, index) => (
+                                            <SelectItem
+                                              key={index}
+                                              value={(index + 1).toString()}
+                                            >
+                                              <div className="flex items-center gap-1">
+                                                {index + 1}{" "}
+                                                <StarIcon className="h-4 w-4" />
+                                              </div>
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <DrawerFooter>
+                              <Button
+                                type="submit"
+                                size="lg"
+                                disabled={form.formState.isSubmitting}
+                              >
+                                {form.formState.isSubmitting
+                                  ? "Submitting"
+                                  : "Submit"}
+                              </Button>
+                              <DrawerClose>
+                                <Button variant="outline">Cancel</Button>
+                              </DrawerClose>
+                            </DrawerFooter>
+                          </form>
+                        </Form>
+                      </div>
                     </DrawerContent>
                   </Drawer>
                 ) : (
-                  <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogContent className="sm:max-w-[425px] p-6 flex flex-col gap-4">
-                      <DialogHeader className="pb-2">
-                        <DialogTitle className="text-lg font-bold">
-                          Write a customer review
-                        </DialogTitle>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="rounded-full w-full">
+                        Write a review
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Write a customer review</DialogTitle>
+                        <DialogDescription>
+                          Share your thoughts with other customers
+                        </DialogDescription>
                       </DialogHeader>
 
-                      <div className="flex-1">
-                        <ReviewFormContent />
-                      </div>
+                      <Form {...form}>
+                        <form
+                          method="post"
+                          onSubmit={form.handleSubmit(onSubmit)}
+                        >
+                          <div className="grid gap-4 py-4">
+                            <div className="flex flex-col gap-5">
+                              <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Title</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter Title"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
 
-                      <DialogFooter className="pt-2" />
+                              <FormField
+                                control={form.control}
+                                name="comment"
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Comment</FormLabel>
+                                    <FormControl>
+                                      <AutoResizeTextarea
+                                        placeholder="Enter Comment"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div>
+                              <FormField
+                                control={form.control}
+                                name="rating"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Rating</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value.toString()}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select a Rating" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 5 }).map(
+                                          (_, index) => (
+                                            <SelectItem
+                                              key={index}
+                                              value={(index + 1).toString()}
+                                            >
+                                              <div className="flex items-center gap-1">
+                                                {index + 1}{" "}
+                                                <StarIcon className="h-4 w-4" />
+                                              </div>
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          <DialogFooter>
+                            <Button
+                              type="submit"
+                              size="lg"
+                              disabled={form.formState.isSubmitting}
+                            >
+                              {form.formState.isSubmitting
+                                ? "Submitting"
+                                : "Submit"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
                     </DialogContent>
                   </Dialog>
                 )}
@@ -348,31 +452,23 @@ export default function ReviewList({
             <Card key={review._id}>
               <CardHeader>
                 <div className="flex-between">
-                  <CardTitle className={isMobile ? "text-base" : ""}>
-                    {review.title}
-                  </CardTitle>
-                  {!isMobile && (
-                    <div className="italic text-sm flex">
-                      <Check className="size-4" /> Verified Purchase
-                    </div>
-                  )}
+                  <CardTitle>{review.title}</CardTitle>
+                  <div className="italic text-sm flex">
+                    <Check className="h-4 w-4" /> Verified Purchase
+                  </div>
                 </div>
                 <CardDescription>{review.comment}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div
-                  className={`flex flex-wrap gap-3 text-sm text-muted-foreground ${
-                    isMobile ? "text-xs" : ""
-                  }`}
-                >
+                <div className="flex space-x-4 text-sm text-muted-foreground">
                   <Rating rating={review.rating} />
                   <div className="flex items-center">
-                    <User className="mr-1 size-4" />
+                    <User className="mr-1 h-3 w-3" />
                     {review.user ? review.user.name : "Deleted User"}
                   </div>
                   <div className="flex items-center">
-                    <Calendar className="mr-1 size-4" />
-                    {new Date(review.createdAt).toISOString().substring(0, 10)}
+                    <Calendar className="mr-1 h-3 w-3" />
+                    {review.createdAt.toString().substring(0, 10)}
                   </div>
                 </div>
               </CardContent>

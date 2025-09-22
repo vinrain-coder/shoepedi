@@ -68,7 +68,7 @@ const ProductPrice = ({
           </span>
           {/* Limited deal text */}
           <div className="flex items-center gap-1 text-red-600 font-semibold text-sm uppercase tracking-wide">
-            <Flame size={12} className="text-red-600 animate-ping" />
+            <Flame size={12} className="text-red-600 animate-pulse mr-2" />
             Hot Deal
           </div>
         </div>
