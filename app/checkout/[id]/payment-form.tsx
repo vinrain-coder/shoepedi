@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { PaystackButton } from "react-paystack";
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { authClient } from "@/lib/auth-client";
+
+const PaystackInline = dynamic(
+  () => import("../paystack-inline"),
+  { ssr: false } // <-- only render on the client
+);
 
 export default function OrderDetailsForm({
   order,
@@ -21,8 +27,9 @@ export default function OrderDetailsForm({
   clientSecret: string | null;
   paystackPublicKey?: string | null;
 }) {
+  const { data: session } = authClient.useSession();
+
   const router = useRouter();
-  const [showPaystack, setShowPaystack] = useState(false);
   const {
     shippingAddress,
     items,
@@ -83,43 +90,13 @@ export default function OrderDetailsForm({
             </div>
 
             {!isPaid && paymentMethod === "Paystack" && paystackPublicKey && (
-              <>
-                {!showPaystack ? (
-                  <Button
-                    className="w-full rounded-full"
-                    onClick={() => setShowPaystack(true)}
-                  >
-                    Pay Order
-                  </Button>
-                ) : (
-                  <PaystackButton
-                    email={
-                      (order.user as { name: string; email: string }).email
-                    }
-                    amount={Math.round(order.totalPrice * 100)}
-                    publicKey={paystackPublicKey}
-                    text="Pay with Paystack"
-                    onSuccess={async (reference) => {
-                      const res = await fetch("/api/paystack/verify", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          reference: reference.reference,
-                          orderId: order._id,
-                        }),
-                      });
-                      const data = await res.json();
-                      if (data.status && data.data.status === "success") {
-                        toast.success("Payment successful!");
-                        router.push(`/account/orders/${order._id}`);
-                      } else {
-                        toast.error("Payment verification failed");
-                      }
-                    }}
-                    onClose={() => toast.error("Payment popup closed")}
-                  />
-                )}
-              </>
+              <PaystackInline
+                email={session?.user.email as string}
+                amount={Math.round(totalPrice * 100)}
+                publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                orderId={order._id}
+                onSuccess={() => router.push(`/account/orders/${order._id}`)}
+              />
             )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (
