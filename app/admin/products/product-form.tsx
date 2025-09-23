@@ -228,15 +228,6 @@ const ProductForm = ({
                     type="number"
                     placeholder="Enter product offer price"
                     {...field}
-                    {...form.register("listPrice", {
-                      validate: (value) => {
-                        const price = form.getValues("price");
-                        return (
-                          Number(value) < Number(price) ||
-                          "Offer price must be lower than price"
-                        );
-                      },
-                    })}
                   />
                 </FormControl>
                 <FormMessage />

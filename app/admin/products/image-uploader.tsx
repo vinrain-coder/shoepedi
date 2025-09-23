@@ -71,7 +71,10 @@ function SortableImage({
       />
       <button
         type="button"
-        onClick={() => onRemove(index)}
+        onClick={(e) => {
+          e.stopPropagation(); // ← important to prevent drag interference
+          onRemove(index);
+        }}
         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 hidden group-hover:block"
       >
         <X size={16} />
@@ -145,21 +148,25 @@ const ImageUploader = ({ form }: ImageUploaderProps) => {
                     You can upload up to 6 images (max: 1MB each).
                   </span>
                   <FormControl>
-                    <UploadDropzone
-                      endpoint="imageUploader"
-                      onClientUploadComplete={(res: { url: string }[]) => {
-                        const uploadedImages = res.map((file) => file.url);
-                        const updatedImages = Array.from(
-                          new Set([...images, ...uploadedImages])
-                        );
-                        setImages(updatedImages);
-                        form.setValue("images", updatedImages);
-                        toast.success("Images uploaded successfully!");
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(`ERROR! ${error.message}`);
-                      }}
-                    />
+                    <Card className="bg-muted">
+                      <CardContent>
+                        <UploadDropzone
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res: { url: string }[]) => {
+                            const uploadedImages = res.map((file) => file.url);
+                            const updatedImages = Array.from(
+                              new Set([...images, ...uploadedImages])
+                            );
+                            setImages(updatedImages);
+                            form.setValue("images", updatedImages);
+                            toast.success("Images uploaded successfully!");
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast.error(`ERROR! ${error.message}`);
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
                   </FormControl>
                 </div>
               </CardContent>

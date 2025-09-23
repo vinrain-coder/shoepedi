@@ -27,7 +27,7 @@ export const ReviewInputSchema = z.object({
     .max(5, "Rating must be at most 5"),
 });
 
-export const ProductInputSchema = z.object({
+const ProductInputBase = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
   category: z.string().min(1, "Category is required"),
@@ -40,7 +40,7 @@ export const ProductInputSchema = z.object({
   countInStock: z.coerce
     .number()
     .int()
-    .nonnegative("count in stock must be a non-negative number"),
+    .nonnegative("Count in stock must be a non-negative number"),
   tags: z.array(z.string()).default([]),
   sizes: z.array(z.string()).default([]),
   colors: z.array(z.string()).default([]),
@@ -62,8 +62,19 @@ export const ProductInputSchema = z.object({
     .nonnegative("Number of sales must be a non-negative number"),
 });
 
-export const ProductUpdateSchema = ProductInputSchema.extend({
+export const ProductInputSchema = ProductInputBase.refine(
+  (data) => data.listPrice <= data.price,
+  {
+    message: "List price must be smaller than or equal to price",
+    path: ["listPrice"],
+  }
+);
+
+export const ProductUpdateSchema = ProductInputBase.extend({
   _id: z.string(),
+}).refine((data) => data.listPrice <= data.price, {
+  message: "List price must be smaller than or equal to price",
+  path: ["listPrice"],
 });
 
 // Order Item

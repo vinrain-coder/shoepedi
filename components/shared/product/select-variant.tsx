@@ -55,7 +55,9 @@ export default function SelectVariant({
               key={x}
               variant="outline"
               className={
-                selectedColor === x ? "border-2 border-primary" : "border-2"
+                selectedColor === x
+                  ? "border-2 border-primary dark:border-primary"
+                  : "border-2"
               }
               onClick={() => updateVariant(x, selectedSize)}
             >
@@ -76,7 +78,9 @@ export default function SelectVariant({
               key={x}
               variant="outline"
               className={
-                selectedSize === x ? "border-2 border-primary" : "border-2"
+                selectedSize === x
+                  ? "border-2 border-primary dark:border-primary"
+                  : "border-2"
               }
               onClick={() => updateVariant(selectedColor, x)}
             >

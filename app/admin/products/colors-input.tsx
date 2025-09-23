@@ -4,14 +4,14 @@ import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge"; // shadcn badge for clean labels
+import { Badge } from "@/components/ui/badge";
 
 interface ColorInputProps {
   field: any; // react-hook-form field
   label: string;
 }
 
-// Define default colors with names
+// Default colors
 const DEFAULT_COLORS: { hex: string; name: string }[] = [
   { hex: "#000000", name: "Black" },
   { hex: "#FFFFFF", name: "White" },
@@ -24,27 +24,34 @@ const DEFAULT_COLORS: { hex: string; name: string }[] = [
   { hex: "#808080", name: "Gray" },
 ];
 
-// Helper: find readable name for a color hex
+// Helper to get name from hex
 function getColorName(hex: string) {
   const found = DEFAULT_COLORS.find(
     (c) => c.hex.toLowerCase() === hex.toLowerCase()
   );
-  return found ? found.name : hex; // fallback: show hex if not in list
+  return found ? found.name : hex; // fallback to hex if unknown
+}
+
+// Helper to get hex from name (optional)
+function getHexFromName(name: string) {
+  const found = DEFAULT_COLORS.find(
+    (c) => c.name.toLowerCase() === name.toLowerCase()
+  );
+  return found ? found.hex : name;
 }
 
 export default function ColorInput({ field, label }: ColorInputProps) {
-  const handleAddDefault = (color: string) => {
-    if (!field.value?.includes(color)) {
-      field.onChange([...(field.value || []), color]);
+  const handleAddDefault = (hex: string) => {
+    if (!field.value?.includes(hex)) {
+      field.onChange([...(field.value || []), hex]);
     }
   };
 
   return (
     <FormItem>
       <FormLabel>{label}</FormLabel>
-      
 
-      {/* Default colors as swatches */}
+      {/* Default color swatches */}
       <div className="flex flex-wrap gap-2 mb-2">
         {DEFAULT_COLORS.map(({ hex, name }) => (
           <Button
@@ -65,31 +72,31 @@ export default function ColorInput({ field, label }: ColorInputProps) {
         ))}
       </div>
 
-      {/* Custom input entries */}
-      <div className="space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {field.value?.map((item: string, index: number) => (
+      {/* Selected colors */}
+      <div className="space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {field.value?.map((hex: string, index: number) => (
           <div
             key={index}
             className="flex items-center justify-between gap-2 rounded-lg p-2 border"
           >
-            {/* Preview swatch + label */}
+            {/* Preview swatch + name badge */}
             <div className="flex items-center gap-2">
               <div
                 className="h-6 w-6 rounded-full border"
-                style={{ backgroundColor: item || "#fff" }}
+                style={{ backgroundColor: hex || "#fff" }}
               />
-              <Badge variant="secondary">{getColorName(item)}</Badge>
+              <Badge variant="secondary">{getColorName(hex)}</Badge>
             </div>
 
-            {/* Input to allow custom colors */}
+            {/* Input shows name instead of hex */}
             <Input
               autoFocus={index === field.value.length - 1}
               className="w-full rounded-lg"
-              value={item}
-              placeholder={`Enter a ${label.toLowerCase()}`}
+              value={getColorName(hex)}
+              placeholder={`Enter a ${label.slice(0, -1)}`}
               onChange={(e) => {
                 const updated = [...field.value];
-                updated[index] = e.target.value;
+                updated[index] = getHexFromName(e.target.value); // convert name to hex
                 field.onChange(updated);
               }}
               onKeyDown={(e: { key: string; preventDefault: () => void }) => {
@@ -114,7 +121,7 @@ export default function ColorInput({ field, label }: ColorInputProps) {
           </div>
         ))}
 
-        {/* Add new empty entry */}
+        {/* Add new entry */}
         <Button
           type="button"
           variant="outline"
