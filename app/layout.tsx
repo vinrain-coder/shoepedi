@@ -3,6 +3,8 @@ import "./globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { cookies } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -72,7 +74,8 @@ export default async function AppLayout({
         <ClientProviders setting={{ ...setting, currency }}>
           {children}
         </ClientProviders>
-        {/* <ProductToast /> */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
