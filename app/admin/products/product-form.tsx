@@ -22,8 +22,11 @@ import { IProductInput } from "@/types";
 import { X } from "lucide-react";
 import ImageUploader from "./image-uploader";
 import { toast } from "sonner";
-import { AutoResizeTextarea } from "@/components/shared/textarea";
 import SubmitButton from "@/components/shared/submit-button";
+import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import TagsInput from "./tags-input";
+import ColorSizeInput from "./colors-input";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -120,6 +123,13 @@ const ProductForm = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const images = form.watch("images");
 
+  const nameValue = form.watch("name");
+
+  // Update slug whenever name changes
+  useEffect(() => {
+    form.setValue("slug", toSlug(nameValue));
+  }, [nameValue, form]);
+
   return (
     <FormProvider {...form}>
       <form
@@ -138,7 +148,6 @@ const ProductForm = ({
                 <FormControl>
                   <Input placeholder="Enter product name" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -150,27 +159,9 @@ const ProductForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Slug</FormLabel>
-
                 <FormControl>
-                  <div className="relative">
-                    <Input
-                      placeholder="Enter product slug"
-                      className="pl-8"
-                      {...field}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        form.setValue("slug", toSlug(form.getValues("name")));
-                      }}
-                      className="absolute right-2 top-2.5"
-                    >
-                      Generate
-                    </Button>
-                  </div>
+                  <Input placeholder="Enter product slug" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -209,30 +200,49 @@ const ProductForm = ({
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
-            name="listPrice"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>List Price</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter product list price" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Net Price</FormLabel>
+                <FormLabel>Price</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter product price" {...field} />
+                  <Input
+                    type="number"
+                    placeholder="Enter product price"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="listPrice"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Offer Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter product offer price"
+                    {...field}
+                    {...form.register("listPrice", {
+                      validate: (value) => {
+                        const price = form.getValues("price");
+                        return (
+                          Number(value) < Number(price) ||
+                          "Offer price must be lower than price"
+                        );
+                      },
+                    })}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="countInStock"
@@ -256,59 +266,7 @@ const ProductForm = ({
         <FormField
           control={form.control}
           name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-                  {field.value?.map((tag, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-lg p-2"
-                    >
-                      <Input
-                        autoFocus={index === field.value.length - 1}
-                        className="w-full bg-transparent focus:outline-none focus:ring-2 rounded-lg"
-                        value={tag}
-                        onChange={(e) => {
-                          const updatedTags = [...field.value];
-                          updatedTags[index] = e.target.value;
-                          field.onChange(updatedTags);
-                        }}
-                        placeholder="Enter a tag"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.preventDefault(); // Prevent form submission on Enter
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => {
-                          const updatedTags = field.value?.filter(
-                            (_, i) => i !== index
-                          );
-                          field.onChange(updatedTags);
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const updatedTags = [...(field.value || []), ""];
-                    field.onChange(updatedTags);
-                  }}
-                  className="mt-2 w-full"
-                >
-                  Add Tag
-                </Button>
-              </div>
-            </FormItem>
-          )}
+          render={({ field }) => <TagsInput field={field} />}
         />
 
         <div className="flex flex-col gap-5 md:flex-row items-center justify-between">
@@ -317,55 +275,7 @@ const ProductForm = ({
             control={form.control}
             name="colors"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Colors</FormLabel>
-                <div className="space-y-2 grid grid-cols-2">
-                  {field.value?.map((color, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-lg p-2"
-                    >
-                      <Input
-                        autoFocus={index === field.value.length - 1} // Focus on the last added color
-                        className="w-full rounded-lg"
-                        value={color}
-                        onChange={(e) => {
-                          const updatedColors = [...field.value];
-                          updatedColors[index] = e.target.value;
-                          field.onChange(updatedColors);
-                        }}
-                        placeholder="Enter a color"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.preventDefault(); // Prevent form submission on Enter
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => {
-                          const updatedColors = field.value?.filter(
-                            (_, i) => i !== index
-                          );
-                          field.onChange(updatedColors);
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const updatedColors = [...(field.value || []), ""];
-                      field.onChange(updatedColors);
-                    }}
-                    className="mt-2 w-full"
-                  >
-                    Add Color
-                  </Button>
-                </div>
-              </FormItem>
+              <ColorSizeInput field={field} label="Colors" />
             )}
           />
 
@@ -429,50 +339,6 @@ const ProductForm = ({
 
         <ImageUploader form={form} />
 
-        {/* <div className="flex flex-col gap-5 md:flex-row">
-          <FormField
-            control={form.control}
-            name="images"
-            render={() => (
-              <FormItem className="w-full">
-                <FormLabel>Images</FormLabel>
-                <Card>
-                  <CardContent className="space-y-2 mt-2 min-h-48">
-                    <div className="flex justify-start items-center space-x-2">
-                      {images.map((image: string) => (
-                        <Image
-                          key={image}
-                          src={image}
-                          alt="product image"
-                          className="w-20 h-20 object-cover object-center rounded-sm"
-                          width={100}
-                          height={100}
-                        />
-                      ))}
-                      <FormControl>
-                        <UploadButton
-                          endpoint="imageUploader"
-                          onClientUploadComplete={(res: { url: string }[]) => {
-                            form.setValue("images", [...images, res[0].url]);
-                          }}
-                          onUploadError={(error: Error) => {
-                            toast({
-                              variant: "destructive",
-                              description: `ERROR! ${error.message}`,
-                            });
-                          }}
-                        />
-                      </FormControl>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div> */}
-
         <div>
           <FormField
             control={form.control}
@@ -481,7 +347,7 @@ const ProductForm = ({
               <FormItem className="w-full">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <AutoResizeTextarea
+                  <Textarea
                     placeholder="Add the product description"
                     className="resize-none"
                     {...field}
