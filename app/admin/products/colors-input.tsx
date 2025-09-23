@@ -4,23 +4,33 @@ import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // shadcn badge for clean labels
 
 interface ColorInputProps {
   field: any; // react-hook-form field
   label: string;
 }
 
-const DEFAULT_COLORS = [
-  "#000000", // Black
-  "#FFFFFF", // White
-  "#FF0000", // Red
-  "#00FF00", // Green
-  "#0000FF", // Blue
-  "#FFFF00", // Yellow
-  "#FFA500", // Orange
-  "#800080", // Purple
-  "#808080", // Gray
+// Define default colors with names
+const DEFAULT_COLORS: { hex: string; name: string }[] = [
+  { hex: "#000000", name: "Black" },
+  { hex: "#FFFFFF", name: "White" },
+  { hex: "#FF0000", name: "Red" },
+  { hex: "#00FF00", name: "Green" },
+  { hex: "#0000FF", name: "Blue" },
+  { hex: "#FFFF00", name: "Yellow" },
+  { hex: "#FFA500", name: "Orange" },
+  { hex: "#800080", name: "Purple" },
+  { hex: "#808080", name: "Gray" },
 ];
+
+// Helper: find readable name for a color hex
+function getColorName(hex: string) {
+  const found = DEFAULT_COLORS.find(
+    (c) => c.hex.toLowerCase() === hex.toLowerCase()
+  );
+  return found ? found.name : hex; // fallback: show hex if not in list
+}
 
 export default function ColorInput({ field, label }: ColorInputProps) {
   const handleAddDefault = (color: string) => {
@@ -35,18 +45,22 @@ export default function ColorInput({ field, label }: ColorInputProps) {
 
       {/* Default colors as swatches */}
       <div className="flex flex-wrap gap-2 mb-2">
-        {DEFAULT_COLORS.map((color) => (
+        {DEFAULT_COLORS.map(({ hex, name }) => (
           <Button
-            key={color}
+            key={hex}
             variant="outline"
             type="button"
-            onClick={() => handleAddDefault(color)}
-            className={`h-8 w-8 rounded-full border ${
-              field.value?.includes(color) ? "ring-2 ring-primary" : ""
+            onClick={() => handleAddDefault(hex)}
+            className={`h-8 px-3 rounded-full border text-xs ${
+              field.value?.includes(hex) ? "ring-2 ring-primary" : ""
             }`}
-            style={{ backgroundColor: color }}
-            title={color}
-          />
+          >
+            <span
+              className="inline-block h-4 w-4 rounded-full border mr-2"
+              style={{ backgroundColor: hex }}
+            />
+            {name}
+          </Button>
         ))}
       </div>
 
@@ -55,13 +69,18 @@ export default function ColorInput({ field, label }: ColorInputProps) {
         {field.value?.map((item: string, index: number) => (
           <div
             key={index}
-            className="flex items-center gap-2 rounded-lg p-2 border"
+            className="flex items-center justify-between gap-2 rounded-lg p-2 border"
           >
-            {/* Show a preview swatch */}
-            <div
-              className="h-6 w-6 rounded-full border"
-              style={{ backgroundColor: item || "#fff" }}
-            />
+            {/* Preview swatch + label */}
+            <div className="flex items-center gap-2">
+              <div
+                className="h-6 w-6 rounded-full border"
+                style={{ backgroundColor: item || "#fff" }}
+              />
+              <Badge variant="secondary">{getColorName(item)}</Badge>
+            </div>
+
+            {/* Input to allow custom colors */}
             <Input
               autoFocus={index === field.value.length - 1}
               className="w-full rounded-lg"
@@ -76,9 +95,12 @@ export default function ColorInput({ field, label }: ColorInputProps) {
                 if (e.key === "Enter") e.preventDefault();
               }}
             />
+
+            {/* Remove button */}
             <Button
               type="button"
-              className="text-red-500 hover:text-red-700"
+              size="icon"
+              variant="destructive"
               onClick={() => {
                 const updated = field.value.filter(
                   (_: any, i: number) => i !== index

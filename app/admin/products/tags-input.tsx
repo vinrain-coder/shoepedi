@@ -25,39 +25,42 @@ export default function TagsInput({ field }: TagsInputProps) {
 
   return (
     <FormItem>
-      <FormLabel>Tags</FormLabel>
+      <FormLabel className="text-sm font-medium">Tags</FormLabel>
 
       {/* Available tags */}
-      <div className="flex flex-wrap gap-2 mb-2">
-        {availableTags.map((tag) => (
-          <Button
-            key={tag}
-            type="button"
-            onClick={() => {
-              if (!field.value?.includes(tag)) {
-                field.onChange([...(field.value || []), tag]);
-              }
-            }}
-            className={`px-3 py-1 rounded-full border ${
-              field.value?.includes(tag) ? "bg-primary" : "bg-muted-foreground"
-            }`}
-          >
-            {tag}
-          </Button>
-        ))}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {availableTags.map((tag) => {
+          const isSelected = field.value?.includes(tag);
+          return (
+            <Button
+              key={tag}
+              type="button"
+              size="sm"
+              variant={isSelected ? "default" : "outline"}
+              onClick={() => {
+                if (!isSelected) {
+                  field.onChange([...(field.value || []), tag]);
+                }
+              }}
+              className="rounded-full px-4"
+            >
+              {tag}
+            </Button>
+          );
+        })}
       </div>
 
       {/* Custom tags input */}
       <div className="space-y-2">
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {field.value?.map((tag: string, index: number) => (
             <div
               key={index}
-              className="flex items-center gap-2 rounded-lg p-2 border"
+              className="flex items-center gap-2 rounded-lg border p-2 shadow-sm bg-background"
             >
               <Input
                 autoFocus={index === field.value.length - 1}
-                className="w-full bg-transparent focus:outline-none focus:ring-2 rounded-lg"
+                className="w-full"
                 value={tag}
                 onChange={(e) => {
                   const updatedTags = [...field.value];
@@ -65,19 +68,21 @@ export default function TagsInput({ field }: TagsInputProps) {
                   field.onChange(updatedTags);
                 }}
                 placeholder="Enter a tag"
-                onKeyDown={(e: { key: string; preventDefault: () => any }) =>
-                  e.key === "Enter" && e.preventDefault()
-                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.preventDefault();
+                }}
               />
               <Button
                 type="button"
-                className="text-red-500 hover:text-red-700"
+                size="icon"
+                variant="ghost"
                 onClick={() => {
                   const updatedTags = field.value?.filter(
-                    (_: any, i: number) => i !== index
+                    (_: string, i: number) => i !== index
                   );
                   field.onChange(updatedTags);
                 }}
+                className="text-red-500 hover:text-red-600"
               >
                 <X size={16} />
               </Button>
@@ -85,13 +90,14 @@ export default function TagsInput({ field }: TagsInputProps) {
           ))}
         </div>
 
+        {/* Add new empty entry */}
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={() => field.onChange([...(field.value || []), ""])}
-          className="mt-2 w-full"
+          className="w-full mt-2"
         >
-          Add Tag
+          + Add Tag
         </Button>
       </div>
 

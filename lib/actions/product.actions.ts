@@ -403,5 +403,10 @@ export async function getAllTagsForAdminProductCreate() {
     { $project: { tag: "$_id", _id: 0 } },
   ]);
 
-  return tags.map((t) => t.tag);
+  return tags.map(
+    (t) =>
+      t.tag
+        .split(/\s+|-/) // Handle both spaces and dashes
+        .trim() // Ensure no leading/trailing spaces
+  );
 }
