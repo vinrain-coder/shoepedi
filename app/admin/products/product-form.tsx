@@ -255,12 +255,12 @@ const ProductForm = ({
         </div>
 
         {/* Tags Input */}
-        <div className="flex flex-col gap-5 md:flex-row">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start">
           <FormField
             control={form.control}
             name="tags"
             render={({ field }) => (
-              <div className="w-full md:w-1/2">
+              <div className="w-full md:w-1/2 border-b md:border-b-0 md:border-r border-muted pb-4 md:pb-0 md:pr-4">
                 <TagsInput field={field} />
               </div>
             )}
@@ -268,12 +268,12 @@ const ProductForm = ({
         </div>
 
         {/* Colors and Sizes */}
-        <div className="flex flex-col md:flex-row gap-5">
+        <div className="flex flex-col md:flex-row gap-5 mt-5">
           <FormField
             control={form.control}
             name="colors"
             render={({ field }) => (
-              <div className="w-full md:w-1/2">
+              <div className="w-full md:w-1/2 border-b md:border-b-0 md:border-r border-muted pb-4 md:pb-0 md:pr-4">
                 <ColorInput field={field} label="Colors" />
               </div>
             )}

@@ -12,16 +12,16 @@ interface ColorInputProps {
 }
 
 // Predefined colors
-const DEFAULT_COLORS: { hex: string; name: string }[] = [
-  { hex: "#000000", name: "Black" },
-  { hex: "#FFFFFF", name: "White" },
-  { hex: "#FF0000", name: "Red" },
-  { hex: "#00FF00", name: "Green" },
-  { hex: "#0000FF", name: "Blue" },
-  { hex: "#FFFF00", name: "Yellow" },
-  { hex: "#FFA500", name: "Orange" },
-  { hex: "#800080", name: "Purple" },
-  { hex: "#808080", name: "Gray" },
+const DEFAULT_COLORS = [
+  { name: "Black", hex: "#000000" },
+  { name: "White", hex: "#FFFFFF" },
+  { name: "Red", hex: "#FF0000" },
+  { name: "Green", hex: "#00FF00" },
+  { name: "Blue", hex: "#0000FF" },
+  { name: "Yellow", hex: "#FFFF00" },
+  { name: "Orange", hex: "#FFA500" },
+  { name: "Purple", hex: "#800080" },
+  { name: "Gray", hex: "#808080" },
 ];
 
 export default function ColorInput({ field, label }: ColorInputProps) {

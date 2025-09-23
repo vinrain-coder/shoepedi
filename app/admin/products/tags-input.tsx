@@ -15,21 +15,24 @@ interface TagsInputProps {
 export default function TagsInput({ field }: TagsInputProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  // Fetch tags on mount
+  // Fetch predefined tags on mount
   useEffect(() => {
     async function fetchTags() {
       const tags = await getAllTagsForAdminProductCreate();
-      setAvailableTags(tags);
+      setAvailableTags(tags.filter((t) => t && t.trim() !== "")); // remove empty tags
     }
     fetchTags();
   }, []);
 
+  // Ensure field value is always an array
+  const currentTags = Array.isArray(field.value) ? field.value : [];
+
+  // Toggle tag selection
   const toggleTag = (tag: string) => {
-    const current = field.value || [];
-    if (current.includes(tag)) {
-      field.onChange(current.filter((t) => t !== tag));
+    if (currentTags.includes(tag)) {
+      field.onChange(currentTags.filter((t) => t !== tag));
     } else {
-      field.onChange([...current, tag]);
+      field.onChange([...currentTags, tag]);
     }
   };
 
@@ -39,7 +42,7 @@ export default function TagsInput({ field }: TagsInputProps) {
 
       <div className="flex flex-wrap gap-2">
         {availableTags.map((tag) => {
-          const selected = field.value?.includes(tag);
+          const selected = currentTags.includes(tag);
           return (
             <Button
               key={tag}
