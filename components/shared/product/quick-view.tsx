@@ -32,24 +32,17 @@ export default function ProductQuickView({
 
   const content = useMemo(() => {
     return (
-      <div className="flex flex-col gap-6 w-full max-w-3xl mx-auto p-4">
-        {/* Product Name */}
+      <div className="flex flex-col gap-6">
         <h2 className="font-semibold text-2xl">{product.name}</h2>
 
-        {/* Gallery */}
-        <ProductGallery images={product.images} />
-
-        {/* Price */}
         <ProductPrice price={product.price} listPrice={product.listPrice} />
 
-        {/* Variants */}
         <SelectVariant
           product={product}
           color={selectedColor}
           size={selectedSize}
         />
 
-        {/* Description */}
         <Separator className="my-2" />
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
           {product.description}
@@ -86,10 +79,8 @@ export default function ProductQuickView({
       <DrawerContent className="p-0 h-[90vh] flex flex-col" forceMount>
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">{content}</div>
+        <div className="flex-1 overflow-y-auto px-4">{content}</div>
 
-        {/* Footer always at bottom */}
         {stickyFooter}
       </DrawerContent>
     </Drawer>
@@ -97,15 +88,20 @@ export default function ProductQuickView({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         forceMount
-        className="p-0 max-w-3xl w-full h-[90vh] flex flex-col"
+        className="p-0 max-w-5xl w-full h-[90vh] flex flex-col"
       >
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">{content}</div>
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-1/2 border-r bg-muted flex items-center justify-center p-4">
+            <ProductGallery images={product.images} />
+          </div>
 
-        {/* Footer always at bottom */}
-        {stickyFooter}
+          <div className="w-1/2 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6">{content}</div>
+            {stickyFooter}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

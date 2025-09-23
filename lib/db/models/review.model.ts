@@ -2,10 +2,10 @@ import { IReviewInput } from "@/types";
 import { Document, Model, model, models, Schema } from "mongoose";
 
 export interface IReview extends Document, IReviewInput {
-  rating: z.infer<any>;
-  comment: z.infer<any>;
-  title(arg0: string, title: any): unknown;
   _id: string;
+  rating: number;
+  comment: string;
+  title: string;
   createdAt: Date;
   updatedAt: Date;
 }
