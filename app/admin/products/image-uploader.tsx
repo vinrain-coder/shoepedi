@@ -127,7 +127,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
                       key={`remove-${i}`}
                       type="button"
                       onClick={() => handleRemove(i)}
-                      className="px-3 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600"
+                      className="px-3 py-1 bg-red-400 rounded-md shadow hover:bg-red-600"
                     >
                       Remove Image {i + 1}
                     </button>

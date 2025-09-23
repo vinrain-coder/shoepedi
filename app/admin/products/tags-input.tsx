@@ -48,7 +48,7 @@ export default function TagsInput({ field }: TagsInputProps) {
               key={tag}
               type="button"
               size="sm"
-              variant={selected ? "default" : "outline"}
+              variant="outline"
               onClick={() => toggleTag(tag)}
               className={`rounded-full px-4 ${
                 selected ? "ring-2 ring-primary" : ""

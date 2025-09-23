@@ -43,7 +43,7 @@ export default function SizeInput({ field, label }: SizeInputProps) {
               key={size}
               type="button"
               size="sm"
-              variant={selected ? "default" : "outline"}
+              variant="outline"
               onClick={() => toggleSize(size)}
               className={`rounded-full px-4 ${
                 selected ? "ring-2 ring-primary" : ""

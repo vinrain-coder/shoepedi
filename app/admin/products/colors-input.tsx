@@ -11,7 +11,7 @@ interface ColorInputProps {
   label: string;
 }
 
-// Predefined colors
+// Predefined colors (name first, hex only for UI)
 const DEFAULT_COLORS = [
   { name: "Black", hex: "#000000" },
   { name: "White", hex: "#FFFFFF" },
@@ -25,14 +25,12 @@ const DEFAULT_COLORS = [
 ];
 
 export default function ColorInput({ field, label }: ColorInputProps) {
-  const toggleColor = (hex: string) => {
+  const toggleColor = (name: string) => {
     const current = field.value || [];
-    if (current.includes(hex)) {
-      // Remove if already selected
-      field.onChange(current.filter((c) => c !== hex));
+    if (current.includes(name)) {
+      field.onChange(current.filter((c) => c !== name));
     } else {
-      // Add if not selected
-      field.onChange([...current, hex]);
+      field.onChange([...current, name]);
     }
   };
 
@@ -40,14 +38,14 @@ export default function ColorInput({ field, label }: ColorInputProps) {
     <FormItem>
       <FormLabel>{label}</FormLabel>
       <div className="flex flex-wrap gap-2">
-        {DEFAULT_COLORS.map(({ hex, name }) => {
-          const selected = field.value?.includes(hex);
+        {DEFAULT_COLORS.map(({ name, hex }) => {
+          const selected = field.value?.includes(name);
           return (
             <Button
-              key={hex}
+              key={name}
               type="button"
-              onClick={() => toggleColor(hex)}
-              variant={selected ? "default" : "outline"}
+              onClick={() => toggleColor(name)}
+              variant="outline"
               className={`h-10 px-3 rounded-full flex items-center gap-2 ${
                 selected ? "ring-2 ring-primary" : ""
               }`}
