@@ -42,6 +42,7 @@ export default function ColorInput({ field, label }: ColorInputProps) {
   return (
     <FormItem>
       <FormLabel>{label}</FormLabel>
+      
 
       {/* Default colors as swatches */}
       <div className="flex flex-wrap gap-2 mb-2">
