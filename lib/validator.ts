@@ -65,7 +65,7 @@ const ProductInputBase = z.object({
 export const ProductInputSchema = ProductInputBase.refine(
   (data) => data.listPrice <= data.price,
   {
-    message: "List price must be smaller than or equal to price",
+    message: "Offer price must be smaller than or equal to main price",
     path: ["listPrice"],
   }
 );

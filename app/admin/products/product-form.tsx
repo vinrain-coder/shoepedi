@@ -204,7 +204,7 @@ const ProductForm = ({
             name="price"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Price</FormLabel>
+                <FormLabel>Main Price</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -255,25 +255,38 @@ const ProductForm = ({
         </div>
 
         {/* Tags Input */}
-        <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => <TagsInput field={field} />}
-        />
+        <div className="flex flex-col gap-5 md:flex-row">
+          <FormField
+            control={form.control}
+            name="tags"
+            render={({ field }) => (
+              <div className="w-full md:w-1/2">
+                <TagsInput field={field} />
+              </div>
+            )}
+          />
+        </div>
 
-        <div className="flex flex-col gap-5 md:flex-row items-center justify-between">
-          {/* Colors Input */}
+        {/* Colors and Sizes */}
+        <div className="flex flex-col md:flex-row gap-5">
           <FormField
             control={form.control}
             name="colors"
-            render={({ field }) => <ColorInput field={field} label="Colors" />}
+            render={({ field }) => (
+              <div className="w-full md:w-1/2">
+                <ColorInput field={field} label="Colors" />
+              </div>
+            )}
           />
 
-          {/* Sizes Input */}
           <FormField
             control={form.control}
             name="sizes"
-            render={({ field }) => <SizeInput field={field} label="Sizes" />}
+            render={({ field }) => (
+              <div className="w-full md:w-1/2">
+                <SizeInput field={field} label="Sizes" />
+              </div>
+            )}
           />
         </div>
 
@@ -288,8 +301,8 @@ const ProductForm = ({
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Add the product description"
-                    className="resize-none"
+                    placeholder="Add the product description h"
+                    className="resize-y min-h-32 max-h-96"
                     {...field}
                   />
                 </FormControl>

@@ -60,7 +60,7 @@ function SortableImage({
       style={style}
       {...attributes}
       {...listeners}
-      className="relative group"
+      className="relative"
     >
       <Image
         src={url}
@@ -72,10 +72,10 @@ function SortableImage({
       <button
         type="button"
         onClick={(e) => {
-          e.stopPropagation(); // ← important to prevent drag interference
+          e.stopPropagation();
           onRemove(index);
         }}
-        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 hidden group-hover:block"
+        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 cursor-pointer"
       >
         <X size={16} />
       </button>
