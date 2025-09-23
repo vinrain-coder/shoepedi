@@ -1,16 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { X } from "lucide-react";
-import { getAllTags } from "@/lib/actions/product.actions"; // adjust path
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAllTagsForAdminProductCreate } from "@/lib/actions/product.actions";
 
 interface TagsInputProps {
   field: any; // react-hook-form field
@@ -22,7 +17,7 @@ export default function TagsInput({ field }: TagsInputProps) {
   // Fetch tags on mount
   useEffect(() => {
     async function fetchTags() {
-      const tags = await getAllTags();
+      const tags = await getAllTagsForAdminProductCreate();
       setAvailableTags(tags);
     }
     fetchTags();
@@ -35,7 +30,7 @@ export default function TagsInput({ field }: TagsInputProps) {
       {/* Available tags */}
       <div className="flex flex-wrap gap-2 mb-2">
         {availableTags.map((tag) => (
-          <button
+          <Button
             key={tag}
             type="button"
             onClick={() => {
@@ -44,13 +39,11 @@ export default function TagsInput({ field }: TagsInputProps) {
               }
             }}
             className={`px-3 py-1 rounded-full border ${
-              field.value?.includes(tag)
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-800"
+              field.value?.includes(tag) ? "bg-primary" : "bg-muted-foreground"
             }`}
           >
             {tag}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -76,7 +69,7 @@ export default function TagsInput({ field }: TagsInputProps) {
                   e.key === "Enter" && e.preventDefault()
                 }
               />
-              <button
+              <Button
                 type="button"
                 className="text-red-500 hover:text-red-700"
                 onClick={() => {
@@ -87,7 +80,7 @@ export default function TagsInput({ field }: TagsInputProps) {
                 }}
               >
                 <X size={16} />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

@@ -26,7 +26,8 @@ import SubmitButton from "@/components/shared/submit-button";
 import { useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import TagsInput from "./tags-input";
-import ColorSizeInput from "./colors-input";
+import ColorInput from "./colors-input";
+import SizeInput from "./size-input";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -274,66 +275,14 @@ const ProductForm = ({
           <FormField
             control={form.control}
             name="colors"
-            render={({ field }) => (
-              <ColorSizeInput field={field} label="Colors" />
-            )}
+            render={({ field }) => <ColorInput field={field} label="Colors" />}
           />
 
           {/* Sizes Input */}
           <FormField
             control={form.control}
             name="sizes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sizes</FormLabel>
-                <div className="space-y-2 grid grid-cols-2">
-                  {field.value?.map((size, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-lg p-2"
-                    >
-                      <Input
-                        autoFocus={index === field.value.length - 1} // Focus on the last added size
-                        className="w-full rounded-lg"
-                        value={size}
-                        onChange={(e) => {
-                          const updatedSizes = [...field.value];
-                          updatedSizes[index] = e.target.value;
-                          field.onChange(updatedSizes);
-                        }}
-                        placeholder="Enter a size"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.preventDefault(); // Prevent form submission on Enter
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => {
-                          const updatedSizes = field.value?.filter(
-                            (_, i) => i !== index
-                          );
-                          field.onChange(updatedSizes);
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const updatedSizes = [...(field.value || []), ""];
-                      field.onChange(updatedSizes);
-                    }}
-                    className="mt-2 w-full"
-                  >
-                    Add Size
-                  </Button>
-                </div>
-              </FormItem>
-            )}
+            render={({ field }) => <SizeInput field={field} label="Sizes" />}
           />
         </div>
 

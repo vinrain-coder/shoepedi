@@ -5,27 +5,17 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-interface ColorInputProps {
+interface SizeInputProps {
   field: any; // react-hook-form field
   label: string;
 }
 
-const DEFAULT_COLORS = [
-  "#000000", // Black
-  "#FFFFFF", // White
-  "#FF0000", // Red
-  "#00FF00", // Green
-  "#0000FF", // Blue
-  "#FFFF00", // Yellow
-  "#FFA500", // Orange
-  "#800080", // Purple
-  "#808080", // Gray
-];
+const DEFAULT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
-export default function ColorInput({ field, label }: ColorInputProps) {
-  const handleAddDefault = (color: string) => {
-    if (!field.value?.includes(color)) {
-      field.onChange([...(field.value || []), color]);
+export default function SizeInput({ field, label }: SizeInputProps) {
+  const handleAddDefault = (size: string) => {
+    if (!field.value?.includes(size)) {
+      field.onChange([...(field.value || []), size]);
     }
   };
 
@@ -33,20 +23,21 @@ export default function ColorInput({ field, label }: ColorInputProps) {
     <FormItem>
       <FormLabel>{label}</FormLabel>
 
-      {/* Default colors as swatches */}
+      {/* Default size buttons */}
       <div className="flex flex-wrap gap-2 mb-2">
-        {DEFAULT_COLORS.map((color) => (
+        {DEFAULT_SIZES.map((size) => (
           <Button
-            key={color}
-            variant="outline"
+            key={size}
             type="button"
-            onClick={() => handleAddDefault(color)}
-            className={`h-8 w-8 rounded-full border ${
-              field.value?.includes(color) ? "ring-2 ring-primary" : ""
+            onClick={() => handleAddDefault(size)}
+            className={`px-3 py-1 rounded-full border text-sm font-medium ${
+              field.value?.includes(size)
+                ? "bg-primary text-white"
+                : "bg-muted-foreground"
             }`}
-            style={{ backgroundColor: color }}
-            title={color}
-          />
+          >
+            {size}
+          </Button>
         ))}
       </div>
 
@@ -57,11 +48,6 @@ export default function ColorInput({ field, label }: ColorInputProps) {
             key={index}
             className="flex items-center gap-2 rounded-lg p-2 border"
           >
-            {/* Show a preview swatch */}
-            <div
-              className="h-6 w-6 rounded-full border"
-              style={{ backgroundColor: item || "#fff" }}
-            />
             <Input
               autoFocus={index === field.value.length - 1}
               className="w-full rounded-lg"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -22,19 +22,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormControl,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { UploadDropzone } from "@/lib/uploadthing";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
-
-type ImageUploaderProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: any;
-};
+import { useDropzone } from "react-dropzone";
+import { Button } from "@/components/ui/button";
 
 // Sortable image item component
 function SortableImage({
@@ -60,7 +55,7 @@ function SortableImage({
       style={style}
       {...attributes}
       {...listeners}
-      className="relative group"
+      className="relative"
     >
       <Image
         src={url}
@@ -69,16 +64,21 @@ function SortableImage({
         width={100}
         height={100}
       />
-      <button
+      <Button
         type="button"
         onClick={() => onRemove(index)}
-        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 hidden group-hover:block"
+        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full shadow-md hover:bg-red-600"
       >
         <X size={16} />
-      </button>
+      </Button>
     </div>
   );
 }
+
+type ImageUploaderProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: any;
+};
 
 const ImageUploader = ({ form }: ImageUploaderProps) => {
   const [images, setImages] = useState<string[]>(
@@ -103,6 +103,39 @@ const ImageUploader = ({ form }: ImageUploaderProps) => {
     setImages(updatedImages);
     form.setValue("images", updatedImages);
   };
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length + images.length > 6) {
+        toast.error("You can upload up to 6 images only.");
+        return;
+      }
+
+      const newImages: string[] = [];
+
+      acceptedFiles.forEach((file) => {
+        if (file.size > 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 1MB).`);
+          return;
+        }
+        const preview = URL.createObjectURL(file);
+        newImages.push(preview);
+      });
+
+      const updatedImages = Array.from(new Set([...images, ...newImages]));
+      setImages(updatedImages);
+      form.setValue("images", updatedImages);
+
+      if (newImages.length > 0) toast.success("Images uploaded successfully!");
+    },
+    [images, form]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    multiple: true,
+  });
 
   return (
     <div className="flex flex-col gap-5 md:flex-row">
@@ -139,28 +172,22 @@ const ImageUploader = ({ form }: ImageUploaderProps) => {
                   </DndContext>
                 )}
 
-                {/* Upload Dropzone */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm text-gray-500">
-                    You can upload up to 6 images (max: 1MB each).
+                {/* Dropzone */}
+                <div
+                  {...getRootProps()}
+                  className={`flex flex-col items-center justify-center border-2 border-dashed rounded-md p-6 cursor-pointer ${
+                    isDragActive
+                      ? "border-primary bg-muted-foreground"
+                      : "border-muted"
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <p className="text-sm text-gray-500 text-center">
+                    Drag & drop images here, or click to browse
+                  </p>
+                  <span className="text-xs text-gray-400">
+                    (Max 6 images, 1MB each)
                   </span>
-                  <FormControl>
-                    <UploadDropzone
-                      endpoint="imageUploader"
-                      onClientUploadComplete={(res: { url: string }[]) => {
-                        const uploadedImages = res.map((file) => file.url);
-                        const updatedImages = Array.from(
-                          new Set([...images, ...uploadedImages])
-                        );
-                        setImages(updatedImages);
-                        form.setValue("images", updatedImages);
-                        toast.success("Images uploaded successfully!");
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(`ERROR! ${error.message}`);
-                      }}
-                    />
-                  </FormControl>
                 </div>
               </CardContent>
             </Card>
