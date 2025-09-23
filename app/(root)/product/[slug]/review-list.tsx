@@ -269,8 +269,14 @@ export default function ReviewList({
                                   <FormItem>
                                     <FormLabel>Rating</FormLabel>
                                     <Select
-                                      onValueChange={field.onChange}
-                                      value={field.value.toString()}
+                                      onValueChange={(val) =>
+                                        field.onChange(Number(val))
+                                      }
+                                      value={
+                                        field.value
+                                          ? field.value.toString()
+                                          : ""
+                                      } // safe fallback
                                     >
                                       <FormControl>
                                         <SelectTrigger>
@@ -383,8 +389,14 @@ export default function ReviewList({
                                   <FormItem>
                                     <FormLabel>Rating</FormLabel>
                                     <Select
-                                      onValueChange={field.onChange}
-                                      value={field.value.toString()}
+                                      onValueChange={(val) =>
+                                        field.onChange(Number(val))
+                                      }
+                                      value={
+                                        field.value
+                                          ? field.value.toString()
+                                          : ""
+                                      } // safe fallback
                                     >
                                       <FormControl>
                                         <SelectTrigger>
@@ -468,7 +480,11 @@ export default function ReviewList({
                   </div>
                   <div className="flex items-center">
                     <Calendar className="mr-1 h-3 w-3" />
-                    {review.createdAt.toString().substring(0, 10)}
+                    {review.createdAt
+                      ? new Date(review.createdAt)
+                          .toISOString()
+                          .substring(0, 10)
+                      : "N/A"}
                   </div>
                 </div>
               </CardContent>
