@@ -376,15 +376,17 @@ export async function getAllTags() {
     { $project: { tag: "$_id", _id: 0 } },
   ]);
 
-  // Format tags: capitalize each word and handle dashes/spaces
-  return tags.map(
-    (t) =>
-      t.tag
-        .split(/\s+|-/) // Handle both spaces and dashes
-        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
-        .trim() // Ensure no leading/trailing spaces
-  );
+  // // Format tags: capitalize each word and handle dashes/spaces
+  // return tags.map(
+  //   (t) =>
+  //     t.tag
+  //       .split(/\s+|-/) // Handle both spaces and dashes
+  //       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+  //       .join(" ")
+  //       .trim() // Ensure no leading/trailing spaces
+  // );
+  // Return tags as they are
+  return tags;
 }
 
 export async function getAllTagsForAdminProductCreate() {
