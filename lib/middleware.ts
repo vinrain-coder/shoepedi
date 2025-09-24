@@ -40,19 +40,19 @@ export async function middleware(req: NextRequest) {
     (route) => path === route || path.startsWith(`${route}/`)
   );
 
-  // 🚨 If user not logged in but tries protected route → redirect to sign-in
+  // If user not logged in but tries protected route → redirect to sign-in
   if (isOnProtectedRoute && !isLoggedIn) {
     const signInUrl = new URL("/sign-in", req.url);
     signInUrl.searchParams.set("redirect", path);
     return NextResponse.redirect(signInUrl);
   }
 
-  // 🚨 If user *is* logged in but tries to access auth routes → redirect home
+  // If user *is* logged in but tries to access auth routes → redirect home
   if (isOnAuthRoute && isLoggedIn) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // ✅ Allow request
+  // Allow request
   return NextResponse.next();
 }
 

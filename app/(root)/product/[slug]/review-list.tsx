@@ -154,28 +154,6 @@ export default function ReviewList({
     toast.success(res.message);
   };
 
-  const handleOpenForm = async () => {
-    setOpen(true);
-
-    // set schema-required values
-    form.setValue("product", product._id.toString());
-    if (userId) form.setValue("user", userId);
-    form.setValue("isVerifiedPurchase", true);
-
-    try {
-      const review = await getReviewByProductId({
-        productId: product._id.toString(),
-      });
-      if (review) {
-        form.setValue("title", review.title);
-        form.setValue("comment", review.comment);
-        form.setValue("rating", review.rating);
-      }
-    } catch (err) {
-      console.error("Error loading review:", err);
-    }
-  };
-
   return (
     <div className="space-y-2">
       {reviews.length === 0 && <div>No reviews yet</div>}

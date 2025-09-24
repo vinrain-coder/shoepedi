@@ -3,19 +3,19 @@
 import * as React from "react";
 import {
   IconCamera,
+  IconChartBar,
+  IconDashboard,
   IconDatabase,
   IconFileAi,
   IconFileDescription,
+  IconFileText,
   IconHelp,
+  IconListDetails,
+  IconMessageCircle,
   IconReport,
   IconSearch,
   IconSettings,
-  IconDashboard,
-  IconListDetails,
-  IconChartBar,
   IconUsers,
-  IconFileText,
-  IconMessageCircle,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";

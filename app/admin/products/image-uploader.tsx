@@ -29,7 +29,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 
 type ImageUploaderProps = {
   form: any;
@@ -83,12 +82,12 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     setImages(updated);
   };
 
-  const handleUploadComplete = (res: { url: string }[]) => {
-    const uploaded = res.map((f) => f.url);
-    const updated = Array.from(new Set([...images, ...uploaded]));
-    setImages(updated);
-    toast.success("Images uploaded successfully!");
-  };
+  // const handleUploadComplete = (res: { url: string }[]) => {
+  //   const uploaded = res.map((f) => f.url);
+  //   const updated = Array.from(new Set([...images, ...uploaded]));
+  //   setImages(updated);
+  //   toast.success("Images uploaded successfully!");
+  // };
 
   return (
     <FormField

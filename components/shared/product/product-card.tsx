@@ -15,7 +15,6 @@ import AddToCart from "./add-to-cart";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
 import { Eye, ShoppingCart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import ProductQuickView from "./quick-view";
 
 const ProductCard = ({

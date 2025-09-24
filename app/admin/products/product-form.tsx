@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
   FormControl,
   FormDescription,
@@ -19,7 +18,6 @@ import { ProductInputSchema, ProductUpdateSchema } from "@/lib/validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toSlug } from "@/lib/utils";
 import { IProductInput } from "@/types";
-import { X } from "lucide-react";
 import ImageUploader from "./image-uploader";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";

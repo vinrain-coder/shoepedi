@@ -484,6 +484,8 @@ export async function markPaystackOrderAsPaid(
     status: string;
     email_address: string;
     pricePaid: string;
+    paymentMethod?: string;
+    paymentReference?: string;
   }
 ) {
   try {
@@ -495,6 +497,15 @@ export async function markPaystackOrderAsPaid(
 
     if (!order) throw new Error("Order not found");
     if (order.isPaid) throw new Error("Order is already paid");
+
+    // Ensure required fields exist
+    if (
+      !paymentInfo.id ||
+      !paymentInfo.email_address ||
+      !paymentInfo.pricePaid
+    ) {
+      throw new Error("Missing required payment information");
+    }
 
     order.isPaid = true;
     order.paidAt = new Date();

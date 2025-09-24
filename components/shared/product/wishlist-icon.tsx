@@ -1,7 +1,6 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useWishlistToggle } from "@/hooks/useWishlistToggle";
 
 interface WishlistIconProps {

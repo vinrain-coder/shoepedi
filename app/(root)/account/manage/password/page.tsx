@@ -2,11 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
-import { passwordSchema } from "@/lib/validator";
 import { Metadata } from "next";
 import Link from "next/link";
 import { unauthorized } from "next/navigation";
-import { z } from "zod";
 import { PasswordForm } from "./password-form";
 
 const PAGE_TITLE = "Change Your Name";

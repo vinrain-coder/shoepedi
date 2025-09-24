@@ -1,4 +1,5 @@
 "use client";
+
 import { BadgeDollarSign, Barcode, CreditCard, Users } from "lucide-react";
 
 import Link from "next/link";
@@ -53,9 +54,6 @@ export default function OverviewReport() {
   if (!data)
     return (
       <div className="space-y-4">
-        <div>
-          <h1 className="h1-bold">Dashboard</h1>
-        </div>
         {/* First Row */}
         <div className="flex gap-4">
           {[...Array(4)].map((_, index) => (
@@ -90,8 +88,8 @@ export default function OverviewReport() {
         <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
       </div>
       <div className="space-y-4">
-        <div className="grid gap-4  grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+          <Card className="@container/card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Revenue

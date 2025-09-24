@@ -1,6 +1,6 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "./dashboard-sidebar";
-import { AdminNav } from "./admin-nav";
+import { AppSidebar } from "@/app/admin/app-sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SiteHeader } from "./site-header";
 
 export default async function AdminLayout({
   children,
@@ -8,16 +8,25 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <main className="flex min-h-screen w-screen bg-muted">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col">
-          <div className="sticky top-0 z-50">
-            <AdminNav />
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-2">
+              {children}
+            </div>
           </div>
-          <div className="flex-1 p-4 overflow-x-auto">{children}</div>
         </div>
-      </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

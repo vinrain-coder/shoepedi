@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -36,7 +35,7 @@ export const SignOutButton = () => {
       variant="destructive"
       disabled={isPending}
     >
-      <LogOut className="text-white"/>
+      <LogOut className="text-white" />
       Sign out
     </Button>
   );
