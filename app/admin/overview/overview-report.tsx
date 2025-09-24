@@ -187,21 +187,22 @@ export default function OverviewReport() {
           </Card>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* <Card>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          <Card>
             <CardHeader>
               <CardTitle>Best-Selling Categories</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 w-full overflow-hidden">
               <SalesCategoryPieChart data={data.topSalesCategories} />
             </CardContent>
-          </Card> */}
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Recent Sales</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
+            <CardContent className="overflow-x-auto">
+              <Table className="w-full min-w-max">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Buyer</TableHead>
@@ -216,14 +217,12 @@ export default function OverviewReport() {
                       <TableCell>
                         {order.user ? order.user.name : "Deleted User"}
                       </TableCell>
-
                       <TableCell>
                         {formatDateTime(order.createdAt).dateOnly}
                       </TableCell>
                       <TableCell>
                         <ProductPrice price={order.totalPrice} plain />
                       </TableCell>
-
                       <TableCell>
                         <Link href={`/admin/orders/${order._id}`}>
                           <span className="px-2">Details</span>
