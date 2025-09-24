@@ -20,13 +20,13 @@ const UpdateWebPage = async (props: UpdateWebPageProps) => {
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex mb-4">
-        <Link href="/admin/web-pages">Web Pages</Link>
+        <Link href="/admin/web-pages">
+          <span>Web Pages</span>
+        </Link>
         <span className="mx-1">›</span>
-        <Link href={`/admin/web-pages/${webPage._id}`}>{webPage._id}</Link>
-      </div>
-
-      <div className="my-8">
-        <WebPageForm type="Update" webPage={webPage} webPageId={webPage._id} />
+        <Link href={`/admin/web-pages/${webPage._id}`}>
+          <span>{webPage._id}</span>
+        </Link>
       </div>
     </main>
   );
