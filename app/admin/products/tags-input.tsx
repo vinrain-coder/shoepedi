@@ -16,13 +16,11 @@ export default function TagsInput({ field }: TagsInputProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   // Fetch predefined tags on mount
-  useEffect(() => {
-    async function fetchTags() {
-      const tags = await getAllTagsForAdminProductCreate();
-      setAvailableTags(tags.filter((t) => t && t.trim() !== "")); // remove empty tags
-    }
-    fetchTags();
-  }, []);
+  const fetchTags = async () => {
+    const tags = await getAllTagsForAdminProductCreate();
+    setAvailableTags(tags.filter((t) => t && t.trim() !== ""));
+  };
+  fetchTags(); // call after deletion
 
   // Ensure field value is always an array
   const currentTags = Array.isArray(field.value) ? field.value : [];

@@ -1,17 +1,13 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import React from "react";
 import { PieChart, Pie, ResponsiveContainer, Cell } from "recharts";
 
-interface SalesCategoryPieChartProps {
-  data: { _id: string; totalSales: number }[];
-}
+export default function SalesCategoryPieChart({ data }: { data: any[] }) {
+  const { theme } = useTheme();
 
-export default function SalesCategoryPieChart({
-  data,
-}: SalesCategoryPieChartProps) {
   const RADIAN = Math.PI / 180;
-
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -24,9 +20,6 @@ export default function SalesCategoryPieChart({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    // Skip label if it would overflow too far
-    if (!data[index]) return null;
-
     return (
       <text
         x={x}
@@ -35,38 +28,44 @@ export default function SalesCategoryPieChart({
         dominantBaseline="central"
         className="text-xs"
       >
-        {`${data[index]._id} ${data[index].totalSales}`}
+        {`${data[index]._id} ${data[index].totalSales} sales`}
       </text>
     );
   };
 
-  // Primary color from CSS variable
-  const primaryColor =
-    typeof window !== "undefined"
-      ? getComputedStyle(document.documentElement).getPropertyValue("--primary")
-      : "#3b82f6";
-
-  const colors = data.map((_, i) => primaryColor);
+  // ShadCN primary colors from Tailwind
+  const primaryColors = [
+    "var(--shadcn-primary-50)",
+    "var(--shadcn-primary-100)",
+    "var(--shadcn-primary-200)",
+    "var(--shadcn-primary-300)",
+    "var(--shadcn-primary-400)",
+    "var(--shadcn-primary-500)",
+    "var(--shadcn-primary-600)",
+    "var(--shadcn-primary-700)",
+    "var(--shadcn-primary-800)",
+    "var(--shadcn-primary-900)",
+  ];
 
   return (
-    <div className="w-full h-80 sm:h-96 md:h-96">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="totalSales"
-            cx="50%"
-            cy="50%"
-            outerRadius="80%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index]} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={400}>
+      <PieChart width={400} height={400}>
+        <Pie
+          data={data}
+          dataKey="totalSales"
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          label={renderCustomizedLabel}
+        >
+          {data.map((_, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={primaryColors[index % primaryColors.length]}
+            />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
   );
 }
