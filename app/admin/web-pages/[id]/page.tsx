@@ -28,6 +28,9 @@ const UpdateWebPage = async (props: UpdateWebPageProps) => {
           <span>{webPage._id}</span>
         </Link>
       </div>
+      <div className="my-8">
+        <WebPageForm type="Update" webPage={webPage} webPageId={webPage._id} />
+      </div>
     </main>
   );
 };
