@@ -391,10 +391,15 @@ export async function getAllTagsForAdminProductCreate() {
   await connectToDatabase();
 
   const tags = await Product.aggregate([
+    // Ensure tags exist and are not empty
     { $match: { tags: { $exists: true, $ne: [] } } },
+    // Unwind the tags array
     { $unwind: "$tags" },
+    // Group by tag for uniqueness
     { $group: { _id: "$tags" } },
+    // Sort alphabetically (optional, can remove if you want DB order)
     { $sort: { _id: 1 } },
+    // Format output
     { $project: { tag: "$_id", _id: 0 } },
   ]);
 
