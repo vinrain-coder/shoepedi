@@ -192,7 +192,7 @@ export default function OverviewReport() {
             <CardHeader>
               <CardTitle>Best-Selling Categories</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <SalesCategoryPieChart data={data.topSalesCategories} />
             </CardContent>
           </Card>
