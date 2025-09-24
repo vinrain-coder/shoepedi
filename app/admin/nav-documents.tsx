@@ -1,25 +1,11 @@
 "use client";
 
-import {
-  IconDots,
-  IconFolder,
-  IconShare3,
-  IconTrash,
-  type Icon,
-} from "@tabler/icons-react";
+import { Icon } from "@tabler/icons-react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -35,7 +21,7 @@ export function NavDocuments({
     icon: Icon;
   }[];
 }) {
-  const { isMobile } = useSidebar();
+  const { isMobile, toggleSidebar } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -44,7 +30,13 @@ export function NavDocuments({
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <Link href={item.url}>
+              <Link
+                href={item.url}
+                onClick={() => {
+                  if (isMobile) toggleSidebar(); // close sidebar on mobile
+                }}
+                className="flex items-center gap-2"
+              >
                 <item.icon />
                 <span>{item.name}</span>
               </Link>

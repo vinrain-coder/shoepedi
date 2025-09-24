@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 
@@ -21,6 +22,8 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
+  const { isMobile, toggleSidebar } = useSidebar();
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -56,7 +59,9 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url} className="flex items-center gap-2">
+                <Link href={item.url} className="flex items-center gap-2"  onClick={() => {
+                  if (isMobile) toggleSidebar(); // close sidebar on mobile
+                }}>
                   {item.icon && <item.icon className="w-5 h-5" />}
                   <span>{item.title}</span>
                 </Link>
