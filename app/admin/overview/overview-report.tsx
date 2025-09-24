@@ -188,14 +188,14 @@ export default function OverviewReport() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Best-Selling Categories</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <SalesCategoryPieChart data={data.topSalesCategories} />
             </CardContent>
-          </Card>
+          </Card> */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Sales</CardTitle>
