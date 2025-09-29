@@ -22,10 +22,12 @@ import ImageUploader from "./image-uploader";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";
 import { useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import TagsInput from "./tags-input";
 import ColorInput from "./colors-input";
 import SizeInput from "./size-input";
+import MarkdownEditor from "react-markdown-editor-lite";
+import ReactMarkdown from "react-markdown";
+import "react-markdown-editor-lite/lib/index.css";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -199,14 +201,14 @@ const ProductForm = ({
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
-            name="price"
+            name="listPrice"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Main Price</FormLabel>
+                <FormLabel>Price</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="Enter product price"
+                    placeholder="Enter main price"
                     {...field}
                   />
                 </FormControl>
@@ -217,14 +219,14 @@ const ProductForm = ({
 
           <FormField
             control={form.control}
-            name="listPrice"
+            name="price"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Offer Price</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="Enter product offer price"
+                    placeholder="Enter offer price"
                     {...field}
                   />
                 </FormControl>
@@ -298,10 +300,11 @@ const ProductForm = ({
               <FormItem className="w-full">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Add the product description h"
-                    className="resize-y min-h-32 max-h-96"
+                  <MarkdownEditor
                     {...field}
+                    style={{ height: "500px" }}
+                    onChange={({ text }) => form.setValue("description", text)}
+                    renderHTML={(text) => <ReactMarkdown>{text}</ReactMarkdown>}
                   />
                 </FormControl>
                 <FormDescription>

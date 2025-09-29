@@ -155,28 +155,18 @@ export default async function BlogPage({
               />
             ),
             img: ({ src = "", alt = "" }) => {
-              try {
-                return (
-                  <Image
-                    src={src}
-                    alt={alt}
-                    width={800}
-                    height={450}
-                    className="rounded-xl object-contain"
-                    unoptimized
-                  />
-                );
-              } catch (err) {
-                return (
-                  <Image
-                    src={src}
-                    alt={alt}
-                    width={800}
-                    height={450}
-                    className="rounded-xl"
-                  />
-                );
-              }
+              if (!src) return null;
+
+              return (
+                <Image
+                  src={src as string} 
+                  alt={alt || "blog image"}
+                  width={800}
+                  height={450}
+                  className="rounded-xl object-contain"
+                  unoptimized
+                />
+              );
             },
           }}
         >
