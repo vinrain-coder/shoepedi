@@ -11,7 +11,6 @@ import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useRef } from "react";
 
 const PaystackInline = dynamic(
   () => import("../paystack-inline"),
@@ -29,7 +28,6 @@ export default function OrderDetailsForm({
   const { data: session } = authClient.useSession();
 
   const router = useRouter();
-  const paystackRef = useRef<any>(null);
   const {
     shippingAddress,
     items,
@@ -89,33 +87,24 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            <div>
-              {/* Your trigger button */}
-              {!order.isPaid &&
-                order.paymentMethod ===
-                  "Mobile Money (M-Pesa / Airtel) & Card" && (
-                  <Button
-                    className="w-full rounded-full mt-4"
-                    onClick={() => paystackRef.current?.payWithPaystack()}
-                  >
-                    Pay Now
-                  </Button>
-                )}
-
-              {/* Hidden Paystack Inline instance */}
-              <PaystackInline
-                ref={paystackRef}
-                email={"customer@example.com"} // replace with session.user.email
-                amount={Math.round(order.totalPrice * 100)}
-                publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                orderId={order._id}
-                onSuccess={() => router.push(`/account/orders/${order._id}`)}
-                onFailure={() => {
-                  toast.error("Payment was not completed.");
-                  router.push(`/account/orders/${order._id}`);
-                }}
-              />
-            </div>
+            {order.paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+              !order.isPaid && (
+                <div className="mt-4">
+                  <PaystackInline
+                    email={session?.user.email as string}
+                    amount={Math.round(order.totalPrice * 100)}
+                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={order._id}
+                    onSuccess={() =>
+                      router.push(`/account/orders/${order._id}`)
+                    }
+                    onFailure={() => {
+                      toast.error("Payment was not completed.");
+                      router.push(`/account/orders/${order._id}`);
+                    }}
+                  />
+                </div>
+              )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (
               <Button

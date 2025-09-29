@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/drawer";
 import { SignOutButton } from "../sign-out-button";
 import { authClient } from "@/lib/auth-client";
+import { UserSidebar } from "./user-sidebar";
 
 export default function Sidebar({ categories }: { categories: string[] }) {
   const { data: session } = authClient.useSession();
@@ -82,38 +83,33 @@ export default function Sidebar({ categories }: { categories: string[] }) {
             </nav>
           </div>
 
-          {/* Setting and Help */}
           <div className="flex flex-col mb-4">
             <div className="p-4">
               <h2 className="text-lg font-semibold">Help & Settings</h2>
             </div>
-            <DrawerClose asChild>
-              <Link
-                href="/account"
-                className="item-button py-2 px-4 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
-              >
-                Your account
-              </Link>
-            </DrawerClose>
+
             <DrawerClose asChild>
               <Link
                 href="/page/customer-service"
-                className="item-button py-2 px-4 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
+                className="item-button py-2 px-4 rounded-md"
               >
                 Customer Service
               </Link>
             </DrawerClose>
+
             {session ? (
               <div className="w-3/4">
-                <SignOutButton />
+                <UserSidebar />
               </div>
             ) : (
-              <Link
-                href="/sign-in"
-                className="item-button py-2 px-4 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
-              >
-                Sign In
-              </Link>
+              <DrawerClose asChild>
+                <Link
+                  href="/sign-in"
+                  className="item-button py-2 px-4 rounded-md"
+                >
+                  Sign In
+                </Link>
+              </DrawerClose>
             )}
           </div>
         </div>
