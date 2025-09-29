@@ -18,14 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SubmitButton from "@/components/shared/submit-button";
 import CategoryImageUploader from "./category-image-uploader";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
@@ -38,17 +30,7 @@ interface SubcategoryForm {
   seoKeywords?: string[];
 }
 
-interface CategoryFormValues {
-  name: string;
-  slug: string;
-  parent?: string;
-  description?: string;
-  image?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoKeywords?: string[];
-  subcategories: SubcategoryForm[];
-}
+interface CategoryFormValues extends ICategoryInput {}
 
 interface CategoryFormProps {
   type: "Create" | "Update";
@@ -70,7 +52,7 @@ export default function CategoryForm({
     defaultValues: category || {
       name: "",
       slug: "",
-      parent: undefined,
+      parent: "",
       description: "",
       image: "",
       seoTitle: "",
@@ -89,39 +71,36 @@ export default function CategoryForm({
 
   // Auto-generate slug
   useEffect(() => {
+    // @ts-ignore
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
 
-  async function onSubmit(values: ICategoryInput) {
-    if (type === "Create") {
-      const res = await createCategory(values);
-      if (!res.success) {
-        toast.error(res.message);
-      } else {
+  const onSubmit = async (values: CategoryFormValues) => {
+    console.log("Submitting form values:", values); // ✅ Log values
+    try {
+      const res =
+        type === "Create"
+          ? await createCategory(values)
+          : await updateCategory({ ...values, _id: categoryId! });
+
+      if (res.success) {
         toast.success(res.message);
-        router.push(`/admin/categories`);
-      }
-    }
-    if (type === "Update") {
-      if (!categoryId) {
-        router.push(`/admin/categories`);
-        return;
-      }
-      const res = await updateCategory({ ...values, _id: categoryId });
-      if (!res.success) {
-        toast.error(res.message);
+        router.push("/admin/categories");
       } else {
-        router.push(`/admin/categories`);
+        toast.error(res.message);
       }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
     }
-  }
+  };
 
   return (
     <FormProvider {...form}>
       <form
-        method="post"
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8"
+        noValidate
       >
         {/* Name & Slug */}
         <div className="flex flex-col gap-5 md:flex-row">
@@ -138,7 +117,6 @@ export default function CategoryForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="slug"
@@ -163,26 +141,19 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>Parent Category</FormLabel>
                 <FormControl>
-                  <Select
-                    value={field.value || "root"}
-                    onValueChange={(val) =>
-                      field.onChange(val === "root" ? undefined : val)
-                    }
+                  {/* Use native select for simplicity */}
+                  <select
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="border rounded-md p-2 w-full"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="No Parent (Root Category)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="root">
-                        No Parent (Root Category)
-                      </SelectItem>
-                      {categoriesList.map((cat) => (
-                        <SelectItem key={cat._id} value={cat._id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <option value="">No Parent (Root Category)</option>
+                    {categoriesList.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -279,7 +250,6 @@ export default function CategoryForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name={`subcategories.${index}.seoTitle` as const}
@@ -293,7 +263,6 @@ export default function CategoryForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name={`subcategories.${index}.seoDescription` as const}
@@ -307,7 +276,6 @@ export default function CategoryForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name={`subcategories.${index}.seoKeywords` as const}
@@ -332,7 +300,6 @@ export default function CategoryForm({
                   </FormItem>
                 )}
               />
-
               <Button
                 type="button"
                 variant="destructive"
@@ -362,9 +329,8 @@ export default function CategoryForm({
         <SubmitButton
           type="submit"
           isLoading={form.formState.isSubmitting}
-          className="button col-span-2 w-full cursor-pointer"
+          className="w-full"
           loadingText="Submitting..."
-          size="lg"
         >
           {type} Category
         </SubmitButton>
