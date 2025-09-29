@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { FormProvider, useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
@@ -86,6 +86,7 @@ export default function CategoryForm({
 
   const nameValue = form.watch("name");
 
+  // Auto-generate slug
   useEffect(() => {
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
@@ -104,15 +105,15 @@ export default function CategoryForm({
         toast.error(res.message);
       }
     } catch (err) {
-      toast.error("Something went wrong");
       console.error(err);
+      toast.error("Something went wrong");
     }
   };
 
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Name */}
+        {/* Category Name */}
         <FormField
           control={form.control}
           name="name"
@@ -120,7 +121,7 @@ export default function CategoryForm({
             <FormItem>
               <FormLabel>Category Name</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Enter category name" />
+                <Input placeholder="Enter category name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -135,7 +136,7 @@ export default function CategoryForm({
             <FormItem>
               <FormLabel>Slug</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Auto-generated slug" />
+                <Input placeholder="Auto-generated slug" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -151,13 +152,16 @@ export default function CategoryForm({
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value || undefined} // use undefined instead of "" or null
+                  value={field.value || undefined}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="No Parent (Root Category)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={""}>
+                      No Parent (Root Category)
+                    </SelectItem>
                     {categoriesList.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
@@ -179,13 +183,14 @@ export default function CategoryForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Category description" />
+                <Input placeholder="Category description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Image Uploader */}
         <CategoryImageUploader form={form} />
 
         {/* SEO Fields */}
@@ -196,7 +201,7 @@ export default function CategoryForm({
             <FormItem>
               <FormLabel>SEO Title</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="SEO title" />
+                <Input placeholder="SEO title" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -210,7 +215,7 @@ export default function CategoryForm({
             <FormItem>
               <FormLabel>SEO Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="SEO description" />
+                <Input placeholder="SEO description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -232,7 +237,7 @@ export default function CategoryForm({
                       e.target.value.split(",").map((k) => k.trim())
                     )
                   }
-                  placeholder="e.g. shoes, sneakers, jordan"
+                  placeholder="e.g. shoes, sneakers"
                 />
               </FormControl>
               <FormMessage />
@@ -247,12 +252,12 @@ export default function CategoryForm({
             <div key={item.id} className="border p-4 rounded space-y-2">
               <FormField
                 control={form.control}
-                name={`subcategories.${index}.name` as const} // cast as const
+                name={`subcategories.${index}.name` as const}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Subcategory Name</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Subcategory Name" />
+                      <Input placeholder="Subcategory Name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -266,10 +271,7 @@ export default function CategoryForm({
                   <FormItem>
                     <FormLabel>SEO Title</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="SEO title for subcategory"
-                      />
+                      <Input placeholder="SEO title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -283,10 +285,7 @@ export default function CategoryForm({
                   <FormItem>
                     <FormLabel>SEO Description</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="SEO description for subcategory"
-                      />
+                      <Input placeholder="SEO description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -343,11 +342,12 @@ export default function CategoryForm({
           </Button>
         </div>
 
+        {/* Submit */}
         <SubmitButton
           type="submit"
           isLoading={form.formState.isSubmitting}
-          className="w-full"
           loadingText="Submitting..."
+          className="w-full"
         >
           {type} Category
         </SubmitButton>
