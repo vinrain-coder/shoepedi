@@ -293,9 +293,6 @@ export default function ReviewList({
                                   ? "Submitting"
                                   : "Submit"}
                               </Button>
-                              <DrawerClose>
-                                <Button variant="outline">Cancel</Button>
-                              </DrawerClose>
                             </DrawerFooter>
                           </form>
                         </Form>
