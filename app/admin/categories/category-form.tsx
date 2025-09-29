@@ -69,7 +69,7 @@ export default function CategoryForm({
     defaultValues: category || {
       name: "",
       slug: "",
-      parent: "root", // default value for Select
+      parent: undefined,
       description: "",
       image: "",
       seoTitle: "",
@@ -92,20 +92,13 @@ export default function CategoryForm({
   }, [nameValue, form]);
 
   const onSubmit = async (values: CategoryFormValues) => {
-    // convert "root" parent to undefined
-    const payload = {
-      ...values,
-      parent: values.parent === "root" ? undefined : values.parent,
-    };
-
-    console.log("Form Submitted!", values);
-    alert("Form Submitted! Check console");
+    console.log("Form Submitted!", values); // ✅ This will log values
 
     try {
       const res =
         type === "Create"
-          ? await createCategory(payload)
-          : await updateCategory({ ...payload, _id: categoryId! });
+          ? await createCategory(values)
+          : await updateCategory({ ...values, _id: categoryId! });
 
       if (res.success) {
         toast.success(res.message);
@@ -121,8 +114,12 @@ export default function CategoryForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Category Name & Slug */}
+      <form
+        method="post"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8"
+      >
+        {/* Name & Slug */}
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
@@ -131,7 +128,7 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>Category Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter category name" {...field} />
+                  <Input {...field} placeholder="Enter category name" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -145,7 +142,7 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
-                  <Input placeholder="Auto-generated slug" {...field} />
+                  <Input {...field} placeholder="Auto-generated slug" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,7 +150,7 @@ export default function CategoryForm({
           />
         </div>
 
-        {/* Parent Category & Description */}
+        {/* Parent & Description */}
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
@@ -162,7 +159,12 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>Parent Category</FormLabel>
                 <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value || "root"}
+                    onValueChange={(val) =>
+                      field.onChange(val === "root" ? undefined : val)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="No Parent (Root Category)" />
                     </SelectTrigger>
@@ -190,7 +192,7 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input placeholder="Category description" {...field} />
+                  <Input {...field} placeholder="Category description" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -198,7 +200,7 @@ export default function CategoryForm({
           />
         </div>
 
-        {/* Image Uploader */}
+        {/* Image */}
         <CategoryImageUploader form={form} />
 
         {/* SEO Fields */}
@@ -210,7 +212,7 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>SEO Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="SEO title" {...field} />
+                  <Input {...field} placeholder="SEO title" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -224,7 +226,7 @@ export default function CategoryForm({
               <FormItem className="w-full">
                 <FormLabel>SEO Description</FormLabel>
                 <FormControl>
-                  <Input placeholder="SEO description" {...field} />
+                  <Input {...field} placeholder="SEO description" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -260,76 +262,72 @@ export default function CategoryForm({
           <h3 className="font-semibold">Subcategories</h3>
           {fields.map((item, index) => (
             <div key={item.id} className="border p-4 rounded space-y-2">
-              <div className="flex flex-col gap-5 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name={`subcategories.${index}.name` as const}
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Subcategory Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Subcategory Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.name` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategory Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Subcategory Name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name={`subcategories.${index}.seoTitle` as const}
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>SEO Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="SEO title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoTitle` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="SEO title" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="flex flex-col gap-5 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name={`subcategories.${index}.seoDescription` as const}
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>SEO Description</FormLabel>
-                      <FormControl>
-                        <Input placeholder="SEO description" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoDescription` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Description</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="SEO description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name={`subcategories.${index}.seoKeywords` as const}
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>SEO Keywords</FormLabel>
-                      <FormDescription>
-                        Separate keywords with commas
-                      </FormDescription>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value.split(",").map((k) => k.trim())
-                            )
-                          }
-                          placeholder="e.g. subcat1, subcat2"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoKeywords` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Keywords</FormLabel>
+                    <FormDescription>
+                      Separate keywords with commas
+                    </FormDescription>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value.split(",").map((k) => k.trim())
+                          )
+                        }
+                        placeholder="e.g. subcat1, subcat2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button
                 type="button"
@@ -357,9 +355,15 @@ export default function CategoryForm({
         </div>
 
         {/* Submit */}
-        <button type="submit" className="w-full">
+        <SubmitButton
+          type="submit"
+          isLoading={form.formState.isSubmitting}
+          className="button col-span-2 w-full cursor-pointer"
+          loadingText="Submitting..."
+          size="lg"
+        >
           {type} Category
-        </button>
+        </SubmitButton>
       </form>
     </FormProvider>
   );
