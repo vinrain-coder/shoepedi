@@ -29,6 +29,7 @@ import {
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
+import { ICategoryInput } from "@/types";
 
 interface SubcategoryForm {
   name: string;
@@ -91,26 +92,29 @@ export default function CategoryForm({
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
 
-  const onSubmit = async (values: CategoryFormValues) => {
-    console.log("Form Submitted!", values); // ✅ This will log values
-
-    try {
-      const res =
-        type === "Create"
-          ? await createCategory(values)
-          : await updateCategory({ ...values, _id: categoryId! });
-
-      if (res.success) {
-        toast.success(res.message);
-        router.push("/admin/categories");
-      } else {
+  async function onSubmit(values: ICategoryInput) {
+    if (type === "Create") {
+      const res = await createCategory(values);
+      if (!res.success) {
         toast.error(res.message);
+      } else {
+        toast.success(res.message);
+        router.push(`/admin/categories`);
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
     }
-  };
+    if (type === "Update") {
+      if (!categoryId) {
+        router.push(`/admin/categories`);
+        return;
+      }
+      const res = await updateCategory({ ...values, _id: categoryId });
+      if (!res.success) {
+        toast.error(res.message);
+      } else {
+        router.push(`/admin/categories`);
+      }
+    }
+  }
 
   return (
     <FormProvider {...form}>
