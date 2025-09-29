@@ -92,6 +92,7 @@ export default function CategoryForm({
   }, [nameValue, form]);
 
   const onSubmit = async (values: CategoryFormValues) => {
+    console.log("Submitting form values:", values);
     try {
       const res =
         type === "Create"
