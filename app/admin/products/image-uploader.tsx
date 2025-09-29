@@ -142,7 +142,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
                   <Card className="bg-muted">
                     <CardContent>
                       <UploadDropzone
-                        endpoint="imageUploader"
+                        endpoint="productImages"
                         onClientUploadComplete={(res: { url: string }[]) => {
                           const uploadedImages = res.map((file) => file.url);
                           const updatedImages = Array.from(

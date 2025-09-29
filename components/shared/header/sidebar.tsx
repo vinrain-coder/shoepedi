@@ -70,17 +70,23 @@ export default function Sidebar({ categories }: { categories: string[] }) {
               <h2 className="text-lg font-semibold">Shop By Category</h2>
             </div>
             <nav className="flex flex-col space-y-2 px-4 py-2">
-              {categories.map((category) => (
-                <DrawerClose asChild key={category}>
-                  <Link
-                    href={`/search?category=${category}`}
-                    className="flex items-center justify-between py-2 px-3 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
-                  >
-                    <span>{category}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </DrawerClose>
-              ))}
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <DrawerClose asChild key={category}>
+                    <Link
+                      href={`/search?category=${category}`}
+                      className="flex items-center justify-between py-2 px-3 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
+                    >
+                      <span>{category}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </DrawerClose>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 px-4">
+                  No categories available
+                </p>
+              )}
             </nav>
           </div>
 
