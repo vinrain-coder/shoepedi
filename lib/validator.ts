@@ -33,6 +33,7 @@ const ProductInputBase = z.object({
   category: z.string().min(1, "Category is required"),
   images: z.array(z.string()).min(1, "Product must have at least one image"),
   brand: z.string().min(1, "Brand is required"),
+  videoLink: z.string().url("Must be a valid URL").optional(),
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),

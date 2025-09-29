@@ -182,6 +182,19 @@ export default function ProductQuickView({
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           <ProductGallery images={product.images} />
+          {product.videoLink && (
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Product Video</h3>
+              <a
+                href={product.videoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Watch Here
+              </a>
+            </div>
+          )}
           {details}
         </div>
       </DrawerContent>
@@ -190,13 +203,26 @@ export default function ProductQuickView({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         forceMount
-        className="p-0 w-full h-[65vh] overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 md:gap-6 max-w-2xl md:!max-w-6xl"
+        className="p-0 w-full h-[70vh] overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 md:gap-6 max-w-2xl md:!max-w-6xl"
       >
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 
         {/* Left: gallery */}
         <div className="p-6 overflow-y-auto border-r">
           <ProductGallery images={product.images} />
+          {product.videoLink && (
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Product Video</h3>
+              <a
+                href={product.videoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Watch Here
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Right: details */}

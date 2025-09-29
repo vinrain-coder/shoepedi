@@ -117,6 +117,20 @@ export default async function ProductDetails({
                 ) || []
               }
             />
+
+            {product.videoLink && (
+              <div className="mt-4">
+                <h3 className="font-semibold mb-2">Product Video</h3>
+                <a
+                  href={product.videoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Watch Here
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">

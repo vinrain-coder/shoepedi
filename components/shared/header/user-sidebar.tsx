@@ -16,7 +16,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -30,9 +29,6 @@ import {
 
 export function UserSidebar() {
   const router = useRouter();
-
-  const { isMobile, toggleSidebar } = useSidebar();
-
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending)
@@ -47,6 +43,11 @@ export function UserSidebar() {
         onSuccess: () => router.push("/sign-in"),
       },
     });
+  };
+
+  // helper: closes dropdown on link click
+  const handleSelect = (event: Event) => {
+    event.preventDefault(); // prevent Radix from keeping it open
   };
 
   return (
@@ -82,7 +83,6 @@ export function UserSidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
@@ -111,42 +111,38 @@ export function UserSidebar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account"
                   className="flex items-center gap-2 w-full"
-                  onClick={toggleSidebar}
                 >
                   <UserIcon className="h-4 w-4" />
                   Your Account
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account/orders"
                   className="flex items-center gap-2 w-full"
-                  onClick={toggleSidebar}
                 >
                   <ShoppingCartIcon className="h-4 w-4" />
                   Orders
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/wishlist"
                   className="flex items-center gap-2 w-full"
-                  onClick={toggleSidebar}
                 >
                   <HeartIcon className="h-4 w-4" />
                   Wishlist
                 </Link>
               </DropdownMenuItem>
               {session?.user?.role === "ADMIN" && (
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild onSelect={handleSelect}>
                   <Link
                     href="/admin/overview"
                     className="flex items-center gap-2 w-full"
-                    onClick={toggleSidebar}
                   >
                     <ShieldIcon className="h-4 w-4" />
                     Admin

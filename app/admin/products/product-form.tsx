@@ -199,6 +199,21 @@ const ProductForm = ({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="videoLink"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Video Link</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://youtube.com/xyz" {...field} />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
