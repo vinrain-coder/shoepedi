@@ -129,7 +129,6 @@ const CheckoutForm = () => {
 
   const handlePlaceOrder = async () => {
     try {
-      // Create the order on the server
       const res = await createOrder({
         items,
         shippingAddress,
@@ -149,27 +148,13 @@ const CheckoutForm = () => {
         return;
       }
 
-      if (createdOrder) {
-        toast.error("This order is already created. Proceed to payment.");
-        return;
-      }
-
-      const order = res.data as IOrder; // Ensure this is the full order object
+      const order = res.data as IOrder;
       toast.success("Order created!");
-
       clearCart();
 
-      if (paymentMethod === "Cash On Delivery") {
-        // Redirect immediately for COD
-        router.push(`/account/orders/${order._id}`);
-        return;
-      }
-
-      // For online payment (Paystack), store order to render Paystack button
-      setCreatedOrder(order);
-      toast.success("Proceed to payment.");
+      // Always redirect to order details
+      router.push(`/account/orders/${order._id}`);
     } catch (error: any) {
-      console.error("Error placing order:", error);
       toast.error(error?.message || "Something went wrong");
     }
   };
@@ -228,7 +213,10 @@ const CheckoutForm = () => {
             <Button
               onClick={handlePlaceOrder}
               className="rounded-full w-full cursor-pointer"
-              hidden={paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && !!createdOrder}
+              hidden={
+                paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+                !!createdOrder
+              }
             >
               Place Your Order
             </Button>
@@ -738,22 +726,24 @@ const CheckoutForm = () => {
                   paymentMethod={paymentMethod}
                   handlePlaceOrder={handlePlaceOrder}
                 />
-                {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && createdOrder && (
-                  <PaystackInline
-                    email={session?.user.email as string}
-                    amount={Math.round(totalPrice * 100)}
-                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={createdOrder._id}
-                    onSuccess={() =>
-                      router.push(`/account/orders/${createdOrder._id}`)
-                    }
-                  />
-                )}
+                {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+                  createdOrder && (
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(totalPrice * 100)}
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder._id}
+                      onSuccess={() =>
+                        router.push(`/account/orders/${createdOrder._id}`)
+                      }
+                    />
+                  )}
               </div>
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && createdOrder ? (
+                  {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+                  createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
                       amount={Math.round(totalPrice * 100)} // Paystack wants kobo
@@ -767,7 +757,11 @@ const CheckoutForm = () => {
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer"
-                      hidden={paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && !!createdOrder}
+                      hidden={
+                        paymentMethod ===
+                          "Mobile Money (M-Pesa / Airtel) & Card" &&
+                        !!createdOrder
+                      }
                     >
                       Place Your Order
                     </Button>

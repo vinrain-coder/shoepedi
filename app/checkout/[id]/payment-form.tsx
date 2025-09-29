@@ -88,17 +88,13 @@ export default function OrderDetailsForm({
 
             {!isPaid &&
               paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && (
-                <>
-                  <PaystackInline
-                    email={session?.user.email as string}
-                    amount={Math.round(totalPrice * 100)}
-                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={order._id}
-                    onSuccess={() =>
-                      router.push(`/account/orders/${order._id}`)
-                    }
-                  />
-                </>
+                <PaystackInline
+                  email={session?.user.email as string}
+                  amount={Math.round(totalPrice * 100)}
+                  publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                  orderId={order._id}
+                  onSuccess={() => router.push(`/account/orders/${order._id}`)}
+                />
               )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (

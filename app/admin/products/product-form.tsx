@@ -28,6 +28,7 @@ import SizeInput from "./size-input";
 import MarkdownEditor from "react-markdown-editor-lite";
 import ReactMarkdown from "react-markdown";
 import "react-markdown-editor-lite/lib/index.css";
+import { useTheme } from "next-themes";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -87,6 +88,7 @@ const ProductForm = ({
   product?: IProduct;
   productId?: string;
 }) => {
+  const { theme } = useTheme();
   const router = useRouter();
 
   const form = useForm<IProductInput>({
@@ -304,7 +306,15 @@ const ProductForm = ({
                     {...field}
                     style={{ height: "500px" }}
                     onChange={({ text }) => form.setValue("description", text)}
-                    renderHTML={(text) => <ReactMarkdown>{text}</ReactMarkdown>}
+                    renderHTML={(text) => (
+                      <div
+                        className={`prose max-w-none ${
+                          theme === "dark" ? "prose-invert" : ""
+                        }`}
+                      >
+                        <ReactMarkdown>{text}</ReactMarkdown>
+                      </div>
+                    )}
                   />
                 </FormControl>
                 <FormDescription>

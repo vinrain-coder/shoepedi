@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toSlug } from "@/lib/utils";
 import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
+import { useTheme } from "next-themes";
 
 const webPageDefaultValues =
   process.env.NODE_ENV === "development"
@@ -49,6 +50,7 @@ const WebPageForm = ({
   webPage?: IWebPage;
   webPageId?: string;
 }) => {
+  const { theme } = useTheme();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof WebPageInputSchema>>({
@@ -155,13 +157,14 @@ const WebPageForm = ({
                       style={{ height: "500px" }}
                       onChange={({ text }) => form.setValue("content", text)}
                       renderHTML={(text) => (
-                        <ReactMarkdown>{text}</ReactMarkdown>
+                        <div
+                          className={`prose max-w-none ${
+                            theme === "dark" ? "prose-invert" : ""
+                          }`}
+                        >
+                          <ReactMarkdown>{text}</ReactMarkdown>
+                        </div>
                       )}
-                    />
-
-                    <AutoResizeTextarea
-                      placeholder="Enter content"
-                      {...field}
                     />
                   </FormControl>
                 </>

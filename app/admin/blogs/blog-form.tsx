@@ -25,6 +25,7 @@ import { IBlog } from "@/lib/db/models/blog.model";
 import { toSlug } from "@/lib/utils";
 import { X } from "lucide-react";
 import SubmitButton from "@/components/shared/submit-button";
+import { useTheme } from "next-themes";
 
 // Set default values correctly based on the BlogInputSchema
 const blogDefaultValues = {
@@ -47,6 +48,7 @@ const BlogForm = ({
   blog?: IBlog;
   blogId?: string;
 }) => {
+  const { theme } = useTheme();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof BlogInputSchema>>({
@@ -211,7 +213,15 @@ const BlogForm = ({
                   {...field}
                   style={{ height: "500px" }}
                   onChange={({ text }) => form.setValue("content", text)}
-                  renderHTML={(text) => <ReactMarkdown>{text}</ReactMarkdown>}
+                  renderHTML={(text) => (
+                    <div
+                      className={`prose max-w-none ${
+                        theme === "dark" ? "prose-invert" : ""
+                      }`}
+                    >
+                      <ReactMarkdown>{text}</ReactMarkdown>
+                    </div>
+                  )}
                 />
               </FormControl>
               <FormMessage />

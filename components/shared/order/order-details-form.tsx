@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IOrder } from "@/lib/db/models/order.model";
-import {  formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
@@ -42,7 +42,7 @@ export default function OrderDetailsForm({
   } = order;
 
   return (
-    <div className="grid md:grid-cols-3 md:gap-5">
+    <div className="grid md:grid-cols-3 gap-2 md:gap-5">
       <div className="overflow-x-auto md:col-span-2 space-y-4">
         <Card>
           <CardContent className="p-4 gap-4">
@@ -84,19 +84,21 @@ export default function OrderDetailsForm({
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4   gap-4">
+          <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Order Items</h2>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Color</TableHead>
                   <TableHead>Quantity</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item.slug}>
+                  <TableRow key={item.slug + item.size + item.color}>
                     <TableCell>
                       <Link
                         href={`/product/${item.slug}`}
@@ -107,14 +109,17 @@ export default function OrderDetailsForm({
                           alt={item.name}
                           width={50}
                           height={50}
-                        ></Image>
-                        <span className="px-2">{item.name}</span>
+                          className="rounded-md"
+                        />
+                        <span className="px-2 font-medium">{item.name}</span>
                       </Link>
                     </TableCell>
-                    <TableCell>
-                      <span className="px-2">{item.quantity}</span>
+                    <TableCell>{item.size || "-"}</TableCell>
+                    <TableCell>{item.color || "-"}</TableCell>
+                    <TableCell>{item.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      <ProductPrice price={item.price} plain />
                     </TableCell>
-                    <TableCell className="text-right">${item.price}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -124,7 +129,7 @@ export default function OrderDetailsForm({
       </div>
       <div>
         <Card>
-          <CardContent className="p-4  space-y-4 gap-4">
+          <CardContent className="p-4 space-y-4 gap-4">
             <h2 className="text-xl pb-4">Order Summary</h2>
             <div className="flex justify-between">
               <div>Items</div>
