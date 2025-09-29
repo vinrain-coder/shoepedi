@@ -49,7 +49,7 @@ const CategoryForm = ({
     defaultValues: category || {
       name: "",
       slug: "",
-      parent: "",
+      parent: undefined,
       description: "",
       image: "",
       seoTitle: "",
@@ -63,8 +63,10 @@ const CategoryForm = ({
     name: "subcategories",
     control: form.control,
   });
+
   const nameValue = form.watch("name");
 
+  // Auto-generate slug from name
   useEffect(() => {
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
@@ -129,7 +131,7 @@ const CategoryForm = ({
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value || undefined} // undefined instead of ""
+                  value={field.value || undefined}
                   onValueChange={(val) => field.onChange(val || undefined)}
                 >
                   <SelectTrigger>
@@ -164,6 +166,7 @@ const CategoryForm = ({
           )}
         />
 
+        {/* Image */}
         <CategoryImageUploader form={form} />
 
         {/* SEO Fields */}
@@ -252,6 +255,7 @@ const CategoryForm = ({
               </Button>
             </div>
           ))}
+
           <Button
             type="button"
             onClick={() =>
@@ -267,6 +271,7 @@ const CategoryForm = ({
           </Button>
         </div>
 
+        {/* Submit Button */}
         <SubmitButton
           isLoading={form.formState.isSubmitting}
           loadingText="Submitting..."
