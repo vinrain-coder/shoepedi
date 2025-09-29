@@ -8,12 +8,16 @@ import { toast } from "sonner";
 
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import SubmitButton from "@/components/shared/submit-button";
+import CategoryImageUploader from "./category-image-uploader";
 import {
   Select,
   SelectContent,
@@ -21,30 +25,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
-import CategoryImageUploader from "./category-image-uploader";
-import SubmitButton from "@/components/shared/submit-button";
+
+interface SubcategoryForm {
+  name: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+}
+
+interface CategoryFormValues {
+  name: string;
+  slug: string;
+  parent?: string;
+  description?: string;
+  image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  subcategories: SubcategoryForm[];
+}
 
 interface CategoryFormProps {
   type: "Create" | "Update";
-  category?: any;
+  category?: Partial<CategoryFormValues>;
   categoryId?: string;
-  categoriesList?: any[];
+  categoriesList?: { _id: string; name: string }[];
 }
 
-const CategoryForm = ({
+export default function CategoryForm({
   type,
   category,
   categoryId,
   categoriesList = [],
-}: CategoryFormProps) => {
+}: CategoryFormProps) {
   const router = useRouter();
 
-  const form = useForm<any>({
+  const form = useForm<CategoryFormValues>({
     resolver: zodResolver(CategoryInputSchema),
     defaultValues: category || {
       name: "",
@@ -66,17 +86,17 @@ const CategoryForm = ({
 
   const nameValue = form.watch("name");
 
-  // Auto-generate slug from name
   useEffect(() => {
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: CategoryFormValues) => {
     try {
       const res =
         type === "Create"
           ? await createCategory(values)
-          : await updateCategory({ ...values, _id: categoryId });
+          : await updateCategory({ ...values, _id: categoryId! });
+
       if (res.success) {
         toast.success(res.message);
         router.push("/admin/categories");
@@ -115,7 +135,7 @@ const CategoryForm = ({
             <FormItem>
               <FormLabel>Slug</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="auto-generated slug" />
+                <Input {...field} placeholder="Auto-generated slug" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,13 +151,16 @@ const CategoryForm = ({
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value || undefined}
-                  onValueChange={(val) => field.onChange(val || undefined)}
+                  value={field.value}
+                  onValueChange={(val) =>
+                    field.onChange(val === "" ? undefined : val)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="No Parent (Root Category)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">No Parent (Root Category)</SelectItem>
                     {categoriesList.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
@@ -166,91 +189,143 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Image */}
         <CategoryImageUploader form={form} />
 
         {/* SEO Fields */}
-        {["seoTitle", "seoDescription", "seoKeywords"].map((key) => (
-          <FormField
-            key={key}
-            control={form.control}
-            name={key}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {key === "seoKeywords"
-                    ? "SEO Keywords"
-                    : key === "seoTitle"
-                    ? "SEO Title"
-                    : "SEO Description"}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder={
-                      key === "seoKeywords"
-                        ? "Separate keywords with commas"
-                        : `Enter ${key}`
-                    }
-                    onChange={(e) =>
-                      key === "seoKeywords" &&
-                      field.onChange(
-                        e.target.value.split(",").map((k) => k.trim())
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ))}
+        <FormField
+          control={form.control}
+          name="seoTitle"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>SEO Title</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="SEO title" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="seoDescription"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>SEO Description</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="SEO description" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="seoKeywords"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>SEO Keywords</FormLabel>
+              <FormDescription>Separate keywords with commas</FormDescription>
+              <FormControl>
+                <Input
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value.split(",").map((k) => k.trim())
+                    )
+                  }
+                  placeholder="e.g. shoes, sneakers, jordan"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Subcategories */}
         <div className="space-y-4">
           <h3 className="font-semibold">Subcategories</h3>
           {fields.map((item, index) => (
             <div key={item.id} className="border p-4 rounded space-y-2">
-              {["name", "seoTitle", "seoDescription", "seoKeywords"].map(
-                (key) => (
-                  <FormField
-                    key={key}
-                    control={form.control}
-                    name={`subcategories.${index}.${key}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {key === "name"
-                            ? "Subcategory Name"
-                            : key === "seoTitle"
-                            ? "SEO Title"
-                            : key === "seoDescription"
-                            ? "SEO Description"
-                            : "SEO Keywords"}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder={
-                              key === "seoKeywords"
-                                ? "Separate keywords with commas"
-                                : `Enter ${key}`
-                            }
-                            onChange={(e) =>
-                              key === "seoKeywords" &&
-                              field.onChange(
-                                e.target.value.split(",").map((k) => k.trim())
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )
-              )}
-              <Button variant="destructive" onClick={() => remove(index)}>
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.name` as const} // cast as const
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategory Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Subcategory Name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoTitle` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="SEO title for subcategory"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoDescription` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Description</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="SEO description for subcategory"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoKeywords` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Keywords</FormLabel>
+                    <FormDescription>
+                      Separate keywords with commas
+                    </FormDescription>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value.split(",").map((k) => k.trim())
+                          )
+                        }
+                        placeholder="e.g. subcat1, subcat2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => remove(index)}
+              >
                 Remove Subcategory
               </Button>
             </div>
@@ -271,9 +346,10 @@ const CategoryForm = ({
           </Button>
         </div>
 
-        {/* Submit Button */}
         <SubmitButton
+          type="submit"
           isLoading={form.formState.isSubmitting}
+          className="w-full"
           loadingText="Submitting..."
         >
           {type} Category
@@ -281,6 +357,4 @@ const CategoryForm = ({
       </form>
     </FormProvider>
   );
-};
-
-export default CategoryForm;
+}
