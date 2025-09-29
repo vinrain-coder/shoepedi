@@ -48,7 +48,7 @@ export function UserSidebar() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 p-2 rounded-md hover:bg-muted-foreground">
+            <button className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
               <Avatar className="size-8 rounded-lg">
                 {session.user.image ? (
                   <AvatarImage

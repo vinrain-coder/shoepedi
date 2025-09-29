@@ -22,12 +22,38 @@ import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
 import SubmitButton from "@/components/shared/submit-button";
 import CategoryImageUploader from "./category-image-uploader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface SubcategoryForm {
+  name: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+}
+
+interface CategoryFormValues {
+  name: string;
+  slug: string;
+  parent?: string | null;
+  description?: string;
+  image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  subcategories: SubcategoryForm[];
+}
 
 interface CategoryFormProps {
   type: "Create" | "Update";
-  category?: any; // Replace with ICategory type if available
+  category?: Partial<CategoryFormValues>;
   categoryId?: string;
-  categoriesList?: any[]; // Existing categories for parent selection
+  categoriesList?: { _id: string; name: string }[];
 }
 
 const CategoryForm = ({
@@ -38,7 +64,7 @@ const CategoryForm = ({
 }: CategoryFormProps) => {
   const router = useRouter();
 
-  const form = useForm<any>({
+  const form = useForm<CategoryFormValues>({
     resolver: zodResolver(CategoryInputSchema),
     defaultValues: category || {
       name: "",
@@ -65,25 +91,21 @@ const CategoryForm = ({
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: CategoryFormValues) => {
     try {
+      let res;
       if (type === "Create") {
-        const res = await createCategory(values);
-        if (res.success) {
-          toast.success(res.message);
-          router.push("/admin/categories");
-        } else {
-          toast.error(res.message);
-        }
+        res = await createCategory(values);
       } else {
         if (!categoryId) return;
-        const res = await updateCategory({ ...values, _id: categoryId });
-        if (res.success) {
-          toast.success(res.message);
-          router.push("/admin/categories");
-        } else {
-          toast.error(res.message);
-        }
+        res = await updateCategory({ ...values, _id: categoryId });
+      }
+
+      if (res.success) {
+        toast.success(res.message);
+        router.push("/admin/categories");
+      } else {
+        toast.error(res.message);
       }
     } catch (err) {
       toast.error("Something went wrong");
@@ -130,14 +152,22 @@ const CategoryForm = ({
             <FormItem>
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
-                <select {...field} className="border rounded px-2 py-1 w-full">
-                  <option value="">No Parent (Root Category)</option>
-                  {categoriesList.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No Parent (Root Category)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Parent (Root Category)</SelectItem>
+                    {categoriesList.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -212,8 +242,8 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Subcategories with SEO */}
-        <div className="space-y-2">
+        {/* Subcategories */}
+        <div className="space-y-4">
           <h3 className="font-semibold">Subcategories</h3>
           {fields.map((item, index) => (
             <div key={item.id} className="border p-4 rounded space-y-2">
@@ -290,7 +320,11 @@ const CategoryForm = ({
                 )}
               />
 
-              <Button variant="destructive" onClick={() => remove(index)}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => remove(index)}
+              >
                 Remove Subcategory
               </Button>
             </div>
