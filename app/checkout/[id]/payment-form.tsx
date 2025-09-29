@@ -11,11 +11,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-
-const PaystackInline = dynamic(
-  () => import("../paystack-inline"),
-  { ssr: false } // <-- only render on the client
-);
+import PaystackInline from "../paystack-inline";
 
 export default function OrderDetailsForm({
   order,
@@ -98,7 +94,10 @@ export default function OrderDetailsForm({
                     onSuccess={() =>
                       router.push(`/account/orders/${order._id}`)
                     }
-                    onFailure={() => toast.error("Payment was not completed.")}
+                    onFailure={() => {
+                      toast.error("Payment was not completed.");
+                      router.push(`/account/orders/${order._id}`);
+                    }}
                   />
                 </div>
               )}
