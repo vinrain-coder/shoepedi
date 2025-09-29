@@ -57,6 +57,22 @@ export default function CategoryImageUploader({ form }: ImageUploaderProps) {
           <FormLabel>Images</FormLabel>
           <Card>
             <CardContent className="space-y-4 mt-2 min-h-48">
+              {images.length > 0 && (
+                <div className="flex items-center gap-3 overflow-x-auto">
+                  {images.map((img) => (
+                    <div key={img} className="relative w-24 h-24">
+                      <Image
+                        src={img}
+                        alt="Product image"
+                        className="object-cover w-full h-full rounded-md border"
+                        height={20}
+                        width={20}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-col gap-2 mt-3">
                 <span className="text-sm text-muted-foreground">
                   You can upload up to 1 image (max: 2MB each).

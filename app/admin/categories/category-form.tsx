@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
@@ -26,9 +25,9 @@ import CategoryImageUploader from "./category-image-uploader";
 
 interface CategoryFormProps {
   type: "Create" | "Update";
-  category?: any; // Replace with your category type
+  category?: any; // Replace with ICategory type if available
   categoryId?: string;
-  categoriesList?: any[]; // List of existing categories for parent selection
+  categoriesList?: any[]; // Existing categories for parent selection
 }
 
 const CategoryForm = ({
@@ -95,7 +94,7 @@ const CategoryForm = ({
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Name */}
+        {/* Main Category Fields */}
         <FormField
           control={form.control}
           name="name"
@@ -110,7 +109,6 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Slug */}
         <FormField
           control={form.control}
           name="slug"
@@ -125,7 +123,6 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Parent Category */}
         <FormField
           control={form.control}
           name="parent"
@@ -147,7 +144,6 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Description */}
         <FormField
           control={form.control}
           name="description"
@@ -162,7 +158,6 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Image */}
         <CategoryImageUploader form={form} />
 
         {/* SEO Fields */}
@@ -173,7 +168,7 @@ const CategoryForm = ({
             <FormItem>
               <FormLabel>SEO Title</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="SEO title for search engines" />
+                <Input {...field} placeholder="SEO title" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -187,7 +182,7 @@ const CategoryForm = ({
             <FormItem>
               <FormLabel>SEO Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="SEO description (meta)" />
+                <Input {...field} placeholder="SEO description" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -217,16 +212,17 @@ const CategoryForm = ({
           )}
         />
 
-        {/* Subcategories */}
+        {/* Subcategories with SEO */}
         <div className="space-y-2">
           <h3 className="font-semibold">Subcategories</h3>
           {fields.map((item, index) => (
-            <div key={item.id} className="flex gap-2 items-center">
+            <div key={item.id} className="border p-4 rounded space-y-2">
               <FormField
                 control={form.control}
                 name={`subcategories.${index}.name`}
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem>
+                    <FormLabel>Subcategory Name</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Subcategory Name" />
                     </FormControl>
@@ -234,12 +230,83 @@ const CategoryForm = ({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoTitle`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="SEO title for subcategory"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoDescription`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Description</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="SEO description for subcategory"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`subcategories.${index}.seoKeywords`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SEO Keywords</FormLabel>
+                    <FormDescription>
+                      Separate keywords with commas
+                    </FormDescription>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value.split(",").map((k) => k.trim())
+                          )
+                        }
+                        placeholder="e.g. subcat1, subcat2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <Button variant="destructive" onClick={() => remove(index)}>
-                Remove
+                Remove Subcategory
               </Button>
             </div>
           ))}
-          <Button type="button" onClick={() => append({ name: "" })}>
+
+          <Button
+            type="button"
+            onClick={() =>
+              append({
+                name: "",
+                seoTitle: "",
+                seoDescription: "",
+                seoKeywords: [],
+              })
+            }
+          >
             Add Subcategory
           </Button>
         </div>
@@ -247,7 +314,7 @@ const CategoryForm = ({
         <SubmitButton
           type="submit"
           isLoading={form.formState.isSubmitting}
-          className="button col-span-2 w-full cursor-pointer"
+          className="w-full"
           loadingText="Submitting..."
           size="lg"
         >

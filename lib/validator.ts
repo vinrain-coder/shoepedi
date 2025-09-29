@@ -347,8 +347,32 @@ export const passwordSchema = z
     message: "Password must contain at least one special character",
   });
 
-// Base schema
+// Recursive Subcategory schema
+const SubcategorySchema: z.ZodType<any> = z.lazy(() =>
+  z.object({
+    name: z
+      .string({ required_error: "Subcategory name is required" })
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name must be less than 100 characters"),
+    slug: z
+      .string({ required_error: "Slug is required" })
+      .min(2)
+      .max(100)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+        message: "Slug must be lowercase and can contain hyphens only",
+      }),
+    description: z.string().max(500).optional(),
+    image: z.string().url().optional(),
+    seoTitle: z.string().max(60).optional(),
+    seoDescription: z.string().max(160).optional(),
+    seoKeywords: z.array(z.string()).optional(),
 
+    // Recursive subcategories for mini-categories
+    subcategories: z.array(SubcategorySchema).optional(),
+  })
+);
+
+// Main Category schema
 export const CategoryBase: z.ZodObject<any> = z.object({
   name: z
     .string({ required_error: "Category name is required" })
@@ -368,14 +392,16 @@ export const CategoryBase: z.ZodObject<any> = z.object({
   seoDescription: z.string().max(160).optional(),
   seoKeywords: z.array(z.string()).optional(),
 
-  // ✅ Lazy reference with proper type
-  subcategories: z
-    .array(z.lazy(() => CategoryBase.omit({ subcategories: true })))
-    .optional(),
+  // Use recursive Subcategory schema
+  subcategories: z.array(SubcategorySchema).optional(),
 });
 
-export const CategoryInputSchema = CategoryBase.omit({ subcategories: true });
+// Input schema for creation (no _id, optional subcategories allowed)
+export const CategoryInputSchema = CategoryBase.omit({
+  parent: true,
+}).partial();
 
+// Update schema with _id required
 export const CategoryUpdateSchema = CategoryBase.extend({
   _id: z.string(),
 }).partial();

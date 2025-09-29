@@ -1,4 +1,4 @@
-import { Document, Model, model, models, Schema, Types } from "mongoose";
+import { Document, Model, model, models, Query, Schema, Types } from "mongoose";
 
 // Interface for Category
 export interface ICategory extends Document {
@@ -10,7 +10,7 @@ export interface ICategory extends Document {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
-  subcategories?: ICategory[];
+  subcategories?: Types.ObjectId[] | ICategory[]; // Can be populated
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,11 +50,11 @@ const categorySchema = new Schema<ICategory>(
     seoDescription: { type: String, maxlength: 160 },
     seoKeywords: { type: [String], default: [] },
 
-    // Optional embedded subcategories (can also fetch dynamically)
+    // Recursive subcategories
     subcategories: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Category",
+        ref: "Category", // self-reference
       },
     ],
   },
@@ -62,6 +62,13 @@ const categorySchema = new Schema<ICategory>(
     timestamps: true,
   }
 );
+
+// Middleware to automatically populate subcategories recursively if needed
+categorySchema.pre(/^find/, function (next) {
+  const query = this as Query<ICategory[], ICategory>;
+  query.populate("subcategories");
+  next();
+});
 
 // Model
 const Category: Model<ICategory> =
