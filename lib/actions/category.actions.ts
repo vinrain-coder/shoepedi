@@ -15,14 +15,9 @@ export async function createCategory(
     const category = CategoryInputSchema.parse(data); // validate
     await connectToDatabase();
     await Category.create(category);
-
-    // Revalidate admin categories page
     revalidatePath("/admin/categories");
 
-    return {
-      success: true,
-      message: "Category created successfully",
-    };
+    return { success: true, message: "Category created successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -34,17 +29,13 @@ export async function updateCategory(
 ) {
   try {
     const category = CategoryUpdateSchema.parse(data);
-    if (!category._id) throw new Error("Category ID is required for update");
+    if (!category._id) throw new Error("Category ID is required");
 
     await connectToDatabase();
     await Category.findByIdAndUpdate(category._id, category);
-
     revalidatePath("/admin/categories");
 
-    return {
-      success: true,
-      message: "Category updated successfully",
-    };
+    return { success: true, message: "Category updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -54,21 +45,12 @@ export async function updateCategory(
 export async function deleteCategory(id: string) {
   try {
     await connectToDatabase();
-
     const category = await Category.findById(id);
     if (!category) throw new Error("Category not found");
-
-    // Optional: Handle deleting subcategories or reassign them if needed
-    // Example: await Category.deleteMany({ parent: id });
-
     await Category.findByIdAndDelete(id);
-
     revalidatePath("/admin/categories");
 
-    return {
-      success: true,
-      message: "Category deleted successfully",
-    };
+    return { success: true, message: "Category deleted successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
