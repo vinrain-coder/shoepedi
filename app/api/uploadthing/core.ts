@@ -5,20 +5,35 @@ import { getServerSession } from "@/lib/get-session";
 const f = createUploadthing();
 
 export const ourFileRouter = {
+  // Product Images
   productImages: f({
     image: {
-      maxFileSize: "1MB", // increase if needed
-      maxFileCount: 6, // allow up to 10 images
+      maxFileSize: "1MB",
+      maxFileCount: 6,
     },
   })
     .middleware(async () => {
       const session = await getServerSession();
       if (!session) throw new UploadThingError("Unauthorized");
-      return { userId: session?.user?.id };
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // file here will be ONE of the uploaded files
-      // UploadThing runs this callback for each file uploaded
+      return { uploadedBy: metadata.userId, fileUrl: file.url };
+    }),
+
+  // Category Images
+  categoryImages: f({
+    image: {
+      maxFileSize: "2MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await getServerSession();
+      if (!session) throw new UploadThingError("Unauthorized");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 } satisfies FileRouter;

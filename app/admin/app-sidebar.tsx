@@ -33,6 +33,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { NavDocuments } from "./nav-documents";
+import { NavContent } from "./nav-content";
 
 const data = {
   navMain: [
@@ -96,6 +97,28 @@ const data = {
       icon: IconMessageCircle,
     },
   ],
+  content: [
+    {
+      name: "Categories",
+      url: "/admin/categories",
+      icon: IconDatabase,
+    },
+    {
+      name: "Brands",
+      url: "/admin/brands",
+      icon: IconReport,
+    },
+    {
+      name: "Tags",
+      url: "/admin/tags",
+      icon: IconFileText,
+    },
+    {
+      name: "Colors",
+      url: "/admin/colors",
+      icon: IconMessageCircle,
+    },
+  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -126,6 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavContent items={data.content} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

@@ -4,7 +4,7 @@ import { IProductInput } from "@/types";
 export interface IProduct extends Document, IProductInput {
   numReviews: number;
   avgRating: number;
-  ratingDistribution: { rating: number; count: number; }[];
+  ratingDistribution: { rating: number; count: number }[];
   slug: any;
   _id: string;
   createdAt: Date;
@@ -30,6 +30,9 @@ const productSchema = new Schema<IProduct>(
     brand: {
       type: String,
       required: true,
+    },
+    videoLink: {
+      type: String,
     },
     description: {
       type: String,

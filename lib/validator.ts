@@ -346,3 +346,36 @@ export const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, {
     message: "Password must contain at least one special character",
   });
+
+// Base schema
+
+export const CategoryBase: z.ZodObject<any> = z.object({
+  name: z
+    .string({ required_error: "Category name is required" })
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters"),
+  slug: z
+    .string({ required_error: "Slug is required" })
+    .min(2)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+      message: "Slug must be lowercase and can contain hyphens only",
+    }),
+  parent: MongoId.nullable().optional(),
+  description: z.string().max(500).optional(),
+  image: z.string().url().optional(),
+  seoTitle: z.string().max(60).optional(),
+  seoDescription: z.string().max(160).optional(),
+  seoKeywords: z.array(z.string()).optional(),
+
+  // ✅ Lazy reference with proper type
+  subcategories: z
+    .array(z.lazy(() => CategoryBase.omit({ subcategories: true })))
+    .optional(),
+});
+
+export const CategoryInputSchema = CategoryBase.omit({ subcategories: true });
+
+export const CategoryUpdateSchema = CategoryBase.extend({
+  _id: z.string(),
+}).partial();

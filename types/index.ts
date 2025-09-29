@@ -2,6 +2,7 @@ import {
   BlogInputSchema,
   CarouselSchema,
   CartSchema,
+  CategoryInputSchema,
   DeliveryDateSchema,
   OrderInputSchema,
   OrderItemSchema,
@@ -30,6 +31,8 @@ export type IReviewDetails = IReviewInput & {
   };
 };
 export type IProductInput = z.infer<typeof ProductInputSchema>;
+
+export type ICategoryInput = z.infer<typeof CategoryInputSchema>;
 
 export type Data = {
   settings: ISettingInput[];

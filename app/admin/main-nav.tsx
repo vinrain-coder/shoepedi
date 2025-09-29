@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 
@@ -21,6 +22,7 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
+  const { isMobile, toggleSidebar } = useSidebar();
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -32,6 +34,9 @@ export function NavMain({
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <Link
+                onClick={() => {
+                  if (isMobile) toggleSidebar();
+                }}
                 href="/admin/products/create"
                 className="flex items-center gap-2"
               >

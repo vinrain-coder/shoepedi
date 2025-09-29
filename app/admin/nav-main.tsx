@@ -35,6 +35,9 @@ export function NavMain({
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <Link
+                onClick={() => {
+                  if (isMobile) toggleSidebar();
+                }}
                 href="/admin/products/create"
                 className="flex items-center gap-2"
               >
@@ -59,9 +62,13 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url} className="flex items-center gap-2"  onClick={() => {
-                  if (isMobile) toggleSidebar(); // close sidebar on mobile
-                }}>
+                <Link
+                  href={item.url}
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    if (isMobile) toggleSidebar(); // close sidebar on mobile
+                  }}
+                >
                   {item.icon && <item.icon className="w-5 h-5" />}
                   <span>{item.title}</span>
                 </Link>
