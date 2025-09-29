@@ -151,16 +151,13 @@ export default function CategoryForm({
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value}
-                  onValueChange={(val) =>
-                    field.onChange(val === "" ? undefined : val)
-                  }
+                  value={field.value || undefined} // use undefined instead of "" or null
+                  onValueChange={field.onChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="No Parent (Root Category)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Parent (Root Category)</SelectItem>
                     {categoriesList.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
