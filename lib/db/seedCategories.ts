@@ -1,55 +1,65 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { connectToDatabase } from '.'
-import Category from './models/category.model'
-import { cwd } from 'process'
-import { loadEnvConfig } from '@next/env'
-import { categoriesData, CategorySeed } from '@/lib/categories' // import your categories file
+import { connectToDatabase } from ".";
+import Category, { ICategory } from "./models/category.model";
+import { cwd } from "process";
+import { loadEnvConfig } from "@next/env";
+import { categoriesData, CategorySeed } from "@/lib/categories";
 
-loadEnvConfig(cwd())
+loadEnvConfig(cwd());
 
 const main = async () => {
   try {
-    await connectToDatabase(process.env.MONGODB_URI)
-    console.log('Connected to MongoDB')
+    await connectToDatabase(process.env.MONGODB_URI);
+    console.log("Connected to MongoDB");
 
-    await Category.deleteMany({})
-    console.log('Cleared existing categories')
+    // Clear existing categories
+    await Category.deleteMany({});
+    console.log("Cleared existing categories");
 
-    const createdCategories = await createCategoryTree(categoriesData)
+    const createdCategories = await createCategoryTree(categoriesData);
     console.log({
       createdCategories,
-      message: 'Seeded categories successfully',
-    })
+      message: "Seeded categories successfully",
+    });
 
-    process.exit(0)
+    process.exit(0);
   } catch (error) {
-    console.error(error)
-    throw new Error('Failed to seed categories')
+    console.error(error);
+    throw new Error("Failed to seed categories");
   }
-}
+};
 
-// Recursive function to create categories and subcategories
+/**
+ * Recursive function to create categories, subcategories, and minicategories
+ */
 async function createCategoryTree(
   data: CategorySeed[],
-  parent: any = null
-): Promise<any[]> {
-  const result: any[] = []
+  parent: ICategory | null = null
+): Promise<ICategory[]> {
+  const created: ICategory[] = [];
 
   for (const cat of data) {
-    const { subcategories, ...rest } = cat
+    const { subcategories, minicategories, ...rest } = cat as any;
+
     const newCategory = await Category.create({
       ...rest,
-      parent: parent ? parent._id : null,
-    })
+      parent: parent?._id || null,
+    });
 
+    // Handle subcategories recursively
     if (subcategories && subcategories.length > 0) {
-      await createCategoryTree(subcategories, newCategory)
+      await createCategoryTree(subcategories, newCategory);
     }
 
-    result.push(newCategory)
+    // Handle minicategories recursively (optional)
+    if (minicategories && minicategories.length > 0) {
+      await createCategoryTree(minicategories, newCategory);
+    }
+
+    created.push(newCategory);
   }
 
-  return result
+  return created;
 }
 
-main()
+main();

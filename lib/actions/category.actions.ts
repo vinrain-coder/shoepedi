@@ -130,9 +130,8 @@ export async function getAllCategoriesForAdmin({
   }
 }
 
-// app/actions/categoryActions.ts
 export async function getAllCategoriesForAdminProductInput() {
-  // Fetch top-level categories and populate subcategories & minicategories
+  // Fetch top-level categories and populate subcategories and minicategories
   const categories = await Category.find({ parent: null })
     .populate({
       path: "subcategories",
@@ -140,5 +139,8 @@ export async function getAllCategoriesForAdminProductInput() {
     })
     .lean();
 
-  return categories;
+  return categories.map((cat) => ({
+    ...cat,
+    subcategories: cat.subcategories || [],
+  }));
 }
