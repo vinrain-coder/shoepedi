@@ -26,6 +26,7 @@ import {
   ShoppingCartIcon,
   UserIcon,
 } from "lucide-react";
+import { SignOutButton } from "../sign-out-button";
 
 export function UserSidebar() {
   const router = useRouter();
@@ -37,14 +38,6 @@ export function UserSidebar() {
 
   const initials = getEmailInitials(session.user.email);
 
-  const onLogout = () => {
-    authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => router.push("/sign-in"),
-      },
-    });
-  };
-
   // helper: closes dropdown on link click
   const handleSelect = (event: Event) => {
     event.preventDefault(); // prevent Radix from keeping it open
@@ -55,31 +48,27 @@ export function UserSidebar() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
+            <button className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100">
               <Avatar className="size-8 rounded-lg">
                 {session.user.image ? (
                   <AvatarImage
                     src={session.user.image}
                     alt={session.user.email}
                   />
-                ) : null}
-                <AvatarFallback className="rounded-lg">
-                  {initials}
-                </AvatarFallback>
+                ) : (
+                  <AvatarFallback>{initials}</AvatarFallback>
+                )}
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="flex flex-col text-left text-sm">
                 <span className="truncate font-medium">
                   {session.user.name}
                 </span>
-                <span className="text-muted-foreground truncate text-xs">
+                <span className="text-xs text-muted-foreground truncate">
                   {session.user.email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
-            </SidebarMenuButton>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -151,9 +140,8 @@ export function UserSidebar() {
               )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onLogout}>
-              <IconLogout />
-              Log out
+            <DropdownMenuItem>
+              <SignOutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

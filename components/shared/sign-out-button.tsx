@@ -32,7 +32,7 @@ export const SignOutButton = () => {
     <Button
       onClick={handleClick}
       className="w-full"
-      variant="destructive"
+      variant="outline"
       disabled={isPending}
     >
       <LogOut className="text-white" />

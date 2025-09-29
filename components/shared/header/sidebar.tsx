@@ -12,7 +12,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { SignOutButton } from "../sign-out-button";
 import { authClient } from "@/lib/auth-client";
 import { UserSidebar } from "./user-sidebar";
 
