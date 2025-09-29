@@ -75,7 +75,7 @@ export default async function BlogAdminPage({
           </Button>
 
           <Button asChild variant="default" size="sm">
-            <Link href="/admin/blogs/create">Create Blog</Link>
+            <Link href="/admin/blogs/create">Create</Link>
           </Button>
         </div>
       </div>

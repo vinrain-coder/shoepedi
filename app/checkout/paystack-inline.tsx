@@ -11,6 +11,7 @@ interface PaystackInlineProps {
   orderId: string;
   onSuccess?: (reference: any) => void;
   onClose?: () => void;
+  onFailure?: (error?: any) => void; // <-- new
 }
 
 declare global {
@@ -26,6 +27,7 @@ export default function PaystackInline({
   orderId,
   onSuccess,
   onClose,
+  onFailure, // <-- new
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
@@ -63,6 +65,7 @@ export default function PaystackInline({
       onClose: function () {
         toast.error("Payment popup closed");
         if (onClose) onClose();
+        if (onFailure) onFailure("popup_closed"); // <-- treat popup close as failure
       },
       callback: function (response: any) {
         fetch("/api/paystack/verify", {
@@ -80,9 +83,13 @@ export default function PaystackInline({
               if (onSuccess) onSuccess(response);
             } else {
               toast.error("Payment verification failed");
+              if (onFailure) onFailure("verification_failed");
             }
           })
-          .catch(() => toast.error("Verification request failed"));
+          .catch((err) => {
+            toast.error("Verification request failed");
+            if (onFailure) onFailure(err);
+          });
       },
     });
 

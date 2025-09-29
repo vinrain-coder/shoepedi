@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const PaystackInline = dynamic(
   () => import("../paystack-inline"),
@@ -86,15 +87,20 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            {!isPaid &&
-              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && (
-                <PaystackInline
-                  email={session?.user.email as string}
-                  amount={Math.round(totalPrice * 100)}
-                  publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                  orderId={order._id}
-                  onSuccess={() => router.push(`/account/orders/${order._id}`)}
-                />
+            {order.paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+              !order.isPaid && (
+                <div className="mt-4">
+                  <PaystackInline
+                    email={session?.user.email as string}
+                    amount={Math.round(order.totalPrice * 100)}
+                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={order._id}
+                    onSuccess={() =>
+                      router.push(`/account/orders/${order._id}`)
+                    }
+                    onFailure={() => toast.error("Payment was not completed.")}
+                  />
+                </div>
               )}
 
             {!isPaid && paymentMethod === "Cash On Delivery" && (

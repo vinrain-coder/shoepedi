@@ -129,6 +129,7 @@ const CheckoutForm = () => {
 
   const handlePlaceOrder = async () => {
     try {
+      // Create the order on the server
       const res = await createOrder({
         items,
         shippingAddress,
@@ -148,13 +149,27 @@ const CheckoutForm = () => {
         return;
       }
 
-      const order = res.data as IOrder;
+      if (createdOrder) {
+        toast.error("This order is already created. Proceed to payment.");
+        return;
+      }
+
+      const order = res.data as IOrder; // Ensure this is the full order object
       toast.success("Order created!");
+
       clearCart();
 
-      // Always redirect to order details
-      router.push(`/account/orders/${order._id}`);
+      if (paymentMethod === "Cash On Delivery") {
+        // Redirect immediately for COD
+        router.push(`/account/orders/${order._id}`);
+        return;
+      }
+
+      // For online payment (Paystack), store order to render Paystack button
+      setCreatedOrder(order);
+      toast.success("Proceed to payment.");
     } catch (error: any) {
+      console.error("Error placing order:", error);
       toast.error(error?.message || "Something went wrong");
     }
   };
@@ -736,6 +751,9 @@ const CheckoutForm = () => {
                       onSuccess={() =>
                         router.push(`/account/orders/${createdOrder._id}`)
                       }
+                      onFailure={() =>
+                        router.push(`/account/orders/${createdOrder._id}`)
+                      }
                     />
                   )}
               </div>
@@ -746,10 +764,13 @@ const CheckoutForm = () => {
                   createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)} // Paystack wants kobo
+                      amount={Math.round(totalPrice * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
                       onSuccess={() =>
+                        router.push(`/account/orders/${createdOrder._id}`)
+                      }
+                      onFailure={() =>
                         router.push(`/account/orders/${createdOrder._id}`)
                       }
                     />
