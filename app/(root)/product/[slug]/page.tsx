@@ -164,7 +164,7 @@ export default async function ProductDetails({
 
                 {product.countInStock > 0 && product.countInStock <= 3 && (
                   <div className="text-destructive font-bold">
-                    Only few left in stock - order soon
+                    Only {product.countInStock} left in stock - order soon
                   </div>
                 )}
 

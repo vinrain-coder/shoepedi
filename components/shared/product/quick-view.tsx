@@ -11,6 +11,7 @@ import SelectVariant from "@/components/shared/product/select-variant";
 import { IProduct } from "@/lib/db/models/product.model";
 import { generateId, round2 } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SubscribeButton from "./stock-subscription-button";
 
 interface QuickViewProps {
   product: IProduct | null;
@@ -30,14 +31,11 @@ export default function ProductQuickView({
   const selectedColor = product.colors?.[0];
   const selectedSize = product.sizes?.[0];
 
-  const content = useMemo(() => {
+  const details = useMemo(() => {
     return (
-      <div className="flex flex-col gap-6 w-full max-w-3xl mx-auto p-4">
+      <div className="flex flex-col gap-6 p-6">
         {/* Product Name */}
         <h2 className="font-semibold text-2xl">{product.name}</h2>
-
-        {/* Gallery */}
-        <ProductGallery images={product.images} />
 
         {/* Price */}
         <ProductPrice price={product.price} listPrice={product.listPrice} />
@@ -50,62 +48,68 @@ export default function ProductQuickView({
         />
 
         {/* Description */}
-        <Separator className="my-2" />
+        <Separator />
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
           {product.description}
         </p>
+
+        {/* Add to Cart */}
+        <AddToCart
+          item={{
+            clientId: generateId(),
+            product: product._id.toString(),
+            countInStock: product.countInStock,
+            name: product.name,
+            slug: product.slug,
+            category: product.category,
+            price: round2(product.price),
+            quantity: 1,
+            image: product.images[0],
+            size: selectedSize,
+            color: selectedColor,
+          }}
+        />
+
+        {product.countInStock > 0 && product.countInStock <= 3 && (
+          <div className="text-destructive font-bold">
+            Only {product.countInStock} left in stock – order soon
+          </div>
+        )}
+
+        {product.countInStock === 0 && (
+          <div className="flex justify-center items-center mt-4">
+            <SubscribeButton productId={product._id.toString()} />
+          </div>
+        )}
       </div>
     );
   }, [product, selectedColor, selectedSize]);
 
-  const stickyFooter = (
-    <div className="border-t bg-background p-4">
-      <AddToCart
-        item={{
-          clientId: generateId(),
-          product: product._id.toString(),
-          countInStock: product.countInStock,
-          name: product.name,
-          slug: product.slug,
-          category: product.category,
-          price: round2(product.price),
-          quantity: 1,
-          image: product.images[0],
-          size: selectedSize,
-          color: selectedColor,
-        }}
-      />
-      {product.countInStock === 0 && (
-        <div className="text-destructive font-bold mt-2">Out of stock</div>
-      )}
-    </div>
-  );
-
   return isMobile ? (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="p-0 h-[90vh] flex flex-col" forceMount>
+      <DrawerContent className="p-0 max-h-[90vh] flex flex-col" forceMount>
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">{content}</div>
-
-        {/* Footer always at bottom */}
-        {stickyFooter}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <ProductGallery images={product.images} />
+          {details}
+        </div>
       </DrawerContent>
     </Drawer>
   ) : (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         forceMount
-        className="p-0 max-w-3xl w-full h-[90vh] flex flex-col"
+        className="p-0 w-full h-[65vh] overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 md:gap-6 max-w-2xl md:!max-w-6xl"
       >
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">{content}</div>
+        {/* Left: gallery */}
+        <div className="p-6 overflow-y-auto border-r">
+          <ProductGallery images={product.images} />
+        </div>
 
-        {/* Footer always at bottom */}
-        {stickyFooter}
+        {/* Right: details */}
+        <div className="overflow-y-auto">{details}</div>
       </DialogContent>
     </Dialog>
   );

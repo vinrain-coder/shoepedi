@@ -39,10 +39,10 @@ export default function SelectVariant({
     params.set("color", newColor);
     params.set("size", newSize);
 
-    // Use setTimeout to allow UI to update first before changing the URL
-    setTimeout(() => {
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }, 0);
+    // Preserve current pathname
+    const pathname = window.location.pathname;
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (

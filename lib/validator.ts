@@ -63,18 +63,18 @@ const ProductInputBase = z.object({
 });
 
 export const ProductInputSchema = ProductInputBase.refine(
-  (data) => data.listPrice <= data.price,
+  (data) => data.price <= data.listPrice,
   {
-    message: "Offer price must be smaller than or equal to main price",
-    path: ["listPrice"],
+    message: "Offer price must be smaller than or equal to list price",
+    path: ["price"],
   }
 );
 
 export const ProductUpdateSchema = ProductInputBase.extend({
   _id: z.string(),
-}).refine((data) => data.listPrice <= data.price, {
-  message: "List price must be smaller than or equal to price",
-  path: ["listPrice"],
+}).refine((data) => data.price <= data.listPrice, {
+  message: "Offer price must be smaller than or equal to list price",
+  path: ["price"],
 });
 
 // Order Item
