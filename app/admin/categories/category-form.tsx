@@ -69,7 +69,7 @@ export default function CategoryForm({
     defaultValues: category || {
       name: "",
       slug: "",
-      parent: undefined,
+      parent: "root", // default value for Select
       description: "",
       image: "",
       seoTitle: "",
@@ -92,12 +92,19 @@ export default function CategoryForm({
   }, [nameValue, form]);
 
   const onSubmit = async (values: CategoryFormValues) => {
-    console.log("Submitting form values:", values);
+    // convert "root" parent to undefined
+    const payload = {
+      ...values,
+      parent: values.parent === "root" ? undefined : values.parent,
+    };
+
+    console.log("Submitting form values:", payload);
+
     try {
       const res =
         type === "Create"
-          ? await createCategory(values)
-          : await updateCategory({ ...values, _id: categoryId! });
+          ? await createCategory(payload)
+          : await updateCategory({ ...payload, _id: categoryId! });
 
       if (res.success) {
         toast.success(res.message);
@@ -114,13 +121,13 @@ export default function CategoryForm({
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Category Name */}
+        {/* Category Name & Slug */}
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Category Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter category name" {...field} />
@@ -130,12 +137,11 @@ export default function CategoryForm({
             )}
           />
 
-          {/* Slug */}
           <FormField
             control={form.control}
             name="slug"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
                   <Input placeholder="Auto-generated slug" {...field} />
@@ -146,21 +152,16 @@ export default function CategoryForm({
           />
         </div>
 
-        {/* Parent Category */}
+        {/* Parent Category & Description */}
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
             name="parent"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Parent Category</FormLabel>
                 <FormControl>
-                  <Select
-                    value={field.value || "root"} // default to "root" if no parent
-                    onValueChange={(val) =>
-                      field.onChange(val === "root" ? undefined : val)
-                    }
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="No Parent (Root Category)" />
                     </SelectTrigger>
@@ -181,12 +182,11 @@ export default function CategoryForm({
             )}
           />
 
-          {/* Description */}
           <FormField
             control={form.control}
             name="description"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Input placeholder="Category description" {...field} />
@@ -206,7 +206,7 @@ export default function CategoryForm({
             control={form.control}
             name="seoTitle"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>SEO Title</FormLabel>
                 <FormControl>
                   <Input placeholder="SEO title" {...field} />
@@ -220,7 +220,7 @@ export default function CategoryForm({
             control={form.control}
             name="seoDescription"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>SEO Description</FormLabel>
                 <FormControl>
                   <Input placeholder="SEO description" {...field} />
@@ -234,7 +234,7 @@ export default function CategoryForm({
             control={form.control}
             name="seoKeywords"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>SEO Keywords</FormLabel>
                 <FormDescription>Separate keywords with commas</FormDescription>
                 <FormControl>
@@ -264,7 +264,7 @@ export default function CategoryForm({
                   control={form.control}
                   name={`subcategories.${index}.name` as const}
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full">
                       <FormLabel>Subcategory Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Subcategory Name" {...field} />
@@ -278,7 +278,7 @@ export default function CategoryForm({
                   control={form.control}
                   name={`subcategories.${index}.seoTitle` as const}
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full">
                       <FormLabel>SEO Title</FormLabel>
                       <FormControl>
                         <Input placeholder="SEO title" {...field} />
@@ -294,7 +294,7 @@ export default function CategoryForm({
                   control={form.control}
                   name={`subcategories.${index}.seoDescription` as const}
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full">
                       <FormLabel>SEO Description</FormLabel>
                       <FormControl>
                         <Input placeholder="SEO description" {...field} />
@@ -308,7 +308,7 @@ export default function CategoryForm({
                   control={form.control}
                   name={`subcategories.${index}.seoKeywords` as const}
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full">
                       <FormLabel>SEO Keywords</FormLabel>
                       <FormDescription>
                         Separate keywords with commas
