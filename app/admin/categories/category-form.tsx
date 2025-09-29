@@ -129,14 +129,13 @@ const CategoryForm = ({
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
+                  value={field.value || undefined} // undefined instead of ""
+                  onValueChange={(val) => field.onChange(val || undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="No Parent (Root Category)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Parent (Root Category)</SelectItem>
                     {categoriesList.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
