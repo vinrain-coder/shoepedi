@@ -98,7 +98,8 @@ export default function CategoryForm({
       parent: values.parent === "root" ? undefined : values.parent,
     };
 
-    console.log("Submitting form values:", payload);
+    console.log("Form Submitted!", values);
+    alert("Form Submitted! Check console");
 
     try {
       const res =
@@ -356,14 +357,9 @@ export default function CategoryForm({
         </div>
 
         {/* Submit */}
-        <SubmitButton
-          type="submit"
-          isLoading={form.formState.isSubmitting}
-          loadingText="Submitting..."
-          className="w-full"
-        >
+        <button type="submit" className="w-full">
           {type} Category
-        </SubmitButton>
+        </button>
       </form>
     </FormProvider>
   );
