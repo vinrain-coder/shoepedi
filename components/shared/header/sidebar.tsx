@@ -96,6 +96,7 @@ export default function Sidebar({
             </div>
 
             {/* Help & Settings */}
+            {/* Help & Settings */}
             <div className="flex flex-col mb-4">
               <div className="p-4">
                 <h2 className="text-lg font-semibold">Help & Settings</h2>
@@ -104,21 +105,22 @@ export default function Sidebar({
               <DrawerClose asChild>
                 <Link
                   href="/page/customer-service"
-                  className="item-button py-2 px-4 rounded-md"
+                  className="item-button py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                 >
                   Customer Service
                 </Link>
               </DrawerClose>
 
               {session ? (
-                <div className="w-3/4">
+                // no extra wrapper with w-3/4
+                <div className="px-4">
                   <UserSidebar />
                 </div>
               ) : (
                 <DrawerClose asChild>
                   <Link
                     href="/sign-in"
-                    className="item-button py-2 px-4 rounded-md"
+                    className="item-button py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                   >
                     Sign In
                   </Link>

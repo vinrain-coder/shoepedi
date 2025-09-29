@@ -26,6 +26,7 @@ import { toSlug } from "@/lib/utils";
 import { X } from "lucide-react";
 import SubmitButton from "@/components/shared/submit-button";
 import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 // Set default values correctly based on the BlogInputSchema
 const blogDefaultValues = {
@@ -77,6 +78,12 @@ const BlogForm = ({
       toast.error(res.message);
     }
   }
+
+  const nameValue = form.watch("title");
+
+  useEffect(() => {
+    form.setValue("slug", toSlug(nameValue));
+  }, [nameValue, form]);
 
   return (
     <Form {...form}>

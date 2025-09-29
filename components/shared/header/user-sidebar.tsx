@@ -115,6 +115,7 @@ export function UserSidebar() {
                 <Link
                   href="/account"
                   className="flex items-center gap-2 w-full"
+                  onClick={toggleSidebar}
                 >
                   <UserIcon className="h-4 w-4" />
                   Your Account
@@ -124,6 +125,7 @@ export function UserSidebar() {
                 <Link
                   href="/account/orders"
                   className="flex items-center gap-2 w-full"
+                  onClick={toggleSidebar}
                 >
                   <ShoppingCartIcon className="h-4 w-4" />
                   Orders
@@ -133,6 +135,7 @@ export function UserSidebar() {
                 <Link
                   href="/wishlist"
                   className="flex items-center gap-2 w-full"
+                  onClick={toggleSidebar}
                 >
                   <HeartIcon className="h-4 w-4" />
                   Wishlist
@@ -143,6 +146,7 @@ export function UserSidebar() {
                   <Link
                     href="/admin/overview"
                     className="flex items-center gap-2 w-full"
+                    onClick={toggleSidebar}
                   >
                     <ShieldIcon className="h-4 w-4" />
                     Admin

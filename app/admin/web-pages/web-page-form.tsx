@@ -27,6 +27,7 @@ import { toSlug } from "@/lib/utils";
 import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 const webPageDefaultValues =
   process.env.NODE_ENV === "development"
@@ -88,6 +89,12 @@ const WebPageForm = ({
       }
     }
   }
+
+  const nameValue = form.watch("title");
+
+  useEffect(() => {
+    form.setValue("slug", toSlug(nameValue));
+  }, [nameValue, form]);
 
   return (
     <Form {...form}>
