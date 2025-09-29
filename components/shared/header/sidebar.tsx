@@ -15,6 +15,7 @@ import {
 import { SignOutButton } from "../sign-out-button";
 import { authClient } from "@/lib/auth-client";
 import { UserSidebar } from "./user-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function Sidebar({ categories }: { categories: string[] }) {
   const { data: session } = authClient.useSession();
@@ -99,7 +100,9 @@ export default function Sidebar({ categories }: { categories: string[] }) {
 
             {session ? (
               <div className="w-3/4">
-                <UserSidebar />
+                <SidebarProvider>
+                  <UserSidebar />
+                </SidebarProvider>
               </div>
             ) : (
               <DrawerClose asChild>
