@@ -43,6 +43,15 @@ categorySchema.pre(/^find/, function (next) {
   next();
 });
 
+// Optional: helper method to add a subcategory
+categorySchema.methods.addSubcategory = async function (
+  subcategoryId: Types.ObjectId
+) {
+  if (!this.subcategories) this.subcategories = [];
+  this.subcategories.push(subcategoryId);
+  await this.save();
+};
+
 const Category: Model<ICategory> =
   models.Category || model<ICategory>("Category", categorySchema);
 

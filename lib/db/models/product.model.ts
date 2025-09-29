@@ -5,7 +5,7 @@ export interface IProduct extends Document, IProductInput {
   numReviews: number;
   avgRating: number;
   ratingDistribution: { rating: number; count: number }[];
-  slug: any;
+  slug: string;
   _id: string;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +25,14 @@ const productSchema = new Schema<IProduct>(
     category: {
       type: String,
       required: true,
+    },
+    subcategory: {
+      type: String,
+      default: null,
+    },
+    minicategory: {
+      type: String,
+      default: null,
     },
     images: [String],
     brand: {

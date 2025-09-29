@@ -29,6 +29,7 @@ import MarkdownEditor from "react-markdown-editor-lite";
 import ReactMarkdown from "react-markdown";
 import "react-markdown-editor-lite/lib/index.css";
 import { useTheme } from "next-themes";
+import CategoryInput from "./category-input";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -42,6 +43,8 @@ const productDefaultValues: IProductInput =
         name: "Sample Product",
         slug: "sample-product",
         category: "Sample Category",
+        subcategory: "Men",
+        minicategory: "Sneakers",
         images: ["/images/p11-1.jpg"],
         brand: "Sample Brand",
         videoLink: "https://youtube.com",
@@ -63,6 +66,9 @@ const productDefaultValues: IProductInput =
         name: "",
         slug: "",
         category: "",
+        subcategory: "",
+        minicategory: "",
+
         images: [],
         brand: "",
         videoLink: "",
@@ -186,6 +192,8 @@ const ProductForm = ({
               </FormItem>
             )}
           />
+
+          <CategoryInput form={form} />
 
           <FormField
             control={form.control}
