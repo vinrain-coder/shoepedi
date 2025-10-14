@@ -193,8 +193,6 @@ const ProductForm = ({
             )}
           />
 
-          <CategoryInput form={form} />
-
           <FormField
             control={form.control}
             name="brand"
