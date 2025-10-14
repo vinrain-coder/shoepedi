@@ -35,7 +35,12 @@ const ProductInputBase = z.object({
   minicategory: z.string().optional(), // optional, will be required if subcategory has minis
   images: z.array(z.string()).min(1, "Product must have at least one image"),
   brand: z.string().min(1, "Brand is required"),
-  videoLink: z.string().url("Must be a valid URL").optional(),
+  videoLink: z
+  .string()
+  .optional()
+  .refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "Must be a valid URL",
+  }),
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
