@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { HomeCarousel } from "@/components/shared/home/home-carousel";
 import { AboutCarousel } from "@/components/shared/home/about-carousel";
 import BlogSlider from "@/components/shared/blog/blog-slider";
@@ -14,10 +15,10 @@ import {
 import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 
-export const revalidate = 86400; // 24 hours
-export const dynamic = "force-static";
-
 export default async function HomePage() {
+  "use cache";
+  cacheLife("hours");
+
   // Fetch all data in parallel for speed
   const [
     settingResult,
