@@ -26,9 +26,23 @@ export default function CategoryInput({ form }: { form: any }) {
     async function fetchCategories() {
       const data = await getAllCategoriesForAdminProductInput();
       setCategories(data);
+
+      // Populate subcategories/minicategories if editing existing product
+      const defaultCatId = form.getValues("category");
+      if (defaultCatId) {
+        const selected = data.find((c) => c._id === defaultCatId);
+        setSubcategories(selected?.subcategories || []);
+        const defaultSubId = form.getValues("subcategory");
+        if (defaultSubId) {
+          const selectedSub = selected?.subcategories?.find(
+            (s) => s._id === defaultSubId
+          );
+          setMinicategories(selectedSub?.subcategories || []);
+        }
+      }
     }
     fetchCategories();
-  }, []);
+  }, [form]);
 
   const handleCategoryChange = (categoryId: string) => {
     const selected = categories.find((c) => c._id === categoryId);
