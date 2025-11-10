@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -83,6 +84,9 @@ export default async function ProductDetails({
   params: any;
   searchParams: any;
 }) {
+  "use cache";
+  cacheLife("hours");
+  
   const { slug } = await params; // ✅ await first
   const query = await searchParams; // ✅ await
 
