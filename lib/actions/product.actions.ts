@@ -1,6 +1,6 @@
 "use server";
 
-import { cacheLife, cacheTag } from 'next/cache';
+import { cache } from 'react'
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
 import { revalidatePath } from "next/cache";
@@ -218,16 +218,15 @@ export async function getProductsByTag({
 }
 
 // GET ONE PRODUCT BY SLUG
-export async function getProductBySlug(slug: string) {
-  'use cache';
-  cacheLife('hours');           // Cache lifetime
-  cacheTag(`product:${slug}`);  // Tag this product for manual invalidation
-  
-  await connectToDatabase();
-  const product = await Product.findOne({ slug, isPublished: true });
-  if (!product) return notFound();
-  return JSON.parse(JSON.stringify(product)) as IProduct;
-}
+export const getProductBySlug = cache(async (slug: string) => {
+  await connectToDatabase()
+
+  const product = await Product.findOne({ slug, isPublished: true }).lean()
+
+  if (!product) return notFound()
+
+  return product as IProduct
+})
 // GET RELATED PRODUCTS: PRODUCTS WITH SAME CATEGORY
 export async function getRelatedProductsByCategory({
   category,
