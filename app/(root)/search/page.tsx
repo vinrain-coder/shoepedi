@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -8,17 +8,30 @@ import Pagination from "@/components/shared/pagination";
 import ProductCard from "@/components/shared/product/product-card";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
 import Rating from "@/components/shared/product/rating";
-import CollapsibleOnMobile from "@/components/shared/collapsible-on-mobile";
 
-import { getAllCategories, getAllProducts, getAllTags } from "@/lib/actions/product.actions";
-import { getFilterUrl, toSlug } from "@/lib/utils";
+import {
+  getAllCategories,
+  getAllProducts,
+  getAllTags,
+} from "@/lib/actions/product.actions";
+
+import { toSlug } from "@/lib/utils";
 import { IProduct } from "@/lib/db/models/product.model";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
+
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 
+// Sorting options
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -31,14 +44,9 @@ export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [categories, setCategories] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [fromTo, setFromTo] = useState({ from: 0, to: 0 });
-
-  // Filter states
+  // -----------------------
+  // INITIAL FILTER STATE
+  // -----------------------
   const [q, setQ] = useState(searchParams.get("q") || "all");
   const [category, setCategory] = useState(searchParams.get("category") || "all");
   const [tag, setTag] = useState(searchParams.get("tag") || "all");
@@ -46,52 +54,87 @@ export default function SearchPage() {
   const [sort, setSort] = useState(searchParams.get("sort") || "best-selling");
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-  const [minPriceInput, setMinPriceInput] = useState(0);
-  const [maxPriceInput, setMaxPriceInput] = useState(10000);
+  const defaultPriceRange: [number, number] = [0, 10000];
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => {
+    const p = searchParams.get("price");
+    if (!p) return defaultPriceRange;
+    const [a, b] = p.split("-").map(Number);
+    return [a || 0, b || 10000];
+  });
 
-  // Sheet open state (mobile)
+  const [minPriceInput, setMinPriceInput] = useState(priceRange[0]);
+  const [maxPriceInput, setMaxPriceInput] = useState(priceRange[1]);
+
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const params = { q, category, tag, price: `${priceRange[0]}-${priceRange[1]}`, rating, sort, page: page.toString() };
+  // -----------------------
+  // REMOTE DATA
+  // -----------------------
+  const [categories, setCategories] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [fromTo, setFromTo] = useState({ from: 0, to: 0 });
 
-  // Fetch categories, tags, products
-  const fetchData = async () => {
+  const buildParams = useCallback(() => {
+    return {
+      q,
+      category,
+      tag,
+      rating,
+      price: `${priceRange[0]}-${priceRange[1]}`,
+      sort,
+      page: page.toString(),
+    };
+  }, [q, category, tag, rating, priceRange, sort, page]);
+
+  // -----------------------
+  // URL SYNC
+  // -----------------------
+  const syncUrl = useCallback(() => {
+    const p = buildParams();
+    const query = new URLSearchParams();
+
+    Object.entries(p).forEach(([key, value]) => {
+      if (value !== "all" && value !== "0-10000") query.set(key, value);
+    });
+
+    router.replace(`/search?${query.toString()}`, { scroll: false });
+  }, [router, buildParams]);
+
+  // -----------------------
+  // DEBOUNCED FETCH
+  // -----------------------
+  const fetchData = useCallback(async () => {
     const [cats, tgs, data] = await Promise.all([
       getAllCategories(),
       getAllTags(),
-      getAllProducts({
-        category,
-        tag,
-        query: q,
-        price: `${priceRange[0]}-${priceRange[1]}`,
-        rating,
-        page,
-        sort,
-      }),
+      getAllProducts(buildParams()),
     ]);
+
     setCategories(cats);
     setTags(tgs);
     setProducts(data.products);
     setTotalProducts(data.totalProducts);
     setTotalPages(data.totalPages);
     setFromTo({ from: data.from, to: data.to });
-  };
+  }, [buildParams]);
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, category, tag, rating, priceRange, sort, page]);
+    syncUrl();
+    const timeout = setTimeout(fetchData, 200); // ⚡ debounce for massive speed
+    return () => clearTimeout(timeout);
+  }, [syncUrl, fetchData]);
 
-  const handleFilterChange = (filter: string, value: string) => {
+  // -----------------------
+  // FILTER HANDLERS
+  // -----------------------
+  const handleFilterChange = (filter: string, value: any) => {
     if (filter === "category") setCategory(value);
     if (filter === "tag") setTag(value);
     if (filter === "rating") setRating(value);
     setPage(1);
-  };
-
-  const handleClearFilter = (filter: string) => {
-    handleFilterChange(filter, "all");
   };
 
   const handlePriceApply = () => {
@@ -104,291 +147,351 @@ export default function SearchPage() {
     setCategory("all");
     setTag("all");
     setRating("all");
-    setPriceRange([0, 10000]);
-    setMinPriceInput(0);
-    setMaxPriceInput(10000);
+    setPriceRange(defaultPriceRange);
+    setMinPriceInput(defaultPriceRange[0]);
+    setMaxPriceInput(defaultPriceRange[1]);
     setPage(1);
   };
 
+  // -----------------------
+  // SELECTED FILTER PILLS
+  // -----------------------
+  const selectedFilters = useMemo(() => {
+    const arr: string[] = [];
+
+    if (category !== "all") arr.push(`Category: ${category}`);
+    if (tag !== "all") arr.push(`Tag: ${tag}`);
+    if (rating !== "all") arr.push(`Rating: ${rating}+`);
+    if (priceRange[0] !== 0 || priceRange[1] !== 10000)
+      arr.push(`Price: ${priceRange[0]}-${priceRange[1]}`);
+
+    return arr;
+  }, [category, tag, rating, priceRange]);
+
   return (
     <div>
-      {/* Results header */}
-      <div className="my-2 bg-card flex flex-col md:flex-row items-start md:items-center justify-between p-2 md:p-4 border-b">
+      {/* --------------------------- */}
+      {/* RESULTS HEADER */}
+      {/* --------------------------- */}
+      <div className="my-2 bg-card flex flex-col md:flex-row items-start md:items-center justify-between p-3 border-b">
         <div className="flex flex-wrap items-center gap-2">
           <div>
-            {totalProducts === 0 ? "No results" : `${fromTo.from}-${fromTo.to} of ${totalProducts} results`}
-            {(q !== "all" && q !== "") ||
-            category !== "all" ||
-            tag !== "all" ||
-            rating !== "all" ||
-            priceRange[0] > 0 ||
-            priceRange[1] < 10000
-              ? " for "
-              : null}
-            {q !== "all" && q !== "" && `"${q}"`}
+            {totalProducts === 0
+              ? "No results"
+              : `${fromTo.from}-${fromTo.to} of ${totalProducts} results`}
           </div>
 
-          {/* Selected filters pills */}
-          {[category !== "all" && category, tag !== "all" && tag, rating !== "all" && `${rating}+`, ...(priceRange[0] > 0 || priceRange[1] < 10000 ? [`${priceRange[0]}-${priceRange[1]}`] : [])]
-            .filter(Boolean)
-            .map((f, idx) => (
-              <Button key={idx} variant="outline" size="sm" onClick={() => {
-                if (f === category) handleClearFilter("category");
-                else if (f === tag) handleClearFilter("tag");
-                else if (f === rating) handleClearFilter("rating");
-                else setPriceRange([0, 10000]);
-              }}>
-                {f} ×
-              </Button>
-            ))}
+          {selectedFilters.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedFilters.map((f, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => {
+                    if (f.includes("Category")) setCategory("all");
+                    else if (f.includes("Tag")) setTag("all");
+                    else if (f.includes("Rating")) setRating("all");
+                    else setPriceRange(defaultPriceRange);
+                  }}
+                >
+                  {f} ×
+                </Button>
+              ))}
 
-          {(category !== "all" || tag !== "all" || rating !== "all" || priceRange[0] > 0 || priceRange[1] < 10000) && (
-            <Button variant="link" size="sm" onClick={handleClearAll}>
-              Clear All
-            </Button>
+              <Button variant="link" size="sm" onClick={handleClearAll}>
+                Clear All
+              </Button>
+            </div>
           )}
         </div>
 
-        {/* Sorting */}
         <div className="mt-2 md:mt-0">
-          <ProductSortSelector sortOrders={sortOrders} sort={sort} params={params} />
+          <ProductSortSelector sortOrders={sortOrders} sort={sort} params={buildParams()} />
         </div>
       </div>
 
       <div className="bg-card md:grid md:grid-cols-5 md:gap-4">
-        {/* Desktop filters */}
-        <div className="hidden md:block sticky top-20 p-2 space-y-4">
+        {/* --------------------------- */}
+        {/* DESKTOP FILTERS */}
+        {/* --------------------------- */}
+        <div className="hidden md:block sticky top-20 h-fit p-2 space-y-5 border-r">
+
+          {/* CATEGORY */}
           <div>
-            <div className="font-bold">Category</div>
+            <div className="font-bold mb-1">Category</div>
             <ul className="space-y-1">
               <li>
-                <Link className={`${category === "all" && "text-primary"}`} href={getFilterUrl({ category: "all", params })}>
+                <button
+                  onClick={() => handleFilterChange("category", "all")}
+                  className={category === "all" ? "text-primary" : ""}
+                >
                   All
-                </Link>
+                </button>
               </li>
               {categories.map((c) => (
                 <li key={c}>
-                  <Link className={`${c === category && "text-primary"}`} href={getFilterUrl({ category: c, params })}>
+                  <button
+                    onClick={() => handleFilterChange("category", c)}
+                    className={c === category ? "text-primary" : ""}
+                  >
                     {c}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* PRICE */}
           <div>
-            <div className="font-bold">Price</div>
-            <div className="space-y-2">
-              <Slider
-                value={priceRange}
-                min={0}
-                max={10000}
-                step={100}
-                onValueChange={(val) => setPriceRange(val as [number, number])}
+            <div className="font-bold mb-1">Price</div>
+            <Slider
+              value={priceRange}
+              min={0}
+              max={10000}
+              step={100}
+              onValueChange={(v) => {
+                setMinPriceInput(v[0]);
+                setMaxPriceInput(v[1]);
+                setPriceRange(v as [number, number]);
+              }}
+            />
+
+            <div className="flex gap-2 mt-2">
+              <Input
+                type="number"
+                value={minPriceInput}
+                onChange={(e) => setMinPriceInput(Number(e.target.value))}
               />
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={minPriceInput}
-                  onChange={(e) => setMinPriceInput(Number(e.target.value))}
-                  placeholder="Min"
-                />
-                <Input
-                  type="number"
-                  value={maxPriceInput}
-                  onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-                  placeholder="Max"
-                />
-                <Button size="sm" onClick={handlePriceApply}>
-                  Apply
-                </Button>
-              </div>
+              <Input
+                type="number"
+                value={maxPriceInput}
+                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+              />
+              <Button size="sm" onClick={handlePriceApply}>
+                Apply
+              </Button>
             </div>
           </div>
 
+          {/* RATING */}
           <div>
-            <div className="font-bold">Customer Review</div>
+            <div className="font-bold mb-1">Customer Review</div>
             <ul className="space-y-1">
               <li>
-                <Link className={`${rating === "all" && "text-primary"}`} href={getFilterUrl({ rating: "all", params })}>
+                <button
+                  onClick={() => handleFilterChange("rating", "all")}
+                  className={rating === "all" ? "text-primary" : ""}
+                >
                   All
-                </Link>
+                </button>
               </li>
               <li>
-                <Link className={`${rating === "4" && "text-primary"}`} href={getFilterUrl({ rating: "4", params })}>
+                <button
+                  onClick={() => handleFilterChange("rating", "4")}
+                  className={rating === "4" ? "text-primary" : ""}
+                >
                   <div className="flex items-center">
                     <Rating size={4} rating={4} /> & Up
                   </div>
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
 
+          {/* TAG */}
           <div>
-            <div className="font-bold">Tag</div>
+            <div className="font-bold mb-1">Tag</div>
             <ul className="space-y-1">
               <li>
-                <Link className={`${tag === "all" && "text-primary"}`} href={getFilterUrl({ tag: "all", params })}>
+                <button
+                  onClick={() => handleFilterChange("tag", "all")}
+                  className={tag === "all" ? "text-primary" : ""}
+                >
                   All
-                </Link>
+                </button>
               </li>
               {tags.map((t, i) => (
                 <li key={i}>
-                  <Link className={`${toSlug(t) === tag && "text-primary"}`} href={getFilterUrl({ tag: t, params })}>
+                  <button
+                    onClick={() => handleFilterChange("tag", toSlug(t))}
+                    className={toSlug(t) === tag ? "text-primary" : ""}
+                  >
                     {t}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Mobile filters */}
+        {/* --------------------------- */}
+        {/* MOBILE SHEET FILTERS */}
+        {/* --------------------------- */}
         <div className="md:hidden p-2">
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
-              <Button>Filters</Button>
+              <Button variant="outline">Filters</Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[80%] p-4">
-              <SheetHeader className="flex justify-between items-center sticky top-0 bg-card z-10 p-2">
-                <SheetTitle>Filters</SheetTitle>
-                <SheetClose asChild>
-                  <Button variant="ghost">✕</Button>
-                </SheetClose>
+
+            <SheetContent
+              side="left"
+              className="w-[85%] p-0"
+            >
+              {/* FIXED HEADER */}
+              <SheetHeader className="bg-card p-4 sticky top-0 border-b z-20">
+                <div className="flex justify-between items-center">
+                  <SheetTitle>{totalProducts} results</SheetTitle>
+                  <SheetClose asChild>
+                    <Button variant="ghost">✕</Button>
+                  </SheetClose>
+                </div>
               </SheetHeader>
 
-              <div className="mt-4 space-y-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 80px)" }}>
-                {/* Selected filters pills */}
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {[category !== "all" && category, tag !== "all" && tag, rating !== "all" && `${rating}+`, ...(priceRange[0] > 0 || priceRange[1] < 10000 ? [`${priceRange[0]}-${priceRange[1]}`] : [])]
-                    .filter(Boolean)
-                    .map((f, idx) => (
-                      <Button key={idx} variant="outline" size="sm" onClick={() => {
-                        if (f === category) handleClearFilter("category");
-                        else if (f === tag) handleClearFilter("tag");
-                        else if (f === rating) handleClearFilter("rating");
-                        else setPriceRange([0, 10000]);
-                      }}>
+              {/* SCROLL CONTENT */}
+              <div className="overflow-y-auto p-4" style={{ maxHeight: "calc(100vh - 70px)" }}>
+                {/* SELECTED FILTERS */}
+                {selectedFilters.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedFilters.map((f, idx) => (
+                      <Button
+                        key={idx}
+                        size="sm"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => {
+                          if (f.includes("Category")) setCategory("all");
+                          else if (f.includes("Tag")) setTag("all");
+                          else if (f.includes("Rating")) setRating("all");
+                          else setPriceRange(defaultPriceRange);
+                        }}
+                      >
                         {f} ×
                       </Button>
                     ))}
+                  </div>
+                )}
+
+                {/* CATEGORY */}
+                <div className="mb-4">
+                  <div className="font-bold mb-2">Category</div>
+                  {categories.map((c) => (
+                    <div key={c}>
+                      <button
+                        className={`py-1 ${c === category ? "text-primary" : ""}`}
+                        onClick={() => handleFilterChange("category", c)}
+                      >
+                        {c}
+                      </button>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Filters */}
-                <div className="space-y-4">
-                  <div>
-                    <div className="font-bold">Category</div>
-                    <ul className="space-y-1">
-                      <li>
-                        <Link className={`${category === "all" && "text-primary"}`} href={getFilterUrl({ category: "all", params })}>
-                          All
-                        </Link>
-                      </li>
-                      {categories.map((c) => (
-                        <li key={c}>
-                          <Link className={`${c === category && "text-primary"}`} href={getFilterUrl({ category: c, params })}>
-                            {c}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                {/* PRICE */}
+                <div className="mb-4">
+                  <div className="font-bold mb-2">Price</div>
+                  <Slider
+                    value={priceRange}
+                    min={0}
+                    max={10000}
+                    step={100}
+                    onValueChange={(v) => {
+                      setPriceRange(v as [number, number]);
+                      setMinPriceInput(v[0]);
+                      setMaxPriceInput(v[1]);
+                    }}
+                  />
 
-                  <div>
-                    <div className="font-bold">Price</div>
-                    <div className="space-y-2">
-                      <Slider
-                        value={priceRange}
-                        min={0}
-                        max={10000}
-                        step={100}
-                        onValueChange={(val) => setPriceRange(val as [number, number])}
-                      />
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          value={minPriceInput}
-                          onChange={(e) => setMinPriceInput(Number(e.target.value))}
-                          placeholder="Min"
-                        />
-                        <Input
-                          type="number"
-                          value={maxPriceInput}
-                          onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-                          placeholder="Max"
-                        />
-                        <Button size="sm" onClick={handlePriceApply}>
-                          Apply
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="font-bold">Customer Review</div>
-                    <ul className="space-y-1">
-                      <li>
-                        <Link className={`${rating === "all" && "text-primary"}`} href={getFilterUrl({ rating: "all", params })}>
-                          All
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className={`${rating === "4" && "text-primary"}`} href={getFilterUrl({ rating: "4", params })}>
-                          <div className="flex items-center">
-                            <Rating size={4} rating={4} /> & Up
-                          </div>
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <div className="font-bold">Tag</div>
-                    <ul className="space-y-1">
-                      <li>
-                        <Link className={`${tag === "all" && "text-primary"}`} href={getFilterUrl({ tag: "all", params })}>
-                          All
-                        </Link>
-                      </li>
-                      {tags.map((t, i) => (
-                        <li key={i}>
-                          <Link className={`${toSlug(t) === tag && "text-primary"}`} href={getFilterUrl({ tag: t, params })}>
-                            {t}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="flex justify-between mt-4">
-                    <Button variant="outline" onClick={handleClearAll}>
-                      Clear All
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      type="number"
+                      value={minPriceInput}
+                      onChange={(e) => setMinPriceInput(Number(e.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      value={maxPriceInput}
+                      onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+                    />
+                    <Button size="sm" onClick={handlePriceApply}>
+                      Apply
                     </Button>
-                    <Button onClick={fetchData}>Apply</Button>
                   </div>
+                </div>
+
+                {/* RATING */}
+                <div className="mb-4">
+                  <div className="font-bold mb-2">Customer Review</div>
+                  <button
+                    onClick={() => handleFilterChange("rating", "all")}
+                    className={rating === "all" ? "text-primary" : ""}
+                  >
+                    All
+                  </button>
+
+                  <button
+                    onClick={() => handleFilterChange("rating", "4")}
+                    className={`block mt-2 ${rating === "4" ? "text-primary" : ""}`}
+                  >
+                    <div className="flex items-center">
+                      <Rating size={4} rating={4} /> & Up
+                    </div>
+                  </button>
+                </div>
+
+                {/* TAG */}
+                <div className="mb-6">
+                  <div className="font-bold mb-2">Tag</div>
+                  {tags.map((t, i) => (
+                    <div key={i}>
+                      <button
+                        className={`py-1 ${toSlug(t) === tag ? "text-primary" : ""}`}
+                        onClick={() => handleFilterChange("tag", toSlug(t))}
+                      >
+                        {t}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* BOTTOM ACTIONS */}
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={handleClearAll}>
+                    Clear All
+                  </Button>
+
+                  <SheetClose asChild>
+                    <Button>Apply</Button>
+                  </SheetClose>
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
-        {/* Product grid */}
-        <div className="md:col-span-4 space-y-4 p-2 md:p-0">
+        {/* --------------------------- */}
+        {/* PRODUCT GRID */}
+        {/* --------------------------- */}
+        <div className="md:col-span-4 space-y-4 p-3">
           <div>
             <div className="font-bold text-xl">Results</div>
             <div>Check each product page for other buying options</div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {products.length === 0 && <div>No product found</div>}
-            {products.map((product) => (
-              <ProductCard key={product._id.toString()} product={product} />
+
+            {products.map((p) => (
+              <ProductCard key={p._id.toString()} product={p} />
             ))}
           </div>
 
-          {totalPages > 1 && <Pagination page={page} totalPages={totalPages} />}
+          {totalPages > 1 && (
+            <Pagination page={page} totalPages={totalPages} />
+          )}
         </div>
       </div>
     </div>
   );
-}
+  }
