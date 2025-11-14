@@ -173,7 +173,7 @@ export default function SearchPage() {
       {/* --------------------------- */}
       {/* RESULTS HEADER */}
       {/* --------------------------- */}
-      <div className="my-2 bg-card flex flex-col md:flex-row items-start md:items-center justify-between p-0 border-b">
+      <div className="my-2 bg-card flex flex-col md:flex-row items-start md:items-center justify-between py-1 border-b">
         <div className="flex flex-wrap items-center gap-2">
           <div>
             {totalProducts === 0
