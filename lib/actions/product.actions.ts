@@ -343,92 +343,17 @@ export async function getAllProducts({
 
   const countProducts = await Product.countDocuments({
     ...queryFilter,
-export async function getAllProducts({
-  query,
-  category,
-  tag,
-  limit,
-  page,
-  price,
-  rating,
-  sort,
-}: {
-  query: string;
-  category: string;
-  tag: string;
-  limit?: number;
-  page: number;
-  price?: string;
-  rating?: string;
-  sort?: string;
-}) {
-  const {
-    common: { pageSize },
-  } = await getSetting();
-  limit = limit || pageSize;
-
-  await connectToDatabase();
-
-  // ---------- Indexed Filters ----------
-  const filters: any = { isPublished: true };
-
-  if (query && query !== "all") {
-    filters.$text = { $search: query };
-  }
-
-  if (category && category !== "all") {
-    filters.category = category.toLowerCase(); // match DB format
-  }
-
-  if (tag && tag !== "all") {
-    filters.tags = tag.toLowerCase();
-  }
-
-  if (rating && rating !== "all") {
-    filters.avgRating = { $gte: Number(rating) };
-  }
-
-  if (price && price !== "all") {
-    const [min, max] = price.split("-").map(Number);
-    filters.price = { $gte: min, $lte: max };
-  }
-
-  // ---------- Fast Order ----------
-  const sortOptions: Record<string, 1 | -1> =
-    sort === "best-selling"
-      ? { numSales: -1 }
-      : sort === "price-low-to-high"
-      ? { price: 1 }
-      : sort === "price-high-to-low"
-      ? { price: -1 }
-      : sort === "avg-customer-review"
-      ? { avgRating: -1 }
-      : { createdAt: -1 };
-
-  // ---------- Single Query Using Facet ----------
-  const result = await Product.aggregate([
-    { $match: filters },
-    {
-      $facet: {
-        metadata: [{ $count: "total" }],
-        data: [
-          { $sort: sortOptions },
-          { $skip: limit * (page - 1) },
-          { $limit: limit },
-        ],
-      },
-    },
-  ]);
-
-  const totalProducts = result[0].metadata[0]?.total || 0;
-  const products: IProduct[] = result[0].data;
-
+    ...tagFilter,
+    ...categoryFilter,
+    ...priceFilter,
+    ...ratingFilter,
+  });
   return {
-    products,
-    totalProducts,
-    totalPages: Math.ceil(totalProducts / limit),
-    from: limit * (page - 1) + 1,
-    to: limit * (page - 1) + products.length,
+    products: JSON.parse(JSON.stringify(products)) as IProduct[],
+    totalPages: Math.ceil(countProducts / limit),
+    totalProducts: countProducts,
+    from: limit * (Number(page) - 1) + 1,
+    to: limit * (Number(page) - 1) + products.length,
   };
 }
 
