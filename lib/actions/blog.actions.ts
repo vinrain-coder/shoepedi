@@ -56,7 +56,6 @@ export async function getAllBlogs({
   limit?: number;
   onlyPublished?: boolean;
 }) {
-  "use cache"
   await connectToDatabase();
 
   const filter = onlyPublished ? { isPublished: true } : {}; // fetch all if false
