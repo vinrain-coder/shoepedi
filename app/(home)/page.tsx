@@ -1,3 +1,5 @@
+"use cache";
+
 import { HomeCarousel } from "@/components/shared/home/home-carousel";
 import { AboutCarousel } from "@/components/shared/home/about-carousel";
 import BlogSlider from "@/components/shared/blog/blog-slider";

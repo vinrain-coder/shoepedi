@@ -12,6 +12,7 @@ import { getSetting } from "./setting.actions";
 import mongoose from "mongoose";
 import { UTApi } from "uploadthing/server";
 import { notFound } from "next/navigation";
+import { cacheLife } from 'next/cache';
 
 const utapi = new UTApi(); // Initialize UTApi instance
 
@@ -157,6 +158,7 @@ export async function getAllProductsForAdmin({
 
 // GET ALL CATEGORIES
 export async function getAllCategories(): Promise<string[]> {
+  "use cache"
   await connectToDatabase();
   const categories = await Product.aggregate([
     { $match: { isPublished: true, category: { $exists: true, $ne: "" } } },
@@ -182,6 +184,7 @@ export async function getProductsForCard({
   tag: string;
   limit?: number;
 }) {
+  "use cache"
   await connectToDatabase();
   const products = await Product.find(
     { tags: { $in: [tag] }, isPublished: true },
@@ -207,6 +210,7 @@ export async function getProductsByTag({
   tag: string;
   limit?: number;
 }) {
+  "use cache"
   await connectToDatabase();
   const products = await Product.find({
     tags: { $in: [tag] },
@@ -219,6 +223,8 @@ export async function getProductsByTag({
 
 // GET ONE PRODUCT BY SLUG
 export const getProductBySlug = cache(async (slug: string) => {
+  "use cache"
+  cacheLife("hours")
   await connectToDatabase()
 
   const product = await Product.findOne({ slug, isPublished: true }).lean()
@@ -358,6 +364,7 @@ export async function getAllProducts({
 }
 
 export async function getAllTags() {
+  "use cache"
   await connectToDatabase();
   const tags = await Product.aggregate([
     // Ensure tags exist and are not empty
@@ -392,6 +399,7 @@ export async function getAllTags() {
 }
 
 export async function getAllTagsForAdminProductCreate() {
+ "use cache"
   await connectToDatabase();
 
   const tags = await Product.aggregate([
