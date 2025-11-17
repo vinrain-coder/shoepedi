@@ -6,6 +6,7 @@ import StockSubscription from "../db/models/stock-subscription.model";
 import Product from "../db/models/product.model";
 import { sendStockSubscriptionNotification } from "@/emails";
 import { getSetting } from "./setting.actions";
+import { cacheLife } from "next/cache";
 
 /**
  * Subscribe to stock notifications for a product.
@@ -61,6 +62,8 @@ export async function getAllStockSubscriptions({
   page: number;
   filter?: "notified" | "pending";
 }) {
+  "use cache";
+  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();

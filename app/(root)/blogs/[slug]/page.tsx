@@ -10,23 +10,29 @@ import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Image from "next/image";
 
+// Helper to extract first image from markdown
 function extractFirstImageUrl(markdownContent: string) {
   if (!markdownContent) return null;
   const match = markdownContent.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
   return match ? match[1] : null;
 }
 
+// ==========================
+// generateMetadata (fixed)
+// ==========================
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const p = await params; // unwrap promise
+
   const [blog, { site }] = await Promise.all([
-    getBlogBySlug(params.slug),
+    getBlogBySlug(p.slug),
     getSetting(),
   ]);
 
-  if (!blog) return {};
+  if (!blog) return { title: "Blog Not Found" };
 
   let firstImageUrl = extractFirstImageUrl(blog.content);
   if (firstImageUrl && !firstImageUrl.startsWith("http"))
@@ -53,15 +59,20 @@ export async function generateMetadata({
   };
 }
 
+// ==========================
+// Blog Page (fixed)
+// ==========================
 export default async function BlogPage({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 }) {
-  const blog: IBlog | null = await getBlogBySlug(params.slug);
+  const p = await params; // unwrap promise
+
+  const blog: IBlog | null = await getBlogBySlug(p.slug);
   if (!blog) return notFound();
 
-  void incrementBlogViews(params.slug);
+  void incrementBlogViews(p.slug); // fire-and-forget
 
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-US", {
@@ -156,10 +167,9 @@ export default async function BlogPage({
             ),
             img: ({ src = "", alt = "" }) => {
               if (!src) return null;
-
               return (
                 <Image
-                  src={src as string} 
+                  src={src}
                   alt={alt || "blog image"}
                   width={800}
                   height={450}
@@ -187,20 +197,6 @@ export default async function BlogPage({
       {/* Share Blog Component */}
       <h1 className="text-primary font-semibold">Share this Article</h1>
       <ShareBlog slug={blog.slug} title={blog.title} />
-
-      {/* Call to Action Section */}
-      {/* <div className="border dark:border-gray-700 border-gray-300 rounded-lg p-6 mt-6 text-center shadow-md dark:bg-gray-800 bg-gray-100">
-        <h2 className="text-2xl font-semibold dark:text-white text-gray-800">
-          Enjoyed this article? 🎉
-        </h2>
-        <p className="mt-2 dark:text-gray-300 text-gray-700">
-          If you found this helpful, share it with others! Stay updated with our
-          latest posts by subscribing to our newsletter.
-        </p>
-        <button className="mt-4 px-6 py-2 bg-primary text-white font-medium rounded-lg transition duration-300 dark:hover:bg-primary-600 hover:bg-primary-500">
-          Subscribe Now
-        </button>
-      </div> */}
     </div>
   );
 }

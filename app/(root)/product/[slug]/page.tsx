@@ -24,8 +24,6 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-  export const revalidate = 3600
-
 export async function generateMetadata({ params }: { params: any }) {
   const { slug } = await params; // ✅ destructure after awaiting
   const product = await getProductBySlug(slug);

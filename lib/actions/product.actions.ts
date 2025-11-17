@@ -1,6 +1,5 @@
 "use server";
 
-import { cache } from 'react'
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
 import { revalidatePath } from "next/cache";
@@ -12,6 +11,7 @@ import { getSetting } from "./setting.actions";
 import mongoose from "mongoose";
 import { UTApi } from "uploadthing/server";
 import { notFound } from "next/navigation";
+import { cacheLife } from "next/cache";
 
 const utapi = new UTApi(); // Initialize UTApi instance
 
@@ -83,12 +83,16 @@ export async function deleteProduct(id: string) {
 
 // GET ONE PRODUCT BY ID
 export async function getProductById(productId: string) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const product = await Product.findById(productId);
   return JSON.parse(JSON.stringify(product)) as IProduct;
 }
 
 export async function getProductsByIds(productIds: string[]) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const objectIds = productIds.map((id) => new mongoose.Types.ObjectId(id));
@@ -109,6 +113,8 @@ export async function getAllProductsForAdmin({
   sort?: string;
   limit?: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const {
@@ -157,6 +163,8 @@ export async function getAllProductsForAdmin({
 
 // GET ALL CATEGORIES
 export async function getAllCategories(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const categories = await Product.aggregate([
     { $match: { isPublished: true, category: { $exists: true, $ne: "" } } },
@@ -182,6 +190,8 @@ export async function getProductsForCard({
   tag: string;
   limit?: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const products = await Product.find(
     { tags: { $in: [tag] }, isPublished: true },
@@ -207,6 +217,8 @@ export async function getProductsByTag({
   tag: string;
   limit?: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const products = await Product.find({
     tags: { $in: [tag] },
@@ -218,15 +230,15 @@ export async function getProductsByTag({
 }
 
 // GET ONE PRODUCT BY SLUG
-export const getProductBySlug = cache(async (slug: string) => {
-  await connectToDatabase()
+export async function getProductBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
+  const product = await Product.findOne({ slug, isPublished: true });
+  if (!product) return notFound();
+  return JSON.parse(JSON.stringify(product)) as IProduct;
+}
 
-  const product = await Product.findOne({ slug, isPublished: true }).lean()
-
-  if (!product) return notFound()
-
-  return product as IProduct
-})
 // GET RELATED PRODUCTS: PRODUCTS WITH SAME CATEGORY
 export async function getRelatedProductsByCategory({
   category,
@@ -239,10 +251,13 @@ export async function getRelatedProductsByCategory({
   limit?: number;
   page: number;
 }) {
+  "use cache" 
+  cacheLife("hours")
   const {
     common: { pageSize },
   } = await getSetting();
   limit = limit || pageSize;
+  
   await connectToDatabase();
   const skipAmount = (Number(page) - 1) * limit;
   const conditions = {
@@ -281,6 +296,8 @@ export async function getAllProducts({
   rating?: string;
   sort?: string;
 }) {
+  "use cache";
+  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -358,6 +375,8 @@ export async function getAllProducts({
 }
 
 export async function getAllTags() {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const tags = await Product.aggregate([
     // Ensure tags exist and are not empty
@@ -392,6 +411,8 @@ export async function getAllTags() {
 }
 
 export async function getAllTagsForAdminProductCreate() {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const tags = await Product.aggregate([

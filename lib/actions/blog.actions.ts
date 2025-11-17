@@ -6,6 +6,7 @@ import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Blog, { IBlog } from "../db/models/blog.model";
 import { BlogInputSchema, BlogUpdateSchema } from "../validator";
+import { cacheLife } from "next/cache";
 
 // 🔹 CREATE BLOG
 export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
@@ -56,6 +57,8 @@ export async function getAllBlogs({
   limit?: number;
   onlyPublished?: boolean;
 }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const filter = onlyPublished ? { isPublished: true } : {}; // fetch all if false
@@ -97,16 +100,20 @@ export async function getPublishedBlogs({
   page?: number;
   limit?: number;
 }) {
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
   return getAllBlogs({
     page,
     limit,
-    onlyPublished: true, 
+    onlyPublished: true,
   });
 }
 
-
 // 🔹 GET BLOG BY SLUG
 export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const blog = await Blog.findOne({ slug }).lean();
   if (!blog) return null;
@@ -120,6 +127,8 @@ export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
 
 // 🔹 GET BLOG BY ID
 export async function getBlogById(blogId: string) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const blog = await Blog.findById(blogId).lean();
   if (!blog) return null;
@@ -134,12 +143,16 @@ export async function getBlogById(blogId: string) {
 
 // 🔹 GET ALL CATEGORIES
 export async function getAllBlogCategories() {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   return await Blog.distinct("category");
 }
 
 // 🔹 GET ALL TAGS
 export async function getAllBlogTags() {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const tags = await Blog.aggregate([
     { $unwind: "$tags" },
@@ -158,6 +171,8 @@ export async function getAllBlogTags() {
 
 // 🔹 INCREMENT BLOG VIEWS
 export async function incrementBlogViews(slug: string) {
+  "use cache";
+  cacheLife("hours");
   try {
     await connectToDatabase();
     const blog = await Blog.findOneAndUpdate(
@@ -173,6 +188,8 @@ export async function incrementBlogViews(slug: string) {
 
 // 🔹 GET MOST VIEWED BLOGS
 export async function getMostViewedBlogs(limit: number = 5) {
+  "use cache";
+  cacheLife("hours");
   try {
     await connectToDatabase();
     const blogs = await Blog.find()
@@ -187,6 +204,8 @@ export async function getMostViewedBlogs(limit: number = 5) {
 
 // 🔹 FETCH LATEST BLOGS
 export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const blogs = await Blog.find().sort({ createdAt: -1 }).limit(limit).lean();
 

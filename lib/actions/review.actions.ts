@@ -12,6 +12,7 @@ import { ReviewInputSchema } from "../validator";
 import { IReviewDetails } from "@/types";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
+import { cacheLife } from "next/cache";
 
 export async function createUpdateReview({
   data,
@@ -110,6 +111,8 @@ export async function getReviews({
   limit?: number;
   page: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -134,6 +137,8 @@ export const getReviewByProductId = async ({
 }: {
   productId: string;
 }) => {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const session = await getServerSession();
   if (!session) {
@@ -154,6 +159,8 @@ export async function getAllReviews({
   page?: number;
   limit?: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const skip = (page - 1) * limit;

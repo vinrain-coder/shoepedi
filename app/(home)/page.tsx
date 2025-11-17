@@ -1,3 +1,5 @@
+"use cache";
+
 import { HomeCarousel } from "@/components/shared/home/home-carousel";
 import { AboutCarousel } from "@/components/shared/home/about-carousel";
 import BlogSlider from "@/components/shared/blog/blog-slider";
@@ -13,9 +15,9 @@ import {
 } from "@/lib/actions/product.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
+import { cacheLife } from "next/cache";
 
 export default async function HomePage() {
-
   // Fetch all data in parallel for speed
   const [
     settingResult,
