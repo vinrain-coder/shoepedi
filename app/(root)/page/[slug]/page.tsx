@@ -6,9 +6,11 @@ import remarkGfm from "remark-gfm";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const webPage = await getWebPageBySlug(params.slug);
+  const { slug } = await params;
+
+  const webPage = await getWebPageBySlug(slug);
 
   return {
     title: webPage?.title || "Web page not found",
@@ -18,10 +20,11 @@ export async function generateMetadata({
 export default async function WebPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  // Fetch once
-  const webPage = await getWebPageBySlug(params.slug);
+  const { slug } = await params; // ✅ FIX — unwrap promise
+
+  const webPage = await getWebPageBySlug(slug);
 
   if (!webPage) return notFound();
 

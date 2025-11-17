@@ -1,46 +1,57 @@
 "use server";
+
 import { ISettingInput } from "@/types";
 import data from "../data";
 import Setting from "../db/models/setting.model";
 import { connectToDatabase } from "../db";
 import { formatError } from "../utils";
+import { cacheLife } from "next/cache";
+import { cacheTag } from "next/cache";
+import { updateTag } from "next/cache";
 
-const globalForSettings = global as unknown as {
-  cachedSettings: ISettingInput | null;
-};
-export const getNoCachedSetting = async (): Promise<ISettingInput> => {
+/**
+ * Fetch cached settings
+ */
+export async function getSetting(): Promise<ISettingInput> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("settings");
+
   await connectToDatabase();
-  const setting = await Setting.findOne();
-  return JSON.parse(JSON.stringify(setting)) as ISettingInput;
-};
+  const setting = await Setting.findOne().lean();
 
-export const getSetting = async (): Promise<ISettingInput> => {
-  if (!globalForSettings.cachedSettings) {
-    console.log("hit db");
-    await connectToDatabase();
-    const setting = await Setting.findOne().lean();
-    globalForSettings.cachedSettings = setting
-      ? JSON.parse(JSON.stringify(setting))
-      : data.settings[0];
-  }
-  return globalForSettings.cachedSettings as ISettingInput;
-};
+  return setting ? JSON.parse(JSON.stringify(setting)) : data.settings[0];
+}
 
-export const updateSetting = async (newSetting: ISettingInput) => {
+/**
+ * Fetch fresh (uncached) settings if needed
+ */
+export async function getNoCachedSetting(): Promise<ISettingInput> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("settings");
+  await connectToDatabase();
+  const setting = await Setting.findOne().lean();
+  return setting ? JSON.parse(JSON.stringify(setting)) : data.settings[0];
+}
+
+/**
+ * Update settings and revalidate cache
+ */
+export async function updateSetting(newSetting: ISettingInput) {
   try {
     await connectToDatabase();
-    const updatedSetting = await Setting.findOneAndUpdate({}, newSetting, {
+
+    const updated = await Setting.findOneAndUpdate({}, newSetting, {
       upsert: true,
       new: true,
     }).lean();
-    globalForSettings.cachedSettings = JSON.parse(
-      JSON.stringify(updatedSetting)
-    ); // Update the cache
-    return {
-      success: true,
-      message: "Setting updated successfully",
-    };
+
+    // Revalidate cached settings
+    updateTag("settings");
+
+    return { success: true, message: "Setting updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
-};
+}

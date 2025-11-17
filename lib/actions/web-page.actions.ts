@@ -8,6 +8,7 @@ import { formatError } from "@/lib/utils";
 
 import { WebPageInputSchema, WebPageUpdateSchema } from "../validator";
 import { z } from "zod";
+import { cacheLife } from "next/cache";
 
 // CREATE
 export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
@@ -58,6 +59,8 @@ export async function deleteWebPage(id: string) {
 
 // GET ALL
 export async function getAllWebPages() {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const webPages = await WebPage.find();
   return JSON.parse(JSON.stringify(webPages)) as IWebPage[];
@@ -70,6 +73,8 @@ export async function getWebPageById(webPageId: string) {
 
 // GET ONE PAGE BY SLUG
 export async function getWebPageBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const webPage = await WebPage.findOne({ slug, isPublished: true });
   if (!webPage) throw new Error("WebPage not found");

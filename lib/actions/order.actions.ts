@@ -13,6 +13,7 @@ import User from "../db/models/user.model";
 import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
+import { cacheLife } from "next/cache";
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -161,6 +162,8 @@ export async function getAllOrders({
   limit?: number;
   page: number;
 }) {
+  "use cache";
+  cacheLife("minutes");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -185,6 +188,8 @@ export async function getMyOrders({
   limit?: number;
   page: number;
 }) {
+  "use cache";
+  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -209,6 +214,8 @@ export async function getMyOrders({
   };
 }
 export async function getOrderById(orderId: string): Promise<IOrder> {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
   const order = await Order.findById(orderId);
   return JSON.parse(JSON.stringify(order));
@@ -263,6 +270,8 @@ export const calcDeliveryDateAndPrice = async ({
 
 // GET ORDERS BY USER
 export async function getOrderSummary(date: DateRange) {
+  "use cache";
+  cacheLife("hours");
   await connectToDatabase();
 
   const ordersCount = await Order.countDocuments({
@@ -358,6 +367,8 @@ export async function getOrderSummary(date: DateRange) {
 }
 
 async function getSalesChartData(date: DateRange) {
+  "use cache";
+  cacheLife("hours");
   const result = await Order.aggregate([
     {
       $match: {
@@ -399,6 +410,8 @@ async function getSalesChartData(date: DateRange) {
 }
 
 async function getTopSalesProducts(date: DateRange) {
+  "use cache";
+  cacheLife("hours");
   const result = await Order.aggregate([
     {
       $match: {
@@ -450,6 +463,8 @@ async function getTopSalesProducts(date: DateRange) {
 }
 
 async function getTopSalesCategories(date: DateRange, limit = 5) {
+  "use cache";
+  cacheLife("hours");
   const result = await Order.aggregate([
     {
       $match: {

@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import useCartSidebar from "@/hooks/use-cart-sidebar";
 import CartSidebar from "./cart-sidebar";
@@ -7,13 +8,12 @@ import AppInitializer from "./app-initializer";
 import { ClientSetting } from "@/types";
 import { Toaster } from "../ui/sonner";
 
-export default function ClientProviders({
-  setting,
-  children,
-}: {
+interface Props {
   setting: ClientSetting;
   children: React.ReactNode;
-}) {
+}
+
+export default function ClientProviders({ setting, children }: Props) {
   const visible = useCartSidebar();
 
   return (
@@ -30,6 +30,7 @@ export default function ClientProviders({
         ) : (
           <div>{children}</div>
         )}
+
         <Toaster duration={4000} richColors closeButton visibleToasts={3} />
       </ThemeProvider>
     </AppInitializer>
