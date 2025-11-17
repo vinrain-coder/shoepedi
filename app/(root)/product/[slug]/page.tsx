@@ -1,4 +1,4 @@
-"use cache";
+"use cache: private";
 
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
