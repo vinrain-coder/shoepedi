@@ -1,4 +1,5 @@
-import React, { Suspense } from "react";
+
+
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -24,11 +25,10 @@ import { getServerSession } from "@/lib/get-session";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { notFound } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
+import { cacheLife } from "next/cache";
 
 export async function generateMetadata({ params }: { params: any }) {
-  const { slug } = params; // FIXED — ❌ no await
+  const { slug } = await params; // ✅ destructure after awaiting
   const product = await getProductBySlug(slug);
   const { site } = await getSetting();
 
@@ -58,280 +58,298 @@ export async function generateMetadata({ params }: { params: any }) {
       description: product.description || "Discover this product on ShoePedi!",
       images: [ogImageUrl],
     },
+    additionalMetaTags: [
+      { property: "product:price:amount", content: product.price.toString() },
+      { property: "product:price:currency", content: "KES" },
+    ],
+    jsonLd: {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      name: product.name,
+      image: ogImageUrl,
+      description: product.description,
+      brand: { "@type": "Brand", name: "ShoePedi" },
+      offers: {
+        "@type": "Offer",
+        url: `${site.url}/product/${product.slug}`,
+        priceCurrency: "KES",
+        price: product.price.toString(),
+      },
+    },
   };
 }
 
-/* -------------------------------------------------------
-   Cached wrappers
-------------------------------------------------------- */
-const cachedGetProduct = async (slug: string) => {
-  "use cache";
-  return await getProductBySlug(slug);
-};
-
-const cachedGetRelated = async (payload: any) => {
-  "use cache";
-  return await getRelatedProductsByCategory(payload);
-};
-
-const cachedGetSetting = async () => {
-  "use cache";
-  return await getSetting();
-};
-
-/* -------------------------------------------------------
-   SHADCN SKELETONS
-------------------------------------------------------- */
-
-function GallerySkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-64 w-full rounded-xl" />
-      <div className="grid grid-cols-4 gap-2">
-        <Skeleton className="h-20 w-full rounded" />
-        <Skeleton className="h-20 w-full rounded" />
-        <Skeleton className="h-20 w-full rounded" />
-        <Skeleton className="h-20 w-full rounded" />
-      </div>
-    </div>
-  );
-}
-
-function DetailsSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-40" />
-      <Skeleton className="h-8 w-2/3" />
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-40 w-full" />
-    </div>
-  );
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="p-4 border rounded bg-white dark:bg-neutral-900">
-      <Skeleton className="h-6 w-32 mb-3" />
-      <Skeleton className="h-10 w-full mb-2" />
-      <Skeleton className="h-10 w-full" />
-    </div>
-  );
-}
-
-/* -------------------------------------------------------
-   Async server streamed sections
-------------------------------------------------------- */
-
-async function GallerySection({ product }: any) {
-  const images = product.images.filter(Boolean);
-  return (
-    <div className="col-span-2">
-      <ProductGallery images={images} />
-
-      {product.videoLink && (
-        <div className="mt-4">
-          <h3 className="font-semibold mb-2">Product Video</h3>
-          <a
-            href={product.videoLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary"
-          >
-            Watch Here
-          </a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-async function DetailsSection({ product, selectedColor, selectedSize, session }: any) {
-  return (
-    <div className="col-span-2 flex flex-col gap-4 md:p-4">
-      <p className="rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-gray-600 dark:text-gray-300">
-        Brand: {product.brand} {product.category}
-      </p>
-
-      <h1 className="font-bold text-lg lg:text-xl">{product.name}</h1>
-
-      <RatingSummary
-        avgRating={product.avgRating}
-        numReviews={product.numReviews}
-        asPopover
-        ratingDistribution={product.ratingDistribution}
-      />
-
-      <Separator />
-
-      <ProductPrice price={product.price} listPrice={product.listPrice} isDeal />
-
-      <SelectVariant product={product} color={selectedColor} size={selectedSize} />
-
-      <Separator />
-
-      <article className="prose prose-lg mt-4 max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {product.description}
-        </ReactMarkdown>
-      </article>
-    </div>
-  );
-}
-
-async function SidebarCard({ product, selectedColor, selectedSize }: any) {
-  return (
-    <div>
-      <Card>
-        <CardContent className="p-4 flex flex-col gap-4">
-          <ProductPrice price={product.price} />
-
-          {product.countInStock > 0 && product.countInStock <= 3 && (
-            <div className="text-red-600 font-bold">
-              Only {product.countInStock} left – order soon
-            </div>
-          )}
-
-          {product.countInStock !== 0 ? (
-            <div className="text-green-700 text-xl">In Stock</div>
-          ) : (
-            <div className="text-red-600 text-xl">Out of Stock</div>
-          )}
-
-          {product.countInStock !== 0 ? (
-            <div className="flex justify-center">
-              <div className="flex flex-col gap-2 items-center">
-                <AddToCart
-                  item={{
-                    clientId: generateId(),
-                    product: product._id.toString(),
-                    countInStock: product.countInStock,
-                    name: product.name,
-                    slug: product.slug,
-                    category: product.category,
-                    price: round2(product.price),
-                    quantity: 1,
-                    image: product.images[0],
-                    size: selectedSize,
-                    color: selectedColor,
-                  }}
-                />
-
-                <OrderViaWhatsApp
-                  productName={product.name}
-                  variant={selectedColor}
-                  size={selectedSize}
-                  quantity={1}
-                  price={product.price}
-                />
-
-                <WishlistButton productId={product._id.toString()} initialWishlist={[]} />
-              </div>
-            </div>
-          ) : (
-            <SubscribeButton productId={product._id.toString()} />
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-async function ReviewsSection({ product, userId }: any) {
-  return (
-    <section className="mt-10">
-      <h2 className="h2-bold mb-2">Customer Reviews</h2>
-      <ReviewList product={product} userId={userId} />
-    </section>
-  );
-}
-
-async function RelatedSection({ related, category }: any) {
-  return (
-    <section className="mt-10">
-      <ProductSlider products={related.data} title={`Best Sellers in ${category}`} />
-    </section>
-  );
-}
-
-async function BrowsingHistorySection() {
-  return <BrowsingHistoryList className="mt-10" />;
-}
-
-/* -------------------------------------------------------
-   MAIN PAGE
-------------------------------------------------------- */
-export default async function ProductDetails({ params, searchParams }: any) {
-  const { slug } = params; // FIXED — ❌ no await
-  const query = searchParams ?? {};
-
-  const product = await cachedGetProduct(slug);
-  if (!product) return notFound();
+export default async function ProductDetails({
+  params,
+  searchParams,
+}: {
+  params: any;
+  searchParams: any;
+}) {
+  'use cache: private'
+  cacheLife('hours')
+  
+  const { slug } = await params; // ✅ await first
+  const query = await searchParams; // ✅ await
 
   const session = await getServerSession();
 
-  const related = await cachedGetRelated({
+  const product = await getProductBySlug(slug);
+  if (!product) return <div>Product not found</div>;
+
+  const relatedProducts = await getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
     page: Number(query.page || "1"),
   });
 
-  const selectedColor = query.color || product.colors?.[0];
-  const selectedSize = query.size || product.sizes?.[0];
+  const selectedColor = query.color || product.colors[0];
+  const selectedSize = query.size || product.sizes[0];
 
   return (
     <div>
-      <AddToBrowsingHistory id={product._id.toString()} category={product.category} />
+      <AddToBrowsingHistory
+        id={product._id.toString()}
+        category={product.category}
+      />
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-5">
-        <Suspense fallback={<GallerySkeleton />}>
-          {/* @ts-expect-error */}
-          <GallerySection product={product} />
-        </Suspense>
+      <section>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="col-span-2">
+            <ProductGallery
+              images={
+                product.images?.filter(
+                  (img: string) => img && img.trim() !== ""
+                ) || []
+              }
+            />
 
-        <Suspense fallback={<DetailsSkeleton />}>
-          {/* @ts-expect-error */}
-          <DetailsSection
-            product={product}
-            session={session}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
-          />
-        </Suspense>
+            {product.videoLink && (
+              <div className="mt-4">
+                <h3 className="font-semibold mb-2">Product Video</h3>
+                <a
+                  href={product.videoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Watch Here
+                </a>
+              </div>
+            )}
+          </div>
 
-        <Suspense fallback={<SidebarSkeleton />}>
-          {/* @ts-expect-error */}
-          <SidebarCard
-            product={product}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
-          />
-        </Suspense>
+          <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
+            <div className="flex flex-col gap-3">
+              <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
+                Brand: {product.brand} {product.category}
+              </p>
+              <h1 className="font-bold text-lg lg:text-xl">{product.name}</h1>
+
+              <RatingSummary
+                avgRating={product.avgRating}
+                numReviews={product.numReviews}
+                asPopover
+                ratingDistribution={product.ratingDistribution}
+              />
+
+              <Separator />
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <ProductPrice
+                  price={product.price}
+                  listPrice={product.listPrice}
+                  isDeal
+                />
+              </div>
+            </div>
+
+            <SelectVariant
+              product={product}
+              color={selectedColor}
+              size={selectedSize}
+            />
+
+            <Separator className="my-2" />
+
+            <div className="flex flex-col gap-2">
+              <p className="p-bold-20 text-grey-600">Description:</p>
+              <article className="prose prose-lg max-w-none mt-6">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: (props) => (
+                      <h1
+                        className="text-3xl font-bold mt-5 dark:text-gray-400 text-gray-900"
+                        {...props}
+                      />
+                    ),
+                    h2: (props) => (
+                      <h2
+                        className="text-2xl font-semibold mt-4 dark:text-gray-400 text-gray-800"
+                        {...props}
+                      />
+                    ),
+                    h3: (props) => (
+                      <h3
+                        className="text-xl font-medium mt-3 dark:text-gray-400 text-gray-700"
+                        {...props}
+                      />
+                    ),
+                    p: (props) => (
+                      <p
+                        className="leading-relaxed my-2 dark:text-gray-300 text-gray-800"
+                        {...props}
+                      />
+                    ),
+                    ul: (props) => (
+                      <ul
+                        className="list-disc pl-6 my-2 dark:text-gray-300 text-gray-800"
+                        {...props}
+                      />
+                    ),
+                    ol: (props) => (
+                      <ol
+                        className="list-decimal pl-6 my-2 dark:text-gray-300 text-gray-800"
+                        {...props}
+                      />
+                    ),
+                    li: (props) => (
+                      <li
+                        className="mb-1 dark:text-gray-300 text-gray-800"
+                        {...props}
+                      />
+                    ),
+                    blockquote: (props) => (
+                      <blockquote
+                        className="border-l-4 border-gray-500 pl-4 italic dark:text-gray-400 text-gray-700 my-3"
+                        {...props}
+                      />
+                    ),
+                    a: (props) => (
+                      <a
+                        target="_self"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 font-medium hover:underline dark:text-blue-400"
+                        {...props}
+                      />
+                    ),
+                    strong: (props) => (
+                      <strong
+                        className="font-semibold dark:text-white text-gray-900"
+                        {...props}
+                      />
+                    ),
+                    pre: (props) => (
+                      <pre
+                        className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4"
+                        {...props}
+                      />
+                    ),
+                    img: ({ src = "", alt = "" }) => {
+                      if (!src) return null;
+
+                      return (
+                        <Image
+                          src={src as string}
+                          alt={alt}
+                          width={800}
+                          height={450}
+                          className="rounded-xl object-contain"
+                          unoptimized
+                        />
+                      );
+                    },
+                  }}
+                >
+                  {product.description}
+                </ReactMarkdown>
+              </article>
+            </div>
+          </div>
+
+          <div>
+            <Card>
+              <CardContent className="p-4 flex flex-col gap-4">
+                <ProductPrice price={product.price} />
+
+                {product.countInStock > 0 && product.countInStock <= 3 && (
+                  <div className="text-destructive font-bold">
+                    Only {product.countInStock} left in stock - order soon
+                  </div>
+                )}
+
+                {product.countInStock !== 0 ? (
+                  <div className="text-green-700 text-xl">In Stock</div>
+                ) : (
+                  <div className="text-destructive text-xl">Out of Stock</div>
+                )}
+
+                {product.countInStock !== 0 && (
+                  <div className="flex justify-center items-center">
+                    <div className="flex flex-col gap-2 items-center">
+                      <AddToCart
+                        item={{
+                          clientId: generateId(),
+                          product: product._id.toString(),
+                          countInStock: product.countInStock,
+                          name: product.name,
+                          slug: product.slug,
+                          category: product.category,
+                          price: round2(product.price),
+                          quantity: 1,
+                          image: product.images[0],
+                          size: selectedSize,
+                          color: selectedColor,
+                        }}
+                      />
+                      <OrderViaWhatsApp
+                        productName={product.name}
+                        variant={selectedColor}
+                        size={selectedSize}
+                        quantity={1}
+                        price={product.price}
+                      />
+                      <WishlistButton
+                        productId={product._id.toString()}
+                        //@ts-expect-error
+                        initialWishlist={[]}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {product.countInStock === 0 && (
+                  <div className="flex justify-center items-center mt-4">
+                    <SubscribeButton productId={product._id.toString()} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
 
-      {/* Share */}
-      <div className="my-4">
+      <div className="flex flex-col gap-2 my-2">
         <h3 className="font-semibold">Share this product</h3>
         <ShareProduct slug={product.slug} name={product.name} />
       </div>
 
-      {/* Reviews */}
-      <Suspense fallback={<Skeleton className="h-40 w-full mt-10" />}>
-        {/* @ts-expect-error */}
-        <ReviewsSection product={product} userId={session?.user?.id} />
-      </Suspense>
+      <section className="mt-10" id="reviews">
+        <h2 className="h2-bold mb-2">Customer Reviews</h2>
+        <ReviewList product={product} userId={session?.user.id} />
+      </section>
 
-      {/* Related */}
-      <Suspense fallback={<Skeleton className="h-40 w-full mt-10" />}>
-        {/* @ts-expect-error */}
-        <RelatedSection related={related} category={product.category} />
-      </Suspense>
+      <section className="mt-10">
+        <ProductSlider
+          products={relatedProducts.data}
+          title={`Best Sellers in ${product.category}`}
+        />
+      </section>
 
-      {/* Browsing history */}
-      <Suspense fallback={<Skeleton className="h-40 w-full mt-10" />}>
-        {/* @ts-expect-error */}
-        <BrowsingHistorySection />
-      </Suspense>
+      <section>
+        <BrowsingHistoryList className="mt-10" />
+      </section>
     </div>
   );
-  }
-  
+}
