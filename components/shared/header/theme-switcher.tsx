@@ -24,7 +24,10 @@ export default function ThemeSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="header-button h-[41px] cursor-pointer ml-6 md:ml-0">
+      <DropdownMenuTrigger
+        className="header-button h-[41px] cursor-pointer ml-6 md:ml-0"
+        asChild
+      >
         {theme === "dark" && isMounted ? (
           <div className="flex items-center gap-1">
             <Moon className="h-4 w-4" /> Dark <ChevronDownIcon />
