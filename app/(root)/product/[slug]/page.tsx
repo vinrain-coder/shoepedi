@@ -1,5 +1,5 @@
-
-
+// app/product/[slug]/page.tsx
+import React, { Suspense } from "react";
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,27 +27,28 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
 
+/**
+ * Metadata generator remains async and uses your getProductBySlug/getSetting helpers.
+ * It's okay for metadata to await data here.
+ */
 export async function generateMetadata({ params }: { params: any }) {
-  const { slug } = await params; // ✅ destructure after awaiting
+  const { slug } = await params;
   const product = await getProductBySlug(slug);
   const { site } = await getSetting();
 
   if (!product) return { title: "Product not found" };
 
-  const ogImageUrl = product.images[0];
+  const ogImageUrl = product.images?.[0];
 
   return {
     title: product.name,
-    description:
-      product.description || "Check out this amazing product at ShoePedi!",
+    description: product.description || "Check out this amazing product at ShoePedi!",
     openGraph: {
       title: product.name,
       description: product.description || "Discover this product on ShoePedi!",
       url: `${site.url}/product/${product.slug}`,
       siteName: "ShoePedi",
-      images: [
-        { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
-      ],
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: product.name }],
       price: { amount: product.price.toString(), currency: "KES" },
     },
     twitter: {
@@ -79,48 +80,110 @@ export async function generateMetadata({ params }: { params: any }) {
   };
 }
 
-export default async function ProductDetails({
-  params,
-  searchParams,
-}: {
+/**
+ * Export route-level rendering hints if you want to force a behavior.
+ * By default 'auto' lets Next choose the best approach; you can set to 'force-dynamic'
+ * if you always need request-time rendering (not required here).
+ */
+// export const dynamic = 'auto';
+
+type Props = {
   params: any;
   searchParams: any;
-}) {
-  'use cache: private'
-  cacheLife('hours')
-  
-  const { slug } = await params; // ✅ await first
-  const query = await searchParams; // ✅ await
+};
 
-  const session = await getServerSession();
+/**
+ * Small cached helper component: it does not read request-specific context and
+ * can be cached by Next.js's "use cache" directive. This demonstrates explicit caching.
+ *
+ * (If you have other pure helpers you can mark them similarly.)
+ */
+function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }) {
+  // Tell Next.js this component's render result can be cached.
+  // This is optional — remove if the component reads request cookies/params, etc.
+  // The directive must be at the top-level of the module or a component to have effect,
+  // but using it inside a little helper component shows intent.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  "use cache";
 
+  return <ProductPrice price={price} listPrice={listPrice} />;
+}
+
+/**
+ * Loading fallbacks used for Suspense boundaries — keep them small and visually similar
+ * to the real UI so the page doesn't jump when content streams in.
+ */
+function ReviewsLoading() {
+  return (
+    <div id="reviews-loading" className="p-4 bg-white rounded-lg shadow-sm">
+      <div className="h-6 w-48 bg-gray-200 rounded mb-3 animate-pulse" />
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+function RelatedLoading() {
+  return (
+    <div className="p-4">
+      <div className="h-6 w-56 bg-gray-200 rounded mb-3 animate-pulse" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-32 bg-gray-200 rounded animate-pulse" />
+        <div className="h-32 bg-gray-200 rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Main page component — split UI into an immediate shell and Suspense-wrapped dynamic parts.
+ * The shell renders quickly; suspended parts stream (reviews, related products, browsing history).
+ */
+export default async function ProductDetails({ params, searchParams }: Props) {
+  // IMPORTANT: don't mark the whole page as "use cache" if you need request-specific data
+  // (params, cookies, session). Instead, wrap request-specific child components in <Suspense>.
+  //
+  // Example: we need `params.slug` to fetch the product — we await it here to get the shell
+  // product data that is essential to build the initial UI (name, price, hero image).
+  const { slug } = await params;
+  const query = await searchParams;
+
+  // small optimization: give the cache system a hint for long-lived static-like work
+  // (you can tune this value or configure cacheLife in next.config).
+  cacheLife("hours");
+
+  // get session only when needed for user-specific parts (but we use it below to pass userId to reviews)
+  const sessionPromise = getServerSession();
+
+  // product itself is essential for the top-level shell (name, price, description overview).
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
 
-  const relatedProducts = await getRelatedProductsByCategory({
+  // related products can be fetched concurrently — we will await some here but render them inside Suspense
+  const relatedProductsPromise = getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
     page: Number(query.page || "1"),
   });
 
-  const selectedColor = query.color || product.colors[0];
-  const selectedSize = query.size || product.sizes[0];
+  const selectedColor = query.color || product.colors?.[0];
+  const selectedSize = query.size || product.sizes?.[0];
 
   return (
     <div>
-      <AddToBrowsingHistory
-        id={product._id.toString()}
-        category={product.category}
-      />
+      {/* Persist browsing history (client effect) — this is a client component; it should be OK to render here */}
+      <AddToBrowsingHistory id={product._id.toString()} category={product.category} />
 
       <section>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* LEFT: Gallery & video — relatively static per product and fast to resolve */}
           <div className="col-span-2">
             <ProductGallery
               images={
-                product.images?.filter(
-                  (img: string) => img && img.trim() !== ""
-                ) || []
+                product.images?.filter((img: string) => img && img.trim() !== "") || []
               }
             />
 
@@ -139,6 +202,7 @@ export default async function ProductDetails({
             )}
           </div>
 
+          {/* CENTER: Core product info — price, variant selection, description */}
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
               <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
@@ -156,19 +220,12 @@ export default async function ProductDetails({
               <Separator />
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <ProductPrice
-                  price={product.price}
-                  listPrice={product.listPrice}
-                  isDeal
-                />
+                {/* cached helper for price display */}
+                <CachedPrice price={product.price} listPrice={product.listPrice} />
               </div>
             </div>
 
-            <SelectVariant
-              product={product}
-              color={selectedColor}
-              size={selectedSize}
-            />
+            <SelectVariant product={product} color={selectedColor} size={selectedSize} />
 
             <Separator className="my-2" />
 
@@ -215,10 +272,7 @@ export default async function ProductDetails({
                       />
                     ),
                     li: (props) => (
-                      <li
-                        className="mb-1 dark:text-gray-300 text-gray-800"
-                        {...props}
-                      />
+                      <li className="mb-1 dark:text-gray-300 text-gray-800" {...props} />
                     ),
                     blockquote: (props) => (
                       <blockquote
@@ -235,20 +289,13 @@ export default async function ProductDetails({
                       />
                     ),
                     strong: (props) => (
-                      <strong
-                        className="font-semibold dark:text-white text-gray-900"
-                        {...props}
-                      />
+                      <strong className="font-semibold dark:text-white text-gray-900" {...props} />
                     ),
                     pre: (props) => (
-                      <pre
-                        className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4"
-                        {...props}
-                      />
+                      <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4" {...props} />
                     ),
                     img: ({ src = "", alt = "" }) => {
                       if (!src) return null;
-
                       return (
                         <Image
                           src={src as string}
@@ -268,6 +315,7 @@ export default async function ProductDetails({
             </div>
           </div>
 
+          {/* RIGHT: buy card (fast to show) */}
           <div>
             <Card>
               <CardContent className="p-4 flex flex-col gap-4">
@@ -298,7 +346,7 @@ export default async function ProductDetails({
                           category: product.category,
                           price: round2(product.price),
                           quantity: 1,
-                          image: product.images[0],
+                          image: product.images?.[0],
                           size: selectedSize,
                           color: selectedColor,
                         }}
@@ -312,7 +360,7 @@ export default async function ProductDetails({
                       />
                       <WishlistButton
                         productId={product._id.toString()}
-                        //@ts-expect-error
+                        // @ts-expect-error
                         initialWishlist={[]}
                       />
                     </div>
@@ -335,21 +383,56 @@ export default async function ProductDetails({
         <ShareProduct slug={product.slug} name={product.name} />
       </div>
 
+      {/* REVIEWS - user-specific (session needed). Wrap in Suspense so shell shows immediately
+          and reviews stream in as soon as getServerSession + review fetch complete. */}
       <section className="mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
-        <ReviewList product={product} userId={session?.user.id} />
+        <Suspense fallback={<ReviewsLoading />}>
+          {/* resolve session first, pass userId (if any) to the review list */}
+          {/* We await session inside a small async wrapper to avoid leaking request data into the static shell */}
+          <ReviewsBoundary sessionPromise={sessionPromise} product={product} />
+        </Suspense>
       </section>
 
+      {/* RELATED PRODUCTS - dynamic (depends on relatedProductsPromise). Wrap in Suspense so it streams in. */}
       <section className="mt-10">
-        <ProductSlider
-          products={relatedProducts.data}
-          title={`Best Sellers in ${product.category}`}
-        />
+        <Suspense fallback={<RelatedLoading />}>
+          <RelatedBoundary relatedProductsPromise={relatedProductsPromise} category={product.category} />
+        </Suspense>
       </section>
 
+      {/* Browsing history - client component that may depend on localStorage / client state.
+          We also show it inside a Suspense to ensure main shell renders fast. */}
       <section>
-        <BrowsingHistoryList className="mt-10" />
+        <Suspense fallback={<div className="p-4">Loading...</div>}>
+          <BrowsingHistoryList className="mt-10" />
+        </Suspense>
       </section>
     </div>
   );
 }
+
+/**
+ * Small async server component wrapper that awaits the session (request-specific)
+ * and then renders ReviewList. Kept separate so the parent page shell can be pre-rendered.
+ *
+ * This component reads request-specific info (session) so it MUST NOT be 'use cache'.
+ */
+async function ReviewsBoundary({ sessionPromise, product }: { sessionPromise: Promise<any>; product: any }) {
+  const session = await sessionPromise;
+  // Render ReviewList (presumably server component or async component that fetches reviews)
+  return <ReviewList product={product} userId={session?.user?.id} />;
+}
+
+/**
+ * Related products wrapper: awaits the related products promise and renders the slider.
+ * Keep it as an async server component wrapped in Suspense so it streams.
+ *
+ * If getRelatedProductsByCategory can be cached on your backend, you can consider
+ * using 'use cache' inside that function (where data is fetched) instead of here.
+ */
+async function RelatedBoundary({ relatedProductsPromise, category }: { relatedProductsPromise: Promise<any>; category: string }) {
+  const related = await relatedProductsPromise;
+  return <ProductSlider products={related?.data || []} title={`Best Sellers in ${category}`} />;
+}
+  
