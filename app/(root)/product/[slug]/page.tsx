@@ -105,7 +105,7 @@ function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }
   // but using it inside a little helper component shows intent.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  "use cache";
+  
 
   return <ProductPrice price={price} listPrice={listPrice} />;
 }
@@ -143,6 +143,8 @@ function RelatedLoading() {
  * The shell renders quickly; suspended parts stream (reviews, related products, browsing history).
  */
 export default async function ProductDetails({ params, searchParams }: Props) {
+    "use cache: private"
+    cacheLife("days")
   // IMPORTANT: don't mark the whole page as "use cache" if you need request-specific data
   // (params, cookies, session). Instead, wrap request-specific child components in <Suspense>.
   //
@@ -153,7 +155,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
   // small optimization: give the cache system a hint for long-lived static-like work
   // (you can tune this value or configure cacheLife in next.config).
-  cacheLife("hours");
 
   // get session only when needed for user-specific parts (but we use it below to pass userId to reviews)
   const sessionPromise = getServerSession();
@@ -353,7 +354,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       />
                       <OrderViaWhatsApp
                         productName={product.name}
-                        variant={selectedColor}
+                        color={selectedColor}
                         size={selectedSize}
                         quantity={1}
                         price={product.price}

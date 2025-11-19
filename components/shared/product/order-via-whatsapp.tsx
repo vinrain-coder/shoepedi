@@ -7,7 +7,7 @@ import Image from "next/image";
 
 interface OrderViaWhatsAppProps {
   productName: string;
-  variant: string;
+  color: string;
   size: string;
   quantity?: number;
   price: number; // Add price as a prop

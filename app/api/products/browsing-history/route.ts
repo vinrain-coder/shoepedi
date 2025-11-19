@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cache } from "react";
 
 import Product from "@/lib/db/models/product.model";
 import { connectToDatabase } from "@/lib/db";
+
+const getProductsCached = cache(async (filter: any) => {
+  await connectToDatabase();
+  return Product.find(filter);
+});
 
 export const GET = async (request: NextRequest) => {
   const listType = request.nextUrl.searchParams.get("type") || "history";
@@ -14,16 +20,15 @@ export const GET = async (request: NextRequest) => {
 
   const productIds = productIdsParam.split(",");
   const categories = categoriesParam.split(",");
+
   const filter =
     listType === "history"
-      ? {
-          _id: { $in: productIds },
-        }
+      ? { _id: { $in: productIds } }
       : { category: { $in: categories }, _id: { $nin: productIds } };
 
-  await connectToDatabase();
-  const products = await Product.find(filter);
-  if (listType === "history")
+  const products = await getProductsCached(filter);
+
+  if (listType === "history") {
     return NextResponse.json(
       products.sort(
         (a, b) =>
@@ -31,5 +36,7 @@ export const GET = async (request: NextRequest) => {
           productIds.indexOf(b._id.toString())
       )
     );
+  }
+
   return NextResponse.json(products);
 };

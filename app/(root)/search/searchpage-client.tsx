@@ -1,7 +1,7 @@
 // components/search/SearchPageClient.tsx
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import ResultsHeader from "./results-header";
@@ -12,248 +12,266 @@ import SelectedFiltersPills from "./selected-filters-pills";
 
 import {
   getAllCategories,
-    getAllProducts,
-      getAllTags,
-      } from "@/lib/actions/product.actions";
+  getAllProducts,
+  getAllTags,
+} from "@/lib/actions/product.actions";
 
-      import { toSlug } from "@/lib/utils";
-      import { IProduct } from "@/lib/db/models/product.model";
+import { toSlug } from "@/lib/utils";
+import { IProduct } from "@/lib/db/models/product.model";
 
-      import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-      type Params = {
-        q: string;
-          category: string;
-            tag: string;
-              rating: string;
-                price: string;
-                  sort: string;
-                    page: string;
-                    };
+type Params = {
+  q: string;
+  category: string;
+  tag: string;
+  rating: string;
+  price: string;
+  sort: string;
+  page: string;
+};
 
-                    const defaultPriceRange: [number, number] = [0, 10000];
+const defaultPriceRange: [number, number] = [0, 10000];
 
-                    // Sorting options (kept same)
-                    const sortOrders = [
-                      { value: "price-low-to-high", name: "Price: Low to high" },
-                        { value: "price-high-to-low", name: "Price: High to low" },
-                          { value: "newest-arrivals", name: "Newest arrivals" },
-                            { value: "avg-customer-review", name: "Avg. customer review" },
-                              { value: "best-selling", name: "Best selling" },
-                              ];
+// Sorting options (kept same)
+const sortOrders = [
+  { value: "price-low-to-high", name: "Price: Low to high" },
+  { value: "price-high-to-low", name: "Price: High to low" },
+  { value: "newest-arrivals", name: "Newest arrivals" },
+  { value: "avg-customer-review", name: "Avg. customer review" },
+  { value: "best-selling", name: "Best selling" },
+];
 
-                              export default function SearchPageClient({
-                                initialCategories,
-                                  initialTags,
-                                    initialProducts,
-                                      initialTotalProducts,
-                                        initialTotalPages,
-                                          initialFromTo,
-                                            initialParams,
-                                            }: {
-                                              initialCategories: string[];
-                                                initialTags: string[];
-                                                  initialProducts: IProduct[];
-                                                    initialTotalProducts: number;
-                                                      initialTotalPages: number;
-                                                        initialFromTo: { from: number; to: number };
-                                                          initialParams: Params;
-                                                          }) {
-                                                            const router = useRouter();
-                                                              const searchParams = useSearchParams();
+export default function SearchPageClient({
+  initialCategories,
+  initialTags,
+  initialProducts,
+  initialTotalProducts,
+  initialTotalPages,
+  initialFromTo,
+  initialParams,
+}: {
+  initialCategories: string[];
+  initialTags: string[];
+  initialProducts: IProduct[];
+  initialTotalProducts: number;
+  initialTotalPages: number;
+  initialFromTo: { from: number; to: number };
+  initialParams: Params;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-                                                                // INITIAL FILTER STATE (initialized from either URL (live) or initialParams fallback)
-                                                                  const [q, setQ] = useState<string>(() => (searchParams.get("q") || initialParams.q || "all"));
-                                                                    const [category, setCategory] = useState<string>(() => (searchParams.get("category") || initialParams.category || "all"));
-                                                                      const [tag, setTag] = useState<string>(() => (searchParams.get("tag") || initialParams.tag || "all"));
-                                                                        const [rating, setRating] = useState<string>(() => (searchParams.get("rating") || initialParams.rating || "all"));
-                                                                          const [sort, setSort] = useState<string>(() => (searchParams.get("sort") || initialParams.sort || "best-selling"));
-                                                                            const [page, setPage] = useState<number>(() => Number(searchParams.get("page") || initialParams.page || 1));
+  // INITIAL FILTER STATE (initialized from either URL (live) or initialParams fallback)
+  const [q, setQ] = useState<string>(
+    () => searchParams.get("q") || initialParams.q || "all"
+  );
+  const [category, setCategory] = useState<string>(
+    () => searchParams.get("category") || initialParams.category || "all"
+  );
+  const [tag, setTag] = useState<string>(
+    () => searchParams.get("tag") || initialParams.tag || "all"
+  );
+  const [rating, setRating] = useState<string>(
+    () => searchParams.get("rating") || initialParams.rating || "all"
+  );
+  const [sort, setSort] = useState<string>(
+    () => searchParams.get("sort") || initialParams.sort || "best-selling"
+  );
+  const [page, setPage] = useState<number>(() =>
+    Number(searchParams.get("page") || initialParams.page || 1)
+  );
 
-                                                                              const parsedPrice = useMemo(() => {
-                                                                                  const p = searchParams.get("price") || initialParams.price;
-                                                                                      const [a, b] = p?.split("-").map(Number) || defaultPriceRange;
-                                                                                          return [a || 0, b || 10000] as [number, number];
-                                                                                            }, [searchParams, initialParams.price]);
+  const parsedPrice = useMemo(() => {
+    const p = searchParams.get("price") || initialParams.price;
+    const [a, b] = p?.split("-").map(Number) || defaultPriceRange;
+    return [a || 0, b || 10000] as [number, number];
+  }, [searchParams, initialParams.price]);
 
-                                                                                              const [priceRange, setPriceRange] = useState<[number, number]>(parsedPrice);
-                                                                                                const [minPriceInput, setMinPriceInput] = useState<number>(priceRange[0]);
-                                                                                                  const [maxPriceInput, setMaxPriceInput] = useState<number>(priceRange[1]);
+  const [priceRange, setPriceRange] = useState<[number, number]>(parsedPrice);
+  const [minPriceInput, setMinPriceInput] = useState<number>(priceRange[0]);
+  const [maxPriceInput, setMaxPriceInput] = useState<number>(priceRange[1]);
 
-                                                                                                    const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-                                                                                                      // REMOTE DATA (client will refresh as user interacts)
-                                                                                                        const [categories, setCategories] = useState<string[]>(initialCategories || []);
-                                                                                                          const [tags, setTags] = useState<string[]>(initialTags || []);
-                                                                                                            const [products, setProducts] = useState<IProduct[]>(initialProducts || []);
-                                                                                                              const [totalProducts, setTotalProducts] = useState<number>(initialTotalProducts || 0);
-                                                                                                                const [totalPages, setTotalPages] = useState<number>(initialTotalPages || 1);
-                                                                                                                  const [fromTo, setFromTo] = useState<{ from: number; to: number }>(initialFromTo || { from: 0, to: 0 });
+  // REMOTE DATA (client will refresh as user interacts)
+  const [categories, setCategories] = useState<string[]>(
+    initialCategories || []
+  );
+  const [tags, setTags] = useState<string[]>(initialTags || []);
+  const [products, setProducts] = useState<IProduct[]>(initialProducts || []);
+  const [totalProducts, setTotalProducts] = useState<number>(
+    initialTotalProducts || 0
+  );
+  const [totalPages, setTotalPages] = useState<number>(initialTotalPages || 1);
+  const [fromTo, setFromTo] = useState<{ from: number; to: number }>(
+    initialFromTo || { from: 0, to: 0 }
+  );
 
-                                                                                                                    // Build params for API calls and URL
-                                                                                                                      const buildParams = useCallback(() => {
-                                                                                                                          return {
-                                                                                                                                q,
-                                                                                                                                      category,
-                                                                                                                                            tag,
-                                                                                                                                                  rating,
-                                                                                                                                                        price: `${priceRange[0]}-${priceRange[1]}`,
-                                                                                                                                                              sort,
-                                                                                                                                                                    page: page.toString(),
-                                                                                                                                                                        };
-                                                                                                                                                                          }, [q, category, tag, rating, priceRange, sort, page]);
+  // Build params for API calls and URL
+  const buildParams = useCallback(() => {
+    return {
+      q,
+      category,
+      tag,
+      rating,
+      price: `${priceRange[0]}-${priceRange[1]}`,
+      sort,
+      page: page.toString(),
+    };
+  }, [q, category, tag, rating, priceRange, sort, page]);
 
-                                                                                                                                                                            // Sync URL (replace, no scroll)
-                                                                                                                                                                              const syncUrl = useCallback(() => {
-                                                                                                                                                                                  const p = buildParams();
-                                                                                                                                                                                      const query = new URLSearchParams();
+  // Sync URL (replace, no scroll)
+  const syncUrl = useCallback(() => {
+    const p = buildParams();
+    const query = new URLSearchParams();
 
-                                                                                                                                                                                          Object.entries(p).forEach(([key, value]) => {
-                                                                                                                                                                                                if (value !== "all" && value !== "0-10000") query.set(key, value);
-                                                                                                                                                                                                    });
+    Object.entries(p).forEach(([key, value]) => {
+      if (value !== "all" && value !== "0-10000") query.set(key, value);
+    });
 
-                                                                                                                                                                                                        router.replace(`/search?${query.toString()}`, { scroll: false });
-                                                                                                                                                                                                          }, [router, buildParams]);
+    router.replace(`/search?${query.toString()}`, { scroll: false });
+  }, [router, buildParams]);
 
-                                                                                                                                                                                                            // Fetch data (debounced via timeout in useEffect)
-                                                                                                                                                                                                              const fetchData = useCallback(async () => {
-                                                                                                                                                                                                                  const [cats, tgs, data] = await Promise.all([
-                                                                                                                                                                                                                        getAllCategories(),
-                                                                                                                                                                                                                              getAllTags(),
-                                                                                                                                                                                                                                    getAllProducts(buildParams()),
-                                                                                                                                                                                                                                        ]);
+  // Fetch data (debounced via timeout in useEffect)
+  const fetchData = useCallback(async () => {
+    const [cats, tgs, data] = await Promise.all([
+      getAllCategories(),
+      getAllTags(),
+      getAllProducts(buildParams()),
+    ]);
 
-                                                                                                                                                                                                                                            setCategories(cats || []);
-                                                                                                                                                                                                                                                setTags(tgs || []);
-                                                                                                                                                                                                                                                    setProducts(data.products || []);
-                                                                                                                                                                                                                                                        setTotalProducts(data.totalProducts || 0);
-                                                                                                                                                                                                                                                            setTotalPages(data.totalPages || 1);
-                                                                                                                                                                                                                                                                setFromTo({ from: data.from || 0, to: data.to || 0 });
-                                                                                                                                                                                                                                                                  }, [buildParams]);
+    setCategories(cats || []);
+    setTags(tgs || []);
+    setProducts(data.products || []);
+    setTotalProducts(data.totalProducts || 0);
+    setTotalPages(data.totalPages || 1);
+    setFromTo({ from: data.from || 0, to: data.to || 0 });
+  }, [buildParams]);
 
-                                                                                                                                                                                                                                                                    // Trigger fetch + url sync when filters change (debounced)
-                                                                                                                                                                                                                                                                      useEffect(() => {
-                                                                                                                                                                                                                                                                          syncUrl();
-                                                                                                                                                                                                                                                                              const timeout = setTimeout(() => {
-                                                                                                                                                                                                                                                                                    fetchData().catch((err) => {
-                                                                                                                                                                                                                                                                                            // log but avoid crashing UI
-                                                                                                                                                                                                                                                                                                    console.error("Failed to fetch search data", err);
-                                                                                                                                                                                                                                                                                                          });
-                                                                                                                                                                                                                                                                                                              }, 200);
+  // Trigger fetch + url sync when filters change (debounced)
+  useEffect(() => {
+    syncUrl();
+    const timeout = setTimeout(() => {
+      fetchData().catch((err) => {
+        // log but avoid crashing UI
+        console.error("Failed to fetch search data", err);
+      });
+    }, 200);
 
-                                                                                                                                                                                                                                                                                                                  return () => clearTimeout(timeout);
-                                                                                                                                                                                                                                                                                                                    }, [syncUrl, fetchData]);
+    return () => clearTimeout(timeout);
+  }, [syncUrl, fetchData]);
 
-                                                                                                                                                                                                                                                                                                                      // Filter handlers
-                                                                                                                                                                                                                                                                                                                        const handleFilterChange = (filter: string, value: any) => {
-                                                                                                                                                                                                                                                                                                                            if (filter === "category") setCategory(value);
-                                                                                                                                                                                                                                                                                                                                if (filter === "tag") setTag(value);
-                                                                                                                                                                                                                                                                                                                                    if (filter === "rating") setRating(value);
-                                                                                                                                                                                                                                                                                                                                        setPage(1);
-                                                                                                                                                                                                                                                                                                                                          };
+  // Filter handlers
+  const handleFilterChange = (filter: string, value: any) => {
+    if (filter === "category") setCategory(value);
+    if (filter === "tag") setTag(value);
+    if (filter === "rating") setRating(value);
+    setPage(1);
+  };
 
-                                                                                                                                                                                                                                                                                                                                            const handlePriceApply = () => {
-                                                                                                                                                                                                                                                                                                                                                setPriceRange([minPriceInput, maxPriceInput]);
-                                                                                                                                                                                                                                                                                                                                                    setPage(1);
-                                                                                                                                                                                                                                                                                                                                                      };
+  const handlePriceApply = () => {
+    setPriceRange([minPriceInput, maxPriceInput]);
+    setPage(1);
+  };
 
-                                                                                                                                                                                                                                                                                                                                                        const handleClearAll = () => {
-                                                                                                                                                                                                                                                                                                                                                            setQ("all");
-                                                                                                                                                                                                                                                                                                                                                                setCategory("all");
-                                                                                                                                                                                                                                                                                                                                                                    setTag("all");
-                                                                                                                                                                                                                                                                                                                                                                        setRating("all");
-                                                                                                                                                                                                                                                                                                                                                                            setPriceRange(defaultPriceRange);
-                                                                                                                                                                                                                                                                                                                                                                                setMinPriceInput(defaultPriceRange[0]);
-                                                                                                                                                                                                                                                                                                                                                                                    setMaxPriceInput(defaultPriceRange[1]);
-                                                                                                                                                                                                                                                                                                                                                                                        setPage(1);
-                                                                                                                                                                                                                                                                                                                                                                                          };
+  const handleClearAll = () => {
+    setQ("all");
+    setCategory("all");
+    setTag("all");
+    setRating("all");
+    setPriceRange(defaultPriceRange);
+    setMinPriceInput(defaultPriceRange[0]);
+    setMaxPriceInput(defaultPriceRange[1]);
+    setPage(1);
+  };
 
-                                                                                                                                                                                                                                                                                                                                                                                            // Selected filters for pills
-                                                                                                                                                                                                                                                                                                                                                                                              const selectedFilters = useMemo(() => {
-                                                                                                                                                                                                                                                                                                                                                                                                  const arr: string[] = [];
+  // Selected filters for pills
+  const selectedFilters = useMemo(() => {
+    const arr: string[] = [];
 
-                                                                                                                                                                                                                                                                                                                                                                                                      if (category !== "all") arr.push(`Category: ${category}`);
-                                                                                                                                                                                                                                                                                                                                                                                                          if (tag !== "all") arr.push(`Tag: ${tag}`);
-                                                                                                                                                                                                                                                                                                                                                                                                              if (rating !== "all") arr.push(`Rating: ${rating}+`);
-                                                                                                                                                                                                                                                                                                                                                                                                                  if (priceRange[0] !== 0 || priceRange[1] !== 10000)
-                                                                                                                                                                                                                                                                                                                                                                                                                        arr.push(`Price: ${priceRange[0]}-${priceRange[1]}`);
+    if (category !== "all") arr.push(`Category: ${category}`);
+    if (tag !== "all") arr.push(`Tag: ${tag}`);
+    if (rating !== "all") arr.push(`Rating: ${rating}+`);
+    if (priceRange[0] !== 0 || priceRange[1] !== 10000)
+      arr.push(`Price: ${priceRange[0]}-${priceRange[1]}`);
 
-                                                                                                                                                                                                                                                                                                                                                                                                                            return arr;
-                                                                                                                                                                                                                                                                                                                                                                                                                              }, [category, tag, rating, priceRange]);
+    return arr;
+  }, [category, tag, rating, priceRange]);
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                return (
-                                                                                                                                                                                                                                                                                                                                                                                                                                    <div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                          {/* RESULTS HEADER */}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                <ResultsHeader
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        totalProducts={totalProducts}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                fromTo={fromTo}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        selectedFilters={selectedFilters}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                onClearAll={handleClearAll}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        sort={sort}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                setSort={setSort}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        buildParams={buildParams}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                sortOrders={sortOrders}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      />
+  return (
+    <div>
+      {/* RESULTS HEADER */}
+      <ResultsHeader
+        totalProducts={totalProducts}
+        fromTo={fromTo}
+        selectedFilters={selectedFilters}
+        onClearAll={handleClearAll}
+        sort={sort}
+        setSort={setSort}
+        buildParams={buildParams}
+        sortOrders={sortOrders}
+      />
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div className="bg-card md:grid md:grid-cols-5 md:gap-4">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {/* DESKTOP FILTERS */}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <FiltersDesktop
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      categories={categories}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                tags={tags}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          category={category}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    tag={tag}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              rating={rating}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        priceRange={priceRange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  minPriceInput={minPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            maxPriceInput={maxPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      setMinPriceInput={setMinPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                setMaxPriceInput={setMaxPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          setPriceRange={setPriceRange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    handleFilterChange={handleFilterChange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              handlePriceApply={handlePriceApply}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        defaultPriceRange={defaultPriceRange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                />
+      <div className="bg-card md:grid md:grid-cols-5 md:gap-4">
+        {/* DESKTOP FILTERS */}
+        <FiltersDesktop
+          categories={categories}
+          tags={tags}
+          category={category}
+          tag={tag}
+          rating={rating}
+          priceRange={priceRange}
+          minPriceInput={minPriceInput}
+          maxPriceInput={maxPriceInput}
+          setMinPriceInput={setMinPriceInput}
+          setMaxPriceInput={setMaxPriceInput}
+          setPriceRange={setPriceRange}
+          handleFilterChange={handleFilterChange}
+          handlePriceApply={handlePriceApply}
+          defaultPriceRange={defaultPriceRange}
+        />
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {/* MOBILE SHEET FILTERS */}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div className="md:hidden p-2">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <FiltersMobileSheet
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      open={sheetOpen}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  setOpen={setSheetOpen}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              totalProducts={totalProducts}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          selectedFilters={selectedFilters}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      categories={categories}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  tags={tags}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              category={category}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          tag={tag}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      rating={rating}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  minPriceInput={minPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              maxPriceInput={maxPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          setMinPriceInput={setMinPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      setMaxPriceInput={setMaxPriceInput}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  setPriceRange={setPriceRange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              handleFilterChange={handleFilterChange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          handlePriceApply={handlePriceApply}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      onClearAll={handleClearAll}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  defaultPriceRange={defaultPriceRange}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+        {/* MOBILE SHEET FILTERS */}
+        <div className="md:hidden p-2">
+          <FiltersMobileSheet
+            open={sheetOpen}
+            setOpen={setSheetOpen}
+            totalProducts={totalProducts}
+            selectedFilters={selectedFilters}
+            categories={categories}
+            tags={tags}
+            category={category}
+            tag={tag}
+            rating={rating}
+            minPriceInput={minPriceInput}
+            maxPriceInput={maxPriceInput}
+            setMinPriceInput={setMinPriceInput}
+            setMaxPriceInput={setMaxPriceInput}
+            setPriceRange={setPriceRange}
+            handleFilterChange={handleFilterChange}
+            handlePriceApply={handlePriceApply}
+            onClearAll={handleClearAll}
+            defaultPriceRange={defaultPriceRange}
+          />
+        </div>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {/* PRODUCT GRID */}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div className="md:col-span-4 space-y-4 p-0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <div className="font-bold text-xl">Results</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <div>Check each product page for other buying options</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+        {/* PRODUCT GRID */}
+        <div className="md:col-span-4 space-y-4 p-0">
+          <div>
+            <div className="font-bold text-xl">Results</div>
+            <div>Check each product page for other buying options</div>
+          </div>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <ProductResultsGrid
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      products={products}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  totalPages={totalPages}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              page={page}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          setPage={setPage}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      totalProducts={totalProducts}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+          <ProductResultsGrid
+            products={products}
+            totalPages={totalPages}
+            page={page}
+            setPage={setPage}
+            totalProducts={totalProducts}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
