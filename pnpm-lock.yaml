@@ -119,6 +119,9 @@ importers:
       date-range-picker:
         specifier: ^0.3.5
         version: 0.3.5
+      embla-carousel:
+        specifier: ^8.6.0
+        version: 8.6.0
       embla-carousel-autoplay:
         specifier: ^8.6.0
         version: 8.6.0(embla-carousel@8.6.0)

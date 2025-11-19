@@ -49,7 +49,7 @@ export default async function SearchPage(props: {
 
   return (
     <div className="space-y-4">
-      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center p-3 gap-3">
+      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           {data.totalProducts === 0
             ? "No results"
@@ -63,7 +63,7 @@ export default async function SearchPage(props: {
         />
       </div>
 
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 p-3">
+      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
         <FiltersClient
           initialParams={params}
           categories={categories}

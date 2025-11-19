@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/sheet";
 import { X } from "lucide-react";
 
-import PriceControl from "./PriceControl";
-import SelectedFiltersPills from "./SelectedFiltersPills";
+import PriceControl from "./price-control";
+import SelectedFiltersPills from "./selected-filters-pills";
 import { toSlug } from "@/lib/utils";
 
 type ParamsShape = {
@@ -63,10 +63,12 @@ export default function FiltersClient({
   function buildSearchUrl(params: ParamsShape) {
     const p = new URLSearchParams();
     if (params.q && params.q !== "all") p.set("q", params.q);
-    if (params.category && params.category !== "all") p.set("category", params.category);
+    if (params.category && params.category !== "all")
+      p.set("category", params.category);
     if (params.tag && params.tag !== "all") p.set("tag", params.tag);
     if (params.price && params.price !== "all") p.set("price", params.price);
-    if (params.rating && params.rating !== "all") p.set("rating", params.rating);
+    if (params.rating && params.rating !== "all")
+      p.set("rating", params.rating);
     if (params.sort) p.set("sort", params.sort);
     if (params.page) p.set("page", params.page);
     const s = p.toString();
@@ -90,7 +92,15 @@ export default function FiltersClient({
   }
 
   function clearAllLocal() {
-    setLocal({ q: "all", category: "all", tag: "all", price: "all", rating: "all", sort: current.sort, page: "1" });
+    setLocal({
+      q: "all",
+      category: "all",
+      tag: "all",
+      price: "all",
+      rating: "all",
+      sort: current.sort,
+      page: "1",
+    });
     router.push("/search");
   }
 
@@ -131,7 +141,10 @@ export default function FiltersClient({
         {/* Price */}
         <div>
           <div className="font-bold mb-2">Price</div>
-          <PriceControl initialPrice={current.price ?? "all"} onApply={applyPriceFromControl} />
+          <PriceControl
+            initialPrice={current.price ?? "all"}
+            onApply={applyPriceFromControl}
+          />
         </div>
 
         {/* Rating */}
@@ -199,7 +212,7 @@ export default function FiltersClient({
             </div>
           </div>
 
-          <SheetContent side="left" className="w-[90vw] max-w-md p-0">
+          <SheetContent side="left" className="w-[90vw] max-w-md p-4">
             <div className="flex flex-col h-full">
               <SheetHeader className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
                 <SheetTitle>Filters</SheetTitle>
@@ -211,15 +224,25 @@ export default function FiltersClient({
               </SheetHeader>
 
               <div className="p-4 border-b">
-                <SelectedFiltersPills params={current} onRemove={handleRemove} />
+                <SelectedFiltersPills
+                  params={current}
+                  onRemove={handleRemove}
+                />
               </div>
 
-              <div className="overflow-auto p-0" style={{ maxHeight: "calc(100vh - 180px)" }}>
+              <div
+                className="overflow-auto p-0"
+                style={{ maxHeight: "calc(100vh - 180px)" }}
+              >
                 <FiltersContent />
               </div>
 
               <div className="p-4 border-t flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={clearAllLocal}>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={clearAllLocal}
+                >
                   Clear All
                 </Button>
                 <Button className="flex-1" onClick={applyLocalToUrl}>
@@ -245,4 +268,4 @@ export default function FiltersClient({
       </aside>
     </>
   );
-  }
+}
