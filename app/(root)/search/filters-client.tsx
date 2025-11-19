@@ -1,14 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { X } from "lucide-react";
 
-import PriceControl from "./price-control";
-import SelectedFiltersPills from "./selected-filters-pills";
-import { toSlug, getFilterUrl } from "@/lib/utils";
+import PriceControl from "./PriceControl";
+import SelectedFiltersPills from "./SelectedFiltersPills";
+import { toSlug } from "@/lib/utils";
 
 type ParamsShape = {
   q?: string;
@@ -20,32 +27,6 @@ type ParamsShape = {
   page?: string;
 };
 
-function buildSearchUrl(params: ParamsShape) {
-  const p = new URLSearchParams();
-  if (params.q && params.q !== "all") p.set("q", params.q);
-  if (params.category && params.category !== "all") p.set("category", params.category);
-  if (params.tag && params.tag !== "all") p.set("tag", params.tag);
-  if (params.price && params.price !== "all") p.set("price", params.price);
-  if (params.rating && params.rating !== "all") p.set("rating", params.rating);
-  if (params.sort) p.set("sort", params.sort);
-  if (params.page) p.set("page", params.page);
-  const s = p.toString();
-  return s ? `/search?${s}` : `/search`;
-}
-
-function useQueryParams() {
-  const sp = useSearchParams();
-  return {
-    q: sp.get("q") ?? "all",
-    category: sp.get("category") ?? "all",
-    tag: sp.get("tag") ?? "all",
-    price: sp.get("price") ?? "all",
-    rating: sp.get("rating") ?? "all",
-    sort: sp.get("sort") ?? "best-selling",
-    page: sp.get("page") ?? "1",
-  };
-}
-
 export default function FiltersClient({
   initialParams,
   categories,
@@ -56,28 +37,44 @@ export default function FiltersClient({
   tags: string[];
 }) {
   const router = useRouter();
-  const sp = useSearchParams();
-  const current = useQueryParams();
-  const [open, setOpen] = useState(false);
-  const [local, setLocal] = useState<ParamsShape>({ ...initialParams });
-  const [priceLocal, setPriceLocal] = useState(initialParams.price ?? "all");
+  const searchParams = useSearchParams();
 
+  // --- Current URL parameters ---
+  const current: ParamsShape = {
+    q: searchParams.get("q") ?? "all",
+    category: searchParams.get("category") ?? "all",
+    tag: searchParams.get("tag") ?? "all",
+    price: searchParams.get("price") ?? "all",
+    rating: searchParams.get("rating") ?? "all",
+    sort: searchParams.get("sort") ?? "best-selling",
+    page: searchParams.get("page") ?? "1",
+  };
+
+  const [open, setOpen] = useState(false);
+
+  const [local, setLocal] = useState<ParamsShape>({ ...current });
+
+  // Update local state whenever URL changes
   useEffect(() => {
-    const p = useQueryParams();
-    setLocal(p);
-    setPriceLocal(p.price ?? "all");
-  }, [sp.toString()]);
+    setLocal({ ...current });
+  }, [searchParams.toString()]);
+
+  // --- Helpers ---
+  function buildSearchUrl(params: ParamsShape) {
+    const p = new URLSearchParams();
+    if (params.q && params.q !== "all") p.set("q", params.q);
+    if (params.category && params.category !== "all") p.set("category", params.category);
+    if (params.tag && params.tag !== "all") p.set("tag", params.tag);
+    if (params.price && params.price !== "all") p.set("price", params.price);
+    if (params.rating && params.rating !== "all") p.set("rating", params.rating);
+    if (params.sort) p.set("sort", params.sort);
+    if (params.page) p.set("page", params.page);
+    const s = p.toString();
+    return s ? `/search?${s}` : `/search`;
+  }
 
   function updateParam(key: keyof ParamsShape, value: string | undefined) {
-    const next: ParamsShape = {
-      q: current.q,
-      category: current.category,
-      tag: current.tag,
-      price: current.price,
-      rating: current.rating,
-      sort: current.sort,
-      page: "1",
-    };
+    const next: ParamsShape = { ...current, page: "1" };
     if (!value || value === "all") delete next[key];
     else next[key] = value;
     router.push(buildSearchUrl(next));
@@ -88,15 +85,7 @@ export default function FiltersClient({
   }
 
   function applyLocalToUrl() {
-    const next: ParamsShape = {
-      q: local.q ?? "all",
-      category: local.category ?? "all",
-      tag: local.tag ?? "all",
-      price: local.price ?? "all",
-      rating: local.rating ?? "all",
-      sort: local.sort ?? current.sort,
-      page: "1",
-    };
+    const next: ParamsShape = { ...local, page: "1" };
     router.push(buildSearchUrl(next));
   }
 
@@ -108,41 +97,87 @@ export default function FiltersClient({
   function applyPriceFromControl(value: string) {
     updateParam("price", value);
     setLocal((s) => ({ ...s, price: value }));
-    setPriceLocal(value);
   }
 
+  // --- Filters content (desktop + mobile scroll) ---
   function FiltersContent() {
     return (
-      <div className="space-y-6 p-4">
+      <div className="space-y-6">
+        {/* Category */}
         <div>
           <div className="font-bold mb-2">Category</div>
           <ul className="space-y-1">
-            <li><button className={current.category === "all" ? "text-primary" : ""} onClick={() => updateParam("category", "all")}>All</button></li>
+            <li>
+              <button
+                className={current.category === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("category", "all")}
+              >
+                All
+              </button>
+            </li>
             {categories.map((c) => (
-              <li key={c}><button className={c === current.category ? "text-primary" : ""} onClick={() => updateParam("category", c)}>{c}</button></li>
+              <li key={c}>
+                <button
+                  className={c === current.category ? "text-primary" : ""}
+                  onClick={() => updateParam("category", c)}
+                >
+                  {c}
+                </button>
+              </li>
             ))}
           </ul>
         </div>
 
+        {/* Price */}
         <div>
           <div className="font-bold mb-2">Price</div>
           <PriceControl initialPrice={current.price ?? "all"} onApply={applyPriceFromControl} />
         </div>
 
+        {/* Rating */}
         <div>
           <div className="font-bold mb-2">Customer Review</div>
           <ul className="space-y-1">
-            <li><button className={current.rating === "all" ? "text-primary" : ""} onClick={() => updateParam("rating", "all")}>All</button></li>
-            <li><button className={current.rating === "4" ? "text-primary" : ""} onClick={() => updateParam("rating", "4")}>4 & Up</button></li>
+            <li>
+              <button
+                className={current.rating === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("rating", "all")}
+              >
+                All
+              </button>
+            </li>
+            <li>
+              <button
+                className={current.rating === "4" ? "text-primary" : ""}
+                onClick={() => updateParam("rating", "4")}
+              >
+                4 & Up
+              </button>
+            </li>
           </ul>
         </div>
 
+        {/* Tags */}
         <div>
           <div className="font-bold mb-2">Tag</div>
           <ul className="space-y-1">
-            <li><button className={current.tag === "all" ? "text-primary" : ""} onClick={() => updateParam("tag", "all")}>All</button></li>
+            <li>
+              <button
+                className={current.tag === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("tag", "all")}
+              >
+                All
+              </button>
+            </li>
             {tags.map((t, i) => (
-              <li key={i}><button className={toSlug(t) === current.tag ? "text-primary" : ""} onClick={() => updateParam("tag", t)}>{t}</button></li>
+              <li key={i}>
+                <button
+                  className={toSlug(t) === current.tag ? "text-primary" : ""}
+                  onClick={() => updateParam("tag", t)}
+                >
+                  {t}
+                </button>
+              </li>
             ))}
           </ul>
         </div>
@@ -152,8 +187,8 @@ export default function FiltersClient({
 
   return (
     <>
-      {/* Mobile sheet */}
-      <div className="md:hidden">
+      {/* Mobile */}
+      <div className="md:hidden mb-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <SheetTrigger asChild>
@@ -163,30 +198,40 @@ export default function FiltersClient({
               <SelectedFiltersPills params={current} onRemove={handleRemove} />
             </div>
           </div>
+
           <SheetContent side="left" className="w-[90vw] max-w-md p-0">
             <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
+              <SheetHeader className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
                 <SheetTitle>Filters</SheetTitle>
                 <SheetClose asChild>
-                  <Button variant="ghost"><X /></Button>
+                  <Button variant="ghost">
+                    <X />
+                  </Button>
                 </SheetClose>
-              </div>
+              </SheetHeader>
+
               <div className="p-4 border-b">
                 <SelectedFiltersPills params={current} onRemove={handleRemove} />
               </div>
+
               <div className="overflow-auto p-0" style={{ maxHeight: "calc(100vh - 180px)" }}>
                 <FiltersContent />
               </div>
+
               <div className="p-4 border-t flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={clearAllLocal}>Clear All</Button>
-                <Button className="flex-1" onClick={applyLocalToUrl}>Apply</Button>
+                <Button variant="outline" className="flex-1" onClick={clearAllLocal}>
+                  Clear All
+                </Button>
+                <Button className="flex-1" onClick={applyLocalToUrl}>
+                  Apply
+                </Button>
               </div>
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Desktop sticky sidebar */}
+      {/* Desktop */}
       <aside className="hidden md:block md:col-span-1">
         <div className="sticky top-20 h-[calc(100vh-5rem)] overflow-auto p-4 border rounded-lg bg-card">
           <div className="mb-3">
@@ -200,5 +245,4 @@ export default function FiltersClient({
       </aside>
     </>
   );
-                                                          }
-                                            
+  }
