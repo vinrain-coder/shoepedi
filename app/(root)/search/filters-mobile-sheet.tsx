@@ -1,207 +1,71 @@
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Rating from "@/components/shared/product/rating";
-import { toSlug } from "@/lib/utils";
-import SelectedFiltersPills from "./selected-filters-pills";
 
-export default function FiltersMobileSheet({
-  open,
-  setOpen,
-  totalProducts,
-  selectedFilters,
-  categories,
-  tags,
-  category,
-  tag,
-  rating,
-  minPriceInput,
-  maxPriceInput,
-  setMinPriceInput,
-  setMaxPriceInput,
-  setPriceRange,
-  handleFilterChange,
-  handlePriceApply,
-  onClearAll,
-  defaultPriceRange,
+export default function PriceControl({
+  initialPrice,
+  onApply,
 }: {
-  open: boolean;
-  setOpen: (v: boolean) => void;
-  totalProducts: number;
-  selectedFilters: string[];
-  categories: string[];
-  tags: string[];
-  category: string;
-  tag: string;
-  rating: string;
-  minPriceInput: number;
-  maxPriceInput: number;
-  setMinPriceInput: (n: number) => void;
-  setMaxPriceInput: (n: number) => void;
-  setPriceRange: (r: [number, number]) => void;
-  handleFilterChange: (filter: string, value: any) => void;
-  handlePriceApply: () => void;
-  onClearAll: () => void;
-  defaultPriceRange: [number, number];
+  initialPrice: string;
+  onApply: (value: string) => void;
 }) {
-  const handleRemove = (label: string) => {
-    if (label.includes("Category")) handleFilterChange("category", "all");
-    else if (label.includes("Tag")) handleFilterChange("tag", "all");
-    else if (label.includes("Rating")) handleFilterChange("rating", "all");
-    else setPriceRange(defaultPriceRange);
-  };
+  const [range, setRange] = useState<[number, number]>(() => {
+    if (!initialPrice || initialPrice === "all") return [100, 10000];
+    const parts = initialPrice.split("-").map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return [parts[0], parts[1]];
+    return [100, 10000];
+  });
+
+  const [minInput, setMinInput] = useState(range[0].toString());
+  const [maxInput, setMaxInput] = useState(range[1].toString());
+
+  useEffect(() => {
+    setMinInput(range[0].toString());
+    setMaxInput(range[1].toString());
+  }, [range]);
+
+  function applyPrice() {
+    onApply(`${range[0]}-${range[1]}`);
+  }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline">Filters</Button>
-      </SheetTrigger>
-
-      <SheetContent side="left" className="w-[85%] p-0">
-        {/* FIXED HEADER */}
-        <SheetHeader className="bg-card p-4 sticky top-0 border-b z-20">
-          <div className="flex justify-between items-center">
-            <SheetTitle>{totalProducts} results</SheetTitle>
-            <SheetClose asChild>
-              <Button variant="ghost">✕</Button>
-            </SheetClose>
-          </div>
-        </SheetHeader>
-
-        {/* SCROLL CONTENT */}
-        <div
-          className="overflow-y-auto p-4"
-          style={{ maxHeight: "calc(100vh - 70px)" }}
-        >
-          {/* SELECTED FILTERS */}
-          {selectedFilters.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              <SelectedFiltersPills
-                selectedFilters={selectedFilters}
-                onRemove={handleRemove}
-              />
-            </div>
-          )}
-
-          {/* CATEGORY */}
-          <div className="mb-4">
-            <div className="font-bold mb-2">Category</div>
-            <div>
-              <button
-                className={`py-1 ${category === "all" ? "text-primary" : ""}`}
-                onClick={() => handleFilterChange("category", "all")}
-              >
-                All
-              </button>
-            </div>
-            {categories.map((c) => (
-              <div key={c}>
-                <button
-                  className={`py-1 ${c === category ? "text-primary" : ""}`}
-                  onClick={() => handleFilterChange("category", c)}
-                >
-                  {c}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* PRICE */}
-          <div className="mb-4">
-            <div className="font-bold mb-2">Price</div>
-            <Slider
-              value={[minPriceInput, maxPriceInput] as [number, number]}
-              min={0}
-              max={10000}
-              step={100}
-              onValueChange={(v) => {
-                const arr = v as number[];
-                setPriceRange([arr[0], arr[1]]);
-                setMinPriceInput(arr[0]);
-                setMaxPriceInput(arr[1]);
-              }}
-            />
-
-            <div className="flex gap-2 mt-2">
-              <Input
-                type="number"
-                value={minPriceInput}
-                onChange={(e) => setMinPriceInput(Number(e.target.value))}
-              />
-              <Input
-                type="number"
-                value={maxPriceInput}
-                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-              />
-              <Button size="sm" onClick={handlePriceApply}>
-                Apply
-              </Button>
-            </div>
-          </div>
-
-          {/* RATING */}
-          <div className="mb-4">
-            <div className="font-bold mb-2">Customer Review</div>
-            <button
-              onClick={() => handleFilterChange("rating", "all")}
-              className={rating === "all" ? "text-primary" : ""}
-            >
-              All
-            </button>
-
-            <button
-              onClick={() => handleFilterChange("rating", "4")}
-              className={`block mt-2 ${rating === "4" ? "text-primary" : ""}`}
-            >
-              <div className="flex items-center">
-                <Rating size={4} rating={4} /> &nbsp; & Up
-              </div>
-            </button>
-          </div>
-
-          {/* TAG */}
-          <div className="mb-6">
-            <div className="font-bold mb-2">Tag</div>
-            <div>
-              <button
-                className={`py-1 ${tag === "all" ? "text-primary" : ""}`}
-                onClick={() => handleFilterChange("tag", "all")}
-              >
-                All
-              </button>
-            </div>
-            {tags.map((t, i) => (
-              <div key={i}>
-                <button
-                  className={`py-1 ${toSlug(t) === tag ? "text-primary" : ""}`}
-                  onClick={() => handleFilterChange("tag", toSlug(t))}
-                >
-                  {t}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* BOTTOM ACTIONS */}
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onClearAll}>
-              Clear All
-            </Button>
-
-            <SheetClose asChild>
-              <Button>Apply</Button>
-            </SheetClose>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <div className="space-y-3">
+      <div className="px-2">
+        <Slider
+          value={range}
+          onValueChange={(v: [number, number]) => setRange(v)}
+          min={0}
+          max={20000}
+          step={50}
+        />
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={minInput}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^\d]/g, "");
+            setMinInput(val);
+            const n = Number(val || 0);
+            if (!isNaN(n) && n <= Number(maxInput || 0)) setRange([n, range[1]]);
+          }}
+          aria-label="Minimum price"
+        />
+        <Input
+          value={maxInput}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^\d]/g, "");
+            setMaxInput(val);
+            const n = Number(val || 0);
+            if (!isNaN(n) && n >= Number(minInput || 0)) setRange([range[0], n]);
+          }}
+          aria-label="Maximum price"
+        />
+        <Button onClick={applyPrice}>Apply</Button>
+      </div>
+    </div>
   );
-}
+    }
+                                           
