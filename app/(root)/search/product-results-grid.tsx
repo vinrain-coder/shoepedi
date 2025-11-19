@@ -1,6 +1,3 @@
-// components/search/ProductResultsGrid.tsx
-"use client";
-
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 

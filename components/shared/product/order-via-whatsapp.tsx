@@ -17,7 +17,7 @@ const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
 export default function OrderViaWhatsApp({
   productName,
-  variant,
+  color,
   size,
   quantity = 1,
   price, // Use price in the message
@@ -44,7 +44,7 @@ export default function OrderViaWhatsApp({
   const message = encodeURIComponent(
     `Hello ShoePedi, I'm interested in ordering:
 - Product: ${productName}
-- Variant: ${variant} / Size: ${size}
+- Variant: ${color} / Size: ${size}
 - Quantity: ${quantity}
 - Price: ${formattedPrice}
 

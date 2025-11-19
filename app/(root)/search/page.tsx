@@ -1,6 +1,3 @@
-// app/search/page.tsx
-
-import React from "react";
 import SearchPageClient from "./searchpage-client";
 import {
   getAllCategories,

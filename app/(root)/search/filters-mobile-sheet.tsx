@@ -1,5 +1,3 @@
-// components/search/FiltersMobileSheet.tsx
-"use client";
 import {
   Sheet,
   SheetContent,

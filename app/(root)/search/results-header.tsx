@@ -1,6 +1,3 @@
-// components/search/ResultsHeader.tsx
-"use client";
-
 import { Button } from "@/components/ui/button";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
 

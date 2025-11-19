@@ -92,13 +92,14 @@ type Props = {
   searchParams: any;
 };
 
+
 /**
  * Small cached helper component: it does not read request-specific context and
  * can be cached by Next.js's "use cache" directive. This demonstrates explicit caching.
  *
  * (If you have other pure helpers you can mark them similarly.)
  */
-function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }) {
+async function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }) {
   // Tell Next.js this component's render result can be cached.
   // This is optional — remove if the component reads request cookies/params, etc.
   // The directive must be at the top-level of the module or a component to have effect,
@@ -106,7 +107,8 @@ function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   
-
+"use cache"
+cacheLife("weeks")
   return <ProductPrice price={price} listPrice={listPrice} />;
 }
 
@@ -157,7 +159,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   // (you can tune this value or configure cacheLife in next.config).
 
   // get session only when needed for user-specific parts (but we use it below to pass userId to reviews)
-  const sessionPromise = getServerSession();
+  const sessionPromise =getServerSession()
+  
 
   // product itself is essential for the top-level shell (name, price, description overview).
   const product = await getProductBySlug(slug);
@@ -420,9 +423,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
  * This component reads request-specific info (session) so it MUST NOT be 'use cache'.
  */
 async function ReviewsBoundary({ sessionPromise, product }: { sessionPromise: Promise<any>; product: any }) {
+  'use cache'
+  cacheLife('days')
   const session = await sessionPromise;
   // Render ReviewList (presumably server component or async component that fetches reviews)
-  return <ReviewList product={product} userId={session?.user?.id} />;
+  return <ReviewList product={product} userId={session?.user?.id} />
 }
 
 /**

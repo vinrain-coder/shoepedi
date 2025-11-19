@@ -17,7 +17,7 @@ export default async function AuthLayout({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/icons/logo.svg"
@@ -34,11 +34,11 @@ export default async function AuthLayout({
 
       {/* Main content */}
       <div className="flex justify-center px-1">
-        <div className="w-full max-w-md rounded-xl shadow p-6">{children}</div>
+        <div className="w-full max-w-md p-1">{children}</div>
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-8">
+      <div className="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-1">
         <div className="flex justify-center space-x-6 mb-2">
           <Link href="/page/conditions-of-use" className="hover:underline">
             Conditions of Use
