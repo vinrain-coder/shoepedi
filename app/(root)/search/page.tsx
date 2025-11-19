@@ -130,7 +130,7 @@ export {};
    Place this near top of file in real project or keep as shown below. */
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 
