@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { X } from "lucide-react";
 
-import PriceControl from "./PriceControl";
-import SelectedFiltersPills from "./SelectedFiltersPills";
+import PriceControl from "./price-control";
+import SelectedFiltersPills from "./selected-filters-pills";
 import { toSlug, getFilterUrl } from "@/lib/utils";
 
 type ParamsShape = {

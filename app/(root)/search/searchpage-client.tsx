@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import ResultsHeader from "./results-header";
-import FiltersDesktop from "./filters-desktop";
-import FiltersMobileSheet from "./filters-mobile-sheet";
+import FiltersDesktop from "./filters-client";
+import FiltersMobileSheet from "./price-control";
 import ProductResultsGrid from "./product-results-grid";
 import SelectedFiltersPills from "./selected-filters-pills";
 
