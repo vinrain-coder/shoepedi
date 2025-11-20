@@ -51,6 +51,9 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const setting = await getSetting();
+  const currencyCookie = (await cookies()).get("currency");
+    const currency = currencyCookie ? currencyCookie.value : "KES";
+
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,7 +61,7 @@ export default async function AppLayout({
         className={`min-h-screen ${nunito.className} antialiased leading-relaxed tracking-wide`}
       >
         <Suspense fallback={null}>
-          <ClientProviders setting={setting}>{children}</ClientProviders>
+          <ClientProviders setting={{...setting,currency}}>{children}</ClientProviders>
         </Suspense>
 
         <Analytics />
