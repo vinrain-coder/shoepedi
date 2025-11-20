@@ -188,7 +188,7 @@ export async function getMyOrders({
   limit?: number;
   page: number;
 }) {
-  "use cache";
+  "use cache: private"
   cacheLife("hours");
   const {
     common: { pageSize },

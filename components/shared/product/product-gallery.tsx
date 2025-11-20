@@ -37,7 +37,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
         <Carousel
           opts={{ loop: true }}
           className="w-full"
-          onSelect={(api) => {
+          onSelect={(api: any) => {
             setSelectedImage(api.selectedScrollSnap());
           }}
         >
@@ -131,5 +131,4 @@ export default function ProductGallery({ images }: { images: string[] }) {
       </div>
     </>
   );
-      }
-          
+}
