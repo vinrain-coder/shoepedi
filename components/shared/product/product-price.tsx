@@ -18,8 +18,8 @@ const ProductPrice = ({
   plain?: boolean;
   isDeal?: boolean;
 }) => {
-  const { getCurrency } = useSettingStore();
-  const currency = getCurrency();
+  // const { getCurrency } = useSettingStore();
+  // const currency = getCurrency();
 
   const formatPrice = (value: number) =>
     new Intl.NumberFormat("en-US").format(value);
@@ -31,8 +31,8 @@ const ProductPrice = ({
 
   if (plain) {
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency.code,
+      //style: "currency",
+      //currency: currency.code,
       currencyDisplay: "narrowSymbol",
     }).format(price);
   }
@@ -91,7 +91,7 @@ const ProductPrice = ({
         <span className="text-xs align-super">{floatValue}</span>
       </div>
       <div className="text-muted-foreground line-through text-md">
-        KES {formatPrice(listPrice)}
+      KES {formatPrice(listPrice)}
       </div>
     </div>
   );
