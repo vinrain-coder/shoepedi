@@ -1,6 +1,7 @@
 "use client";
 
 import { UserRoundCheck, UserRoundPlus } from "lucide-react";
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -13,9 +14,11 @@ import CartButton from "./cart-button";
 import UserButton from "./user-button";
 import ThemeSwitcher from "./theme-switcher";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
 const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
   const { data: session } = authClient.useSession();
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="flex justify-end">
@@ -24,9 +27,11 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         <UserButton />
         {!forAdmin && <CartButton />}
       </nav>
+
       <nav className="md:hidden flex gap-1">
         {!forAdmin && <CartButton />}
-        <Sheet>
+
+        <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className="align-middle header-button">
             {session ? (
               <UserRoundCheck className="h-7 w-7" />
@@ -34,6 +39,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
               <UserRoundPlus className="h-7 w-7" />
             )}
           </SheetTrigger>
+
           <SheetContent className="bg-black text-white flex flex-col items-start">
             <SheetHeader className="w-full">
               <div className="flex items-center justify-between">
@@ -41,8 +47,13 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                 <SheetDescription></SheetDescription>
               </div>
             </SheetHeader>
+
+            {/* Close on click */}
             <ThemeSwitcher />
-            <UserButton />
+
+            <Link href="/account" onClick={() => setOpen(false)}>
+              <UserButton />
+            </Link>
           </SheetContent>
         </Sheet>
       </nav>
@@ -51,3 +62,4 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
 };
 
 export default Menu;
+    
