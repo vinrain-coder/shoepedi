@@ -1,19 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-
-import type { EmblaCarouselType } from "embla-carousel";
+import { useEmblaCarousel } from "embla-carousel-react";
 
 export default function ProductGallery({ images }: { images: string[] }) {
+  // 🧼 Validate images
   const validImages = useMemo(
     () =>
       (images || []).filter(
@@ -26,162 +20,110 @@ export default function ProductGallery({ images }: { images: string[] }) {
 
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Embla refs for syncing
-  const emblaMainRef = useRef<EmblaCarouselType | null>(null);
-  const emblaThumbRef = useRef<EmblaCarouselType | null>(null);
+  // === MOBILE CAROUSEL ===
+  const [emblaRef, embla] = useEmblaCarousel({ loop: true });
 
-  // Sync when user selects manually
-  const scrollTo = (index: number) => {
-    emblaMainRef.current?.scrollTo(index);
-    emblaThumbRef.current?.scrollTo(index);
-    setSelectedImage(index);
-  };
+  useEffect(() => {
+    if (!embla) return;
 
-  // Sync when carousel changes by swipe
-  const onMainSelect = () => {
-    if (!emblaMainRef.current) return;
-    const index = emblaMainRef.current.selectedScrollSnap();
-    setSelectedImage(index);
-    emblaThumbRef.current?.scrollTo(index);
-  };
+    const handler = () => {
+      setSelectedImage(embla.selectedScrollSnap());
+    };
+
+    embla.on("select", handler);
+    handler();
+  }, [embla]);
 
   return (
-    <div className="w-full">
-      {/* ============= DESKTOP VIEW ============= */}
-      <div className="hidden md:flex gap-4">
-        {/* Thumbnails (vertical) */}
-        <Carousel
-          ref={(c: any) => (emblaThumbRef.current = c?.embla ?? null)}
-          opts={{ axis: "y", containScroll: false, loop: true }}
-          className="max-h-[500px]"
-        >
-          <CarouselContent className="flex flex-col gap-3">
-            {safeImages.map((img, i) => (
-              <CarouselItem key={i} className="basis-auto">
-                <button
-                  onClick={() => scrollTo(i)}
-                  className={`rounded-lg overflow-hidden border ${
-                    selectedImage === i
-                      ? "border-blue-500"
-                      : "border-gray-300 opacity-50"
-                  }`}
-                >
+    <>
+      {/* === MOBILE VIEW === */}
+      <div className="md:hidden w-full relative">
+        {/* Counter */}
+        <div className="absolute top-2 right-2 bg-black/60 text-white text-sm px-2 py-1 rounded-md z-10">
+          {selectedImage + 1} / {safeImages.length}
+        </div>
+
+        {/* Carousel */}
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex">
+            {safeImages.map((image, index) => (
+              <div key={index} className="flex-[0_0_100%] relative h-[380px]">
+                <Zoom>
                   <Image
-                    src={img}
-                    alt=""
-                    width={60}
-                    height={60}
-                    className="object-cover"
+                    src={image}
+                    alt={`Product image ${index + 1}`}
+                    fill
+                    sizes="100vw"
+                    className="object-contain"
                     unoptimized
                   />
-                </button>
-              </CarouselItem>
+                </Zoom>
+              </div>
             ))}
-          </CarouselContent>
-        </Carousel>
+          </div>
+        </div>
 
-        {/* Main Image */}
-        <div className="relative flex-1">
-          {/* Counter Overlay */}
-          <span className="absolute top-3 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-10">
-            {selectedImage + 1}/{safeImages.length}
-          </span>
-
-          <Carousel
-            ref={(c: any) => {
-              emblaMainRef.current = c?.embla ?? null;
-              emblaMainRef.current?.on("select", onMainSelect);
-            }}
-            opts={{ loop: true }}
-            className="w-full"
-          >
-            <CarouselContent>
-              {safeImages.map((img, i) => (
-                <CarouselItem key={i}>
-                  <Zoom>
-                    <div className="relative h-[500px]">
-                      <Image
-                        src={img}
-                        alt=""
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  </Zoom>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+        {/* Dots */}
+        <div className="flex justify-center gap-2 mt-3">
+          {safeImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => embla?.scrollTo(index)}
+              className={`w-3 h-3 rounded-full transition-all ${
+                selectedImage === index
+                  ? "bg-blue-500 scale-110"
+                  : "bg-gray-300"
+              }`}
+            />
+          ))}
         </div>
       </div>
 
-      {/* ============= MOBILE VIEW ============= */}
-      <div className="md:hidden flex flex-col items-center gap-3 relative">
-        {/* Counter */}
-        <span className="absolute top-3 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-10">
-          {selectedImage + 1}/{safeImages.length}
-        </span>
+      {/* === DESKTOP VIEW === */}
+      <div className="hidden md:flex gap-2">
+        {/* Thumbnails */}
+        <div className="flex flex-col gap-2 mt-8">
+          {safeImages.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedImage(index)}
+              onMouseOver={() => setSelectedImage(index)}
+              className={`bg-white rounded-lg overflow-hidden ${
+                selectedImage === index
+                  ? "ring-2 ring-blue-500"
+                  : "ring-1 ring-gray-300"
+              }`}
+            >
+              <Image
+                src={image}
+                alt={`Thumbnail ${index + 1}`}
+                width={48}
+                height={48}
+                unoptimized
+              />
+            </button>
+          ))}
+        </div>
 
-        {/* Main Carousel */}
-        <Carousel
-          ref={(c: any) => {
-            emblaMainRef.current = c?.embla ?? null;
-            emblaMainRef.current?.on("select", onMainSelect);
-          }}
-          opts={{ loop: true }}
-          className="w-full"
-        >
-          <CarouselContent>
-            {safeImages.map((img, i) => (
-              <CarouselItem key={i}>
-                <Zoom>
-                  <div className="relative h-[380px] w-full">
-                    <Image
-                      src={img}
-                      alt=""
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                </Zoom>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-
-        {/* Thumbnails Bottom (horizontal scroll) */}
-        <Carousel
-          ref={(c: any) => (emblaThumbRef.current = c?.embla ?? null)}
-          opts={{ axis: "x", loop: true }}
-          className="w-full"
-        >
-          <CarouselContent className="flex gap-2 py-2">
-            {safeImages.map((img, i) => (
-              <CarouselItem key={i} className="basis-auto">
-                <button
-                  onClick={() => scrollTo(i)}
-                  className={`rounded-lg overflow-hidden border min-w-[60px] ${
-                    selectedImage === i
-                      ? "border-blue-500"
-                      : "border-gray-300 opacity-50"
-                  }`}
-                >
-                  <Image
-                    src={img}
-                    alt=""
-                    width={60}
-                    height={60}
-                    className="object-cover"
-                    unoptimized
-                  />
-                </button>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+        {/* Main Image */}
+        <div className="w-full">
+          <Zoom>
+            <div className="relative h-[500px]">
+              <Image
+                key={safeImages[selectedImage]}
+                src={safeImages[selectedImage]}
+                alt={`Product image ${selectedImage + 1}`}
+                fill
+                sizes="90vw"
+                className="object-contain"
+                priority
+                unoptimized
+              />
+            </div>
+          </Zoom>
+        </div>
       </div>
-    </div>
+    </>
   );
-}
+      }
+    
