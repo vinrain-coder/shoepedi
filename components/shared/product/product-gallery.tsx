@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
-import { useEmblaCarousel } from "embla-carousel-react";
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 export default function ProductGallery({ images }: { images: string[] }) {
-  // 🧼 Validate images
+  // Validate images
   const validImages = useMemo(
     () =>
       (images || []).filter(
@@ -20,66 +25,67 @@ export default function ProductGallery({ images }: { images: string[] }) {
 
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // === MOBILE CAROUSEL ===
-  const [emblaRef, embla] = useEmblaCarousel({ loop: true });
-
-  useEffect(() => {
-    if (!embla) return;
-
-    const handler = () => {
-      setSelectedImage(embla.selectedScrollSnap());
-    };
-
-    embla.on("select", handler);
-    handler();
-  }, [embla]);
-
   return (
     <>
-      {/* === MOBILE VIEW === */}
-      <div className="md:hidden w-full relative">
+      {/* ==================== MOBILE VIEW ==================== */}
+      <div className="md:hidden relative w-full">
         {/* Counter */}
-        <div className="absolute top-2 right-2 bg-black/60 text-white text-sm px-2 py-1 rounded-md z-10">
+        <div className="absolute top-2 right-2 z-20 bg-black/60 text-white text-sm px-2 py-1 rounded-md">
           {selectedImage + 1} / {safeImages.length}
         </div>
 
-        {/* Carousel */}
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex">
+        <Carousel
+          opts={{ loop: true }}
+          className="w-full"
+          onSelect={(api) => {
+            setSelectedImage(api.selectedScrollSnap());
+          }}
+        >
+          <CarouselContent>
             {safeImages.map((image, index) => (
-              <div key={index} className="flex-[0_0_100%] relative h-[380px]">
+              <CarouselItem
+                key={index}
+                className="relative flex justify-center h-[380px]"
+              >
                 <Zoom>
                   <Image
                     src={image}
-                    alt={`Product image ${index + 1}`}
+                    alt={`Product Image ${index + 1}`}
                     fill
                     sizes="100vw"
                     className="object-contain"
                     unoptimized
                   />
                 </Zoom>
-              </div>
+              </CarouselItem>
             ))}
-          </div>
-        </div>
+          </CarouselContent>
 
-        {/* Dots */}
+          {/* Optional Nav Arrows */}
+        </Carousel>
+
+        {/* Dot Indicators */}
         <div className="flex justify-center gap-2 mt-3">
           {safeImages.map((_, index) => (
             <button
               key={index}
-              onClick={() => embla?.scrollTo(index)}
               className={`w-3 h-3 rounded-full transition-all ${
                 selectedImage === index
                   ? "bg-blue-500 scale-110"
                   : "bg-gray-300"
               }`}
+              onClick={() => {
+                const el = document.querySelector(
+                  `[data-carousel-slide="${index}"]`
+                ) as HTMLElement;
+                el?.click();
+              }}
             />
           ))}
         </div>
       </div>
 
-      {/* === DESKTOP VIEW === */}
+      {/* ==================== DESKTOP VIEW (UNCHANGED) ==================== */}
       <div className="hidden md:flex gap-2">
         {/* Thumbnails */}
         <div className="flex flex-col gap-2 mt-8">
@@ -126,4 +132,4 @@ export default function ProductGallery({ images }: { images: string[] }) {
     </>
   );
       }
-    
+          
