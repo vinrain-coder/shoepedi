@@ -31,7 +31,7 @@ const ProductPrice = ({
 
   if (plain) {
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
+      //style: "currency",
       //currency: currency.code,
       currencyDisplay: "narrowSymbol",
     }).format(price);
