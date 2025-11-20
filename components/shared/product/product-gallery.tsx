@@ -135,5 +135,5 @@ export default function ProductGallery({ images }: { images: string[] }) {
       </div>
     </>
   );
-       }
+    }
     
