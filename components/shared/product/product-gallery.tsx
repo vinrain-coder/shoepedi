@@ -31,7 +31,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
       {/* ==================== MOBILE VIEW ==================== */}
       <div className="md:hidden relative w-full">
         {/* Counter */}
-        <div className="absolute top-2 right-2 z-20 bg-black/60 text-white text-sm px-2 py-1 rounded-md">
+        <div className="absolute top-3 right-2 z-20 bg-black/60 text-white text-sm px-2 py-1 rounded-full">
           {selectedImage + 1} / {safeImages.length}
         </div>
 
@@ -80,7 +80,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
               key={index}
               className={`w-3 h-3 rounded-full transition-all ${
                 selectedImage === index
-                  ? "bg-blue-500 scale-110"
+                  ? "bg-primary scale-110"
                   : "bg-gray-300"
               }`}
               onClick={() => carouselApi?.scrollTo(index)}
@@ -100,7 +100,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
               onMouseOver={() => setSelectedImage(index)}
               className={`bg-white rounded-lg overflow-hidden ${
                 selectedImage === index
-                  ? "ring-2 ring-blue-500"
+                  ? "ring-2 ring-primary"
                   : "ring-1 ring-gray-300"
               }`}
             >
@@ -135,4 +135,4 @@ export default function ProductGallery({ images }: { images: string[] }) {
       </div>
     </>
   );
-        }
+}

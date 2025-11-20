@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown";
 import { notFound } from "next/navigation";
 import { getWebPageBySlug } from "@/lib/actions/web-page.actions";
 import remarkGfm from "remark-gfm";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export async function generateMetadata({
   params,
@@ -30,6 +31,7 @@ export default async function WebPage({
 
   return (
     <div className="p-1 sm:p-2 md:p-8 max-w-3xl mx-auto">
+      <Breadcrumb />
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 pb-4">
         {webPage.title}
       </h1>

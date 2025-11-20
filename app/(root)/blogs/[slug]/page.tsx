@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Image from "next/image";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 // Helper to extract first image from markdown
 function extractFirstImageUrl(markdownContent: string) {
@@ -83,6 +84,7 @@ export default async function BlogPage({
 
   return (
     <div className="max-w-3xl mx-auto px-1 sm:px-2 md:px-4">
+      <Breadcrumb />
       {/* Blog Header */}
       <h1 className="text-4xl font-extrabold dark:text-gray-600 mb-3 leading-tight">
         {blog.title}

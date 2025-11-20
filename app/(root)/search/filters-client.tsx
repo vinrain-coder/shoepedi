@@ -205,7 +205,7 @@ export default function FiltersClient({
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <SheetTrigger asChild>
-              <Button variant="outline">Filters</Button>
+              <Button className="rounded-full">Filters</Button>
             </SheetTrigger>
             <div className="flex-1">
               <SelectedFiltersPills params={current} onRemove={handleRemove} />
@@ -214,7 +214,7 @@ export default function FiltersClient({
 
           <SheetContent side="left" className="w-[90vw] max-w-md p-4">
             <div className="flex flex-col h-full">
-              <SheetHeader className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
+              <SheetHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
                 <SheetTitle>Filters</SheetTitle>
                 <SheetClose asChild>
                   <Button variant="ghost">
@@ -223,7 +223,7 @@ export default function FiltersClient({
                 </SheetClose>
               </SheetHeader>
 
-              <div className="p-4 border-b">
+              <div className="p-4 shadow-xs">
                 <SelectedFiltersPills
                   params={current}
                   onRemove={handleRemove}
@@ -237,7 +237,7 @@ export default function FiltersClient({
                 <FiltersContent />
               </div>
 
-              <div className="p-4 border-t flex gap-2">
+              <div className="p-2 flex gap-4">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -245,9 +245,11 @@ export default function FiltersClient({
                 >
                   Clear All
                 </Button>
-                <Button className="flex-1" onClick={applyLocalToUrl}>
-                  Apply
-                </Button>
+                <SheetClose asChild>
+                  <Button className="flex-1" onClick={applyLocalToUrl}>
+                    Apply
+                  </Button>
+                </SheetClose>
               </div>
             </div>
           </SheetContent>

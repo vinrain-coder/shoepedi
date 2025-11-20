@@ -26,6 +26,7 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 /**
  * Metadata generator remains async and uses your getProductBySlug/getSetting helpers.
@@ -180,6 +181,9 @@ export default async function ProductDetails({ params, searchParams }: Props) {
     <div>
       {/* Persist browsing history (client effect) — this is a client component; it should be OK to render here */}
       <AddToBrowsingHistory id={product._id.toString()} category={product.category} />
+      <div className="my-2">
+        <Breadcrumb />
+      </div>
 
       <section>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

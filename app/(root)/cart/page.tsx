@@ -1,4 +1,5 @@
 "use client";
+import Breadcrumb from "@/components/shared/breadcrumb";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export default function CartPage() {
 
   return (
     <div>
+      <Breadcrumb />
       <div className="grid grid-cols-1 md:grid-cols-4  md:gap-4">
         {items.length === 0 ? (
           <Card className="col-span-4 rounded-none">

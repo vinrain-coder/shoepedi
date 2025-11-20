@@ -6,6 +6,7 @@ import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Metadata } from "next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cacheLife } from "next/cache";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export const metadata: Metadata = {
   title: "Blogs & Trends",
@@ -68,6 +69,7 @@ export default function BlogsPage({
 
   return (
     <div className="space-y-6">
+      <Breadcrumb />
       <div>
         <h1 className="font-bold text-2xl">Latest Blogs</h1>
         <p className="text-gray-600">Explore our latest blogs and articles</p>

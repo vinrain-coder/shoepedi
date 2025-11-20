@@ -62,4 +62,3 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
 };
 
 export default Menu;
-    
