@@ -9,10 +9,11 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  
 } from "@/components/ui/carousel";
 
 export default function ProductGallery({ images }: { images: string[] }) {
-  // Validate images
+  // 🧼 Validate images
   const validImages = useMemo(
     () =>
       (images || []).filter(
@@ -24,7 +25,6 @@ export default function ProductGallery({ images }: { images: string[] }) {
   const safeImages = validImages.length ? validImages : ["/placeholder.png"];
 
   const [selectedImage, setSelectedImage] = useState(0);
-  const [carouselApi, setCarouselApi] = useState<any>(null);
 
   return (
     <>
@@ -38,18 +38,8 @@ export default function ProductGallery({ images }: { images: string[] }) {
         <Carousel
           opts={{ loop: true }}
           className="w-full"
-          setApi={(api) => {
-            setCarouselApi(api);
-            if (!api) return;
-
-            const handleSelect = () => {
-              setSelectedImage(api.selectedScrollSnap());
-            };
-
-            api.on("select", handleSelect);
-
-            // set initial selected index when mounted
-            handleSelect();
+          onSelect={(api) => {
+            setSelectedImage(api.selectedScrollSnap());
           }}
         >
           <CarouselContent>
@@ -71,6 +61,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
               </CarouselItem>
             ))}
           </CarouselContent>
+
         </Carousel>
 
         {/* Dot Indicators */}
@@ -83,13 +74,18 @@ export default function ProductGallery({ images }: { images: string[] }) {
                   ? "bg-blue-500 scale-110"
                   : "bg-gray-300"
               }`}
-              onClick={() => carouselApi?.scrollTo(index)}
+              onClick={() => {
+                const el = document.querySelector(
+                  `[data-carousel-slide="${index}"]`
+                ) as HTMLElement;
+                el?.click();
+              }}
             />
           ))}
         </div>
       </div>
 
-      {/* ==================== DESKTOP VIEW ==================== */}
+      {/* ==================== DESKTOP VIEW (UNCHANGED) ==================== */}
       <div className="hidden md:flex gap-2">
         {/* Thumbnails */}
         <div className="flex flex-col gap-2 mt-8">
@@ -135,5 +131,5 @@ export default function ProductGallery({ images }: { images: string[] }) {
       </div>
     </>
   );
-    }
-    
+        }
+          
