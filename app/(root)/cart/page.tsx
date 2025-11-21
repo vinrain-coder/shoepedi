@@ -34,7 +34,9 @@ export default function CartPage() {
 
   return (
     <div>
-      <Breadcrumb />
+      <div className="my-1">
+        <Breadcrumb />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4  md:gap-4">
         {items.length === 0 ? (
           <Card className="col-span-4 rounded-none">
@@ -125,13 +127,13 @@ export default function CartPage() {
                           {item.quantity > 1 && (
                             <>
                               {item.quantity} x
-                              <ProductPrice price={item.price} plain />
+                             KES <ProductPrice price={item.price} plain />
                               <br />
                             </>
                           )}
 
                           <span className="font-bold text-lg">
-                            <ProductPrice
+                            KES <ProductPrice
                               price={item.price * item.quantity}
                               plain
                             />
@@ -146,7 +148,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{" "}
                     Items):{" "}
                     <span className="font-bold ml-1">
-                      <ProductPrice price={itemsPrice} plain />
+                      KES <ProductPrice price={itemsPrice} plain />
                     </span>{" "}
                   </div>
                 </CardContent>
@@ -159,7 +161,7 @@ export default function CartPage() {
                     <div className="flex-1">
                       Add{" "}
                       <span className="text-green-700">
-                        <ProductPrice
+                        KES <ProductPrice
                           price={freeShippingMinPrice - itemsPrice}
                           plain
                         />
@@ -180,7 +182,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{" "}
                     items):{" "}
                     <span className="font-bold">
-                      <ProductPrice price={itemsPrice} plain />
+                      KES <ProductPrice price={itemsPrice} plain />
                     </span>{" "}
                   </div>
                   <Button

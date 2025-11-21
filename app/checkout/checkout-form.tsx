@@ -249,7 +249,7 @@ const CheckoutForm = () => {
             <div className="flex justify-between">
               <span>Items:</span>
               <span>
-                <ProductPrice price={itemsPrice} plain />
+                KES <ProductPrice price={itemsPrice} plain />
               </span>
             </div>
             <div className="flex justify-between">
@@ -260,7 +260,9 @@ const CheckoutForm = () => {
                 ) : shippingPrice === 0 ? (
                   "FREE"
                 ) : (
-                  <ProductPrice price={shippingPrice} plain />
+                  <span>
+                    KES <ProductPrice price={shippingPrice} plain />
+                  </span>
                 )}
               </span>
             </div>
@@ -270,14 +272,16 @@ const CheckoutForm = () => {
                 {taxPrice === undefined ? (
                   "--"
                 ) : (
-                  <ProductPrice price={taxPrice} plain />
+                  <span>
+                    KES <ProductPrice price={taxPrice} plain />
+                  </span>
                 )}
               </span>
             </div>
             <div className="flex justify-between  pt-4 font-bold text-lg">
               <span> Order Total:</span>
               <span>
-                <ProductPrice price={totalPrice} plain />
+                KES <ProductPrice price={totalPrice} plain />
               </span>
             </div>
           </div>
@@ -634,7 +638,7 @@ const CheckoutForm = () => {
                                 {item.name}, {item.color}, {item.size}
                               </p>
                               <p className="font-bold">
-                                <ProductPrice price={item.price} plain />
+                                KES <ProductPrice price={item.price} plain />
                               </p>
 
                               <Select
@@ -708,10 +712,13 @@ const CheckoutForm = () => {
                                         : dd.shippingPrice) === 0 ? (
                                         "FREE Shipping"
                                       ) : (
-                                        <ProductPrice
-                                          price={dd.shippingPrice}
-                                          plain
-                                        />
+                                        <span>
+                                          KES{" "}
+                                          <ProductPrice
+                                            price={dd.shippingPrice}
+                                            plain
+                                          />
+                                        </span>
                                       )}
                                     </div>
                                   </Label>
@@ -790,7 +797,7 @@ const CheckoutForm = () => {
 
                   <div className="flex-1">
                     <p className="font-bold text-lg">
-                      Order Total: <ProductPrice price={totalPrice} plain />
+                      Order Total: KES <ProductPrice price={totalPrice} plain />
                     </p>
                     <p className="text-xs">
                       {" "}

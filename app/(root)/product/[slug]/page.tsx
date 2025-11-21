@@ -146,8 +146,6 @@ function RelatedLoading() {
  * The shell renders quickly; suspended parts stream (reviews, related products, browsing history).
  */
 export default async function ProductDetails({ params, searchParams }: Props) {
-    "use cache: private"
-    cacheLife("days")
   // IMPORTANT: don't mark the whole page as "use cache" if you need request-specific data
   // (params, cookies, session). Instead, wrap request-specific child components in <Suspense>.
   //

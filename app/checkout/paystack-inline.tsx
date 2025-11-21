@@ -97,12 +97,12 @@ export default function PaystackInline({
   };
 
   return (
-    <Button
+    <button
       onClick={payWithPaystack}
       disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full mt-2 px-8"
+      className="w-1/3 rounded-full mt-2 px-8 py-3 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Complete Payment
-    </Button>
+    </button>
   );
 }
