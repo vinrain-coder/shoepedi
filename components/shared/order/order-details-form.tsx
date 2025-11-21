@@ -99,7 +99,7 @@ export default function OrderDetailsForm({
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.slug + item.size + item.color}>
-                    <TableCell>
+                    <TableCell className="truncate">
                       <Link
                         href={`/product/${item.slug}`}
                         className="flex items-center"
@@ -118,7 +118,7 @@ export default function OrderDetailsForm({
                     <TableCell>{item.color || "-"}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                      <ProductPrice price={item.price} plain />
+                      KES <ProductPrice price={item.price} plain />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -135,28 +135,28 @@ export default function OrderDetailsForm({
               <div>Items</div>
               <div>
                 {" "}
-                <ProductPrice price={itemsPrice} plain />
+                KES <ProductPrice price={itemsPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Tax</div>
               <div>
                 {" "}
-                <ProductPrice price={taxPrice} plain />
+                KES <ProductPrice price={taxPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Shipping</div>
               <div>
                 {" "}
-                <ProductPrice price={shippingPrice} plain />
+                KES <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Total</div>
               <div>
                 {" "}
-                <ProductPrice price={totalPrice} plain />
+                KES <ProductPrice price={totalPrice} plain />
               </div>
             </div>
 

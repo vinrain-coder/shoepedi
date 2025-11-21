@@ -188,7 +188,7 @@ export async function getMyOrders({
   limit?: number;
   page: number;
 }) {
-  "use cache: private"
+  "use cache: private";
   cacheLife("hours");
   const {
     common: { pageSize },
@@ -245,9 +245,9 @@ export const calcDeliveryDateAndPrice = async ({
     !shippingAddress || !deliveryDate
       ? undefined
       : deliveryDate.freeShippingMinPrice > 0 &&
-        itemsPrice >= deliveryDate.freeShippingMinPrice
-      ? 0
-      : deliveryDate.shippingPrice;
+          itemsPrice >= deliveryDate.freeShippingMinPrice
+        ? 0
+        : deliveryDate.shippingPrice;
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
   const totalPrice = round2(
@@ -527,16 +527,10 @@ export async function markPaystackOrderAsPaid(
     order.paymentResult = paymentInfo; // now matches model type
     await order.save();
 
-    if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost")) {
+    if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
       await updateProductStock(order._id);
-    }
-
-    if (order.user?.email) {
-      await sendPurchaseReceipt({ order });
-    }
-
+    if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
-
     return { success: true, message: "Order paid successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { getServerSession } from "@/lib/get-session";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Login & Security";
 
@@ -28,11 +29,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="mb-24">
-      <div className="flex gap-2 ">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <span>{PAGE_TITLE}</span>
-      </div>
+      <Breadcrumb />
 
       <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
 
@@ -56,7 +53,6 @@ export default async function ProfilePage() {
           <div>
             <h3 className="font-bold">Email</h3>
             <p>{session.user.email}</p>
-            
           </div>
           <Link href="/account/manage/email">
             <Button className="rounded-full w-32" variant="outline">
@@ -71,7 +67,6 @@ export default async function ProfilePage() {
           <div>
             <h3 className="font-bold">Password</h3>
             <p>************</p>
-           
           </div>
           <Link href="/account/manage/password">
             <Button className="rounded-full w-32" variant="outline">

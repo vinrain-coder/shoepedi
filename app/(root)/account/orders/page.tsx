@@ -15,6 +15,7 @@ import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime, formatId } from "@/lib/utils";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import ProductPrice from "@/components/shared/product/product-price";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Your Orders";
 
@@ -35,14 +36,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
 
   return (
     <div>
-      <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <span>{PAGE_TITLE}</span>
-      </div>
-
+      <Breadcrumb />
       <h1 className="h1-bold pt-4">{PAGE_TITLE}</h1>
-
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -75,7 +70,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                 </TableCell>
 
                 <TableCell>
-                  <ProductPrice price={order.totalPrice} plain />
+                  KES <ProductPrice price={order.totalPrice} />
                 </TableCell>
 
                 <TableCell>
@@ -108,5 +103,4 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       <BrowsingHistoryList className="mt-16" />
     </div>
   );
-  }
-  
+}

@@ -6,6 +6,7 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { ProfileDetailsForm } from "./profile-form";
 import { getServerSession } from "@/lib/get-session";
 import { unauthorized } from "next/navigation";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Change Your Name";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-    const session = await getServerSession();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) unauthorized();
@@ -22,13 +23,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="mb-24">
-      <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <Link href="/account/manage">Login & Security</Link>
-        <span>›</span>
-        <span>{PAGE_TITLE}</span>
-      </div>
+      <Breadcrumb />
 
       <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
 
@@ -40,7 +35,7 @@ export default async function ProfilePage() {
             <strong>Save Changes</strong> button when you are done.
           </p>
 
-          <ProfileDetailsForm user={user}/>
+          <ProfileDetailsForm user={user} />
         </CardContent>
       </Card>
     </div>

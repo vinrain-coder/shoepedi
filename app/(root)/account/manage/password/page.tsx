@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { unauthorized } from "next/navigation";
 import { PasswordForm } from "./password-form";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Change Your Name";
 
@@ -22,13 +23,7 @@ export default async function PasswordPage() {
 
   return (
     <div className="mb-24">
-      <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <Link href="/account/manage">Login & Security</Link>
-        <span>›</span>
-        <span>{PAGE_TITLE}</span>
-      </div>
+      <Breadcrumb />
 
       <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
 

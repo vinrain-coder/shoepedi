@@ -1,9 +1,12 @@
-import React from 'react'
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 function page() {
   return (
-    <div>page</div>
-  )
+    <>
+      <Breadcrumb />
+      <div>Addresses</div>
+    </>
+  );
 }
 
-export default page
+export default page;

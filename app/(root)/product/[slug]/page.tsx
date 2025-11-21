@@ -181,7 +181,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
     <div>
       {/* Persist browsing history (client effect) — this is a client component; it should be OK to render here */}
       <AddToBrowsingHistory id={product._id.toString()} category={product.category} />
-      <div className="my-2">
+      <div className="my-1">
         <Breadcrumb />
       </div>
 
@@ -196,7 +196,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
             />
 
             {product.videoLink && (
-              <div className="mt-4">
+              <div className="mt-2">
                 <h3 className="font-semibold mb-2">Product Video</h3>
                 <a
                   href={product.videoLink}

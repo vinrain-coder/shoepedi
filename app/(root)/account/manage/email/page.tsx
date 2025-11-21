@@ -6,6 +6,7 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
 import { EmailForm } from "./email-form";
 import { unauthorized } from "next/navigation";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Change Your Name";
 
@@ -22,16 +23,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="mb-24">
-      <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <Link href="/account/manage">Login & Security</Link>
-        <span>›</span>
-        <span>{PAGE_TITLE}</span>
-      </div>
-
+      <Breadcrumb />
       <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
-
       <Card className="max-w-2xl">
         <CardContent className="p-4 flex flex-col gap-6">
           <p className="text-sm">

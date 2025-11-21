@@ -22,7 +22,7 @@ import { calculatePastDate, formatDateTime, formatNumber } from "@/lib/utils";
 
 import SalesCategoryPieChart from "./sales-category-pie-chart";
 
-import React, { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
 import { getOrderSummary } from "@/lib/actions/order.actions";
 import SalesAreaChart from "./sales-area-chart";
@@ -55,7 +55,7 @@ export default function OverviewReport() {
     return (
       <div className="space-y-4">
         {/* First Row */}
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {[...Array(4)].map((_, index) => (
             <Skeleton key={index} className="h-36 w-full" />
           ))}
@@ -88,7 +88,7 @@ export default function OverviewReport() {
         <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
       </div>
       <div className="space-y-4">
-        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           <Card className="@container/card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -98,7 +98,7 @@ export default function OverviewReport() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="text-2xl font-bold">
-                <ProductPrice price={data.totalSales} plain />
+                KES <ProductPrice price={data.totalSales} plain />
               </div>
               <div>
                 <Link className="text-xs" href="/admin/orders">
@@ -221,7 +221,7 @@ export default function OverviewReport() {
                         {formatDateTime(order.createdAt).dateOnly}
                       </TableCell>
                       <TableCell>
-                        <ProductPrice price={order.totalPrice} plain />
+                       KES <ProductPrice price={order.totalPrice} plain />
                       </TableCell>
                       <TableCell>
                         <Link href={`/admin/orders/${order._id}`}>

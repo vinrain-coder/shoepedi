@@ -100,7 +100,7 @@ export default function PaystackInline({
     <Button
       onClick={payWithPaystack}
       disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full mt-2"
+      className="w-1/3 rounded-full mt-2 px-8"
     >
       Complete Payment
     </Button>

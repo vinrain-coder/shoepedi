@@ -1,3 +1,4 @@
+import Breadcrumb from "@/components/shared/breadcrumb";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { getServerSession } from "@/lib/get-session";
@@ -5,7 +6,6 @@ import { Home, PackageCheckIcon, User } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import React from "react";
 
 const PAGE_TITLE = "Your Account";
 export const metadata: Metadata = {
@@ -19,6 +19,7 @@ export default async function AccountPage() {
 
   return (
     <div>
+      <Breadcrumb />
       <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
       <div className="grid md:grid-cols-3 gap-4 items-stretch">
         <Card>

@@ -36,7 +36,7 @@ export default function ProductQuickView({
 
   const details = useMemo(() => {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-4">
         {/* Product Name */}
         <h2 className="font-semibold text-2xl">{product.name}</h2>
 
@@ -180,7 +180,7 @@ export default function ProductQuickView({
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="p-0 max-h-[90vh] flex flex-col" forceMount>
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ProductGallery images={product.images} />
           {product.videoLink && (
             <div className="mt-4">
@@ -208,7 +208,7 @@ export default function ProductQuickView({
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 
         {/* Left: gallery */}
-        <div className="p-6 overflow-y-auto border-r">
+        <div className="p-6 overflow-y-auto">
           <ProductGallery images={product.images} />
           {product.videoLink && (
             <div className="mt-4">
