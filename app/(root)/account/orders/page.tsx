@@ -70,7 +70,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                 </TableCell>
 
                 <TableCell>
-                  KES <ProductPrice price={order.totalPrice} />
+                  <ProductPrice price={order.totalPrice} />
                 </TableCell>
 
                 <TableCell>
