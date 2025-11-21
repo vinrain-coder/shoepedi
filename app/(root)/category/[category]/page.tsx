@@ -8,6 +8,7 @@ import {
   getAllTags,
 } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
+import FiltersClient from "@/components/shared/search/filters-client";
 
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
@@ -30,8 +31,9 @@ type Props = {
 };
 
 // SEO metadata
-export function generateMetadata({ params }: Props): Metadata {
-  const category = params.category;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { category } = await params;
+
   const titleCase = category.charAt(0).toUpperCase() + category.slice(1);
 
   return {
@@ -41,17 +43,19 @@ export function generateMetadata({ params }: Props): Metadata {
       canonical: `https://shoepedi.vercel.app/category/${category}`,
     },
     robots: { index: true, follow: true },
-  };
+  }
 }
 
-export default async function CategoryPage({ params, searchParams }: Props) {
-  const { category } = params;
-  const page = Number(searchParams?.page ?? "1");
-  const sort = searchParams?.sort ?? "best-selling";
-  const price = searchParams?.price ?? "all";
-  const rating = searchParams?.rating ?? "all";
-  const tag = searchParams?.tag ?? "all";
-  const q = searchParams?.q ?? "all";
+  export default async function CategoryPage({ params, searchParams }: Props) {
+  const { category } = await params;
+  const sp = await searchParams;
+
+  const page = Number(sp?.page ?? "1");
+  const sort = sp?.sort ?? "best-selling";
+  const price = sp?.price ?? "all";
+  const rating = sp?.rating ?? "all";
+  const tag = sp?.tag ?? "all";
+  const q = sp?.q ?? "all";
 
   // Fetch products, categories, and tags
   const [categories, tags, data] = await Promise.all([

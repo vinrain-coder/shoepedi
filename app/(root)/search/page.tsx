@@ -8,7 +8,8 @@ import {
   getAllTags,
 } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
-import FiltersClient from "./filters-client";
+import FiltersClient from "@/components/shared/search/filters-client";
+
 
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },

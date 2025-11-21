@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
-import FiltersClient from "@/components/search/filters-client";
+import FiltersClient from "@/components/shared/search/filters-client";
 import {
   getAllProducts,
   getAllCategories,
@@ -30,9 +30,9 @@ type Props = {
   };
 };
 
-export function generateMetadata({ params }: Props): Metadata {
-  const tag = params.tag;
-  const titleCase = tag.charAt(0).toUpperCase() + tag.slice(1);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+const { tag }  = await params;
+    const titleCase = tag.charAt(0).toUpperCase() + tag.slice(1);
 
   return {
     title: `Shop ${titleCase} Products Online | Shoepedi`,
@@ -43,13 +43,15 @@ export function generateMetadata({ params }: Props): Metadata {
 }
 
 export default async function TagPage({ params, searchParams }: Props) {
-  const { tag } = params;
-  const page = Number(searchParams?.page ?? "1");
-  const sort = searchParams?.sort ?? "best-selling";
-  const price = searchParams?.price ?? "all";
-  const rating = searchParams?.rating ?? "all";
-  const category = searchParams?.category ?? "all";
-  const q = searchParams?.q ?? "all";
+  const { tag } = await params;
+  const sp = await searchParams;
+
+  const page = Number(sp?.page ?? "1");
+  const sort = sp?.sort ?? "best-selling";
+  const price = sp?.price ?? "all";
+  const rating = sp?.rating ?? "all";
+  const category = sp?.category ?? "all";
+  const q = sp?.q ?? "all";
 
   const [categories, tags, data] = await Promise.all([
     getAllCategories(),
