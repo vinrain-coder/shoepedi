@@ -62,7 +62,8 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
                   <div className="text-center ">
                     Add{" "}
                     <span className="text-green-700">
-                      KES <ProductPrice
+                      KES{" "}
+                      <ProductPrice
                         price={freeShippingMinPrice - itemsPrice}
                         plain
                       />
@@ -90,7 +91,8 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
                   className={cn(buttonVariants(), "rounded-full w-full")}
                 >
                   Proceed to checkout (
-                  {items.reduce((a, c) => a + c.quantity, 0)} items)
+                  {items.reduce((a, c) => a + c.quantity, 0)}{" "}
+                  {item.quantity > 1 ? "items" : "item"})
                 </Link>
                 <Link
                   href="/cart"

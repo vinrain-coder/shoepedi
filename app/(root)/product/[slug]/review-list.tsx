@@ -32,7 +32,6 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
-  DrawerClose,
   DrawerTrigger,
   DrawerDescription,
 } from "@/components/ui/drawer";
@@ -73,7 +72,8 @@ const reviewFormDefaultValues = {
   isVerifiedPurchase: true,
   title: "",
   comment: "",
-  rating: undefined as unknown as number, // start undefined so placeholder shows
+  rating: 5,
+  // rating: undefined as unknown as number, // start undefined so placeholder shows
 };
 
 export default function ReviewList({
@@ -287,12 +287,12 @@ export default function ReviewList({
                               <Button
                                 type="submit"
                                 size="lg"
+                                className="w-full rounded-full"
                                 disabled={form.formState.isSubmitting}
                               >
                                 {form.formState.isSubmitting
                                   ? "Submitting"
-                                  : "Submit"}
-                              </Button>
+                                  : "Submit"}                           </Button>
                             </DrawerFooter>
                           </form>
                         </Form>
@@ -405,6 +405,7 @@ export default function ReviewList({
                             <Button
                               type="submit"
                               size="lg"
+                              className="w-full rounded-full"
                               disabled={form.formState.isSubmitting}
                             >
                               {form.formState.isSubmitting

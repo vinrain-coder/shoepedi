@@ -43,13 +43,16 @@ export async function generateMetadata({ params }: { params: any }) {
 
   return {
     title: product.name,
-    description: product.description || "Check out this amazing product at ShoePedi!",
+    description:
+      product.description || "Check out this amazing product at ShoePedi!",
     openGraph: {
       title: product.name,
       description: product.description || "Discover this product on ShoePedi!",
       url: `${site.url}/product/${product.slug}`,
       siteName: "ShoePedi",
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: product.name }],
+      images: [
+        { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
+      ],
       price: { amount: product.price.toString(), currency: "KES" },
     },
     twitter: {
@@ -93,23 +96,28 @@ type Props = {
   searchParams: any;
 };
 
-
 /**
  * Small cached helper component: it does not read request-specific context and
  * can be cached by Next.js's "use cache" directive. This demonstrates explicit caching.
  *
  * (If you have other pure helpers you can mark them similarly.)
  */
-async function CachedPrice({ price, listPrice }: { price: number; listPrice?: number }) {
+async function CachedPrice({
+  price,
+  listPrice,
+}: {
+  price: number;
+  listPrice?: number;
+}) {
   // Tell Next.js this component's render result can be cached.
   // This is optional — remove if the component reads request cookies/params, etc.
   // The directive must be at the top-level of the module or a component to have effect,
   // but using it inside a little helper component shows intent.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  
-"use cache"
-cacheLife("weeks")
+
+  "use cache";
+  cacheLife("weeks");
   return <ProductPrice price={price} listPrice={listPrice} />;
 }
 
@@ -158,8 +166,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   // (you can tune this value or configure cacheLife in next.config).
 
   // get session only when needed for user-specific parts (but we use it below to pass userId to reviews)
-  const sessionPromise =getServerSession()
-  
+  const sessionPromise = getServerSession();
 
   // product itself is essential for the top-level shell (name, price, description overview).
   const product = await getProductBySlug(slug);
@@ -178,7 +185,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   return (
     <div>
       {/* Persist browsing history (client effect) — this is a client component; it should be OK to render here */}
-      <AddToBrowsingHistory id={product._id.toString()} category={product.category} />
+      <AddToBrowsingHistory
+        id={product._id.toString()}
+        category={product.category}
+      />
       <div className="my-1">
         <Breadcrumb />
       </div>
@@ -189,7 +199,9 @@ export default async function ProductDetails({ params, searchParams }: Props) {
           <div className="col-span-2">
             <ProductGallery
               images={
-                product.images?.filter((img: string) => img && img.trim() !== "") || []
+                product.images?.filter(
+                  (img: string) => img && img.trim() !== ""
+                ) || []
               }
             />
 
@@ -227,11 +239,18 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {/* cached helper for price display */}
-                <CachedPrice price={product.price} listPrice={product.listPrice} />
+                <CachedPrice
+                  price={product.price}
+                  listPrice={product.listPrice}
+                />
               </div>
             </div>
 
-            <SelectVariant product={product} color={selectedColor} size={selectedSize} />
+            <SelectVariant
+              product={product}
+              color={selectedColor}
+              size={selectedSize}
+            />
 
             <Separator className="my-2" />
 
@@ -278,7 +297,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       />
                     ),
                     li: (props) => (
-                      <li className="mb-1 dark:text-gray-300 text-gray-800" {...props} />
+                      <li
+                        className="mb-1 dark:text-gray-300 text-gray-800"
+                        {...props}
+                      />
                     ),
                     blockquote: (props) => (
                       <blockquote
@@ -295,10 +317,16 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       />
                     ),
                     strong: (props) => (
-                      <strong className="font-semibold dark:text-white text-gray-900" {...props} />
+                      <strong
+                        className="font-semibold dark:text-white text-gray-900"
+                        {...props}
+                      />
                     ),
                     pre: (props) => (
-                      <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4" {...props} />
+                      <pre
+                        className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4"
+                        {...props}
+                      />
                     ),
                     img: ({ src = "", alt = "" }) => {
                       if (!src) return null;
@@ -403,7 +431,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
       {/* RELATED PRODUCTS - dynamic (depends on relatedProductsPromise). Wrap in Suspense so it streams in. */}
       <section className="mt-10">
         <Suspense fallback={<RelatedLoading />}>
-          <RelatedBoundary relatedProductsPromise={relatedProductsPromise} category={product.category} />
+          <RelatedBoundary
+            relatedProductsPromise={relatedProductsPromise}
+            category={product.category}
+          />
         </Suspense>
       </section>
 
@@ -424,12 +455,18 @@ export default async function ProductDetails({ params, searchParams }: Props) {
  *
  * This component reads request-specific info (session) so it MUST NOT be 'use cache'.
  */
-async function ReviewsBoundary({ sessionPromise, product }: { sessionPromise: Promise<any>; product: any }) {
-  'use cache'
-  cacheLife('days')
+async function ReviewsBoundary({
+  sessionPromise,
+  product,
+}: {
+  sessionPromise: Promise<any>;
+  product: any;
+}) {
+  "use cache";
+  cacheLife("days");
   const session = await sessionPromise;
   // Render ReviewList (presumably server component or async component that fetches reviews)
-  return <ReviewList product={product} userId={session?.user?.id} />
+  return <ReviewList product={product} userId={session?.user?.id} />;
 }
 
 /**
@@ -439,7 +476,18 @@ async function ReviewsBoundary({ sessionPromise, product }: { sessionPromise: Pr
  * If getRelatedProductsByCategory can be cached on your backend, you can consider
  * using 'use cache' inside that function (where data is fetched) instead of here.
  */
-async function RelatedBoundary({ relatedProductsPromise, category }: { relatedProductsPromise: Promise<any>; category: string }) {
+async function RelatedBoundary({
+  relatedProductsPromise,
+  category,
+}: {
+  relatedProductsPromise: Promise<any>;
+  category: string;
+}) {
   const related = await relatedProductsPromise;
-  return <ProductSlider products={related?.data || []} title={`Best Sellers in ${category}`} />;
+  return (
+    <ProductSlider
+      products={related?.data || []}
+      title={`Best Sellers in ${category}`}
+    />
+  );
 }
