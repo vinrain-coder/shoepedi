@@ -68,7 +68,7 @@ export default function SalesAreaChart({ data }: { data: any[] }) {
         <XAxis dataKey="date" tick={<CustomXAxisTick />} interval={3} />
         <YAxis
           fontSize={12}
-          tickFormatter={(value: number) => `$${value}`}
+          tickFormatter={(value: number) => `KES ${value}`}
           stroke="var(--primary)"
         />
         <Tooltip content={<CustomTooltip />} />
