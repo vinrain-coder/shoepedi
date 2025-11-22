@@ -149,8 +149,7 @@ export default function HomePage() {
       <div className="p-4 bg-background">
         <Suspense fallback={<SkeletonBrowsingHistory />}>
           <BrowsingHistoryList />
-        </Suspense>
-      </div>
+        <
 
       {/* About Carousel */}
       <div className="p-4 bg-background">

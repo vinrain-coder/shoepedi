@@ -152,11 +152,11 @@ const ProductCard = ({
       )}
 
       {/* Quick View modal - outside absolute div */}
-      {/*<ProductQuickView
+      <ProductQuickView
         product={product}
         isOpen={showQuickView}
         onClose={() => setShowQuickView(false)}
-      />*/}
+      />
     </>
   );
 };
