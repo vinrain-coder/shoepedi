@@ -31,6 +31,9 @@ const ProductCard = ({
   isInWishlist?: boolean;
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
+  const primaryImage = product.images?.[0] ?? "/placeholder.png";
+  const hoverImage = product.images?.[1] ?? primaryImage;
+
 
   const discount =
     product.listPrice && product.listPrice > product.price
@@ -41,16 +44,16 @@ const ProductCard = ({
 
   const cartItem = {
     clientId: generateId(),
-    product: product._id.toString(),
-    size: product.sizes[0],
-    color: product.colors[0],
+    product: product._id?.toString(),
+    size: product.sizes?.[0] ?? null,
+    color: product.colors?.[0] ?? null,
     countInStock: product.countInStock,
     name: product.name,
     slug: product.slug,
     category: product.category,
     price: round2(product.price),
     quantity: 1,
-    image: product.images[0],
+    image: product.images?.[0] ?? "/placeholder.png",
   };
 
   const ProductImage = ({ withFloatingIcons = false }) => (
@@ -89,16 +92,16 @@ const ProductCard = ({
       )}
 
       <Link href={`/product/${product.slug}`}>
-        {product.images.length > 1 ? (
+        {product.images?.length > 1 ? (
           <ImageHover
-            src={product.images[0]}
-            hoverSrc={product.images[1]}
+            src={primaryImage}
+            hoverSrc={hoverImage}
             alt={product.name}
           />
         ) : (
           <div className="relative h-56 sm:h-60">
             <Image
-              src={product.images[0]}
+              src={primaryImage}
               alt={product.name}
               fill
               sizes="80vw"
@@ -149,11 +152,11 @@ const ProductCard = ({
       )}
 
       {/* Quick View modal - outside absolute div */}
-      <ProductQuickView
+      {/*<ProductQuickView
         product={product}
         isOpen={showQuickView}
         onClose={() => setShowQuickView(false)}
-      />
+      />*/}
     </>
   );
 };

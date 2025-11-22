@@ -136,14 +136,14 @@ export default function HomePage() {
         </Card>
 
         {/* Featured Products */}
-        <Card className="w-full rounded-none">
+       {/* <Card className="w-full rounded-none">
           <CardContent className="p-4 items-center gap-3">
             <Suspense fallback={<SkeletonProductSlider />}>
               <AsyncFeaturedProducts />
             </Suspense>
           </CardContent>
-        </Card>
-      </div>
+        </Card> */}
+      </div> 
 
       {/* Browsing History */}
       <div className="p-4 bg-background">
