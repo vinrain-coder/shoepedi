@@ -66,6 +66,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
                     sizes="100vw"
                     className="object-contain"
                     unoptimized
+                    placeholder="blur"
                   />
                 </Zoom>
               </CarouselItem>
@@ -128,6 +129,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 className="object-contain"
                 priority
                 unoptimized
+                placeholder="blur"
               />
             </div>
           </Zoom>
