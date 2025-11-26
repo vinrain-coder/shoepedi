@@ -146,9 +146,9 @@ export default function HomePage() {
       </div> 
 
       {/* Browsing History */}
-  
+      <div className="p-4 bg-background" >
           <BrowsingHistoryList />
-
+       </div>
       {/* About Carousel */}
       <div className="p-4 bg-background">
         <Suspense fallback={<SkeletonCarousel />}>
