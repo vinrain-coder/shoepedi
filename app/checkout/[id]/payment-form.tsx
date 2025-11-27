@@ -54,7 +54,7 @@ export default function OrderDetailsForm({
               <span>Items:</span>
               <span>
                 {" "}
-                 <ProductPrice price={itemsPrice} plain />
+                KES <ProductPrice price={itemsPrice} plain />
               </span>
             </div>
             <div className="flex justify-between">
@@ -66,7 +66,7 @@ export default function OrderDetailsForm({
                   "FREE"
                 ) : (
                   <span>
-                     <ProductPrice price={shippingPrice} plain />
+                    KES <ProductPrice price={shippingPrice} plain />
                   </span>
                 )}
               </span>
@@ -78,7 +78,7 @@ export default function OrderDetailsForm({
                   "--"
                 ) : (
                   <span>
-                     <ProductPrice price={taxPrice} plain />
+                    KES <ProductPrice price={taxPrice} plain />
                   </span>
                 )}
               </span>
@@ -87,7 +87,7 @@ export default function OrderDetailsForm({
               <span> Order Total:</span>
               <span>
                 {" "}
-                 <ProductPrice price={totalPrice} plain />
+                KES <ProductPrice price={totalPrice} plain />
               </span>
             </div>
 

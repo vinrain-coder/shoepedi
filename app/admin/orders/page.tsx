@@ -63,7 +63,7 @@ export default async function OrdersPage(props: {
                 </TableCell>
                 <TableCell>
                   {" "}
-                   <ProductPrice price={order.totalPrice} plain />
+                  KES <ProductPrice price={order.totalPrice} plain />
                 </TableCell>
                 <TableCell>
                   {order.isPaid && order.paidAt

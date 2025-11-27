@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: { params: any }) {
       images: [
         { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
       ],
-      price: { amount: product.price.toString(), currency: "" },
+      price: { amount: product.price.toString(), currency: "KES" },
     },
     twitter: {
       card: "summary_large_image",
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: { params: any }) {
     },
     additionalMetaTags: [
       { property: "product:price:amount", content: product.price.toString() },
-      { property: "product:price:currency", content: "" },
+      { property: "product:price:currency", content: "KES" },
     ],
     jsonLd: {
       "@context": "https://schema.org/",
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: { params: any }) {
       offers: {
         "@type": "Offer",
         url: `${site.url}/product/${product.slug}`,
-        priceCurrency: "",
+        priceCurrency: "KES",
         price: product.price.toString(),
       },
     },

@@ -1,3 +1,4 @@
+
 import { Suspense } from "react";
 import { HomeCarousel } from "@/components/shared/home/home-carousel";
 import { AboutCarousel } from "@/components/shared/home/about-carousel";
@@ -19,44 +20,42 @@ import { cacheLife } from "next/cache";
 
 // Async wrapper components for streaming
 const AsyncHomeCarousel = async () => {
-  "use cache";
-  cacheLife("days");
+  "use cache"
+  cacheLife("days")
   const { carousels } = await getSetting();
   return <HomeCarousel items={carousels} />;
 };
 
-const featureds = await getProductsByTag({ tag: "featured" });
+const AsyncFeaturedProducts = async () => {
+  "use cache"
+  cacheLife("days")
+  const featureds = await getProductsForCard({ tag: "featured" });
+  return <ProductSlider title="Featured Products" products={featureds} />;
+};
 
 const AsyncBestSellingProducts = async () => {
-  "use cache";
-  cacheLife("days");
+  "use cache"
+  cacheLife("days")
   const bestSellingProducts = await getProductsByTag({ tag: "best-seller" });
-  return (
-    <ProductSlider
-      title="Best Selling Products"
-      products={bestSellingProducts}
-      hideDetails
-    />
-  );
+  return <ProductSlider title="Best Selling Products" products={bestSellingProducts} hideDetails />;
 };
 
 const AsyncTodaysDeals = async () => {
-  "use cache";
-  cacheLife("days");
+  "use cache"
+  cacheLife("days")
   const todaysDeals = await getProductsByTag({ tag: "todays-deal" });
   return <ProductSlider title="Today's Deals" products={todaysDeals} />;
 };
 
 const AsyncNewArrivalsCards = async () => {
-  "use cache";
-  cacheLife("days");
-  const [allCategories, newArrivals, featureds, bestSellers] =
-    await Promise.all([
-      getAllCategories(),
-      getProductsForCard({ tag: "new-arrival" }),
-      getProductsForCard({ tag: "featured" }),
-      getProductsForCard({ tag: "best-seller" }),
-    ]);
+  "use cache"
+  cacheLife("days")
+  const [allCategories, newArrivals, featureds, bestSellers] = await Promise.all([
+    getAllCategories(),
+    getProductsForCard({ tag: "new-arrival" }),
+    getProductsForCard({ tag: "featured" }),
+    getProductsForCard({ tag: "best-seller" }),
+  ]);
 
   const categories = allCategories.slice(0, 4);
 
@@ -91,8 +90,8 @@ const AsyncNewArrivalsCards = async () => {
 };
 
 const AsyncBlogSlider = async () => {
-  "use cache";
-  cacheLife("days");
+  "use cache"
+  cacheLife("days")
   const { blogs } = await getPublishedBlogs({ limit: 5 });
   return <BlogSlider title="Our Latest Stories" blogs={blogs} />;
 };
@@ -100,12 +99,9 @@ const AsyncBlogSlider = async () => {
 // Skeleton fallbacks
 const SkeletonCarousel = () => <Skeleton className="h-56 w-full rounded-lg" />;
 const SkeletonCard = () => <Skeleton className="h-64 w-full rounded-lg" />;
-const SkeletonProductSlider = () => (
-  <Skeleton className="h-72 w-full rounded-lg" />
-);
-const SkeletonBlogSlider = () => (
-  <Skeleton className="h-64 w-full rounded-lg" />
-);
+const SkeletonProductSlider = () => <Skeleton className="h-72 w-full rounded-lg" />;
+const SkeletonBlogSlider = () => <Skeleton className="h-64 w-full rounded-lg" />;
+const SkeletonBrowsingHistory = () => <Skeleton className="h-32 w-full rounded-lg" />;
 
 export default function HomePage() {
   return (
@@ -138,12 +134,21 @@ export default function HomePage() {
             </Suspense>
           </CardContent>
         </Card>
-      </div>
+
+        {/* Featured Products */}
+       {/* <Card className="w-full rounded-none">
+          <CardContent className="p-4 items-center gap-3">
+            <Suspense fallback={<SkeletonProductSlider />}>
+              <AsyncFeaturedProducts />
+            </Suspense>
+          </CardContent>
+        </Card> */}
+      </div> 
 
       {/* Browsing History */}
-      <div className="p-4 bg-background">
-        <BrowsingHistoryList />
-      </div>
+      <div className="p-4 bg-background" >
+          <BrowsingHistoryList />
+       </div>
       {/* About Carousel */}
       <div className="p-4 bg-background">
         <Suspense fallback={<SkeletonCarousel />}>
