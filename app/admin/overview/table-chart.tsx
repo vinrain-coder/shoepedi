@@ -79,7 +79,7 @@ export default function TableChart({
 
           {/* Value */}
           <div className="text-sm text-right">
-           KES <ProductPrice price={value} plain />
+            <ProductPrice price={value} plain />
           </div>
         </div>
       ))}

@@ -38,7 +38,7 @@ export default function OrderViaWhatsApp({
   const totalPrice = price * quantity; // Calculate total price
   const formattedPrice = new Intl.NumberFormat("en-KE", {
     style: "currency",
-    currency: "KES",
+    currency: "",
   }).format(totalPrice);
 
   const message = encodeURIComponent(

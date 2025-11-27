@@ -17,7 +17,7 @@ const aboutItems = [
   {
     icon: <Truck className="w-12 h-12 text-primary" />,
     title: "Free Shipping",
-    description: "From all orders above KES 5,000.",
+    description: "From all orders above  5,000.",
   },
   {
     icon: <Gift className="w-12 h-12 text-primary" />,

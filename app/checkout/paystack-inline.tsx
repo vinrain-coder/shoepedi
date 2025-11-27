@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 interface PaystackInlineProps {
   email: string;
-  amount: number; // in kobo (multiply KES by 100)
+  amount: number; // in kobo (multiply  by 100)
   publicKey: string;
   orderId: string;
   onSuccess?: (reference: any) => void;
@@ -60,7 +60,7 @@ export default function PaystackInline({
       key: publicKey,
       email,
       amount,
-      currency: "KES",
+      currency: "",
       ref: `${orderId}-${Date.now()}`,
       onClose: function () {
         toast.error("Payment popup closed");

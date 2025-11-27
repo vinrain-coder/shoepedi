@@ -127,13 +127,13 @@ export default function CartPage() {
                           {item.quantity > 1 && (
                             <>
                               {item.quantity} x
-                             KES <ProductPrice price={item.price} plain />
+                              <ProductPrice price={item.price} plain />
                               <br />
                             </>
                           )}
 
                           <span className="font-bold text-lg">
-                            KES <ProductPrice
+                             <ProductPrice
                               price={item.price * item.quantity}
                               plain
                             />
@@ -148,7 +148,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{" "}
                     Items):{" "}
                     <span className="font-bold ml-1">
-                      KES <ProductPrice price={itemsPrice} plain />
+                       <ProductPrice price={itemsPrice} plain />
                     </span>{" "}
                   </div>
                 </CardContent>
@@ -161,7 +161,7 @@ export default function CartPage() {
                     <div className="flex-1">
                       Add{" "}
                       <span className="text-green-700">
-                        KES <ProductPrice
+                         <ProductPrice
                           price={freeShippingMinPrice - itemsPrice}
                           plain
                         />
@@ -182,7 +182,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{" "}
                     items):{" "}
                     <span className="font-bold">
-                      KES <ProductPrice price={itemsPrice} plain />
+                       <ProductPrice price={itemsPrice} plain />
                     </span>{" "}
                   </div>
                   <Button

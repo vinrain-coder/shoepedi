@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function WebPagesPage() {
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Website Pages</h1>
 
       <Suspense fallback={<WebPagesSkeleton />}>

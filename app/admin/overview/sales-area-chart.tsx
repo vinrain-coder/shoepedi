@@ -33,7 +33,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
         <CardContent className="p-2">
           <p>{label && formatDateTime(new Date(label)).dateOnly}</p>
           <p className="text-primary text-xl">
-           KES <ProductPrice price={payload[0].value ?? 0} plain />
+            <ProductPrice price={payload[0].value ?? 0} plain />
           </p>
         </CardContent>
       </Card>
@@ -68,7 +68,7 @@ export default function SalesAreaChart({ data }: { data: any[] }) {
         <XAxis dataKey="date" tick={<CustomXAxisTick />} interval={3} />
         <YAxis
           fontSize={12}
-          tickFormatter={(value: number) => `KES ${value}`}
+          tickFormatter={(value: number) => ` ${value}`}
           stroke="var(--primary)"
         />
         <Tooltip content={<CustomTooltip />} />
