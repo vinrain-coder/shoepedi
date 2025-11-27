@@ -190,7 +190,7 @@ export default function FiltersClient({
 
         {/* Tags */}
         <div>
-          <div className="font-bold mb-2">Tag</div>
+          <div className="font-bold mb-2">Tags</div>
           <ul className="space-y-1">
             <li>
               <button
@@ -200,10 +200,10 @@ export default function FiltersClient({
                 All
               </button>
             </li>
-            {tags.map((t, i) => (
-              <li key={i}>
+            {tags.map((t) => (
+              <li key={t}>
                 <button
-                  className={toSlug(t) === current.tag ? "text-primary" : ""}
+                  className={t === current.tag ? "text-primary" : ""}
                   onClick={() => updateParam("tag", t)}
                 >
                   {t}
@@ -215,7 +215,7 @@ export default function FiltersClient({
 
         {/* Brands */}
         <div>
-          <div className="font-bold mb-2">Brand</div>
+          <div className="font-bold mb-2">Brands</div>
           <ul className="space-y-1">
             <li>
               <button
@@ -225,10 +225,10 @@ export default function FiltersClient({
                 All
               </button>
             </li>
-            {brands.map((b, i) => (
-              <li key={i}>
+            {brands.map((b) => (
+              <li key={b}>
                 <button
-                  className={toSlug(b) === current.brand ? "text-primary" : ""}
+                  className={b === current.brand ? "text-primary" : ""}
                   onClick={() => updateParam("brand", b)}
                 >
                   {b}
