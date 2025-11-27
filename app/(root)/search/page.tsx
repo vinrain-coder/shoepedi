@@ -6,10 +6,12 @@ import {
   getAllProducts,
   getAllCategories,
   getAllTags,
+  getAllBrands,
+  getAllColors,
+  getAllSizes,
 } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import FiltersClient from "@/components/shared/search/filters-client";
-
 
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
@@ -27,19 +29,39 @@ export default async function SearchPage(props: {
     q = "all",
     category = "all",
     tag = "all",
+    brand = "all",
+    color = "all",
+    size = "all",
     price = "all",
     rating = "all",
     sort = "best-selling",
     page = "1",
   } = searchParams;
-  const params = { q, category, tag, price, rating, sort, page };
+  const params = {
+    q,
+    category,
+    tag,
+    brand,
+    color,
+    size,
+    price,
+    rating,
+    sort,
+    page,
+  };
 
-  const [categories, tags, data] = await Promise.all([
+  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
     getAllCategories(),
     getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
     getAllProducts({
       category,
       tag,
+      brand,
+      color,
+      size,
       query: q,
       price,
       rating,
@@ -69,6 +91,9 @@ export default async function SearchPage(props: {
           initialParams={params}
           categories={categories}
           tags={tags}
+          brands={brands}
+          colors={colors}
+          sizes={sizes}
         />
         <div className="md:col-span-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">

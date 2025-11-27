@@ -71,7 +71,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
                     className="object-contain"
                     //unoptimized
                     placeholder="blur"
-                    blurDataURL={blurImage}
+                    blurDataURL="/icons/logo.svg"
                     priority
                   />
                 </Zoom>
@@ -136,7 +136,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 priority
                 //unoptimized
                 placeholder="blur"
-                blurDataURL={blurImage}
+                blurDataURL="/icons/logo.svg"
               />
             </div>
           </Zoom>

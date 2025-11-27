@@ -21,6 +21,9 @@ type ParamsShape = {
   q?: string;
   category?: string;
   tag?: string;
+  brand?: string;
+  color?: string;
+  size?: string;
   price?: string;
   rating?: string;
   sort?: string;
@@ -31,10 +34,16 @@ export default function FiltersClient({
   initialParams,
   categories,
   tags,
+  brands,
+  colors,
+  sizes,
 }: {
   initialParams: ParamsShape;
   categories: string[];
   tags: string[];
+  brands: string[];
+  colors: string[];
+  sizes: string[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,6 +53,9 @@ export default function FiltersClient({
     q: searchParams.get("q") ?? "all",
     category: searchParams.get("category") ?? "all",
     tag: searchParams.get("tag") ?? "all",
+    brand: searchParams.get("brand") ?? "all",
+    color: searchParams.get("color") ?? "all",
+    size: searchParams.get("size") ?? "all",
     price: searchParams.get("price") ?? "all",
     rating: searchParams.get("rating") ?? "all",
     sort: searchParams.get("sort") ?? "best-selling",
@@ -66,6 +78,9 @@ export default function FiltersClient({
     if (params.category && params.category !== "all")
       p.set("category", params.category);
     if (params.tag && params.tag !== "all") p.set("tag", params.tag);
+    if (params.brand && params.brand !== "all") p.set("brand", params.brand);
+    if (params.color && params.color !== "all") p.set("color", params.color);
+    if (params.size && params.size !== "all") p.set("size", params.size);
     if (params.price && params.price !== "all") p.set("price", params.price);
     if (params.rating && params.rating !== "all")
       p.set("rating", params.rating);
@@ -96,6 +111,9 @@ export default function FiltersClient({
       q: "all",
       category: "all",
       tag: "all",
+      brand: "all",
+      color: "all",
+      size: "all",
       price: "all",
       rating: "all",
       sort: current.sort,
@@ -194,6 +212,81 @@ export default function FiltersClient({
             ))}
           </ul>
         </div>
+
+        {/* Brands */}
+        <div>
+          <div className="font-bold mb-2">Brand</div>
+          <ul className="space-y-1">
+            <li>
+              <button
+                className={current.brand === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("brand", "all")}
+              >
+                All
+              </button>
+            </li>
+            {brands.map((b, i) => (
+              <li key={i}>
+                <button
+                  className={toSlug(b) === current.brand ? "text-primary" : ""}
+                  onClick={() => updateParam("brand", b)}
+                >
+                  {b}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Colors */}
+        <div>
+          <div className="font-bold mb-2">Colors</div>
+          <ul className="space-y-1">
+            <li>
+              <button
+                className={current.color === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("color", "all")}
+              >
+                All
+              </button>
+            </li>
+            {colors.map((c) => (
+              <li key={c}>
+                <button
+                  className={c === current.color ? "text-primary" : ""}
+                  onClick={() => updateParam("color", c)}
+                >
+                  {c}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Sizes*/}
+        <div>
+          <div className="font-bold mb-2">Sizes</div>
+          <ul className="space-y-1">
+            <li>
+              <button
+                className={current.size === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("size", "all")}
+              >
+                All
+              </button>
+            </li>
+            {sizes.map((s) => (
+              <li key={s}>
+                <button
+                  className={s === current.size ? "text-primary" : ""}
+                  onClick={() => updateParam("size", s)}
+                >
+                  {s}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   }
@@ -270,4 +363,4 @@ export default function FiltersClient({
       </aside>
     </>
   );
-  }
+}

@@ -135,12 +135,12 @@ export async function getAllProductsForAdmin({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-      ? { price: 1 }
-      : sort === "price-high-to-low"
-      ? { price: -1 }
-      : sort === "avg-customer-review"
-      ? { avgRating: -1 }
-      : { _id: -1 };
+        ? { price: 1 }
+        : sort === "price-high-to-low"
+          ? { price: -1 }
+          : sort === "avg-customer-review"
+            ? { avgRating: -1 }
+            : { _id: -1 };
   const products = await Product.find({
     ...queryFilter,
   })
@@ -251,13 +251,13 @@ export async function getRelatedProductsByCategory({
   limit?: number;
   page: number;
 }) {
-  "use cache" 
-  cacheLife("hours")
+  "use cache";
+  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();
   limit = limit || pageSize;
-  
+
   await connectToDatabase();
   const skipAmount = (Number(page) - 1) * limit;
   const conditions = {
@@ -283,6 +283,9 @@ export async function getAllProducts({
   page,
   category,
   tag,
+  brand,
+  color,
+  size,
   price,
   rating,
   sort,
@@ -290,6 +293,9 @@ export async function getAllProducts({
   query: string;
   category: string;
   tag: string;
+  brand: string
+  color: string
+  size: string 
   limit?: number;
   page: number;
   price?: string;
@@ -315,6 +321,9 @@ export async function getAllProducts({
       : {};
   const categoryFilter = category && category !== "all" ? { category } : {};
   const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
+  const brandFilter = brand && brand!== "all" ? { brands: brand } : {}
+  const colorFilter = color && color !== "all" ? {colors: color } : {}
+  const sizeFilter = size && size !== "all" ? {sizes: size} : {}
 
   const ratingFilter =
     rating && rating !== "all"
@@ -338,18 +347,21 @@ export async function getAllProducts({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-      ? { price: 1 }
-      : sort === "price-high-to-low"
-      ? { price: -1 }
-      : sort === "avg-customer-review"
-      ? { avgRating: -1 }
-      : { _id: -1 };
+        ? { price: 1 }
+        : sort === "price-high-to-low"
+          ? { price: -1 }
+          : sort === "avg-customer-review"
+            ? { avgRating: -1 }
+            : { _id: -1 };
   const isPublished = { isPublished: true };
   const products = await Product.find({
     ...isPublished,
     ...queryFilter,
     ...tagFilter,
     ...categoryFilter,
+    ...brandFilter,
+    ...colorFilter,
+    ...sizeFilter,
     ...priceFilter,
     ...ratingFilter,
   })
@@ -362,6 +374,9 @@ export async function getAllProducts({
     ...queryFilter,
     ...tagFilter,
     ...categoryFilter,
+    ...brandFilter,
+    ...colorFilter,
+    ...sizeFilter,
     ...priceFilter,
     ...ratingFilter,
   });
@@ -429,4 +444,86 @@ export async function getAllTagsForAdminProductCreate() {
   ]);
 
   return tags.map((t) => t.tag);
+}
+
+// GET ALL BRANDS
+export async function getAllBrands(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
+
+  const brands = await Product.aggregate([
+    { $match: { brand: { $exists: true, $ne: "" } } },
+    { $project: { brand: { $trim: { input: { $toLower: "$brand" } } } } },
+    { $group: { _id: "$brand" } },
+    { $sort: { _id: 1 } },
+    { $project: { brand: "$_id", _id: 0 } },
+  ]);
+
+  return brands.map((b) =>
+    b.brand
+      .split(/\s+|-/)
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ")
+      .trim()
+  );
+}
+
+// GET ALL COLORS
+export async function getAllColors(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
+
+  const colors = await Product.aggregate([
+    { $match: { colors: { $exists: true, $ne: [] } } },
+    { $unwind: "$colors" },
+    {
+      $set: {
+        colors: {
+          $trim: { input: { $toLower: "$colors" } },
+        },
+      },
+    },
+    { $group: { _id: "$colors" } },
+    { $sort: { _id: 1 } },
+    { $project: { color: "$_id", _id: 0 } },
+  ]);
+
+  return colors.map((c) =>
+    c.color
+      .split(/\s+|-/)
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+      .trim()
+  );
+}
+// GET ALL SIZES
+export async function getAllSizes(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
+
+  const sizes = await Product.aggregate([
+    { $match: { sizes: { $exists: true, $ne: [] } } },
+    { $unwind: "$sizes" },
+    {
+      $set: {
+        sizes: {
+          $trim: { input: { $toLower: "$sizes" } },
+        },
+      },
+    },
+    { $group: { _id: "$sizes" } },
+    { $sort: { _id: 1 } },
+    { $project: { size: "$_id", _id: 0 } },
+  ]);
+
+  return sizes.map((s) =>
+    s.size
+      .split(/\s+|-/)
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+      .trim()
+  );
 }
