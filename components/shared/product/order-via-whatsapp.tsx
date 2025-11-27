@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import WhatsApp from "@/public/icons/whatsapp.svg";
 import Image from "next/image";
 
 interface OrderViaWhatsAppProps {
@@ -46,7 +45,7 @@ export default function OrderViaWhatsApp(props: OrderViaWhatsAppProps) {
       className="bg-green-500 hover:bg-green-600 text-white rounded-full w-full"
     >
       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-        <Image src={WhatsApp} alt="WhatsApp" width={22} height={22} />
+        <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={22} height={22} />
         Order via WhatsApp
       </a>
     </Button>

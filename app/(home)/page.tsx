@@ -25,7 +25,7 @@ const AsyncHomeCarousel = async () => {
   return <HomeCarousel items={carousels} />;
 };
 
-const featureds = await getProductsForCard({ tag: "featured" });
+// const featureds = await getProductsForCard({ tag: "featured" });
 
 const AsyncBestSellingProducts = async () => {
   "use cache";
@@ -105,9 +105,6 @@ const SkeletonProductSlider = () => (
 );
 const SkeletonBlogSlider = () => (
   <Skeleton className="h-64 w-full rounded-lg" />
-);
-const SkeletonBrowsingHistory = () => (
-  <Skeleton className="h-32 w-full rounded-lg" />
 );
 
 export default function HomePage() {
