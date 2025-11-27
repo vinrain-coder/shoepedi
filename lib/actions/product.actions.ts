@@ -321,11 +321,13 @@ export async function getAllProducts({
       : {};
   const categoryFilter = category && category !== "all" ? { category } : {};
   const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
-  const brandFilter = brand && brand!== "all" ? { brands: brand } : {}
-  const colorFilter = color && color !== "all" ? {colors: color } : {}
-  const sizeFilter = size && size !== "all" ? {sizes: size} : {}
-
-  const ratingFilter =
+  const brandFilter =
+  brand && brand !== "all" ? { brand } : {};
+ const colorFilter =
+  color && color !== "all" ? { colors: { $in: [color] } } : {};
+ const sizeFilter =
+  size && size !== "all" ? { sizes: { $in: [size] } } : {};
+ const ratingFilter =
     rating && rating !== "all"
       ? {
           avgRating: {
