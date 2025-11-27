@@ -15,43 +15,30 @@ interface OrderViaWhatsAppProps {
 
 const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
-export default function OrderViaWhatsApp({
-  productName,
-  color,
-  size,
-  quantity = 1,
-  price, // Use price in the message
-}: OrderViaWhatsAppProps) {
-  const [pageUrl, setPageUrl] = useState("");
+export default function OrderViaWhatsApp(props: OrderViaWhatsAppProps) {
+  const [whatsappUrl, setWhatsappUrl] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setPageUrl(window.location.href); // Get the current page URL
-    }
+    const totalPrice = props.price * (props.quantity || 1);
+    const formattedPrice = new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+    }).format(totalPrice);
+
+    const message = encodeURIComponent(`
+                                Hello ShoePedi, I'm interested in ordering:
+                                - Product: ${props.productName}
+                                - Variant: ${props.color} / Size: ${props.size}
+                                - Quantity: ${props.quantity || 1}
+                                - Price: ${formattedPrice}
+
+                                Link: ${window.location.href}
+                                    `);
+
+    setWhatsappUrl(`https://wa.me/${whatsappNumber}?text=${message}`);
   }, []);
 
-  if (!whatsappNumber) {
-    console.error("WhatsApp number is missing in the environment variables.");
-    return null;
-  }
-
-  const totalPrice = price * quantity; // Calculate total price
-  const formattedPrice = new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-  }).format(totalPrice);
-
-  const message = encodeURIComponent(
-    `Hello ShoePedi, I'm interested in ordering:
-- Product: ${productName}
-- Variant: ${color} / Size: ${size}
-- Quantity: ${quantity}
-- Price: ${formattedPrice}
-
-Link: ${pageUrl}`
-  );
-
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+  if (!whatsappUrl) return null; // prevent mismatched SSR
 
   return (
     <Button

@@ -37,7 +37,7 @@ export default function CartSidebar() {
           <div className="text-center space-y-2">
             <div>Subtotal</div>
             <div className="font-bold">
-              KES <ProductPrice price={itemsPrice} plain />
+              <ProductPrice price={itemsPrice} plain />
             </div>
             {itemsPrice > freeShippingMinPrice && (
               <div className="text-center text-xs">
@@ -73,7 +73,7 @@ export default function CartSidebar() {
                     </div>
                   </Link>
                   <div className="text-sm text-center font-bold">
-                    KES <ProductPrice price={item.price} plain />
+                    <ProductPrice price={item.price} plain />
                   </div>
                   <div className="flex gap-2 mt-2">
                     <Select

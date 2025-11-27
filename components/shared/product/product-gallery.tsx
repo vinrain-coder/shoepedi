@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/carousel";
 
 export default function ProductGallery({ images }: { images: string[] }) {
+  const blurImage = "/icons/logo.svg";
+
   // Validate images
   const validImages = useMemo(
     () =>
@@ -21,10 +23,12 @@ export default function ProductGallery({ images }: { images: string[] }) {
     [images]
   );
 
-  const safeImages = validImages.length ? validImages : ["/placeholder.png"];
+  const safeImages = validImages.length ? validImages : [blurImage];
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [carouselApi, setCarouselApi] = useState<any>(null);
+
+
 
   return (
     <>
@@ -65,8 +69,10 @@ export default function ProductGallery({ images }: { images: string[] }) {
                     fill
                     sizes="100vw"
                     className="object-contain"
-                    unoptimized
+                    //unoptimized
                     placeholder="blur"
+                    blurDataURL={blurImage}
+                    priority
                   />
                 </Zoom>
               </CarouselItem>
@@ -128,8 +134,9 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 sizes="90vw"
                 className="object-contain"
                 priority
-                unoptimized
+                //unoptimized
                 placeholder="blur"
+                blurDataURL={blurImage}
               />
             </div>
           </Zoom>

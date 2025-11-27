@@ -118,7 +118,7 @@ export default function OrderDetailsForm({
                     <TableCell>{item.color || "-"}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                      KES <ProductPrice price={item.price} plain />
+                       <ProductPrice price={item.price} plain />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -135,28 +135,28 @@ export default function OrderDetailsForm({
               <div>Items</div>
               <div>
                 {" "}
-                KES <ProductPrice price={itemsPrice} plain />
+                 <ProductPrice price={itemsPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Tax</div>
               <div>
                 {" "}
-                KES <ProductPrice price={taxPrice} plain />
+                <ProductPrice price={taxPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Shipping</div>
               <div>
                 {" "}
-                KES <ProductPrice price={shippingPrice} plain />
+                <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
               <div>Total</div>
               <div>
                 {" "}
-                KES <ProductPrice price={totalPrice} plain />
+                 <ProductPrice price={totalPrice} plain />
               </div>
             </div>
 

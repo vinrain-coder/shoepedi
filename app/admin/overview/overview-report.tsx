@@ -98,7 +98,7 @@ export default function OverviewReport() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="text-2xl font-bold">
-                KES <ProductPrice price={data.totalSales} plain />
+                <ProductPrice price={data.totalSales} plain />
               </div>
               <div>
                 <Link className="text-xs" href="/admin/orders">
@@ -221,7 +221,7 @@ export default function OverviewReport() {
                         {formatDateTime(order.createdAt).dateOnly}
                       </TableCell>
                       <TableCell>
-                       KES <ProductPrice price={order.totalPrice} plain />
+                       <ProductPrice price={order.totalPrice} plain />
                       </TableCell>
                       <TableCell>
                         <Link href={`/admin/orders/${order._id}`}>

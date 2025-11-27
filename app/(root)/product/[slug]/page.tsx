@@ -337,7 +337,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                           width={800}
                           height={450}
                           className="rounded-xl object-contain"
-                          unoptimized
                         />
                       );
                     },
