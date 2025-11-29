@@ -68,6 +68,6 @@ const couponSchema = new Schema<ICoupon>(
 );
 
 const Coupon =
-  (models.Coupon as Model<ICoupon>) || model<ICoupon>("Coupon", couponSchema);
+  (models?.Coupon as Model<ICoupon>) || model<ICoupon>("Coupon", couponSchema);
 
 export default Coupon;

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { IWebPage } from "@/lib/db/models/web-page.model";
 import { getAllWebPages } from "@/lib/actions/web-page.actions";
 import { cacheLife } from "next/cache";
+import { Button } from "@/components/ui/button";
 
 export default async function WebPagesList() {
   "use cache";
@@ -15,19 +16,19 @@ export default async function WebPagesList() {
       {pages.map((page: IWebPage) => (
         <Link key={page._id} href={`/page/${page.slug}`}>
           <Card key={page._id} className="hover:shadow-lg transition">
-            <CardContent className="p-4 space-y-2">
+            <CardContent className="p-4 space-y-2 items-center justify-center">
               <h2 className="font-bold text-lg text-center">{page.title}</h2>
               {/* {page.content && (
               <p className="text-sm text-muted-foreground line-clamp-3">
                 {page.content}
               </p>
             )} */}
-              <Link
+              <Button
+                variant="link"
                 className="text-primary underline text-sm text-center block"
-                href={`/page/${page.slug}`}
               >
                 View Page
-              </Link>
+              </Button>
             </CardContent>
           </Card>
         </Link>
