@@ -1,7 +1,7 @@
 "use client";
 import useSettingStore from "@/hooks/use-setting-store";
 import { cn } from "@/lib/utils";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter } from "next-intl";
 
 const ProductPrice = ({
   price,
@@ -18,11 +18,6 @@ const ProductPrice = ({
   forListing?: boolean;
   plain?: boolean;
 }) => {
-  const { getCurrency } = useSettingStore();
-  const currency = getCurrency();
-  const t = useTranslations();
-
-  const format = useFormatter();
   const discountPercent = Math.round(100 - (price / listPrice) * 100);
 
   // Format only the main price with commas
@@ -34,9 +29,9 @@ const ProductPrice = ({
     : [stringValue, ""];
 
   return plain ? (
-    format.number(price, {
+    formattedPrice.number(price, {
       style: "currency",
-      currency: currency.code,
+
       currencyDisplay: "narrowSymbol",
     })
   ) : listPrice == 0 ? (
@@ -49,22 +44,24 @@ const ProductPrice = ({
     <div className="space-y-2">
       <div className="flex justify-center items-center gap-2">
         <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
-          {discountPercent}% {t("Product.Off")}
+          {discountPercent}% Off
         </span>
         <span className="text-red-700 text-xs font-bold">
-          {t("Product.Limited time deal")}
+          Limited time deal
         </span>
       </div>
       <div
-        className={`flex ${forListing ? "justify-center" : "justify-start"} items-center gap-2 flex-wrap`}
+        className={`flex ${
+          forListing ? "justify-center" : "justify-start"
+        } items-center gap-2 flex-wrap`}
       >
         <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
+          <span className="text-xs align-super">KES</span>
           {intValue}
           <span className="text-xs align-super">{floatValue}</span>
         </div>
         <div className="text-muted-foreground text-xs whitespace-nowrap">
-          {t("Product.Was")}: KES.
+          Was: KES.
           <span className="line-through">{listPrice}</span>
         </div>
       </div>
@@ -76,14 +73,13 @@ const ProductPrice = ({
           -{discountPercent}%
         </div>
         <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
+          <span className="text-xs align-super">KES</span>
           {intValue}
           <span className="text-xs align-super">{floatValue}</span>
         </div>
       </div>
       <div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
-        {t("Product.List price")}:{" "}
-        <span className="line-through">KES {listPrice}</span>
+        List price: <span className="line-through">KES {listPrice}</span>
       </div>
     </div>
   );
