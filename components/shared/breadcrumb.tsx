@@ -62,7 +62,7 @@ export default function Breadcrumb() {
 
     return () => script.remove();
   }, [pathname]);
-  
+
   const truncate = (text: string, max = 18) => {
     return text.length > max ? text.slice(0, max) + "…" : text;
   };
@@ -81,7 +81,9 @@ export default function Breadcrumb() {
       </Link>
 
       {crumbs.length > 0 && (
-        <span className="mx-2 text-muted-foreground/50">/</span>
+        <span className="mx-2 text-muted-foreground/50">
+          <ChevronRight size={16} className="" />
+        </span>
       )}
 
       {crumbs.map((crumb, index) => (

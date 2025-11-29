@@ -16,6 +16,14 @@ import { X } from "lucide-react";
 import PriceControl from "./price-control";
 import SelectedFiltersPills from "./selected-filters-pills";
 import { toSlug } from "@/lib/utils";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 type ParamsShape = {
   q?: string;
@@ -240,72 +248,74 @@ export default function FiltersClient({
 
         {/* Colors */}
         <div>
-  <div className="font-bold mb-2">Colors</div>
-  <ul className="space-y-1">
-    <li>
-      <button
-        className={current.color === "all" ? "text-primary" : ""}
-        onClick={() => updateParam("color", "all")}
-      >
-        All
-      </button>
-    </li>
+          <div className="font-bold mb-2">Colors</div>
+          <ul className="space-y-1">
+            <li>
+              <button
+                className={current.color === "all" ? "text-primary" : ""}
+                onClick={() => updateParam("color", "all")}
+              >
+                All
+              </button>
+            </li>
 
-    {colors.map((c) => (
-      <li key={c} className="flex items-center space-x-2">
-        <button
-          className={c === current.color ? "text-primary flex items-center space-x-2" : "flex items-center space-x-2"}
-          onClick={() => updateParam("color", c)}
-        >
-          {/* 🔵 Color Dot */}
-          <div
-            className="h-4 w-4 rounded-full border border-muted-foreground"
-            style={{ backgroundColor: c }}
-          ></div>
+            {colors.map((c) => (
+              <li key={c} className="flex items-center space-x-2">
+                <button
+                  className={
+                    c === current.color
+                      ? "text-primary flex items-center space-x-2"
+                      : "flex items-center space-x-2"
+                  }
+                  onClick={() => updateParam("color", c)}
+                >
+                  {/* 🔵 Color Dot */}
+                  <div
+                    className="h-4 w-4 rounded-full border border-muted-foreground"
+                    style={{ backgroundColor: c }}
+                  ></div>
 
-          {/* Color Name */}
-          <span>{c}</span>
-        </button>
-      </li>
-    ))}
-  </ul>
-</div>
-          
+                  {/* Color Name */}
+                  <span>{c}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Sizes*/}
         <div>
-  <div className="font-bold mb-2">Sizes</div>
+          <div className="font-bold mb-2">Sizes</div>
 
-  <div className="grid grid-cols-3 gap-2"> 
-    {/* All Sizes button */}
-    <button
-      className={
-        current.size === "all"
-          ? "text-primary border px-2 py-1 rounded"
-          : "border px-2 py-1 rounded"
-      }
-      onClick={() => updateParam("size", "all")}
-    >
-      All
-    </button>
+          <div className="grid grid-cols-3 gap-2">
+            {/* All Sizes button */}
+            <button
+              className={
+                current.size === "all"
+                  ? "text-primary border px-2 py-1 rounded"
+                  : "border px-2 py-1 rounded"
+              }
+              onClick={() => updateParam("size", "all")}
+            >
+              All
+            </button>
 
-    {/* Size buttons */}
-    {sizes.map((s) => (
-      <button
-        key={s}
-        className={
-          s === current.size
-            ? "text-primary border px-2 py-1 rounded"
-            : "border px-2 py-1 rounded"
-        }
-        onClick={() => updateParam("size", s)}
-      >
-        {s}
-      </button>
-    ))}
-  </div>
-</div>
-
+            {/* Size buttons */}
+            {sizes.map((s) => (
+              <button
+                key={s}
+                className={
+                  s === current.size
+                    ? "text-primary border px-2 py-1 rounded-full"
+                    : "border px-2 py-1 rounded"
+                }
+                onClick={() => updateParam("size", s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -314,80 +324,65 @@ export default function FiltersClient({
     <>
       {/* Mobile */}
       <div className="md:hidden mb-2">
-        <Sheet open={open} onOpenChange={setOpen}>
+        <Drawer direction="left" open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
-            <SheetTrigger asChild>
+            <DrawerTrigger asChild>
               <Button className="rounded-full">Filters</Button>
-            </SheetTrigger>
+            </DrawerTrigger>
+
             <div className="flex-1">
               <SelectedFiltersPills params={current} onRemove={handleRemove} />
             </div>
           </div>
 
-          <SheetContent side="left" className="w-[90vw] max-w-md p-4">
+          <DrawerContent className="w-[90vw] max-w-md p-4 shadow-lg">
             <div className="flex flex-col h-full">
-              <SheetHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
-{/* Mobile */}
-<div className="md:hidden mb-2">
-  <Drawer direction="left" open={open} onOpenChange={setOpen}>
-    <div className="flex items-center gap-2 py-2">
-      <DrawerTrigger asChild>
-        <Button className="rounded-full">Filters</Button>
-      </DrawerTrigger>
+              {/* Header */}
+              <DrawerHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
+                <DrawerTitle>Filters</DrawerTitle>
+                <DrawerClose asChild>
+                  <Button variant="ghost">
+                    <X />
+                  </Button>
+                </DrawerClose>
+              </DrawerHeader>
 
-      <div className="flex-1">
-        <SelectedFiltersPills params={current} onRemove={handleRemove} />
+              {/* Selected filters */}
+              <div className="p-4 shadow-xs">
+                <SelectedFiltersPills
+                  params={current}
+                  onRemove={handleRemove}
+                />
+              </div>
+
+              {/* Filters content */}
+              <div
+                className="overflow-auto p-0"
+                style={{ maxHeight: "calc(100vh - 180px)" }}
+              >
+                <FiltersContent />
+              </div>
+
+              {/* Footer buttons */}
+              <div className="p-2 flex gap-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={clearAllLocal}
+                >
+                  Clear All
+                </Button>
+
+                <DrawerClose asChild>
+                  <Button className="flex-1" onClick={applyLocalToUrl}>
+                    Apply
+                  </Button>
+                </DrawerClose>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
-    </div>
-
-    <DrawerContent className="w-[90vw] max-w-md p-4 shadow-lg">
-      <div className="flex flex-col h-full">
-
-        {/* Header */}
-        <DrawerHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
-          <DrawerTitle>Filters</DrawerTitle>
-          <DrawerClose asChild>
-            <Button variant="ghost">
-              <X />
-            </Button>
-          </DrawerClose>
-        </DrawerHeader>
-
-        {/* Selected filters */}
-        <div className="p-4 shadow-xs">
-          <SelectedFiltersPills params={current} onRemove={handleRemove} />
-        </div>
-
-        {/* Filters content */}
-        <div
-          className="overflow-auto p-0"
-          style={{ maxHeight: "calc(100vh - 180px)" }}
-        >
-          <FiltersContent />
-        </div>
-
-        {/* Footer buttons */}
-        <div className="p-2 flex gap-4">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={clearAllLocal}
-          >
-            Clear All
-          </Button>
-
-          <DrawerClose asChild>
-            <Button className="flex-1" onClick={applyLocalToUrl}>
-              Apply
-            </Button>
-          </DrawerClose>
-        </div>
-
-      </div>
-    </DrawerContent>
-  </Drawer>
-</div>
-
 
       {/* Desktop */}
       <aside className="hidden md:block md:col-span-1">
@@ -404,5 +399,3 @@ export default function FiltersClient({
     </>
   );
 }
-
-

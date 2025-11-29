@@ -252,9 +252,11 @@ const CheckoutForm = () => {
               <Button onClick={handleApplyCoupon}>Apply</Button>
             </div>
             {discountAmount > 0 && (
-              <p className="text-green-600 mt-1">
+              <p className="mt-1">
                 Coupon applied — you saved{" "}
-                <ProductPrice price={discountAmount} plain />
+                <span className="text-green-600">
+                  <ProductPrice price={discountAmount} plain />
+                </span>
               </p>
             )}
             <div className="text-lg font-bold">Order Summary</div>
