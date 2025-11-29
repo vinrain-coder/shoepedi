@@ -70,8 +70,8 @@ const data = {
       icon: IconHelp,
     },
     {
-      title: "Marketing",
-      url: "#",
+      title: "Coupons",
+      url: "/admin/coupons",
       icon: IconSearch,
     },
   ],
@@ -148,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
-        <NavContent items={data.content}  />
+        <NavContent items={data.content} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

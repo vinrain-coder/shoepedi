@@ -70,8 +70,8 @@ const data = {
       icon: IconHelp,
     },
     {
-      title: "Marketing",
-      url: "#",
+      title: "Coupons",
+      url: "/admin/coupons",
       icon: IconSearch,
     },
   ],

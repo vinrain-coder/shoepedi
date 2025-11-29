@@ -87,14 +87,14 @@ const ProductPrice = ({
 
   // ✅ Normal pricing
   return numericList === 0 ? (
-    <div className={cn("text-2xl sm:text-3xl", className)}>
+    <div className={cn("text-lg sm:text-xl", className)}>
       <span className="text-xs align-super">KES</span>
       {formatPrice(safePrice)}
       <span className="text-xs align-super">{floatValue}</span>
     </div>
   ) : (
     <div className="flex items-center justify-center gap-1 flex-wrap">
-      <div className={cn("text-2xl sm:text-3xl font-semibold", className)}>
+      <div className={cn("text-lg sm:text-xl font-semibold", className)}>
         <span className="text-xs align-super">KES</span>
         {formatPrice(safePrice)}
         <span className="text-xs align-super">{floatValue}</span>

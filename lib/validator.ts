@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { formatNumberWithDecimal } from "./utils";
+import { DiscountType } from "./db/models/coupon.model";
 
 // Common
 const MongoId = z
@@ -36,11 +37,11 @@ const ProductInputBase = z.object({
   images: z.array(z.string()).min(1, "Product must have at least one image"),
   brand: z.string().min(1, "Brand is required"),
   videoLink: z
-  .string()
-  .optional()
-  .refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "Must be a valid URL",
-  }),
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().url().safeParse(val).success, {
+      message: "Must be a valid URL",
+    }),
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
@@ -406,3 +407,39 @@ export const CategoryInputSchema = CategoryBase.partial();
 export const CategoryUpdateSchema = CategoryBase.extend({
   _id: z.string({ required_error: "Category ID is required" }),
 }).partial();
+
+// Coupon input schema
+export const CouponInputSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(3, "Coupon code must be at least 3 characters")
+    .max(20, "Coupon code must be at most 20 characters")
+    .toUpperCase(),
+  discountType: z.nativeEnum(DiscountType, {
+    errorMap: () => ({
+      message: "Discount type must be 'percentage' or 'fixed'",
+    }),
+  }),
+  discountValue: Price("Discount value"), // Correct ✅
+  minPurchase: Price("Minimum purchase").optional(), // Correct ✅
+
+  expiryDate: z
+    .date()
+    .optional()
+    .refine(
+      (value) => !value || value > new Date(),
+      "Expiry date must be in the future"
+    ),
+  maxUsage: z
+    .number()
+    .int()
+    .positive("Max usage must be a positive integer")
+    .optional(),
+  isActive: z.boolean().default(true),
+});
+
+// Coupon update schema (includes `_id`)
+export const CouponUpdateSchema = CouponInputSchema.extend({
+  _id: MongoId,
+});

@@ -113,14 +113,12 @@ const updateProductStock = async (orderId: string) => {
     await session.commitTransaction();
     session.endSession();
     return true;
-
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     throw error;
   }
 };
-    
 
 export async function deliverOrder(orderId: string) {
   try {
@@ -249,9 +247,9 @@ export const calcDeliveryDateAndPrice = async ({
     !shippingAddress || !deliveryDate
       ? undefined
       : deliveryDate.freeShippingMinPrice > 0 &&
-          itemsPrice >= deliveryDate.freeShippingMinPrice
-        ? 0
-        : deliveryDate.shippingPrice;
+        itemsPrice >= deliveryDate.freeShippingMinPrice
+      ? 0
+      : deliveryDate.shippingPrice;
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
   const totalPrice = round2(
@@ -513,13 +511,18 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 1. Load order with populated user
     // ----------------------------------------------------
-    let order = await Order.findById(orderId)
-      .populate<{ user: { email: string; name: string } }>("user", "name email");
+    let order = await Order.findById(orderId).populate<{
+      user: { email: string; name: string };
+    }>("user", "name email");
 
     if (!order) throw new Error("Order not found");
     if (order.isPaid) throw new Error("Order is already paid");
 
-    if (!paymentInfo.id || !paymentInfo.email_address || !paymentInfo.pricePaid) {
+    if (
+      !paymentInfo.id ||
+      !paymentInfo.email_address ||
+      !paymentInfo.pricePaid
+    ) {
       throw new Error("Missing required payment information");
     }
 
@@ -534,7 +537,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
-    await updateProductStockSafe(order._id);
+    await updateProductStock(order._id);
 
     // ----------------------------------------------------
     // 4. Email receipt
@@ -556,9 +559,7 @@ export async function markPaystackOrderAsPaid(
     revalidatePath(`/account/orders/${orderId}`);
 
     return { success: true, message: "Order paid successfully" };
-
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
-                                       }
-      
+}

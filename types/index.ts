@@ -3,6 +3,7 @@ import {
   CarouselSchema,
   CartSchema,
   CategoryInputSchema,
+  CouponInputSchema,
   DeliveryDateSchema,
   OrderInputSchema,
   OrderItemSchema,
@@ -82,7 +83,7 @@ export type IWebPageInput = z.infer<typeof WebPageInputSchema>;
 // setting
 export type ICarousel = z.infer<typeof CarouselSchema>;
 export type ISettingInput = z.infer<typeof SettingInputSchema>;
-export type ClientSetting = ISettingInput 
+export type ClientSetting = ISettingInput;
 export type SiteLanguage = z.infer<typeof SiteLanguageSchema>;
 export type SiteCurrency = z.infer<typeof SiteCurrencySchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
@@ -93,3 +94,6 @@ export type IBlogInput = z.infer<typeof BlogInputSchema>;
 
 // stock subscription
 export type StockSubscription = z.infer<typeof StockSubscriptionSchema>;
+
+// coupon
+export type ICouponInput = z.infer<typeof CouponInputSchema>;
