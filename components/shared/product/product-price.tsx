@@ -1,7 +1,7 @@
 "use client";
 import useSettingStore from "@/hooks/use-setting-store";
 import { cn } from "@/lib/utils";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter } from "next-intl";
 
 const ProductPrice = ({
   price,
@@ -20,7 +20,7 @@ const ProductPrice = ({
 }) => {
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
-  const t = useTranslations();
+  
 
   const format = useFormatter();
   const discountPercent = Math.round(100 - (price / listPrice) * 100);
@@ -49,10 +49,10 @@ const ProductPrice = ({
     <div className="space-y-2">
       <div className="flex justify-center items-center gap-2">
         <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
-          {discountPercent}% {t("Product.Off")}
+          {discountPercent}% Off
         </span>
         <span className="text-red-700 text-xs font-bold">
-          {t("Product.Limited time deal")}
+          Limited time deal
         </span>
       </div>
       <div
@@ -63,8 +63,7 @@ const ProductPrice = ({
           {intValue}
           <span className="text-xs align-super">{floatValue}</span>
         </div>
-        <div className="text-muted-foreground text-xs whitespace-nowrap">
-          {t("Product.Was")}: KES.
+        <div className="text-muted-foreground text-xsWas")}: KES.
           <span className="line-through">{listPrice}</span>
         </div>
       </div>
