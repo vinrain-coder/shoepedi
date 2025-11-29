@@ -14,9 +14,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { CouponInputSchema, DiscountType } from "@/lib/validator";
+import { CouponInputSchema } from "@/lib/validator";
 import { createCoupon, updateCoupon } from "@/lib/actions/coupon.actions";
 import { ICouponInput } from "@/types";
+import { DiscountType } from "@/lib/db/models/coupon.model";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
