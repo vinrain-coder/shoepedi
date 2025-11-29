@@ -30,12 +30,9 @@ const ProductPrice = ({
     : [stringValue, ""];
 
   if (plain) {
-    return new Intl.NumberFormat("en-US", {
-      //style: "currency",
-      //currency: currency.code,
-      currencyDisplay: "narrowSymbol",
-    }).format(price);
+  return `KES ${new Intl.NumberFormat("en-US").format(price)}`;
   }
+  
 
   // ✅ Deal styling
   if (isDeal && listPrice > price) {
