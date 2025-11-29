@@ -152,6 +152,14 @@ export const OrderInputSchema = z.object({
   deliveredAt: z.date().optional(),
   isPaid: z.boolean().default(false),
   paidAt: z.date().optional(),
+  coupon: z
+    .object({
+      _id: MongoId.optional(),
+      code: z.string(),
+      discountType: z.enum(["percentage", "fixed"]),
+      discountAmount: Price("Discount amount"),
+    })
+    .optional(),
 });
 // Cart
 

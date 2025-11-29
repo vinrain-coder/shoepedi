@@ -11,6 +11,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const PaystackInline = dynamic(
   () => import("../paystack-inline"),
@@ -28,6 +29,9 @@ export default function OrderDetailsForm({
   const { data: session } = authClient.useSession();
 
   const router = useRouter();
+  const [couponCode, setCouponCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+
   const {
     shippingAddress,
     items,
@@ -83,11 +87,26 @@ export default function OrderDetailsForm({
                 )}
               </span>
             </div>
-            <div className="flex justify-between  pt-1 font-bold text-lg">
-              <span> Order Total:</span>
+            {order.coupon && (
+              <div className="flex justify-between">
+                <span>Coupon ({order.coupon.code}):</span>
+                <span className="text-green-600">
+                  -<ProductPrice price={order.coupon.discountAmount} plain />
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between pt-1 font-bold text-lg">
+              <span>Order Total:</span>
               <span>
-                {" "}
-                 <ProductPrice price={totalPrice} plain />
+                <ProductPrice
+                  price={
+                    order.coupon
+                      ? Math.max(0, totalPrice - order.coupon.discountAmount)
+                      : totalPrice
+                  }
+                  plain
+                />
               </span>
             </div>
 

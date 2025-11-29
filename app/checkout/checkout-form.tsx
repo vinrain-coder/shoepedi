@@ -43,6 +43,7 @@ import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
 import { IOrder } from "@/lib/db/models/order.model";
 import { AlertCircle } from "lucide-react";
+import { validateCoupon } from "@/lib/actions/coupon.actions";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -72,6 +73,18 @@ const shippingAddressDefaultValues =
 
 const CheckoutForm = () => {
   const router = useRouter();
+  const [couponCode, setCouponCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const handleApplyCoupon = async () => {
+    try {
+      const result = await validateCoupon(couponCode, totalPrice);
+      setDiscountAmount(result.discount);
+      toast.success("Coupon applied successfully");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   const {
     setting: {
       site,
@@ -273,15 +286,48 @@ const CheckoutForm = () => {
                   "--"
                 ) : (
                   <span>
-                   <ProductPrice price={taxPrice} plain />
+                    <ProductPrice price={taxPrice} plain />
                   </span>
                 )}
               </span>
             </div>
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium">
+                Coupon Code
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="Enter coupon code"
+                />
+                <Button onClick={handleApplyCoupon}>Apply</Button>
+              </div>
+
+              {discountAmount > 0 && (
+                <p className="text-green-600 mt-1">
+                  Coupon applied — you saved{" "}
+                  <ProductPrice price={discountAmount} plain />
+                </p>
+              )}
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between">
+                <span>Coupon Discount:</span>
+                <span>
+                  -<ProductPrice price={discountAmount} plain />
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between  pt-4 font-bold text-lg">
               <span> Order Total:</span>
               <span>
-                <ProductPrice price={totalPrice} plain />
+                <ProductPrice
+                  price={Math.max(0, totalPrice - discountAmount)}
+                  plain
+                />
               </span>
             </div>
           </div>
@@ -713,7 +759,6 @@ const CheckoutForm = () => {
                                         "FREE Shipping"
                                       ) : (
                                         <span>
-                                          
                                           <ProductPrice
                                             price={dd.shippingPrice}
                                             plain
@@ -752,7 +797,7 @@ const CheckoutForm = () => {
                   createdOrder && (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)}
+                      amount={Math.round((totalPrice - discountAmount) * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
                       onSuccess={() =>
@@ -771,7 +816,7 @@ const CheckoutForm = () => {
                   createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round(totalPrice * 100)}
+                      amount={Math.round((totalPrice - discountAmount) * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
                       onSuccess={() =>

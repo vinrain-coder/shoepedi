@@ -39,7 +39,13 @@ export const createOrder = async (clientSideCart: Cart) => {
 
 export const createOrderFromCart = async (
   clientSideCart: Cart,
-  userId: string
+  userId: string,
+  coupon?: {
+    _id?: string;
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountAmount: number;
+  }
 ) => {
   const cart = {
     ...clientSideCart,
@@ -50,6 +56,17 @@ export const createOrderFromCart = async (
     }),
   };
 
+  // Apply coupon if available
+  let totalPrice = cart.totalPrice;
+  if (coupon) {
+    if (coupon.discountType === "percentage") {
+      totalPrice -= (totalPrice * coupon.discountAmount) / 100;
+    } else if (coupon.discountType === "fixed") {
+      totalPrice -= coupon.discountAmount;
+    }
+    totalPrice = Math.max(0, parseFloat(totalPrice.toFixed(2))); // prevent negative totals
+  }
+
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
@@ -58,8 +75,16 @@ export const createOrderFromCart = async (
     itemsPrice: cart.itemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
-    totalPrice: cart.totalPrice,
+    totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
+    coupon: coupon
+      ? {
+          _id: coupon._id,
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountAmount: coupon.discountAmount,
+        }
+      : undefined,
   });
   return await Order.create(order);
 };

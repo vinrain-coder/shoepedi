@@ -1,10 +1,18 @@
 import { IOrderInput } from "@/types";
 import { Document, Model, model, models, Schema } from "mongoose";
 
+export interface ICouponInfo {
+  _id?: string; // optional if referencing a coupon document
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountAmount: number;
+}
+
 export interface IOrder extends Document, IOrderInput {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
+  coupon?: ICouponInfo;
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -48,6 +56,12 @@ const orderSchema = new Schema<IOrder>(
     itemsPrice: { type: Number, required: true },
     shippingPrice: { type: Number, required: true },
     taxPrice: { type: Number, required: true },
+    coupon: {
+      _id: { type: Schema.Types.ObjectId, ref: "Coupon" },
+      code: { type: String },
+      discountType: { type: String, enum: ["percentage", "fixed"] },
+      discountAmount: { type: Number },
+    },
     totalPrice: { type: Number, required: true },
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },
