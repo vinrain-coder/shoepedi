@@ -204,7 +204,6 @@ const CheckoutForm = () => {
     paymentMethod: string;
     handlePlaceOrder: () => void;
   }) => (
-    
     <Card>
       <CardContent className="p-4">
         {!isAddressSelected && (
@@ -237,66 +236,61 @@ const CheckoutForm = () => {
             </p>
           </div>
         )}
-        {isPaymentMethodSelected && isAddressSelected && (
-        
 
         <div>
           <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Coupon Code
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="Enter coupon code"
-                />
-                <Button onClick={handleApplyCoupon}>Apply</Button>
-              </div>
+            <label className="block mb-1 text-sm font-medium">
+              Coupon Code
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Enter coupon code"
+              />
+              <Button onClick={handleApplyCoupon}>Apply</Button>
+            </div>
             {discountAmount > 0 && (
-                <p className="text-green-600 mt-1">
-                  Coupon applied — you saved{" "}
-                  <ProductPrice price={discountAmount} plain />
-                </p>
-              )}
-          <div className="text-lg font-bold">Order Summary</div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Items:</span>
-              <span>
-                <ProductPrice price={itemsPrice} plain />
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping & Handling:</span>
-              <span>
-                {shippingPrice === undefined ? (
-                  "--"
-                ) : shippingPrice === 0 ? (
-                  "FREE"
-                ) : (
-                  <span>
-                    <ProductPrice price={shippingPrice} plain />
-                  </span>
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span> Tax:</span>
-              <span>
-                {taxPrice === undefined ? (
-                  "--"
-                ) : (
-                  <span>
-                    <ProductPrice price={taxPrice} plain />
-                  </span>
-                )}
-              </span>
-            </div>
-        
-
-            
+              <p className="text-green-600 mt-1">
+                Coupon applied — you saved{" "}
+                <ProductPrice price={discountAmount} plain />
+              </p>
+            )}
+            <div className="text-lg font-bold">Order Summary</div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Items:</span>
+                <span>
+                  <ProductPrice price={itemsPrice} plain />
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping & Handling:</span>
+                <span>
+                  {shippingPrice === undefined ? (
+                    "--"
+                  ) : shippingPrice === 0 ? (
+                    "FREE"
+                  ) : (
+                    <span>
+                      <ProductPrice price={shippingPrice} plain />
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span> Tax:</span>
+                <span>
+                  {taxPrice === undefined ? (
+                    "--"
+                  ) : (
+                    <span>
+                      <ProductPrice price={taxPrice} plain />
+                    </span>
+                  )}
+                </span>
+              </div>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between">
@@ -319,23 +313,22 @@ const CheckoutForm = () => {
           </div>
         </div>
         <div>
-            <Button
-              onClick={handlePlaceOrder}
-              className="rounded-full w-full cursor-pointer"
-              hidden={
-                paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
-                !!createdOrder
-              }
-            >
-              Place Your Order
-            </Button>
-            <p className="text-xs text-center py-2">
-              By placing your order, you agree to {site.name}&apos;s{" "}
-              <Link href="/page/privacy-policy">privacy notice</Link> and
-              <Link href="/page/conditions-of-use"> conditions of use</Link>.
-            </p>
-          </div>
-        )}
+          <Button
+            onClick={handlePlaceOrder}
+            className="rounded-full w-full cursor-pointer"
+            hidden={
+              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+              !!createdOrder
+            }
+          >
+            Place Your Order
+          </Button>
+          <p className="text-xs text-center py-2">
+            By placing your order, you agree to {site.name}&apos;s{" "}
+            <Link href="/page/privacy-policy">privacy notice</Link> and
+            <Link href="/page/conditions-of-use"> conditions of use</Link>.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

@@ -18,6 +18,7 @@ import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
+import { useState } from "react";
 
 export default function OrderDetailsForm({
   order,
@@ -40,6 +41,9 @@ export default function OrderDetailsForm({
     deliveredAt,
     expectedDeliveryDate,
   } = order;
+
+  const [couponCode, setCouponCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   return (
     <div className="grid md:grid-cols-3 gap-2 md:gap-5">
@@ -118,7 +122,7 @@ export default function OrderDetailsForm({
                     <TableCell>{item.color || "-"}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                       <ProductPrice price={item.price} plain />
+                      <ProductPrice price={item.price} plain />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -135,7 +139,7 @@ export default function OrderDetailsForm({
               <div>Items</div>
               <div>
                 {" "}
-                 <ProductPrice price={itemsPrice} plain />
+                <ProductPrice price={itemsPrice} plain />
               </div>
             </div>
             <div className="flex justify-between">
@@ -152,11 +156,20 @@ export default function OrderDetailsForm({
                 <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
+            {order.coupon && (
+              <div className="flex justify-between">
+                <span>Coupon ({order.coupon.code}):</span>
+                <span className="text-green-600">
+                  -<ProductPrice price={order.coupon.discountAmount} plain />
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between">
               <div>Total</div>
               <div>
                 {" "}
-                 <ProductPrice price={totalPrice} plain />
+                <ProductPrice price={totalPrice - discountAmount} plain />
               </div>
             </div>
 

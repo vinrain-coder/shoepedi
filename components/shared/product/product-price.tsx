@@ -91,7 +91,7 @@ const ProductPrice = ({
         <span className="text-xs align-super">{floatValue}</span>
       </div>
       <div className="text-muted-foreground line-through text-md">
-      KES {formatPrice(listPrice)}
+        KES {formatPrice(listPrice)}
       </div>
     </div>
   );
