@@ -271,7 +271,7 @@ export default function FiltersClient({
                 >
                   {/* 🔵 Color Dot */}
                   <div
-                    className="h-4 w-4 rounded-full border border-muted-foreground"
+                    className="h-5 w-5 rounded-full border border-muted-foreground"
                     style={{ backgroundColor: c }}
                   ></div>
 
@@ -292,8 +292,8 @@ export default function FiltersClient({
             <button
               className={
                 current.size === "all"
-                  ? "text-primary border px-2 py-1 rounded"
-                  : "border px-2 py-1 rounded"
+                  ? "text-primary border px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full"
               }
               onClick={() => updateParam("size", "all")}
             >
@@ -306,8 +306,8 @@ export default function FiltersClient({
                 key={s}
                 className={
                   s === current.size
-                    ? "text-primary border px-2 py-1 rounded-full"
-                    : "border px-2 py-1 rounded"
+                    ? "text-primary border border-primary px-2 py-1 rounded-full"
+                    : "border px-2 py-1 rounded-full"
                 }
                 onClick={() => updateParam("size", s)}
               >
