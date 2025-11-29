@@ -240,53 +240,72 @@ export default function FiltersClient({
 
         {/* Colors */}
         <div>
-          <div className="font-bold mb-2">Colors</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.color === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("color", "all")}
-              >
-                All
-              </button>
-            </li>
-            {colors.map((c) => (
-              <li key={c}>
-                <button
-                  className={c === current.color ? "text-primary" : ""}
-                  onClick={() => updateParam("color", c)}
-                >
-                  {c}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+  <div className="font-bold mb-2">Colors</div>
+  <ul className="space-y-1">
+    <li>
+      <button
+        className={current.color === "all" ? "text-primary" : ""}
+        onClick={() => updateParam("color", "all")}
+      >
+        All
+      </button>
+    </li>
+
+    {colors.map((c) => (
+      <li key={c} className="flex items-center space-x-2">
+        <button
+          className={c === current.color ? "text-primary flex items-center space-x-2" : "flex items-center space-x-2"}
+          onClick={() => updateParam("color", c)}
+        >
+          {/* 🔵 Color Dot */}
+          <div
+            className="h-4 w-4 rounded-full border border-muted-foreground"
+            style={{ backgroundColor: c }}
+          ></div>
+
+          {/* Color Name */}
+          <span>{c}</span>
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
+          
 
         {/* Sizes*/}
         <div>
-          <div className="font-bold mb-2">Sizes</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.size === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("size", "all")}
-              >
-                All
-              </button>
-            </li>
-            {sizes.map((s) => (
-              <li key={s}>
-                <button
-                  className={s === current.size ? "text-primary" : ""}
-                  onClick={() => updateParam("size", s)}
-                >
-                  {s}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+  <div className="font-bold mb-2">Sizes</div>
+
+  <div className="grid grid-cols-3 gap-2"> 
+    {/* All Sizes button */}
+    <button
+      className={
+        current.size === "all"
+          ? "text-primary border px-2 py-1 rounded"
+          : "border px-2 py-1 rounded"
+      }
+      onClick={() => updateParam("size", "all")}
+    >
+      All
+    </button>
+
+    {/* Size buttons */}
+    {sizes.map((s) => (
+      <button
+        key={s}
+        className={
+          s === current.size
+            ? "text-primary border px-2 py-1 rounded"
+            : "border px-2 py-1 rounded"
+        }
+        onClick={() => updateParam("size", s)}
+      >
+        {s}
+      </button>
+    ))}
+  </div>
+</div>
+
       </div>
     );
   }
@@ -364,3 +383,4 @@ export default function FiltersClient({
     </>
   );
 }
+
