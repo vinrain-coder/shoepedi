@@ -157,21 +157,28 @@ export default function OrderDetailsForm({
               </div>
             </div>
             {order.coupon && (
-              <div className="flex justify-between">
-                <span>Coupon ({order.coupon.code}):</span>
-                <span className="text-green-600">
-                  -<ProductPrice price={order.coupon.discountAmount} plain />
-                </span>
-              </div>
-            )}
+  <div className="flex justify-between">
+    <span>Coupon ({order.coupon.code}):</span>
+    <span className="text-green-600">
+      -<ProductPrice price={order.coupon.discountAmount} plain />
+    </span>
+  </div>
+)}
 
-            <div className="flex justify-between">
-              <div>Total</div>
-              <div>
-                {" "}
-                <ProductPrice price={totalPrice - discountAmount} plain />
-              </div>
-            </div>
+<div className="flex justify-between font-bold text-lg pt-2">
+  <div>Total</div>
+  <div>
+    <ProductPrice
+      price={
+        order.coupon
+          ? Math.max(0, totalPrice - order.coupon.discountAmount)
+          : totalPrice
+      }
+      plain
+    />
+  </div>
+</div>
+        
 
             {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
               <ActionButton
