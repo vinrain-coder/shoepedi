@@ -42,9 +42,6 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
   } = order;
 
-  const [couponCode, setCouponCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
-
   return (
     <div className="grid md:grid-cols-3 gap-2 md:gap-5">
       <div className="overflow-x-auto md:col-span-2 space-y-4">
@@ -165,18 +162,17 @@ export default function OrderDetailsForm({
   </div>
 )}
 
-<div className="flex justify-between font-bold text-lg pt-2">
-  <div>Total</div>
-  <div>
+<div className="flex justify-between pt-2 font-bold text-lg">
+  <span>Order Total:</span>
+  <span>
     <ProductPrice
-      price={
-        order.coupon
-          ? Math.max(0, totalPrice - order.coupon.discountAmount)
-          : totalPrice
-      }
+      price={Math.max(
+        0,
+        totalPrice - (order.coupon?.discountAmount || 0)
+      )}
       plain
     />
-  </div>
+  </span>
 </div>
         
 
