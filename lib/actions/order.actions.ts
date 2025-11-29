@@ -84,6 +84,7 @@ export async function updateOrderToPaid(orderId: string) {
     return { success: false, message: formatError(err) };
   }
 }
+
 const updateProductStock = async (orderId: string) => {
   const session = await mongoose.connection.startSession();
 
@@ -91,33 +92,36 @@ const updateProductStock = async (orderId: string) => {
     session.startTransaction();
     const opts = { session };
 
-    const order = await Order.findOneAndUpdate(
-      { _id: orderId },
-      { isPaid: true, paidAt: new Date() },
-      opts
-    );
+    // IMPORTANT: load the full order, not findOneAndUpdate
+    const order = await Order.findById(orderId).session(session);
     if (!order) throw new Error("Order not found");
 
+    // update stock item-by-item
     for (const item of order.items) {
       const product = await Product.findById(item.product).session(session);
       if (!product) throw new Error("Product not found");
 
       product.countInStock -= item.quantity;
+
       await Product.updateOne(
         { _id: product._id },
         { countInStock: product.countInStock },
         opts
       );
     }
+
     await session.commitTransaction();
     session.endSession();
     return true;
+
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     throw error;
   }
 };
+    
+
 export async function deliverOrder(orderId: string) {
   try {
     await connectToDatabase();
@@ -506,33 +510,55 @@ export async function markPaystackOrderAsPaid(
   try {
     await connectToDatabase();
 
-    const order = await Order.findById(orderId).populate<{
-      user: { email: string; name: string };
-    }>("user", "name email");
+    // ----------------------------------------------------
+    // 1. Load order with populated user
+    // ----------------------------------------------------
+    let order = await Order.findById(orderId)
+      .populate<{ user: { email: string; name: string } }>("user", "name email");
 
     if (!order) throw new Error("Order not found");
     if (order.isPaid) throw new Error("Order is already paid");
 
-    // Ensure required fields exist
-    if (
-      !paymentInfo.id ||
-      !paymentInfo.email_address ||
-      !paymentInfo.pricePaid
-    ) {
+    if (!paymentInfo.id || !paymentInfo.email_address || !paymentInfo.pricePaid) {
       throw new Error("Missing required payment information");
     }
 
+    // ----------------------------------------------------
+    // 2. Update payment result (BUT DO NOT update stock here)
+    // ----------------------------------------------------
     order.isPaid = true;
     order.paidAt = new Date();
-    order.paymentResult = paymentInfo; // now matches model type
+    order.paymentResult = paymentInfo;
     await order.save();
 
-    if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order._id);
-    if (order.user.email) await sendPurchaseReceipt({ order });
+    // ----------------------------------------------------
+    // 3. ALWAYS update stock (also inside transactions)
+    // ----------------------------------------------------
+    await updateProductStockSafe(order._id);
+
+    // ----------------------------------------------------
+    // 4. Email receipt
+    // ----------------------------------------------------
+    if (!order.user || !order.user.email) {
+      const populatedUser = await User.findById(order.user);
+      if (populatedUser?.email) {
+        order.user = populatedUser;
+      }
+    }
+
+    if (order.user?.email) {
+      await sendPurchaseReceipt({ order });
+    }
+
+    // ----------------------------------------------------
+    // 5. Revalidate cache & return
+    // ----------------------------------------------------
     revalidatePath(`/account/orders/${orderId}`);
+
     return { success: true, message: "Order paid successfully" };
+
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
-}
+                                       }
+      
