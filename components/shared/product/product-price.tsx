@@ -2,7 +2,6 @@
 import useSettingStore from "@/hooks/use-setting-store";
 import { cn } from "@/lib/utils";
 import { useFormatter, useTranslations } from "next-intl";
-
 const ProductPrice = ({
   price,
   className,
