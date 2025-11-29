@@ -327,46 +327,67 @@ export default function FiltersClient({
           <SheetContent side="left" className="w-[90vw] max-w-md p-4">
             <div className="flex flex-col h-full">
               <SheetHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
-                <SheetTitle>Filters</SheetTitle>
-                <SheetClose asChild>
-                  <Button variant="ghost">
-                    <X />
-                  </Button>
-                </SheetClose>
-              </SheetHeader>
+{/* Mobile */}
+<div className="md:hidden mb-2">
+  <Drawer direction="left" open={open} onOpenChange={setOpen}>
+    <div className="flex items-center gap-2 py-2">
+      <DrawerTrigger asChild>
+        <Button className="rounded-full">Filters</Button>
+      </DrawerTrigger>
 
-              <div className="p-4 shadow-xs">
-                <SelectedFiltersPills
-                  params={current}
-                  onRemove={handleRemove}
-                />
-              </div>
-
-              <div
-                className="overflow-auto p-0"
-                style={{ maxHeight: "calc(100vh - 180px)" }}
-              >
-                <FiltersContent />
-              </div>
-
-              <div className="p-2 flex gap-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={clearAllLocal}
-                >
-                  Clear All
-                </Button>
-                <SheetClose asChild>
-                  <Button className="flex-1" onClick={applyLocalToUrl}>
-                    Apply
-                  </Button>
-                </SheetClose>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+      <div className="flex-1">
+        <SelectedFiltersPills params={current} onRemove={handleRemove} />
       </div>
+    </div>
+
+    <DrawerContent className="w-[90vw] max-w-md p-4 shadow-lg">
+      <div className="flex flex-col h-full">
+
+        {/* Header */}
+        <DrawerHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
+          <DrawerTitle>Filters</DrawerTitle>
+          <DrawerClose asChild>
+            <Button variant="ghost">
+              <X />
+            </Button>
+          </DrawerClose>
+        </DrawerHeader>
+
+        {/* Selected filters */}
+        <div className="p-4 shadow-xs">
+          <SelectedFiltersPills params={current} onRemove={handleRemove} />
+        </div>
+
+        {/* Filters content */}
+        <div
+          className="overflow-auto p-0"
+          style={{ maxHeight: "calc(100vh - 180px)" }}
+        >
+          <FiltersContent />
+        </div>
+
+        {/* Footer buttons */}
+        <div className="p-2 flex gap-4">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={clearAllLocal}
+          >
+            Clear All
+          </Button>
+
+          <DrawerClose asChild>
+            <Button className="flex-1" onClick={applyLocalToUrl}>
+              Apply
+            </Button>
+          </DrawerClose>
+        </div>
+
+      </div>
+    </DrawerContent>
+  </Drawer>
+</div>
+
 
       {/* Desktop */}
       <aside className="hidden md:block md:col-span-1">
@@ -383,4 +404,5 @@ export default function FiltersClient({
     </>
   );
 }
+
 
