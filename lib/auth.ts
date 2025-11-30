@@ -53,15 +53,18 @@ export const auth = betterAuth({
       },
     },
     additionalFields: {
-      role: {
-        type: "string",
-        input: false,
-      },
-      wishlist: {
-        type: "json",
-        defaultValue: [],
-      },
-    },
+  role: {
+    type: "string",
+    input: false,
+    defaultValue: "USER",
+    options: ["USER", "ADMIN"],
+  },
+  wishlist: {
+    type: "json",
+    defaultValue: [],
+  },
+},
+    
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
@@ -80,21 +83,26 @@ export const auth = betterAuth({
       }
     }),
   },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (user) => {
-          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-          if (ADMIN_EMAILS.includes(user.email)) {
-            return { data: { ...user, role: "ADMIN" } };
-          }
+databaseHooks: {
+  user: {
+    create: {
+      before: async (user) => {
+        const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-          return { data: user };
-        },
+        const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
+
+        if (ADMIN_EMAILS.includes(user.email)) {
+          return { data: { ...user, role: "ADMIN", wishlist } };
+        }
+
+        return { data: { ...user, wishlist } };
       },
     },
   },
+},
+    
+  
   account: {
     accountLinking: {
       enabled: true,
