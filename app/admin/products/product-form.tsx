@@ -229,31 +229,22 @@ const ProductForm = ({
             name="listPrice"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Price</FormLabel>
+                <FormLabel>List Price</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter main price"
-                    {...field}
-                  />
+                  <Input placeholder="Enter product list price" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Offer Price</FormLabel>
+                <FormLabel>Net Price</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter offer price"
-                    {...field}
-                  />
+                  <Input placeholder="Enter product price" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -325,20 +316,24 @@ const ProductForm = ({
               <FormItem className="w-full">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <MarkdownEditor
-                    {...field}
-                    style={{ height: "500px" }}
-                    onChange={({ text }) => form.setValue("description", text)}
-                    renderHTML={(text) => (
-                      <div
-                        className={`prose max-w-none ${
-                          theme === "dark" ? "prose-invert" : ""
-                        }`}
-                      >
-                        <ReactMarkdown>{text}</ReactMarkdown>
-                      </div>
-                    )}
-                  />
+                  <div className="w-full overflow-x-scroll">
+                    <MarkdownEditor
+                      {...field}
+                      style={{ height: "500px" }}
+                      onChange={({ text }) =>
+                        form.setValue("description", text)
+                      }
+                      renderHTML={(text) => (
+                        <div
+                          className={`prose max-w-none ${
+                            theme === "dark" ? "prose-invert" : ""
+                          }`}
+                        >
+                          <ReactMarkdown>{text}</ReactMarkdown>
+                        </div>
+                      )}
+                    />
+                  </div>
                 </FormControl>
                 <FormDescription>
                   You can <span>@mention</span> other users and organizations to

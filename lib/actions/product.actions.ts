@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { formatError } from "../utils";
 import { ProductInputSchema, ProductUpdateSchema } from "../validator";
 import { IProductInput } from "@/types";
@@ -22,6 +22,7 @@ export async function createProduct(data: IProductInput) {
     await connectToDatabase();
     await Product.create(product);
     revalidatePath("/admin/products");
+    updateTag("products");
     return {
       success: true,
       message: "Product created successfully",
@@ -38,6 +39,7 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
     await connectToDatabase();
     await Product.findByIdAndUpdate(product._id, product);
     revalidatePath("/admin/products");
+    updateTag("products");
     return {
       success: true,
       message: "Product updated successfully",
@@ -71,6 +73,7 @@ export async function deleteProduct(id: string) {
     await Product.findByIdAndDelete(id);
 
     revalidatePath("/admin/products");
+    updateTag("products");
 
     return {
       success: true,
@@ -85,6 +88,7 @@ export async function deleteProduct(id: string) {
 export async function getProductById(productId: string) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const product = await Product.findById(productId);
   return JSON.parse(JSON.stringify(product)) as IProduct;
@@ -93,6 +97,7 @@ export async function getProductById(productId: string) {
 export async function getProductsByIds(productIds: string[]) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const objectIds = productIds.map((id) => new mongoose.Types.ObjectId(id));
@@ -115,6 +120,7 @@ export async function getAllProductsForAdmin({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const {
@@ -135,12 +141,12 @@ export async function getAllProductsForAdmin({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-        ? { price: 1 }
-        : sort === "price-high-to-low"
-          ? { price: -1 }
-          : sort === "avg-customer-review"
-            ? { avgRating: -1 }
-            : { _id: -1 };
+      ? { price: 1 }
+      : sort === "price-high-to-low"
+      ? { price: -1 }
+      : sort === "avg-customer-review"
+      ? { avgRating: -1 }
+      : { _id: -1 };
   const products = await Product.find({
     ...queryFilter,
   })
@@ -165,6 +171,7 @@ export async function getAllProductsForAdmin({
 export async function getAllCategories(): Promise<string[]> {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const categories = await Product.aggregate([
     { $match: { isPublished: true, category: { $exists: true, $ne: "" } } },
@@ -192,6 +199,7 @@ export async function getProductsForCard({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const products = await Product.find(
     { tags: { $in: [tag] }, isPublished: true },
@@ -219,6 +227,7 @@ export async function getProductsByTag({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const products = await Product.find({
     tags: { $in: [tag] },
@@ -253,6 +262,7 @@ export async function getRelatedProductsByCategory({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -293,9 +303,9 @@ export async function getAllProducts({
   query: string;
   category: string;
   tag: string;
-  brand: string
-  color: string
-  size: string 
+  brand: string;
+  color: string;
+  size: string;
   limit?: number;
   page: number;
   price?: string;
@@ -304,6 +314,7 @@ export async function getAllProducts({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -321,13 +332,11 @@ export async function getAllProducts({
       : {};
   const categoryFilter = category && category !== "all" ? { category } : {};
   const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
-  const brandFilter =
-  brand && brand !== "all" ? { brand } : {};
- const colorFilter =
-  color && color !== "all" ? { colors: { $in: [color] } } : {};
- const sizeFilter =
-  size && size !== "all" ? { sizes: { $in: [size] } } : {};
- const ratingFilter =
+  const brandFilter = brand && brand !== "all" ? { brand } : {};
+  const colorFilter =
+    color && color !== "all" ? { colors: { $in: [color] } } : {};
+  const sizeFilter = size && size !== "all" ? { sizes: { $in: [size] } } : {};
+  const ratingFilter =
     rating && rating !== "all"
       ? {
           avgRating: {
@@ -349,12 +358,12 @@ export async function getAllProducts({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-        ? { price: 1 }
-        : sort === "price-high-to-low"
-          ? { price: -1 }
-          : sort === "avg-customer-review"
-            ? { avgRating: -1 }
-            : { _id: -1 };
+      ? { price: 1 }
+      : sort === "price-high-to-low"
+      ? { price: -1 }
+      : sort === "avg-customer-review"
+      ? { avgRating: -1 }
+      : { _id: -1 };
   const isPublished = { isPublished: true };
   const products = await Product.find({
     ...isPublished,
@@ -394,6 +403,7 @@ export async function getAllProducts({
 export async function getAllTags() {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const tags = await Product.aggregate([
     // Ensure tags exist and are not empty
@@ -452,6 +462,7 @@ export async function getAllTagsForAdminProductCreate() {
 export async function getAllBrands(): Promise<string[]> {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const brands = await Product.aggregate([
@@ -475,6 +486,7 @@ export async function getAllBrands(): Promise<string[]> {
 export async function getAllColors(): Promise<string[]> {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const colors = await Product.aggregate([
@@ -504,6 +516,7 @@ export async function getAllColors(): Promise<string[]> {
 export async function getAllSizes(): Promise<string[]> {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const sizes = await Product.aggregate([
