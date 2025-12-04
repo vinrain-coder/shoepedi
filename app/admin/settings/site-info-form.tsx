@@ -96,7 +96,7 @@ export default function SiteInfoForm({
             {!siteLogo && (
               <UploadButton
                 className="!items-start py-2"
-                endpoint="imageUploader"
+                endpoint="productImages"
                 onClientUploadComplete={(res) => {
                   form.setValue("site.logo", res[0].url);
                 }}
