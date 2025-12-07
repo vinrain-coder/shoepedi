@@ -112,7 +112,7 @@ export default function CarouselForm({
                 )}
                 {!watch(`carousels.${index}.image`) && (
                   <UploadButton
-                    endpoint="productImages"
+                    endpoint="carousels"
                     onClientUploadComplete={(res) => {
                       form.setValue(`carousels.${index}.image`, res[0].url);
                     }}

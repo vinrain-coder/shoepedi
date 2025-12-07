@@ -242,6 +242,7 @@ export async function getProductsByTag({
 export async function getProductBySlug(slug: string) {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
   const product = await Product.findOne({ slug, isPublished: true });
   if (!product) return notFound();
@@ -440,6 +441,7 @@ export async function getAllTags() {
 export async function getAllTagsForAdminProductCreate() {
   "use cache";
   cacheLife("hours");
+  cacheTag("products");
   await connectToDatabase();
 
   const tags = await Product.aggregate([
