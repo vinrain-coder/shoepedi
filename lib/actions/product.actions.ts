@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath } from "next/cache";
 import { formatError } from "../utils";
 import { ProductInputSchema, ProductUpdateSchema } from "../validator";
 import { IProductInput } from "@/types";
@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { UTApi } from "uploadthing/server";
 import { notFound } from "next/navigation";
 import { cacheLife } from "next/cache";
+import prisma from "../prisma";
 
 const utapi = new UTApi(); // Initialize UTApi instance
 
@@ -135,12 +136,12 @@ export async function getAllProductsForAdmin({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-        ? { price: 1 }
-        : sort === "price-high-to-low"
-          ? { price: -1 }
-          : sort === "avg-customer-review"
-            ? { avgRating: -1 }
-            : { _id: -1 };
+      ? { price: 1 }
+      : sort === "price-high-to-low"
+      ? { price: -1 }
+      : sort === "avg-customer-review"
+      ? { avgRating: -1 }
+      : { _id: -1 };
   const products = await Product.find({
     ...queryFilter,
   })
@@ -192,22 +193,30 @@ export async function getProductsForCard({
 }) {
   "use cache";
   cacheLife("hours");
-  await connectToDatabase();
-  const products = await Product.find(
-    { tags: { $in: [tag] }, isPublished: true },
-    {
-      name: 1,
-      href: { $concat: ["/product/", "$slug"] },
-      image: { $arrayElemAt: ["$images", 0] },
-    }
-  )
-    .sort({ createdAt: "desc" })
-    .limit(limit);
-  return JSON.parse(JSON.stringify(products)) as {
-    name: string;
-    href: string;
-    image: string;
-  }[];
+  cacheTag("products");
+
+  const products = await prisma.product.findMany({
+    where: {
+      tags: { has: tag },
+      isPublished: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: limit,
+    select: {
+      name: true,
+      slug: true,
+      images: true,
+    },
+  });
+
+  // Prisma MongoDB cannot compute fields: we compute href + first image here
+  return products.map((p) => ({
+    name: p.name,
+    href: `/product/${p.slug}`,
+    image: p.images?.[0] ?? "",
+  }));
 }
 // GET PRODUCTS BY TAG
 export async function getProductsByTag({
@@ -350,12 +359,12 @@ export async function getAllProducts({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-        ? { price: 1 }
-        : sort === "price-high-to-low"
-          ? { price: -1 }
-          : sort === "avg-customer-review"
-            ? { avgRating: -1 }
-            : { _id: -1 };
+      ? { price: 1 }
+      : sort === "price-high-to-low"
+      ? { price: -1 }
+      : sort === "avg-customer-review"
+      ? { avgRating: -1 }
+      : { _id: -1 };
   const isPublished = { isPublished: true };
   const products = await Product.find({
     ...isPublished,
