@@ -293,9 +293,9 @@ export async function getAllProducts({
   query: string;
   category: string;
   tag: string;
-  brand: string
-  color: string
-  size: string 
+  brand: string;
+  color: string;
+  size: string;
   limit?: number;
   page: number;
   price?: string;
@@ -321,9 +321,12 @@ export async function getAllProducts({
       : {};
   const categoryFilter = category && category !== "all" ? { category } : {};
   const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
-  const brandFilter = brand && brand!== "all" ? { brands: brand } : {}
-  const colorFilter = color && color !== "all" ? {colors: color } : {}
-  const sizeFilter = size && size !== "all" ? {sizes: size} : {}
+  const brandFilter = brand && brand !== "all" ? { brand } : {};
+
+  const colorFilter =
+    color && color !== "all" ? { colors: { $in: [color] } } : {};
+
+  const sizeFilter = size && size !== "all" ? { sizes: { $in: [size] } } : {};
 
   const ratingFilter =
     rating && rating !== "all"
