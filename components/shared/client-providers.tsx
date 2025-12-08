@@ -7,6 +7,7 @@ import { ThemeProvider } from "./theme-provider";
 import AppInitializer from "./app-initializer";
 import { ClientSetting } from "@/types";
 import { Toaster } from "../ui/sonner";
+import { NextIntlClientProvider } from "next-intl";
 
 interface Props {
   setting: ClientSetting;

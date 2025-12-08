@@ -1,95 +1,113 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import useSettingStore from "@/hooks/use-setting-store";
 import { cn } from "@/lib/utils";
-import { Flame } from "lucide-react";
 
 const ProductPrice = ({
   price,
   className,
   listPrice = 0,
-  plain = false,
   isDeal = false,
+  forListing = true,
+  plain = false,
 }: {
   price: number;
+  isDeal?: boolean;
   listPrice?: number;
   className?: string;
+  forListing?: boolean;
   plain?: boolean;
-  isDeal?: boolean;
 }) => {
-  // const { getCurrency } = useSettingStore();
-  // const currency = getCurrency();
+  const { getCurrency } = useSettingStore();
+  const currency = getCurrency();
 
-  const formatPrice = (value: number) =>
-    new Intl.NumberFormat("en-US").format(value);
+  const discountPercent = Math.round(100 - (price / listPrice) * 100);
 
-  const stringValue = price.toFixed(2).toString();
+  // Format only the main price with commas
+  const formattedPrice = new Intl.NumberFormat().format(price);
+
+  const stringValue = formattedPrice.toString();
   const [intValue, floatValue] = stringValue.includes(".")
     ? stringValue.split(".")
     : [stringValue, ""];
 
+  // If plain == true → return fully formatted currency only
   if (plain) {
-  return `KES ${new Intl.NumberFormat("en-US").format(price)}`;
-  }
-  
-
-  // ✅ Deal styling
-  if (isDeal && listPrice > price) {
-    const discount = Math.round(((listPrice - price) / listPrice) * 100);
-
     return (
-      <div className="flex flex-col items-center gap-2">
-        {/* Prices & discount */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {/* Discounted Price */}
-          <div
-            className={cn(
-              "text-2xl sm:text-3xl font-bold text-red-600",
-              className
-            )}
-          >
-            <span className="text-xs align-super">KES</span>
-            {formatPrice(price)}
+      <span>
+        {new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency: currency.code,
+          currencyDisplay: "narrowSymbol",
+        }).format(price)}
+      </span>
+    );
+  }
+
+  // No discount, listPrice = 0
+  if (listPrice == 0) {
+    return (
+      <div className={cn("text-2xl sm:text-3xl", className)}>
+        <span className="text-xs align-super">{currency.symbol}</span>
+        {intValue}
+        <span className="text-xs align-super">{floatValue}</span>
+      </div>
+    );
+  }
+
+  // Deal section
+  if (isDeal) {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-center items-center gap-2">
+          <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
+           {discountPercent}% OFF
+          </span>
+          <span className="text-red-700 text-xs font-bold">
+            Limited time deal
+          </span>
+        </div>
+
+        <div
+          className={`flex ${
+            forListing ? "justify-center" : "justify-start"
+          } items-center gap-2 flex-wrap`}
+        >
+          <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+            <span className="text-xs align-super">{currency.symbol}</span>
+            {intValue}
             <span className="text-xs align-super">{floatValue}</span>
           </div>
 
-          {/* List Price (strikethrough) */}
-          <div className="text-muted-foreground line-through text-md">
-            KES {formatPrice(listPrice)}
-          </div>
-
-          {/* Discount badge */}
-          <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-1 rounded">
-            {discount}% OFF
-          </span>
-          {/* Limited deal text */}
-          <div className="flex items-center gap-1 text-red-600 font-semibold text-sm uppercase tracking-wide">
-            <Flame className="text-red-600 animate-pulse mr-1 size-4" />
-            Hot Deal
+          <div className="text-muted-foreground text-xs whitespace-nowrap">
+            Was: KES.{" "}
+            <span className="line-through">{listPrice}</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // ✅ Normal pricing
-  return listPrice === 0 ? (
-    <div className={cn("text-2xl sm:text-3xl", className)}>
-      <span className="text-xs align-super">KES</span>
-      {formatPrice(price)}
-      <span className="text-xs align-super">{floatValue}</span>
-    </div>
-  ) : (
-    <div className="flex items-center justify-center gap-1 flex-wrap">
-      <div className={cn("text-2xl sm:text-3xl font-semibold", className)}>
-        <span className="text-xs align-super">KES</span>
-        {formatPrice(price)}
-        <span className="text-xs align-super">{floatValue}</span>
+  // Default: showing discount + list price
+  return (
+    <div className="">
+      <div className="flex justify-center gap-2 flex-wrap items-center">
+        {/*<div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
+          -{discountPercent}%
+        </div>*/}
+        <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+          <span className="text-xs align-super">{currency.symbol}</span>
+          {intValue}
+          <span className="text-xs align-super">{floatValue}</span>
+        </div>
       </div>
-      <div className="text-muted-foreground line-through text-md">
-        KES {formatPrice(listPrice)}
-      </div>
+
+      {/*<div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
+        List price:{" "}
+        <span className="line-through">
+          KES {listPrice}
+        </span>
+      </div>*/}
     </div>
   );
 };

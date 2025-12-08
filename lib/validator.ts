@@ -71,19 +71,10 @@ const ProductInputBase = z.object({
     .nonnegative("Number of sales must be a non-negative number"),
 });
 
-export const ProductInputSchema = ProductInputBase.refine(
-  (data) => data.price <= data.listPrice,
-  {
-    message: "Offer price must be smaller than or equal to list price",
-    path: ["price"],
-  }
-);
+export const ProductInputSchema = ProductInputBase;
 
 export const ProductUpdateSchema = ProductInputBase.extend({
   _id: z.string(),
-}).refine((data) => data.price <= data.listPrice, {
-  message: "Offer price must be smaller than or equal to list price",
-  path: ["price"],
 });
 
 // Order Item

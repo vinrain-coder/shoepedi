@@ -1,3 +1,4 @@
+
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "@/components/shared/client-providers";
@@ -52,13 +53,21 @@ export default async function AppLayout({
 }) {
   const setting = await getSetting();
 
+  //const currencyCookie = (await cookies()).get("currency");
+ // const currency = currencyCookie ? currencyCookie.value : "KES";
+    const currency = "KES";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`min-h-screen ${nunito.className} antialiased leading-relaxed tracking-wide`}
       >
         <Suspense fallback={null}>
-          <ClientProviders setting={setting}>{children}</ClientProviders>
+          
+          <ClientProviders setting={{ ...setting, currency }}>
+            {children}
+          </ClientProviders>
+          
         </Suspense>
 
         <Analytics />
