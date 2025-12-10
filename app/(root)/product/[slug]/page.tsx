@@ -189,6 +189,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
               </div>
             </div>
 
+            <Separator className="my-2" />
+
             <SelectVariant
               product={product}
               color={selectedColor}
@@ -375,13 +377,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         </Suspense>
       </section>
 
-      {/* Browsing history - client component that may depend on localStorage / client state.
-          We also show it inside a Suspense to ensure main shell renders fast. */}
-      <section>
-        <Suspense fallback={<div className="p-4">Loading...</div>}>
           <BrowsingHistoryList className="mt-10" />
-        </Suspense>
-      </section>
+        
     </div>
   );
 }

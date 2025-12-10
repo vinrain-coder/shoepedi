@@ -324,28 +324,28 @@ export default function FiltersClient({
     <>
       {/* Mobile */}
       <div className="md:hidden mb-2">
-        <Drawer direction="bottom" open={open} onOpenChange={setOpen}>
+        <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
-            <DrawerTrigger asChild>
+            <SheetTrigger asChild>
               <Button className="rounded-full">Filters</Button>
-            </DrawerTrigger>
+            </SheetTrigger>
 
             <div className="flex-1">
               <SelectedFiltersPills params={current} onRemove={handleRemove} />
             </div>
           </div>
 
-          <DrawerContent className="w-full max-h-[90vh] p-4 shadow-lg">
+          <SheetContent className="p-4 shadow-lg !w-[90vw]">
             <div className="flex flex-col h-full">
               {/* Header */}
-              <DrawerHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
-                <DrawerTitle>Filters</DrawerTitle>
-                <DrawerClose asChild>
+              <SheetHeader className="flex flex-row items-center justify-between px-2 border-b sticky top-0 bg-background z-20">
+                <SheetTitle>Filters</SheetTitle>
+                <SheetClose asChild>
                   <Button variant="ghost">
                     <X />
                   </Button>
-                </DrawerClose>
-              </DrawerHeader>
+                </SheetClose>
+              </SheetHeader>
 
               {/* Selected filters */}
               <div className="p-4 shadow-xs">
@@ -373,15 +373,15 @@ export default function FiltersClient({
                   Clear All
                 </Button>
 
-                <DrawerClose asChild>
+                <SheetClose asChild>
                   <Button className="flex-1" onClick={applyLocalToUrl}>
                     View Results
                   </Button>
-                </DrawerClose>
+                </SheetClose>
               </div>
             </div>
-          </DrawerContent>
-        </Drawer>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Desktop */}

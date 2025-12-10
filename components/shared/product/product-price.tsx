@@ -70,11 +70,11 @@ const ProductPrice = ({
 
         <div
           className={`flex ${
-            forListing ? "justify-center" : "justify-start"
+            forListing ? "justify-center items-center" : "justify-start"
           } items-center gap-2 flex-wrap`}
         >
           <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-            <span className="text-xs align-super">{currency.symbol}</span>
+            <span className="text-xs align-super items-center text-center">KES</span>
             {intValue}
             <span className="text-xs align-super">{floatValue}</span>
           </div>
