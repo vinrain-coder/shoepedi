@@ -200,8 +200,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
             <Separator className="my-2" />
 
             <div className="flex flex-col gap-2">
-              <p className="p-bold-20 text-grey-600">Description:</p>
-              <article className="prose prose-lg max-w-none mt-2">
+              <p className="font-bold-20 text-grey-600">Description:</p>
+              <article className="prose prose-lg max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{

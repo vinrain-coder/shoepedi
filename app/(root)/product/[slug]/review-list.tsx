@@ -65,15 +65,10 @@ import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// ✅ include all schema fields
 const reviewFormDefaultValues = {
-  product: "",
-  user: "",
-  isVerifiedPurchase: true,
   title: "",
   comment: "",
   rating: 5,
-  // rating: undefined as unknown as number, // start undefined so placeholder shows
 };
 
 export default function ReviewList({
@@ -292,7 +287,8 @@ export default function ReviewList({
                               >
                                 {form.formState.isSubmitting
                                   ? "Submitting"
-                                  : "Submit"}                           </Button>
+                                  : "Submit"}{" "}
+                              </Button>
                             </DrawerFooter>
                           </form>
                         </Form>

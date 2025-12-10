@@ -224,48 +224,50 @@ export default function FiltersClient({
         {/* Brands */}
         <div>
           <div className="font-bold mb-2">Brands</div>
-          <ul className="space-y-1">
-            <li>
+          <div className="grid grid-cols-2 gap-2">
+            <p>
               <button
                 className={current.brand === "all" ? "text-primary" : ""}
                 onClick={() => updateParam("brand", "all")}
               >
                 All
               </button>
-            </li>
+            </p>
             {brands.map((b) => (
-              <li key={b}>
+              <p key={b}>
                 <button
-                  className={b === current.brand ? "text-primary" : ""}
+                  className={
+                    b === current.brand
+                      ? "text-primary border border-primary px-2 py-1 rounded-full"
+                      : "border px-2 py-1 rounded-full"
+                  }
                   onClick={() => updateParam("brand", b)}
                 >
                   {b}
                 </button>
-              </li>
+              </p>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Colors */}
         <div>
           <div className="font-bold mb-2">Colors</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.color === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("color", "all")}
-              >
-                All
-              </button>
-            </li>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              className={current.color === "all" ? "text-primary" : ""}
+              onClick={() => updateParam("color", "all")}
+            >
+              All
+            </button>
 
             {colors.map((c) => (
               <li key={c} className="flex items-center space-x-2">
                 <button
                   className={
                     c === current.color
-                      ? "text-primary flex items-center space-x-2"
-                      : "flex items-center space-x-2"
+                      ? "text-primary border border-primary px-2 py-1 rounded-full"
+                      : "flex items-center space-x-2 border px-2 py-1 rounded-full"
                   }
                   onClick={() => updateParam("color", c)}
                 >
@@ -280,7 +282,7 @@ export default function FiltersClient({
                 </button>
               </li>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Sizes*/}
