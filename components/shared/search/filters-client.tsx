@@ -224,10 +224,14 @@ export default function FiltersClient({
         {/* Brands */}
         <div>
           <div className="font-bold mb-2">Brands</div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-wrap gap-2">
             <p>
               <button
-                className={current.brand === "all" ? "text-primary" : ""}
+                className={
+                  current.brand === "all"
+                    ? "text-primary border border-primary px-2 py-1 rounded-full"
+                    : "border px-2 py-1 rounded-full"
+                }
                 onClick={() => updateParam("brand", "all")}
               >
                 All
@@ -253,9 +257,13 @@ export default function FiltersClient({
         {/* Colors */}
         <div>
           <div className="font-bold mb-2">Colors</div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              className={current.color === "all" ? "text-primary" : ""}
+              className={
+                current.color === "all"
+                  ? "text-primary border border-primary px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full"
+              }
               onClick={() => updateParam("color", "all")}
             >
               All
@@ -266,19 +274,19 @@ export default function FiltersClient({
                 <button
                   className={
                     c === current.color
-                      ? "text-primary border border-primary px-2 py-1 rounded-full"
+                      ? "flex flex-row items-center gap-1 text-primary border border-primary px-2 py-1 rounded-full"
                       : "flex items-center space-x-2 border px-2 py-1 rounded-full"
                   }
                   onClick={() => updateParam("color", c)}
                 >
                   {/* 🔵 Color Dot */}
                   <div
-                    className="h-5 w-5 rounded-full border border-muted-foreground"
+                    className="h-4 w-4 rounded-full border border-muted-foreground"
                     style={{ backgroundColor: c }}
                   ></div>
 
                   {/* Color Name */}
-                  <span>{c}</span>
+                  <span>{c}</span> 
                 </button>
               </li>
             ))}
