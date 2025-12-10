@@ -178,7 +178,7 @@ export default function ProductQuickView({
 
   return isMobile ? (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="p-0 max-h-[90vh] flex flex-col" forceMount>
+      <DrawerContent className="p-0 max-h-[95vh] flex flex-col" forceMount>
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <ProductGallery images={product.images} />

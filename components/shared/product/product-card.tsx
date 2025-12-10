@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { IProduct } from "@/lib/db/models/product.model";
 
 import Rating from "./rating";
@@ -34,7 +34,6 @@ const ProductCard = ({
   const primaryImage = product.images?.[0] ?? "/placeholder.png";
   const hoverImage = product.images?.[1] ?? primaryImage;
 
-
   const discount =
     product.listPrice && product.listPrice > product.price
       ? Math.round(
@@ -59,9 +58,8 @@ const ProductCard = ({
   const ProductImage = ({ withFloatingIcons = false }) => (
     <div className="relative h-52 sm:h-56">
       {discount && (
-        <Badge
-          variant="destructive"
-          className="absolute z-10 px-2 py-0.5 text-xs font-semibold rounded-none rounded-tl-md rounded-br-md shadow-md top-1 left-1"
+  <Badge
+          className="absolute z-10 px-2 py-0.5 text-xs font-semibold rounded-none rounded-tl-md rounded-br-md shadow-md top-1 left-1 bg-red-600"
         >
           {discount}% OFF
         </Badge>
@@ -73,7 +71,7 @@ const ProductCard = ({
             productId={product._id.toString()}
             initialInWishlist={isInWishlist}
           />
-          <AddToCart item={cartItem}>
+         {/*} <AddToCart item={cartItem}>
             <button
               className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
               title="Add to Cart"
@@ -81,8 +79,9 @@ const ProductCard = ({
               <ShoppingCart size={16} className="text-gray-700" />
             </button>
           </AddToCart>
+          */}
           <button
-            className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
+            className="p-1.5 rounded-full bg-white shadow shadow-lg hover:bg-gray-100 transition cursor-pointer"
             onClick={() => setShowQuickView(true)}
             title="Quick View"
           >
@@ -130,33 +129,71 @@ const ProductCard = ({
     </div>
   );
 
-  return (
-    <>
-      {hideBorder ? (
-        <div className="flex flex-col relative">
-          <ProductImage withFloatingIcons />
-          {!hideDetails && <ProductDetails />}
-        </div>
-      ) : (
-        <Card className="flex flex-col relative hover:shadow-md rounded-md overflow-hidden transition p-0 m-0">
-          <CardHeader className="p-0">
-            <ProductImage withFloatingIcons />
-          </CardHeader>
-
-          {!hideDetails && (
-            <CardContent className="px-1 py-1 mb-1">
-              <ProductDetails />
-            </CardContent>
-          )}
-        </Card>
-      )}
-
-      {/* Quick View modal - outside absolute div */}
-      <ProductQuickView
-        product={product}
-        isOpen={showQuickView}
-        onClose={() => setShowQuickView(false)}
+  const AddButton = () => (
+    <div className="w-full text-center">
+      <AddToCart
+        minimal
+        item={{
+          clientId: generateId(),
+          product: product._id.toString(),
+          size: product.sizes[0],
+          color: product.colors[0],
+          countInStock: product.countInStock,
+          name: product.name,
+          slug: product.slug,
+          category: product.category,
+          price: round2(product.price),
+          quantity: 1,
+          image: product.images[0],
+        }}
       />
+    </div>
+  );
+
+  return hideBorder ? (
+    <div className="flex flex-col relative">
+      <ProductImage withFloatingIcons />
+      {!hideDetails && (
+        <>
+          <div className="p-3 flex-1 text-center">
+            <ProductDetails />
+          </div>
+          {!hideAddToCart && <AddButton />}
+        </>
+      )}
+    </div>
+  ) : (
+    <>
+    <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
+      <CardHeader className="p-0">
+        <ProductImage withFloatingIcons/>
+      </CardHeader>
+      {!hideDetails && (
+        <>
+          <CardContent className="px-0 flex-1 text-center">
+            <ProductDetails />
+          </CardContent>
+
+          <CardFooter className="mb-2 -mt-5">
+            {product.countInStock === 0 ? (
+              <Badge
+                variant="destructive"
+                className="mx-auto px-3 py-2 text-sm font-semibold rounded-full"
+              >
+                Out of Stock
+              </Badge>
+            ) : (
+              !hideAddToCart && <AddButton />
+            )}
+          </CardFooter>
+        </>
+      )}
+    </Card>
+    <ProductQuickView
+    product={product}
+    isOpen={showQuickView}
+    onClose={()=>setShowQuickView(false)}
+    />
     </>
   );
 };
