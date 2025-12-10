@@ -27,8 +27,6 @@ import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
-export const revalidate = 60;
-
 export async function generateMetadata({ params }: { params: any }) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
@@ -405,3 +403,4 @@ async function RelatedBoundary({
     />
   );
 }
+
