@@ -364,7 +364,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
       <section className="mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
-          <ReviewList product={product} userId={session?.user.id} />
+          <ReviewList product={product} userId={session?.user?.id} />
         </Suspense>
       </section>
 
