@@ -1,7 +1,7 @@
 "use server";
 
 import mongoose from "mongoose";
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 
 import { connectToDatabase } from "../db";
@@ -21,6 +21,7 @@ export async function createUpdateReview({
   data: z.infer<typeof ReviewInputSchema>;
   path: string;
 }) {
+  cacheTag("reviews");
   try {
     const session = await getServerSession();
     if (!session) {
@@ -113,6 +114,7 @@ export async function getReviews({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("reviews");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -139,6 +141,7 @@ export const getReviewByProductId = async ({
 }) => {
   "use cache";
   cacheLife("hours");
+  cacheTag("reviews");
   await connectToDatabase();
   const session = await getServerSession();
   if (!session) {
@@ -161,6 +164,7 @@ export async function getAllReviews({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("reviews");
   await connectToDatabase();
 
   const skip = (page - 1) * limit;
@@ -183,6 +187,7 @@ export async function getAllReviews({
 }
 
 export async function deleteReview(id: string) {
+  updateTag("reviews");
   try {
     await connectToDatabase();
     await Review.findByIdAndDelete(id);
