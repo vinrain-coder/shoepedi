@@ -8,7 +8,7 @@ import { unauthorized } from "next/navigation";
 import { PasswordForm } from "./password-form";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
-const PAGE_TITLE = "Change Your Name";
+const PAGE_TITLE = "Change Your Password";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

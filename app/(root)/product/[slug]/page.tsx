@@ -1,5 +1,4 @@
-// app/product/[slug]/page.tsx
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,10 +27,8 @@ import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
-/**
- * Metadata generator remains async and uses your getProductBySlug/getSetting helpers.
- * It's okay for metadata to await data here.
- */
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: { params: any }) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
@@ -84,47 +81,11 @@ export async function generateMetadata({ params }: { params: any }) {
   };
 }
 
-/**
- * Export route-level rendering hints if you want to force a behavior.
- * By default 'auto' lets Next choose the best approach; you can set to 'force-dynamic'
- * if you always need request-time rendering (not required here).
- */
-// export const dynamic = 'auto';
-
 type Props = {
   params: any;
   searchParams: any;
 };
 
-/**
- * Small cached helper component: it does not read request-specific context and
- * can be cached by Next.js's "use cache" directive. This demonstrates explicit caching.
- *
- * (If you have other pure helpers you can mark them similarly.)
- */
-async function CachedPrice({
-  price,
-  listPrice,
-}: {
-  price: number;
-  listPrice?: number;
-}) {
-  // Tell Next.js this component's render result can be cached.
-  // This is optional — remove if the component reads request cookies/params, etc.
-  // The directive must be at the top-level of the module or a component to have effect,
-  // but using it inside a little helper component shows intent.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-
-  "use cache";
-  cacheLife("weeks");
-  return <ProductPrice price={price} listPrice={listPrice} />;
-}
-
-/**
- * Loading fallbacks used for Suspense boundaries — keep them small and visually similar
- * to the real UI so the page doesn't jump when content streams in.
- */
 function ReviewsLoading() {
   return (
     <div id="reviews-loading" className="p-4 bg-white rounded-lg shadow-sm">
@@ -149,30 +110,14 @@ function RelatedLoading() {
   );
 }
 
-/**
- * Main page component — split UI into an immediate shell and Suspense-wrapped dynamic parts.
- * The shell renders quickly; suspended parts stream (reviews, related products, browsing history).
- */
 export default async function ProductDetails({ params, searchParams }: Props) {
-  // IMPORTANT: don't mark the whole page as "use cache" if you need request-specific data
-  // (params, cookies, session). Instead, wrap request-specific child components in <Suspense>.
-  //
-  // Example: we need `params.slug` to fetch the product — we await it here to get the shell
-  // product data that is essential to build the initial UI (name, price, hero image).
   const { slug } = await params;
   const query = await searchParams;
 
-  // small optimization: give the cache system a hint for long-lived static-like work
-  // (you can tune this value or configure cacheLife in next.config).
-
-  // get session only when needed for user-specific parts (but we use it below to pass userId to reviews)
-  const sessionPromise = getServerSession();
-
-  // product itself is essential for the top-level shell (name, price, description overview).
+  const session = await getServerSession();
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
 
-  // related products can be fetched concurrently — we will await some here but render them inside Suspense
   const relatedProductsPromise = getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
@@ -184,7 +129,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
   return (
     <div>
-      {/* Persist browsing history (client effect) — this is a client component; it should be OK to render here */}
       <AddToBrowsingHistory
         id={product._id.toString()}
         category={product.category}
@@ -224,7 +168,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
               <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
-                Brand: {product.brand} {product.category}
+                {product.brand} {product.category}
               </p>
               <h1 className="font-bold text-lg lg:text-xl">{product.name}</h1>
 
@@ -238,10 +182,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
               <Separator />
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                {/* cached helper for price display */}
-                <CachedPrice
+                <ProductPrice
                   price={product.price}
                   listPrice={product.listPrice}
+                  isDeal={product.tags.includes("todays-deal")}
+                  forListing={false}
                 />
               </div>
             </div>
@@ -256,7 +201,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
             <div className="flex flex-col gap-2">
               <p className="p-bold-20 text-grey-600">Description:</p>
-              <article className="prose prose-lg max-w-none mt-6">
+              <article className="prose prose-lg max-w-none mt-2">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -393,7 +338,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       />
                       <WishlistButton
                         productId={product._id.toString()}
-                        // @ts-expect-error
+                        //@ts-expect-error
                         initialWishlist={[]}
                       />
                     </div>
@@ -416,18 +361,13 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         <ShareProduct slug={product.slug} name={product.name} />
       </div>
 
-      {/* REVIEWS - user-specific (session needed). Wrap in Suspense so shell shows immediately
-          and reviews stream in as soon as getServerSession + review fetch complete. */}
       <section className="mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
-          {/* resolve session first, pass userId (if any) to the review list */}
-          {/* We await session inside a small async wrapper to avoid leaking request data into the static shell */}
-          <ReviewsBoundary sessionPromise={sessionPromise} product={product} />
+          <ReviewList product={product} userId={session?.user.id} />
         </Suspense>
       </section>
 
-      {/* RELATED PRODUCTS - dynamic (depends on relatedProductsPromise). Wrap in Suspense so it streams in. */}
       <section className="mt-10">
         <Suspense fallback={<RelatedLoading />}>
           <RelatedBoundary
@@ -448,33 +388,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   );
 }
 
-/**
- * Small async server component wrapper that awaits the session (request-specific)
- * and then renders ReviewList. Kept separate so the parent page shell can be pre-rendered.
- *
- * This component reads request-specific info (session) so it MUST NOT be 'use cache'.
- */
-async function ReviewsBoundary({
-  sessionPromise,
-  product,
-}: {
-  sessionPromise: Promise<any>;
-  product: any;
-}) {
-  "use cache";
-  cacheLife("days");
-  const session = await sessionPromise;
-  // Render ReviewList (presumably server component or async component that fetches reviews)
-  return <ReviewList product={product} userId={session?.user?.id} />;
-}
-
-/**
- * Related products wrapper: awaits the related products promise and renders the slider.
- * Keep it as an async server component wrapped in Suspense so it streams.
- *
- * If getRelatedProductsByCategory can be cached on your backend, you can consider
- * using 'use cache' inside that function (where data is fetched) instead of here.
- */
 async function RelatedBoundary({
   relatedProductsPromise,
   category,
@@ -482,6 +395,8 @@ async function RelatedBoundary({
   relatedProductsPromise: Promise<any>;
   category: string;
 }) {
+  "use cache";
+  cacheLife("weeks");
   const related = await relatedProductsPromise;
   return (
     <ProductSlider

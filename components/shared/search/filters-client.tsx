@@ -324,7 +324,7 @@ export default function FiltersClient({
     <>
       {/* Mobile */}
       <div className="md:hidden mb-2">
-        <Drawer direction="left" open={open} onOpenChange={setOpen}>
+        <Drawer direction="bottom" open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <DrawerTrigger asChild>
               <Button className="rounded-full">Filters</Button>
@@ -335,7 +335,7 @@ export default function FiltersClient({
             </div>
           </div>
 
-          <DrawerContent className="w-[90vw] max-w-md p-4 shadow-lg">
+          <DrawerContent className="w-full max-h-[90vh] p-4 shadow-lg">
             <div className="flex flex-col h-full">
               {/* Header */}
               <DrawerHeader className="flex flex-row items-center justify-between p-2 border-b sticky top-0 bg-background z-20">
@@ -375,7 +375,7 @@ export default function FiltersClient({
 
                 <DrawerClose asChild>
                   <Button className="flex-1" onClick={applyLocalToUrl}>
-                    Apply
+                    View Results
                   </Button>
                 </DrawerClose>
               </div>

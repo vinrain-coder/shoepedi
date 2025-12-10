@@ -1,4 +1,3 @@
-// lib/auth.ts
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { sendEmail } from "./email";
@@ -16,6 +15,15 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 7 * 24 * 60 * 60, // Cache duration in seconds (e.g., 7 days)
+      strategy: "jwe", // Recommended for secure, encrypted session data in the cookie
+      refreshCache: true, // Enable stateless refresh of the cookie cache
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
@@ -53,18 +61,17 @@ export const auth = betterAuth({
       },
     },
     additionalFields: {
-  role: {
-    type: "string",
-    input: false,
-    defaultValue: "USER",
-    options: ["USER", "ADMIN"],
-  },
-  wishlist: {
-    type: "json",
-    defaultValue: [],
-  },
-},
-    
+      role: {
+        type: "string",
+        input: false,
+        defaultValue: "USER",
+        options: ["USER", "ADMIN"],
+      },
+      wishlist: {
+        type: "json",
+        defaultValue: [],
+      },
+    },
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
@@ -84,25 +91,24 @@ export const auth = betterAuth({
     }),
   },
 
-databaseHooks: {
-  user: {
-    create: {
-      before: async (user) => {
-        const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-        const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
+          const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
 
-        if (ADMIN_EMAILS.includes(user.email)) {
-          return { data: { ...user, role: "ADMIN", wishlist } };
-        }
+          if (ADMIN_EMAILS.includes(user.email)) {
+            return { data: { ...user, role: "ADMIN", wishlist } };
+          }
 
-        return { data: { ...user, wishlist } };
+          return { data: { ...user, wishlist } };
+        },
       },
     },
   },
-},
-    
-  
+
   account: {
     accountLinking: {
       enabled: true,
