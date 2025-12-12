@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { getPublishedBlogs } from "@/lib/actions/blog.actions";
 import BlogCard from "@/components/shared/blog/blog-card";
 import Pagination from "@/components/shared/pagination";
@@ -59,13 +59,13 @@ function BlogListSkeleton() {
   );
 }
 
-export default function BlogsPage({
+export default async function BlogsPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string>>;
+  searchParams?: Record<string, string>;
 }) {
-  const params = React.use(searchParams);
-  const currentPage = Number(params.page) || 1;
+  const params = await searchParams;
+  const currentPage = Number(params?.page) || 1;
 
   return (
     <div className="space-y-6">

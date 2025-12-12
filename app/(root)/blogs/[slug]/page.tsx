@@ -10,6 +10,7 @@ import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Image from "next/image";
 import Breadcrumb from "@/components/shared/breadcrumb";
+import { cacheLife } from "next/cache";
 
 // Helper to extract first image from markdown
 function extractFirstImageUrl(markdownContent: string) {
@@ -68,6 +69,8 @@ export default async function BlogPage({
 }: {
   params: { slug: string } | Promise<{ slug: string }>;
 }) {
+  "use cache";
+  cacheLife("days");
   const p = await params; // unwrap promise
 
   const blog: IBlog | null = await getBlogBySlug(p.slug);

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Blog, { IBlog } from "../db/models/blog.model";
@@ -15,6 +15,7 @@ export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
     await connectToDatabase();
     await Blog.create(blog);
     revalidatePath("/admin/blogs");
+    updateTag("blogs");
     return { success: true, message: "Blog created successfully" };
   } catch (error) {
     return { success: false, message: "Error creating blog" };
@@ -28,6 +29,7 @@ export async function updateBlog(data: z.infer<typeof BlogUpdateSchema>) {
     await connectToDatabase();
     await Blog.findByIdAndUpdate(blog._id, blog);
     revalidatePath("/admin/blogs");
+    updateTag("blogs");
     return { success: true, message: "Blog updated successfully" };
   } catch (error) {
     return { success: false, message: "Error updating blog" };
@@ -41,6 +43,7 @@ export async function deleteBlog(id: string) {
     const res = await Blog.findByIdAndDelete(id);
     if (!res) throw new Error("Blog not found");
     revalidatePath("/admin/blogs");
+    updateTag("blogs");
     return { success: true, message: "Blog deleted successfully" };
   } catch (error) {
     return { success: false, message: "Error deleting blog" };
@@ -59,6 +62,7 @@ export async function getAllBlogs({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
 
   const filter = onlyPublished ? { isPublished: true } : {}; // fetch all if false
@@ -102,6 +106,7 @@ export async function getPublishedBlogs({
 }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   return getAllBlogs({
     page,
@@ -114,6 +119,7 @@ export async function getPublishedBlogs({
 export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   const blog = await Blog.findOne({ slug }).lean();
   if (!blog) return null;
@@ -129,6 +135,7 @@ export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
 export async function getBlogById(blogId: string) {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   const blog = await Blog.findById(blogId).lean();
   if (!blog) return null;
@@ -145,6 +152,7 @@ export async function getBlogById(blogId: string) {
 export async function getAllBlogCategories() {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   return await Blog.distinct("category");
 }
@@ -153,6 +161,7 @@ export async function getAllBlogCategories() {
 export async function getAllBlogTags() {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   const tags = await Blog.aggregate([
     { $unwind: "$tags" },
@@ -173,6 +182,7 @@ export async function getAllBlogTags() {
 export async function incrementBlogViews(slug: string) {
   "use cache";
   cacheLife("hours");
+
   try {
     await connectToDatabase();
     const blog = await Blog.findOneAndUpdate(
@@ -190,6 +200,7 @@ export async function incrementBlogViews(slug: string) {
 export async function getMostViewedBlogs(limit: number = 5) {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   try {
     await connectToDatabase();
     const blogs = await Blog.find()
@@ -206,6 +217,7 @@ export async function getMostViewedBlogs(limit: number = 5) {
 export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
   "use cache";
   cacheLife("hours");
+  cacheTag("blogs");
   await connectToDatabase();
   const blogs = await Blog.find().sort({ createdAt: -1 }).limit(limit).lean();
 

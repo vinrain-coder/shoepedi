@@ -96,7 +96,7 @@ const ProductPrice = ({
           -{discountPercent}%
         </div>*/}
         <div className={cn("text-2xl sm:text-3xl break-words", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
+          <span className="text-xs align-super">KES</span>
           {intValue}
           <span className="text-xs align-super">{floatValue}</span>
         </div>

@@ -64,6 +64,7 @@ import { IReviewDetails } from "@/types";
 import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { authClient } from "@/lib/auth-client";
 
 const reviewFormDefaultValues = {
   title: "",
@@ -72,10 +73,10 @@ const reviewFormDefaultValues = {
 };
 
 export default function ReviewList({
-  userId,
+  //userId,
   product,
 }: {
-  userId: string | undefined;
+  //userId: string | undefined;
   product: IProduct;
 }) {
   const isMobile = useIsMobile();
@@ -148,6 +149,9 @@ export default function ReviewList({
     reload();
     toast.success(res.message);
   };
+
+  const { data: session } = authClient.useSession();
+  const userId = session?.user.id;
 
   return (
     <div className="space-y-2">

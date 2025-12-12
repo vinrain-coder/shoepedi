@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { getWebPageBySlug } from "@/lib/actions/web-page.actions";
 import remarkGfm from "remark-gfm";
 import Breadcrumb from "@/components/shared/breadcrumb";
+import { cacheLife } from "next/cache";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  
   const { slug } = await params;
 
   const webPage = await getWebPageBySlug(slug);
@@ -23,6 +25,8 @@ export default async function WebPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  "use cache";
+  cacheLife("weeks");
   const { slug } = await params; // ✅ FIX — unwrap promise
 
   const webPage = await getWebPageBySlug(slug);

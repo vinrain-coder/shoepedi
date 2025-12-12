@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: any }) {
       title: product.name,
       description: product.description || "Discover this product on ShoePedi!",
       url: `${site.url}/product/${product.slug}`,
-      siteName: "ShoePedi",
+      siteName: site.name,
       images: [
         { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
       ],
@@ -112,7 +112,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
 
-  const session = await getServerSession();
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
 
@@ -364,7 +363,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
       <section className="mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
-          <ReviewList product={product} userId={session?.user?.id} />
+          <ReviewList product={product} />
         </Suspense>
       </section>
 
@@ -377,8 +376,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         </Suspense>
       </section>
 
-          <BrowsingHistoryList className="mt-10" />
-        
+      <BrowsingHistoryList className="mt-10" />
     </div>
   );
 }
@@ -391,7 +389,7 @@ async function RelatedBoundary({
   category: string;
 }) {
   "use cache";
-  cacheLife("weeks");
+  cacheLife("days");
   const related = await relatedProductsPromise;
   return (
     <ProductSlider
@@ -400,4 +398,3 @@ async function RelatedBoundary({
     />
   );
 }
-
