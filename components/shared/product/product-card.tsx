@@ -4,7 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { IProduct } from "@/lib/db/models/product.model";
 
 import Rating from "./rating";
@@ -14,7 +19,7 @@ import ImageHover from "./image-hover";
 import AddToCart from "./add-to-cart";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
-import { Eye, ShoppingCart } from "lucide-react";
+import { Eye } from "lucide-react";
 import ProductQuickView from "./quick-view";
 
 const ProductCard = ({
@@ -56,63 +61,47 @@ const ProductCard = ({
   };
 
   const ProductImage = ({ withFloatingIcons = false }) => (
-    <div className="relative h-52 sm:h-56">
+    <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
       {discount && (
-  <Badge
-          className="absolute z-10 px-2 py-0.5 text-xs font-semibold rounded-none rounded-tl-md rounded-br-md shadow-md top-1 left-1 bg-red-600"
-        >
+        <Badge className="absolute top-1 left-1 z-10 rounded-none rounded-tl-md rounded-br-md bg-destructive text-xs">
           {discount}% OFF
         </Badge>
       )}
-
       {withFloatingIcons && (
-        <div className="absolute top-2 right-2 z-10 flex flex-col items-center gap-1.5">
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
           <WishlistIcon
             productId={product._id.toString()}
             initialInWishlist={isInWishlist}
           />
-         {/*} <AddToCart item={cartItem}>
-            <button
-              className="p-1 rounded-full bg-white shadow hover:bg-gray-100 transition cursor-pointer"
-              title="Add to Cart"
-            >
-              <ShoppingCart size={16} className="text-gray-700" />
-            </button>
-          </AddToCart>
-          */}
           <button
-            className="p-1.5 rounded-full bg-white shadow shadow-lg hover:bg-gray-100 transition cursor-pointer"
+            className="rounded-full bg-background p-1.5 shadow hover:bg-muted"
             onClick={() => setShowQuickView(true)}
-            title="Quick View"
           >
-            <Eye size={16} className="text-gray-700" />
+            <Eye size={16} />
           </button>
         </div>
       )}
-
       <Link href={`/product/${product.slug}`}>
         {product.images?.length > 1 ? (
           <ImageHover
             src={primaryImage}
             hoverSrc={hoverImage}
             alt={product.name}
+            className="object-cover"
           />
         ) : (
-          <div className="relative h-56 sm:h-60">
-            <Image
-              src={primaryImage}
-              alt={product.name}
-              fill
-              sizes="80vw"
-              className="object-contain"
-              priority
-            />
-          </div>
+          <Image
+            src={primaryImage}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 80vw, 20vw"
+            className="object-cover"
+            priority
+          />
         )}
-      </Link>
+      </Link>{" "}
     </div>
   );
-
   const ProductDetails = () => (
     <div className="space-y-0.5 text-center">
       <Link
@@ -164,36 +153,36 @@ const ProductCard = ({
     </div>
   ) : (
     <>
-    <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
-      <CardHeader className="p-0">
-        <ProductImage withFloatingIcons/>
-      </CardHeader>
-      {!hideDetails && (
-        <>
-          <CardContent className="px-0 flex-1 text-center">
-            <ProductDetails />
-          </CardContent>
+      <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
+        <CardHeader className="p-0">
+          <ProductImage withFloatingIcons />
+        </CardHeader>
+        {!hideDetails && (
+          <>
+            <CardContent className="px-0 flex-1 text-center">
+              <ProductDetails />
+            </CardContent>
 
-          <CardFooter className="mb-2 -mt-5">
-            {product.countInStock === 0 ? (
-              <Badge
-                variant="destructive"
-                className="mx-auto px-3 py-2 text-sm font-semibold rounded-full"
-              >
-                Out of Stock
-              </Badge>
-            ) : (
-              !hideAddToCart && <AddButton />
-            )}
-          </CardFooter>
-        </>
-      )}
-    </Card>
-    <ProductQuickView
-    product={product}
-    isOpen={showQuickView}
-    onClose={()=>setShowQuickView(false)}
-    />
+            <CardFooter className="mb-2 -mt-5">
+              {product.countInStock === 0 ? (
+                <Badge
+                  variant="destructive"
+                  className="mx-auto px-3 py-2 text-sm font-semibold rounded-full hidden"
+                >
+                  Out of Stock
+                </Badge>
+              ) : (
+                !hideAddToCart && <AddButton />
+              )}
+            </CardFooter>
+          </>
+        )}
+      </Card>
+      <ProductQuickView
+        product={product}
+        isOpen={showQuickView}
+        onClose={() => setShowQuickView(false)}
+      />
     </>
   );
 };

@@ -7,10 +7,12 @@ const ImageHover = ({
   src,
   hoverSrc,
   alt,
+  className,
 }: {
   src: string;
   hoverSrc: string;
   alt: string;
+  className?:string;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   let hoverTimeout: any;
@@ -33,8 +35,8 @@ const ImageHover = ({
         src={src}
         alt={alt}
         fill
-        sizes="80vw"
-        className={`object-contain transition-opacity duration-500 ${
+        //sizes="80vw"
+        className={`object-cover transition-opacity duration-500 ${
           isHovered ? "opacity-0" : "opacity-100"
         }`}
       />
@@ -42,8 +44,8 @@ const ImageHover = ({
         src={hoverSrc}
         alt={alt}
         fill
-        sizes="80vw"
-        className={`absolute inset-0 object-contain transition-opacity duration-500 ${
+       // sizes="80vw"
+        className={`absolute inset-0 object-cover transition-opacity duration-500 ${
           isHovered ? "opacity-100" : "opacity-0"
         }`}
       />

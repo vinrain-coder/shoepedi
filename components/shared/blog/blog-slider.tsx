@@ -34,24 +34,19 @@ export default function BlogSlider({
     <div className="w-full">
       <Separator className={cn("mb-4")} />
       {title && <h2 className="h2-bold mb-5">{title}</h2>}
-      <Carousel
-        opts={{
-          align: "start",
-        }}
-        className="w-full"
-      >
-        <CarouselContent>
+      <Carousel className="w-full" opts={{ align: "start" }}>
+        <CarouselContent className="-ml-4">
           {displayedBlogs.map((blog) => (
             <CarouselItem
               key={blog._id}
-              className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
+              className="pl-4 basis-[75%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
             >
               <BlogCard blog={blog} />
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-0" />
-        <CarouselNext className="right-0" />
+        <CarouselPrevious className="left-1 hidden sm:flex" />
+        <CarouselNext className="right-1 hidden sm:flex" />
       </Carousel>
 
       {/* View All Blogs Link */}

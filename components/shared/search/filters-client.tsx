@@ -24,6 +24,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { DialogOverlay } from "@/components/ui/dialog";
 
 type ParamsShape = {
   q?: string;
@@ -142,26 +143,33 @@ export default function FiltersClient({
         {/* Category */}
         <div>
           <div className="font-bold mb-2">Category</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.category === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("category", "all")}
-              >
-                All
-              </button>
-            </li>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={
+                current.category === "all"
+                  ? "text-primary border border-primary px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+              }
+              onClick={() => updateParam("category", "all")}
+            >
+              All
+            </button>
+
             {categories.map((c) => (
-              <li key={c}>
+              <div key={c}>
                 <button
-                  className={c === current.category ? "text-primary" : ""}
+                  className={
+                    c === current.category
+                      ? "text-primary border border-primary px-2 py-1 rounded-full"
+                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+                  }
                   onClick={() => updateParam("category", c)}
                 >
                   {c}
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Price */}
@@ -176,49 +184,61 @@ export default function FiltersClient({
         {/* Rating */}
         <div>
           <div className="font-bold mb-2">Customer Review</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.rating === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("rating", "all")}
-              >
-                All
-              </button>
-            </li>
-            <li>
-              <button
-                className={current.rating === "4" ? "text-primary" : ""}
-                onClick={() => updateParam("rating", "4")}
-              >
-                4 & Up
-              </button>
-            </li>
-          </ul>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={
+                current.rating === "all"
+                  ? "text-primary border border-primary px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+              }
+              onClick={() => updateParam("rating", "all")}
+            >
+              All
+            </button>
+
+            <button
+              className={
+                current.rating === "4"
+                  ? "text-primary border border-primary px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+              }
+              onClick={() => updateParam("rating", "4")}
+            >
+              4 & Up
+            </button>
+          </div>
         </div>
 
         {/* Tags */}
         <div>
           <div className="font-bold mb-2">Tags</div>
-          <ul className="space-y-1">
-            <li>
-              <button
-                className={current.tag === "all" ? "text-primary" : ""}
-                onClick={() => updateParam("tag", "all")}
-              >
-                All
-              </button>
-            </li>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={
+                current.tag === "all"
+                  ? "text-primary border border-primary px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+              }
+              onClick={() => updateParam("tag", "all")}
+            >
+              All
+            </button>
+
             {tags.map((t) => (
-              <li key={t}>
+              <div key={t}>
                 <button
-                  className={t === current.tag ? "text-primary" : ""}
+                  className={
+                    t === current.tag
+                      ? "text-primary border border-primary px-2 py-1 rounded-full"
+                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
+                  }
                   onClick={() => updateParam("tag", t)}
                 >
                   {t}
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Brands */}
@@ -230,7 +250,7 @@ export default function FiltersClient({
                 className={
                   current.brand === "all"
                     ? "text-primary border border-primary px-2 py-1 rounded-full"
-                    : "border px-2 py-1 rounded-full"
+                    : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
                 }
                 onClick={() => updateParam("brand", "all")}
               >
@@ -243,7 +263,7 @@ export default function FiltersClient({
                   className={
                     b === current.brand
                       ? "text-primary border border-primary px-2 py-1 rounded-full"
-                      : "border px-2 py-1 rounded-full"
+                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
                   }
                   onClick={() => updateParam("brand", b)}
                 >
@@ -262,7 +282,7 @@ export default function FiltersClient({
               className={
                 current.color === "all"
                   ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
               }
               onClick={() => updateParam("color", "all")}
             >
@@ -275,7 +295,7 @@ export default function FiltersClient({
                   className={
                     c === current.color
                       ? "flex flex-row items-center gap-1 text-primary border border-primary px-2 py-1 rounded-full"
-                      : "flex items-center space-x-2 border px-2 py-1 rounded-full"
+                      : "flex items-center space-x-2 border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
                   }
                   onClick={() => updateParam("color", c)}
                 >
@@ -286,7 +306,7 @@ export default function FiltersClient({
                   ></div>
 
                   {/* Color Name */}
-                  <span>{c}</span> 
+                  <span>{c}</span>
                 </button>
               </li>
             ))}
@@ -303,7 +323,7 @@ export default function FiltersClient({
               className={
                 current.size === "all"
                   ? "text-primary border px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full"
+                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
               }
               onClick={() => updateParam("size", "all")}
             >

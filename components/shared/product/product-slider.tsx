@@ -23,33 +23,29 @@ export default function ProductSlider({
   return (
     <div className="w-full bg-background">
       <h2 className="h2-bold mb-5">{title}</h2>
-      <Carousel
-        opts={{
-          align: "start",
-        }}
-        className="w-full"
-      >
-        <CarouselContent>
+      <Carousel opts={{ align: "start" }} className="w-full">
+        <CarouselContent className="-ml-4">
           {products.map((product) => (
             <CarouselItem
               key={product._id}
-              className={
+              className={[
+                "pl-4 basis-[70%] sm:basis-1/2",
                 hideDetails
                   ? "md:basis-1/4 lg:basis-1/6"
-                  : "md:basis-1/3 lg:basis-1/5"
-              }
+                  : "md:basis-1/3 lg:basis-1/5",
+              ].join(" ")}
             >
               <ProductCard
+                product={product}
                 hideDetails={hideDetails}
                 hideAddToCart
                 hideBorder
-                product={product}
               />
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-0" />
-        <CarouselNext className="right-0" />
+        <CarouselPrevious className="left-0 hidden sm:flex"/>
+        <CarouselNext className="right-0 hidden sm:flex" />
       </Carousel>
     </div>
   );

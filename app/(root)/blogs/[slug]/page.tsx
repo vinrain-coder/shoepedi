@@ -96,7 +96,7 @@ export default async function BlogPage({
       </p>
 
       {/* Blog Content */}
-      <MarkdownRenderer content={blog.content} />
+      <MarkdownRenderer content={blog.content} className="mt-2"/>
 
       {/* Blog Meta Info */}
       <div className="mt-6 flex flex-wrap gap-4 text-sm text-gray-600 justify-between">
