@@ -26,6 +26,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
+import MarkdownRenderer from "@/components/shared/markdown-renderer";
 
 export async function generateMetadata({ params }: { params: any }) {
   const { slug } = await params;
@@ -200,7 +201,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
             <div className="flex flex-col gap-2">
               <p className="font-bold-20 text-grey-600">Description:</p>
-              
+              <MarkdownRenderer
+                content={product.description}
+                className="prose prose-lg max-w-none"
+              />
             </div>
           </div>
 
@@ -310,4 +314,3 @@ async function RelatedBoundary({
     />
   );
 }
-

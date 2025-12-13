@@ -4,13 +4,13 @@ import { getWebPageBySlug } from "@/lib/actions/web-page.actions";
 import remarkGfm from "remark-gfm";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { cacheLife } from "next/cache";
+import MarkdownRenderer from "@/components/shared/markdown-renderer";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  
   const { slug } = await params;
 
   const webPage = await getWebPageBySlug(slug);
@@ -39,8 +39,8 @@ export default async function WebPage({
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 pb-4">
         {webPage.title}
       </h1>
-
-
+      <section>
+        <MarkdownRenderer content={webPage.content} />
       </section>
     </div>
   );
