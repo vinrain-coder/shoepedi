@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import useBrowsingHistory from "@/hooks/use-browsing-history";
-import { useEffect, useState } from "react";
 import ProductSlider from "./product/product-slider";
 import { Separator } from "../ui/separator";
 import { cn } from "@/lib/utils";
+0;
+const requestCache = new Map<string, any>();
 
 export default function BrowsingHistoryList({
   className,
@@ -13,67 +15,105 @@ export default function BrowsingHistoryList({
 }) {
   const { products } = useBrowsingHistory();
 
-  if (products.length === 0) return null;
+  // Memoized values (IMPORTANT)
+  const ids = useMemo(() => products.map((p) => p.id).join(","), [products]);
 
-  return (
-    <div className="bg-background">
-      <Separator className={cn("mb-4", className)} />
-      <ProductList title="Related to items that you've viewed" type="related" />
-      <Separator className="mb-4" />
-      <ProductList title="Your browsing history" hideDetails type="history" />
-    </div>
+  const categories = useMemo(
+    () => [...new Set(products.map((p) => p.category))].join(","),
+    [products]
   );
-}
 
-function ProductList({
-  title,
-  type = "history",
-  hideDetails = false,
-  excludeId = "",
-}: {
-  title: string;
-  type: "history" | "related";
-  excludeId?: string;
-  hideDetails?: boolean;
-}) {
-  const { products } = useBrowsingHistory();
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<{
+    history: any[];
+    related: any[];
+  } | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!ids) return;
 
-    const fetchProducts = async () => {
-      if (products.length === 0) return;
+    const cacheKey = `browsing-${ids}-${categories}`;
 
+    // 1️⃣ CLIENT CACHE HIT
+    if (requestCache.has(cacheKey)) {
+      setData(requestCache.get(cacheKey));
+      setLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    const fetchData = async () => {
       setLoading(true);
       try {
         const query = new URLSearchParams({
-          type,
-          excludeId,
-          categories: products.map((p) => p.category).join(","),
-          ids: products.map((p) => p.id).join(","),
+          type: "both",
+          ids,
+          categories,
         });
 
         const res = await fetch(
           `/api/products/browsing-history?${query.toString()}`
         );
+
         if (!res.ok) return;
+
         const result = await res.json();
-        if (isMounted) setData(result);
+
+        if (!mounted) return;
+
+        // 2️⃣ SAVE TO CACHE
+        requestCache.set(cacheKey, result);
+        setData(result);
       } catch (err) {
-        console.error("Failed to fetch browsing history products:", err);
+        console.error("Browsing history fetch failed:", err);
       } finally {
-        if (isMounted) setLoading(false);
+        mounted && setLoading(false);
       }
     };
 
-    fetchProducts();
-    return () => {
-      isMounted = false;
-    };
-  }, [type, excludeId, products]);
+    fetchData();
 
+    return () => {
+      mounted = false;
+    };
+  }, [ids, categories]);
+
+  if (!products.length) return null;
+
+  return (
+    <div className="bg-background">
+      <Separator className={cn("mb-4", className)} />
+
+      <ProductSection
+        title="Related to items that you've viewed"
+        products={data?.related ?? []}
+        loading={loading}
+      />
+
+      <Separator className="mb-4" />
+
+      <ProductSection
+        title="Your browsing history"
+        products={data?.history ?? []}
+        hideDetails
+        loading={loading}
+      />
+    </div>
+  );
+}
+function ProductSection({
+  title,
+  products,
+  loading,
+  hideDetails = false,
+}: {
+  title: string;
+  products: any[];
+  loading: boolean;
+  hideDetails?: boolean;
+}) {
   if (loading) {
     return (
       <div className="flex gap-4 overflow-x-auto py-4 px-2">
@@ -87,9 +127,13 @@ function ProductList({
     );
   }
 
-  if (data.length === 0) return null;
+  if (!products.length) return null;
 
   return (
-    <ProductSlider title={title} products={data} hideDetails={hideDetails} />
+    <ProductSlider
+      title={title}
+      products={products}
+      hideDetails={hideDetails}
+    />
   );
 }
