@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SearchLoading() {
   return (
-    <div className="w-full px-4 py-10">
+    <div className="w-full px-2 py-10">
       {/* Top row loader */}
       <div className="flex items-center gap-2 mb-6">
         <Loader2 className="animate-spin h-5 w-5 text-gray-500" />
