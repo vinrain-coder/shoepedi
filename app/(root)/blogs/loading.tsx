@@ -2,26 +2,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-7xl space-y-2">
-      {/* Heading */}
-      <Skeleton className="h-10 w-64" />
-
-      {/* Paragraph */}
-      <div className="space-y-2 max-w-2xl">
-        <Skeleton className="h-4 w-full" />
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-5 w-64 mt-2" />
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="space-y-4 rounded-xl border p-2">
-            {/* Image */}
-            <Skeleton className="h-40 w-full rounded-lg" />
-
-            {/* Title */}
-            <Skeleton className="h-5 w-3/4" />
-
-            {/* Meta */}
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
           </div>
         ))}
