@@ -15,8 +15,10 @@ export default function Loading() {
       </div>
 
       {/* Image */}
-      <Skeleton className="w-[900px] h-[500px] rounded-xl" />
-
+     <div className="w-full aspect-[900/500]">
+      <Skeleton className="w-full h-full rounded-xl" />
+     </div>
+      
       {/* Content */}
       <div className="space-y-2">
         <Skeleton className="h-4 w-full" />
