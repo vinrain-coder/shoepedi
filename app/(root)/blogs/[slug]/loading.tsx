@@ -8,10 +8,9 @@ export default function Loading() {
 
       {/* Title */}
       <Skeleton className="h-10 w-11/12" />
-      <Skeleton className="h-10 w-11/12" />
 
       {/* Author · Date · Views */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-4 w-20" />
@@ -23,7 +22,7 @@ export default function Loading() {
       </div>
 
       {/* Markdown Content */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-11/12" />
         <Skeleton className="h-4 w-10/12" />
