@@ -25,8 +25,6 @@ export default async function WebPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  "use cache";
-  cacheLife("weeks");
   const { slug } = await params; // ✅ FIX — unwrap promise
 
   const webPage = await getWebPageBySlug(slug);
