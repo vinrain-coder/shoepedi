@@ -2,12 +2,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="p-1 sm:p-2 md:p-8 max-w-3xl mx-auto">
+    <div className="p-2 w-full">
       {/* Breadcrumb skeleton */}
-      <div className="flex gap-2 mb-4">
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-4 w-4" />
-        <Skeleton className="h-4 w-24" />
+      <div className="mb-4">
+        <Skeleton className="h-4 w-1/2" />
       </div>
 
       {/* Title skeleton */}
