@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-7xl px-2 py-8 space-y-8">
+    <div className="mx-auto max-w-7xl space-y-2">
       {/* Heading */}
       <Skeleton className="h-10 w-64" />
 
@@ -14,7 +14,7 @@ export default function Loading() {
       {/* Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="space-y-4 rounded-xl border p-4">
+          <div key={i} className="space-y-4 rounded-xl border p-2">
             {/* Image */}
             <Skeleton className="h-40 w-full rounded-lg" />
 
