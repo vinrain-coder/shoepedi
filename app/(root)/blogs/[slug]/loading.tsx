@@ -2,7 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-3xl space-y-2">
+    <div className="max-w-3xl mx-auto px-1 sm:px-2 md:px-4">
+     <Skeleton className="h-4 w-3/4" />
       {/* Title */}
       <Skeleton className="h-10 w-3/4" />
 
@@ -14,7 +15,7 @@ export default function Loading() {
       </div>
 
       {/* Image */}
-      <Skeleton className="h-[200px] w-full rounded-xl" />
+      <Skeleton className="w-[900px] h-[500px] rounded-xl" />
 
       {/* Content */}
       <div className="space-y-2">
