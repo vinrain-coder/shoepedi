@@ -6,7 +6,7 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   // Product Images
-  productImages: f({
+  products: f({
     image: {
       maxFileSize: "1MB",
       maxFileCount: 6,

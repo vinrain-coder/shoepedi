@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, Play } from "lucide-react";
+import { X, Play, Loader2 } from "lucide-react";
 
 type MediaItem = {
   url: string;
@@ -75,11 +75,7 @@ function SortableMedia({
         />
       ) : (
         <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
-          <video
-            src={item.url}
-            className="w-full h-full object-cover"
-            muted
-          />
+          <video src={item.url} className="w-full h-full object-cover" muted />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <Play size={32} className="text-white/80" />
           </div>
@@ -116,11 +112,14 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    form.setValue("images", media.map((m) => m.url));
+    form.setValue(
+      "images",
+      media.map((m) => m.url)
+    );
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
-  const { startUpload, isUploading } = useUploadThing("productImages", {
+  const { startUpload, isUploading } = useUploadThing("products", {
     onClientUploadComplete: (res) => {
       const uploaded: MediaItem[] = res.map((f) => ({
         url: f.url,
@@ -132,7 +131,9 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError: (e) => {
+      toast.error(e.message);
+    },
   });
 
   /* --------------------------- Dropzone --------------------------- */
@@ -233,10 +234,13 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
               </div>
 
               {isUploading && (
-                <div className="space-y-2">
+                <div className="space-y-2 flex gap-1 flex-col">
+                  <div className="">
+                    <Loader2 size="4" className="animate-spin text-primary" />
+                  </div>
                   <div className="bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-blue-600 h-3 rounded-full"
+                      className="bg-primary h-3 rounded-full"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -251,4 +255,4 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-  }
+}
