@@ -89,7 +89,6 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     }
   };
 
-  /* --------------------------- UI --------------------------- */
   return (
     <FormField
       control={form.control}
@@ -104,17 +103,17 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
               {media.length > 0 && (
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {media.map((item) => (
-                    <div key={item.url} className="relative shrink-0">
+                    <div key={item.url} className="relative shrink-0 w-28 h-28">
                       {item.type === "image" ? (
                         <Image
                           src={item.url}
                           alt="Uploaded media"
                           width={120}
                           height={120}
-                          className="w-28 h-28 object-cover rounded-lg border"
+                          className="w-full h-full object-cover rounded-lg border"
                         />
                       ) : (
-                        <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
+                        <div className="w-full h-full relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
                           <video
                             src={item.url}
                             className="w-full h-full object-cover"
@@ -130,7 +129,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
                       <button
                         type="button"
                         onClick={() => handleRemove(item.url)}
-                        className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow"
+                        className="absolute -top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
                       >
                         <X size={14} />
                       </button>
@@ -159,9 +158,9 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
 
               {/* Upload Progress */}
               {isUploading && (
-                <div className="flex flex-col items-center gap-2 mt-2">
-                  <Loader2 size={24} className="animate-spin text-primary" />
-                  <div className="w-full max-w-xs bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="flex flex-col items-center mt-2 w-full max-w-sm mx-auto">
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-primary h-3 rounded-full transition-all"
                       style={{ width: `${progress}%` }}
@@ -179,4 +178,4 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     />
   );
       }
-    
+      
