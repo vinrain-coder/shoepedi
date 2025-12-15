@@ -141,32 +141,32 @@ export default function FiltersClient({
   function FiltersContent() {
     return (
       <div className="space-y-6">
-        {/* Category */}
-        <div>
-          <div className="font-bold mb-2">Categories</div>
+        
+        
+{/* Categories */}
+<div>
+  <div className="font-bold mb-2">Categories</div>
 
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.category}
-              onClick={(v) => updateParam("category", v)}
-            >
-              All
-            </FilterButton>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      active={current.category === "all"}
+      onClick={() => updateParam("category", "all")}
+    >
+      All
+    </FilterButton>
 
-            {categories.map((c) => (
-              <FilterButton
-                key={c}
-                value={c}
-                current={current.category}
-                onClick={(v) => updateParam("category", v)}
-              >
-                {c}
-              </FilterButton>
-            ))}
-          </div>
-        </div>
-
+    {categories.map((c) => (
+      <FilterButton
+        key={c}
+        active={current.category === c}
+        onClick={() => updateParam("category", c)}
+      >
+        {c}
+      </FilterButton>
+    ))}
+  </div>
+</div>
+        
         {/* Price */}
         <div>
           <div className="font-bold mb-2">Price</div>
@@ -177,52 +177,52 @@ export default function FiltersClient({
         </div>
 
         {/* Rating */}
-        <div>
-          <div className="font-bold mb-2">Customer Review</div>
+        
+        
+<div>
+  <div className="font-bold mb-2">Customer Review</div>
 
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.rating}
-              onClick={(v) => updateParam("rating", v)}
-            >
-              All
-            </FilterButton>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      active={current.rating === "all"}
+      onClick={() => updateParam("rating", "all")}
+    >
+      All
+    </FilterButton>
 
-            <FilterButton
-              value="4"
-              current={current.rating}
-              onClick={(v) => updateParam("rating", v)}
-            >
-              4 & Up
-            </FilterButton>
-          </div>
-        </div>
+    <FilterButton
+      active={current.rating === "4"}
+      onClick={() => updateParam("rating", "4")}
+    >
+      4 & Up
+    </FilterButton>
+  </div>
+</div>
+      
 
         {/* Tags */}
         <div>
           <div className="font-bold mb-2">Tags</div>
 
           <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.tag}
-              onClick={(v) => updateParam("tag", v)}
-            >
-              All
-            </FilterButton>
+  <FilterButton
+    active={current.tag === "all"}
+    onClick={() => updateParam("tag", "all")}
+  >
+    All
+  </FilterButton>
 
-            {tags.map((t) => (
-              <FilterButton
-                key={t}
-                value={t}
-                current={current.tag}
-                onClick={(v) => updateParam("tag", v)}
-              >
-                {t}
-              </FilterButton>
-            ))}
-          </div>
+  {tags.map((t) => (
+    <FilterButton
+      key={t}
+      active={current.tag === t}
+      onClick={() => updateParam("tag", t)}
+    >
+      {t}
+    </FilterButton>
+  ))}
+</div>
+
         </div>
 
         {/* Brands */}
@@ -230,85 +230,82 @@ export default function FiltersClient({
           <div className="font-bold mb-2">Brands</div>
 
           <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.brand}
-              onClick={(v) => updateParam("brand", v)}
-            >
-              All
-            </FilterButton>
+  <FilterButton
+    active={current.brand === "all"}
+    onClick={() => updateParam("brand", "all")}
+  >
+    All
+  </FilterButton>
 
-            {brands.map((b) => (
-              <FilterButton
-                key={t}
-                value={b}
-                current={current.brand}
-                onClick={(v) => updateParam("brand", v)}
-              >
-                {b}
-              </FilterButton>
-            ))}
-          </div>
+  {brands.map((b) => (
+    <FilterButton
+      key={b}
+      active={current.brand === b}
+      onClick={() => updateParam("brand", b)}
+    >
+      {b}
+    </FilterButton>
+  ))}
+</div>
+
         </div>
 
-        {/* Colors */}
-        <div>
-          <div className="font-bold mb-2">Colors</div>
+{/* Colors */}
+<div>
+  <div className="font-bold mb-2">Colors</div>
 
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.color}
-              onClick={(v) => updateParam("color", v)}
-            >
-              All
-            </FilterButton>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      active={current.color === "all"}
+      onClick={() => updateParam("color", "all")}
+    >
+      All
+    </FilterButton>
 
-            {colors.map((c) => (
-              <FilterButton
-                key={c}
-                value={c}
-                current={current.color}
-                onClick={(v) => updateParam("color", v)}
-                className="flex items-center gap-2"
-              >
-                {/* Color dot */}
-                <span
-                  className="h-4 w-4 rounded-full border border-muted-foreground"
-                  style={{ backgroundColor: c }}
-                />
+    {colors.map((c) => (
+      <FilterButton
+        key={c}
+        active={current.color === c}
+        onClick={() => updateParam("color", c)}
+        className="flex items-center gap-2"
+      >
+        {/* Color dot */}
+        <span
+          className="h-4 w-4 rounded-full border border-muted-foreground"
+          style={{ backgroundColor: c }}
+        />
 
-                {/* Color name */}
-                <span>{c}</span>
-              </FilterButton>
-            ))}
-          </div>
-        </div>
+        {/* Color name */}
+        <span>{c}</span>
+      </FilterButton>
+    ))}
+  </div>
+</div>
+          
 
-        {/* Sizes*/}
+        {/* Sizes */}
         <div>
           <div className="font-bold mb-2">Sizes</div>
+          
+<div className="flex flex-wrap gap-2">
+  <FilterButton
+    active={current.size === "all"}
+    onClick={() => updateParam("size", "all")}
+  >
+    All
+  </FilterButton>
 
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              value="all"
-              current={current.size}
-              onClick={(v) => updateParam("size", v)}
-            >
-              All
-            </FilterButton>
+  {sizes.map((s) => (
+    <FilterButton
+      key={s}
+      active={current.size === s}
+      onClick={() => updateParam("size", s)}
+    >
+      {s}
+    </FilterButton>
+  ))}
+</div>
 
-            {sizes.map((s) => (
-              <FilterButton
-                key={s}
-                value={s}
-                current={current.size}
-                onClick={(v) => updateParam("size", v)}
-              >
-                {s}
-              </FilterButton>
-            ))}
-          </div>
         </div>
       </div>
     );
@@ -393,3 +390,4 @@ export default function FiltersClient({
     </>
   );
 }
+
