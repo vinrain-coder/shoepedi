@@ -7,12 +7,14 @@ interface FilterButtonProps {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
 export default function FilterButton({
   active,
   onClick,
   children,
+  className,
 }: FilterButtonProps) {
   return (
     <button
@@ -24,11 +26,11 @@ export default function FilterButton({
         {
           "text-primary border-primary": active,
           "hover:border-primary hover:text-primary": !active,
-        }
+        },
+        className
       )}
     >
       {children}
     </button>
   );
 }
-  

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
-import { useUploadThing } from "@/lib/uploadthing";
+// import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
 
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { useUploadThing } from "@/lib/uploadthing";
 
 type MediaItem = {
   url: string;
@@ -109,7 +110,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
 
   /* --------------------------- UploadThing --------------------------- */
 
-  const { startUpload, isUploading } = useUploadThing("productImages", {
+  const { startUpload, isUploading } = useUploadThing("products", {
     onClientUploadComplete: (res) => {
       const uploaded = res.map((f) => ({
         url: f.url,
@@ -153,6 +154,19 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   const handleRemove = (url: string) => {
     setMedia((prev) => prev.filter((m) => m.url !== url));
   };
+
+  const uploaded: MediaItem[] = res.map((f) => {
+      const isVideo = f.url.match(/\.(mp4|webm|mov|ogg)$/i);
+
+        return {
+            url: f.url,
+                type: isVideo ? "video" : "image",
+                  };
+                  });
+
+                  setMedia((prev) => [...prev, ...uploaded]);
+
+  
 
   /* --------------------------- UI --------------------------- */
 
