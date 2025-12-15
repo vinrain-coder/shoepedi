@@ -142,35 +142,30 @@ export default function FiltersClient({
       <div className="space-y-6">
         {/* Category */}
         <div>
-          <div className="font-bold mb-2">Category</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={
-                current.category === "all"
-                  ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("category", "all")}
-            >
-              All
-            </button>
+  <div className="font-bold mb-2">Categories</div>
 
-            {categories.map((c) => (
-              <div key={c}>
-                <button
-                  className={
-                    c === current.category
-                      ? "text-primary border border-primary px-2 py-1 rounded-full"
-                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-                  }
-                  onClick={() => updateParam("category", c)}
-                >
-                  {c}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.category}
+      onClick={(v) => updateParam("category", v)}
+    >
+      All
+    </FilterButton>
+
+    {categories.map((c) => (
+      <FilterButton
+        key={c}
+        value={c}
+        current={current.category}
+        onClick={(v) => updateParam("category", v)}
+      >
+        {c}
+      </FilterButton>
+    ))}
+  </div>
+</div>
+
 
         {/* Price */}
         <div>
@@ -182,169 +177,143 @@ export default function FiltersClient({
         </div>
 
         {/* Rating */}
-        <div>
-          <div className="font-bold mb-2">Customer Review</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={
-                current.rating === "all"
-                  ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("rating", "all")}
-            >
-              All
-            </button>
+<div>
+  <div className="font-bold mb-2">Customer Review</div>
 
-            <button
-              className={
-                current.rating === "4"
-                  ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("rating", "4")}
-            >
-              4 & Up
-            </button>
-          </div>
-        </div>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.rating}
+      onClick={(v) => updateParam("rating", v)}
+    >
+      All
+    </FilterButton>
 
+    <FilterButton
+      value="4"
+      current={current.rating}
+      onClick={(v) => updateParam("rating", v)}
+    >
+      4 & Up
+    </FilterButton>
+  </div>
+</div>
+  
         {/* Tags */}
-        <div>
-          <div className="font-bold mb-2">Tags</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={
-                current.tag === "all"
-                  ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("tag", "all")}
-            >
-              All
-            </button>
+<div>
+  <div className="font-bold mb-2">Tags</div>
 
-            {tags.map((t) => (
-              <div key={t}>
-                <button
-                  className={
-                    t === current.tag
-                      ? "text-primary border border-primary px-2 py-1 rounded-full"
-                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-                  }
-                  onClick={() => updateParam("tag", t)}
-                >
-                  {t}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.tag}
+      onClick={(v) => updateParam("tag", v)}
+    >
+      All
+    </FilterButton>
+
+    {tags.map((t) => (
+      <FilterButton
+        key={t}
+        value={t}
+        current={current.tag}
+        onClick={(v) => updateParam("tag", v)}
+      >
+        {t}
+      </FilterButton>
+    ))}
+  </div>
+</div>
+
 
         {/* Brands */}
         <div>
-          <div className="font-bold mb-2">Brands</div>
-          <div className="flex flex-wrap gap-2">
-            <p>
-              <button
-                className={
-                  current.brand === "all"
-                    ? "text-primary border border-primary px-2 py-1 rounded-full"
-                    : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-                }
-                onClick={() => updateParam("brand", "all")}
-              >
-                All
-              </button>
-            </p>
-            {brands.map((b) => (
-              <p key={b}>
-                <button
-                  className={
-                    b === current.brand
-                      ? "text-primary border border-primary px-2 py-1 rounded-full"
-                      : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-                  }
-                  onClick={() => updateParam("brand", b)}
-                >
-                  {b}
-                </button>
-              </p>
-            ))}
-          </div>
-        </div>
+  <div className="font-bold mb-2">Brands</div>
 
-        {/* Colors */}
-        <div>
-          <div className="font-bold mb-2">Colors</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={
-                current.color === "all"
-                  ? "text-primary border border-primary px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("color", "all")}
-            >
-              All
-            </button>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.brand}
+      onClick={(v) => updateParam("brand", v)}
+    >
+      All
+    </FilterButton>
 
-            {colors.map((c) => (
-              <li key={c} className="flex items-center space-x-2">
-                <button
-                  className={
-                    c === current.color
-                      ? "flex flex-row items-center gap-1 text-primary border border-primary px-2 py-1 rounded-full"
-                      : "flex items-center space-x-2 border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-                  }
-                  onClick={() => updateParam("color", c)}
-                >
-                  {/* 🔵 Color Dot */}
-                  <div
-                    className="h-4 w-4 rounded-full border border-muted-foreground"
-                    style={{ backgroundColor: c }}
-                  ></div>
+    {brands.map((b) => (
+      <FilterButton
+        key={t}
+        value={b}
+        current={current.brand}
+        onClick={(v) => updateParam("brand", v)}
+      >
+        {b}
+      </FilterButton>
+    ))}
+  </div>
+</div>
 
-                  {/* Color Name */}
-                  <span>{c}</span>
-                </button>
-              </li>
-            ))}
-          </div>
-        </div>
 
+        
+{/* Colors */}
+<div>
+  <div className="font-bold mb-2">Colors</div>
+
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.color}
+      onClick={(v) => updateParam("color", v)}
+    >
+      All
+    </FilterButton>
+
+    {colors.map((c) => (
+      <FilterButton
+        key={c}
+        value={c}
+        current={current.color}
+        onClick={(v) => updateParam("color", v)}
+        className="flex items-center gap-2"
+      >
+        {/* Color dot */}
+        <span
+          className="h-4 w-4 rounded-full border border-muted-foreground"
+          style={{ backgroundColor: c }}
+        />
+
+        {/* Color name */}
+        <span>{c}</span>
+      </FilterButton>
+    ))}
+  </div>
+</div>
+          
         {/* Sizes*/}
         <div>
-          <div className="font-bold mb-2">Sizes</div>
+  <div className="font-bold mb-2">Sizes</div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {/* All Sizes button */}
-            <button
-              className={
-                current.size === "all"
-                  ? "text-primary border px-2 py-1 rounded-full"
-                  : "border px-2 py-1 rounded-full hover:border-primary hover:text-primary"
-              }
-              onClick={() => updateParam("size", "all")}
-            >
-              All
-            </button>
+  <div className="flex flex-wrap gap-2">
+    <FilterButton
+      value="all"
+      current={current.size}
+      onClick={(v) => updateParam("size", v)}
+    >
+      All
+    </FilterButton>
 
-            {/* Size buttons */}
-            {sizes.map((s) => (
-              <button
-                key={s}
-                className={
-                  s === current.size
-                    ? "text-primary border border-primary px-2 py-1 rounded-full"
-                    : "border px-2 py-1 rounded-full"
-                }
-                onClick={() => updateParam("size", s)}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+    {sizes.map((s) => (
+      <FilterButton
+        key={s}
+        value={s}
+        current={current.size}
+        onClick={(v) => updateParam("size", v)}
+      >
+        {s}
+      </FilterButton>
+    ))}
+  </div>
+</div>
+
         </div>
       </div>
     );
@@ -429,3 +398,4 @@ export default function FiltersClient({
     </>
   );
 }
+
