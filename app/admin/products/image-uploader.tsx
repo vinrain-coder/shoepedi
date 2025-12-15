@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { X } from "lucide-react";
+import { X, Play } from "lucide-react";
 
 type MediaItem = {
   url: string;
@@ -74,16 +74,25 @@ function SortableMedia({
           className="w-28 h-28 object-cover rounded-lg border"
         />
       ) : (
-        <video
-          src={item.url}
-          className="w-28 h-28 object-cover rounded-lg border"
-        />
+        <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
+          <video
+            src={item.url}
+            className="w-full h-full object-cover"
+            muted
+          />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Play size={32} className="text-white/80" />
+          </div>
+        </div>
       )}
 
       {/* Remove Button */}
       <button
         type="button"
-        onClick={onRemove}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
         className="absolute -top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
       >
         <X size={14} />
@@ -94,7 +103,6 @@ function SortableMedia({
 
 /* ---------------------------- Main Component ---------------------------- */
 export default function ImageUploader({ form }: ImageUploaderProps) {
-  // Initialize state from form
   const initialMedia: MediaItem[] = (form.getValues("images") || []).map(
     (url: string) => ({
       url,
@@ -108,11 +116,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    // Sync media with form values
-    form.setValue(
-      "images",
-      media.map((m) => m.url)
-    );
+    form.setValue("images", media.map((m) => m.url));
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
@@ -124,14 +128,11 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       }));
 
       setProgress(0);
-
       setMedia((prev) => [...prev, ...uploaded]);
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => {
-      toast.error(e.message);
-    },
+    onUploadError: (e) => toast.error(e.message),
   });
 
   /* --------------------------- Dropzone --------------------------- */
@@ -141,9 +142,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       "image/*": [],
       "video/*": [],
     },
-    onDrop: (files) => {
-      startUpload(files); // Upload selected files
-    },
+    onDrop: (files) => startUpload(files),
   });
 
   /* --------------------------- Drag & Drop --------------------------- */
@@ -154,12 +153,29 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     setMedia((items) => {
       const oldIndex = items.findIndex((i) => i.url === active.id);
       const newIndex = items.findIndex((i) => i.url === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
       return arrayMove(items, oldIndex, newIndex);
     });
   };
 
-  const handleRemove = (url: string) => {
-    setMedia((prev) => prev.filter((m) => m.url !== url));
+  /* --------------------------- Remove File --------------------------- */
+  const handleRemove = async (url: string) => {
+    try {
+      const res = await fetch("/api/delete-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.message || "Delete failed");
+
+      // Remove locally
+      setMedia((prev) => prev.filter((m) => m.url !== url));
+      toast.success("File deleted successfully");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   /* --------------------------- UI --------------------------- */
@@ -235,4 +251,4 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-}
+  }
