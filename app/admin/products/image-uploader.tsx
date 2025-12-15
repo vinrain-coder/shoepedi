@@ -7,23 +7,6 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
 
 import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  horizontalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
-
-import {
   FormField,
   FormItem,
   FormLabel,
@@ -41,30 +24,16 @@ type ImageUploaderProps = {
   form: any;
 };
 
-/* ---------------------------- Sortable Item ---------------------------- */
-function SortableMedia({
+/* ---------------------------- Media Item ---------------------------- */
+function MediaPreview({
   item,
   onRemove,
 }: {
   item: MediaItem;
   onRemove: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: item.url });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative shrink-0"
-    >
+    <div className="relative shrink-0">
       {item.type === "image" ? (
         <Image
           src={item.url}
@@ -113,14 +82,12 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
   const [progress, setProgress] = useState(0);
 
-  const sensors = useSensors(useSensor(PointerSensor));
-
   useEffect(() => {
     form.setValue("images", media.map((m) => m.url));
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
-  const { startUpload, isUploading } = useUploadThing("productImages", {
+  const { startUpload, isUploading } = useUploadThing("products", {
     onClientUploadComplete: (res) => {
       const uploaded: MediaItem[] = res.map((f) => ({
         url: f.url,
@@ -145,19 +112,6 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     onDrop: (files) => startUpload(files),
   });
 
-  /* --------------------------- Drag & Drop --------------------------- */
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    setMedia((items) => {
-      const oldIndex = items.findIndex((i) => i.url === active.id);
-      const newIndex = items.findIndex((i) => i.url === over.id);
-      if (oldIndex === -1 || newIndex === -1) return items;
-      return arrayMove(items, oldIndex, newIndex);
-    });
-  };
-
   /* --------------------------- Remove File --------------------------- */
   const handleRemove = async (url: string) => {
     try {
@@ -166,11 +120,10 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
-      const data = await res.json();
 
+      const data = await res.json();
       if (!data.success) throw new Error(data.message || "Delete failed");
 
-      // Remove locally
       setMedia((prev) => prev.filter((m) => m.url !== url));
       toast.success("File deleted successfully");
     } catch (error: any) {
@@ -189,29 +142,17 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
 
           <Card>
             <CardContent className="space-y-4 pt-4">
-              {/* Preview & Reorder */}
+              {/* Preview */}
               {media.length > 0 && (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  modifiers={[restrictToHorizontalAxis]}
-                >
-                  <SortableContext
-                    items={media.map((m) => m.url)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    <div className="flex gap-3 overflow-x-auto pb-2">
-                      {media.map((item) => (
-                        <SortableMedia
-                          key={item.url}
-                          item={item}
-                          onRemove={() => handleRemove(item.url)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {media.map((item) => (
+                    <MediaPreview
+                      key={item.url}
+                      item={item}
+                      onRemove={() => handleRemove(item.url)}
+                    />
+                  ))}
+                </div>
               )}
 
               {/* Dropzone */}
@@ -236,7 +177,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
                 <div className="space-y-2">
                   <div className="bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-blue-600 h-3 rounded-full"
+                      className="bg-primary h-3 rounded-full"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -251,5 +192,4 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-  }
-  
+}
