@@ -58,7 +58,13 @@ function SortableMedia({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative shrink-0">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative shrink-0"
+    >
       {item.type === "image" ? (
         <Image
           src={item.url}
@@ -97,6 +103,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   );
 
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
+  const [progress, setProgress] = useState(0);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -109,16 +116,19 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
-  const { startUpload, isUploading } = useUploadThing("productImages", {
+  const { startUpload, isUploading } = useUploadThing("products", {
     onClientUploadComplete: (res) => {
       const uploaded: MediaItem[] = res.map((f) => ({
         url: f.url,
         type: f.url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
       }));
 
+      setProgress(0);
+
       setMedia((prev) => [...prev, ...uploaded]);
       toast.success("Upload completed");
     },
+    onUploadProgress: setProgress,
     onUploadError: (e) => {
       toast.error(e.message);
     },
@@ -207,16 +217,16 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
               </div>
 
               {isUploading && (
-          <div className="space-y-2">
-            <div className="bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-blue-600 h-3 rounded-full"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-center text-sm">{progress}%</p>
-          </div>
-        )}
+                <div className="space-y-2">
+                  <div className="bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-blue-600 h-3 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <p className="text-center text-sm">{progress}%</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -225,5 +235,4 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-        }
-  
+}
