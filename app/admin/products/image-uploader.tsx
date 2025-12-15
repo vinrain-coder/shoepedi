@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useDropzone } from "react-dropzone";
+import { useUploadThing } from "@/lib/uploadthing";
+import { toast } from "sonner";
+
 import {
   DndContext,
   closestCenter,
@@ -23,20 +28,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormControl,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { UploadDropzone } from "@/lib/uploadthing";
-import { toast } from "sonner";
+import { X } from "lucide-react";
+
+type MediaItem = {
+  url: string;
+  type: "image" | "video";
+};
 
 type ImageUploaderProps = {
   form: any;
 };
 
-function SortableImage({ url }: { url: string }) {
+/* ---------------------------- Sortable Item ---------------------------- */
+
+function SortableMedia({
+  item,
+  onRemove,
+}: {
+  item: MediaItem;
+  onRemove: () => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: url });
+    useSortable({ id: item.url });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -44,50 +59,102 @@ function SortableImage({ url }: { url: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Image
-        src={url}
-        alt="Product Image"
-        className="w-20 h-20 object-cover rounded-md shadow-md"
-        width={100}
-        height={100}
-      />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative shrink-0"
+    >
+      {item.type === "image" ? (
+        <Image
+          src={item.url}
+          alt="Uploaded media"
+          width={120}
+          height={120}
+          className="w-28 h-28 object-cover rounded-lg border"
+        />
+      ) : (
+        <video
+          src={item.url}
+          className="w-28 h-28 object-cover rounded-lg border"
+        />
+      )}
+
+      {/* Remove Button */}
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute -top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
+      >
+        <X size={14} />
+      </button>
     </div>
   );
 }
 
+/* ---------------------------- Main Component ---------------------------- */
+
 export default function ImageUploader({ form }: ImageUploaderProps) {
-  const [images, setImages] = useState<string[]>(
+  const [media, setMedia] = useState<MediaItem[]>(
     form.getValues("images") || []
   );
+  const [progress, setProgress] = useState(0);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    form.setValue("images", images);
-  }, [images, form]);
+    form.setValue("images", media);
+  }, [media, form]);
+
+  /* --------------------------- UploadThing --------------------------- */
+
+  const { startUpload, isUploading } = useUploadThing("productImages", {
+    onClientUploadComplete: (res) => {
+      const uploaded = res.map((f) => ({
+        url: f.url,
+        type: f.type.startsWith("video") ? "video" : "image",
+      }));
+
+      setMedia((prev) => [...prev, ...uploaded]);
+      toast.success("Upload completed");
+    },
+    onUploadError: (e) => {
+      toast.error(e.message);
+    },
+  });
+
+  /* --------------------------- Dropzone --------------------------- */
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    multiple: true,
+    accept: {
+      "image/*": [],
+      "video/*": [],
+    },
+    onDrop: (files) => {
+      startUpload(files);
+    },
+  });
+
+  /* --------------------------- DND --------------------------- */
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over?.id) {
-      const oldIndex = images.indexOf(active.id as string);
-      const newIndex = images.indexOf(over?.id as string);
-      const updated = arrayMove(images, oldIndex, newIndex);
-      setImages(updated);
-    }
+    if (!over || active.id === over.id) return;
+
+    setMedia((items) => {
+      const oldIndex = items.findIndex((i) => i.url === active.id);
+      const newIndex = items.findIndex((i) => i.url === over.id);
+      return arrayMove(items, oldIndex, newIndex);
+    });
   };
 
-  const handleRemove = (index: number) => {
-    const updated = images.filter((_, i) => i !== index);
-    setImages(updated);
+  const handleRemove = (url: string) => {
+    setMedia((prev) => prev.filter((m) => m.url !== url));
   };
 
-  // const handleUploadComplete = (res: { url: string }[]) => {
-  //   const uploaded = res.map((f) => f.url);
-  //   const updated = Array.from(new Set([...images, ...uploaded]));
-  //   setImages(updated);
-  //   toast.success("Images uploaded successfully!");
-  // };
+  /* --------------------------- UI --------------------------- */
 
   return (
     <FormField
@@ -95,10 +162,12 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       name="images"
       render={() => (
         <FormItem className="w-full">
-          <FormLabel>Images</FormLabel>
+          <FormLabel>Product Media</FormLabel>
+
           <Card>
-            <CardContent className="space-y-4 mt-2 min-h-48">
-              {images.length > 0 && (
+            <CardContent className="space-y-4 pt-4">
+              {/* Preview & Reorder */}
+              {media.length > 0 && (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -106,62 +175,54 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
                   modifiers={[restrictToHorizontalAxis]}
                 >
                   <SortableContext
-                    items={images}
+                    items={media.map((m) => m.url)}
                     strategy={horizontalListSortingStrategy}
                   >
-                    <div className="flex items-center gap-3 overflow-x-auto">
-                      {images.map((img) => (
-                        <SortableImage key={img} url={img} />
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {media.map((item) => (
+                        <SortableMedia
+                          key={item.url}
+                          item={item}
+                          onRemove={() => handleRemove(item.url)}
+                        />
                       ))}
                     </div>
                   </SortableContext>
                 </DndContext>
               )}
 
-              {/* Remove buttons below images */}
-              {images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {images.map((_, i) => (
-                    <button
-                      key={`remove-${i}`}
-                      type="button"
-                      onClick={() => handleRemove(i)}
-                      className="px-3 py-1 bg-red-400 rounded-md shadow hover:bg-red-600"
-                    >
-                      Remove Image {i + 1}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2 mt-3">
-                <span className="text-sm text-muted-foreground">
-                  You can upload up to 6 images (max: 1MB each).
-                </span>
-                <FormControl>
-                  <Card className="bg-muted">
-                    <CardContent>
-                      <UploadDropzone
-                        endpoint="productImages"
-                        onClientUploadComplete={(res: { url: string }[]) => {
-                          const uploadedImages = res.map((file) => file.url);
-                          const updatedImages = Array.from(
-                            new Set([...images, ...uploadedImages])
-                          );
-                          setImages(updatedImages);
-                          form.setValue("images", updatedImages);
-                          toast.success("Images uploaded successfully!");
-                        }}
-                        onUploadError={(error: Error) => {
-                          toast.error(`ERROR! ${error.message}`);
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-                </FormControl>
+              {/* Dropzone */}
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
+                  isDragActive
+                    ? "border-primary bg-primary/10"
+                    : "border-muted-foreground/30 bg-muted"
+                }`}
+              >
+                <input {...getInputProps()} />
+                <p className="text-sm text-muted-foreground">
+                  Drag & drop images or videos, or click to upload
+                </p>
+                <p className="text-xs mt-1 text-muted-foreground">
+                  Supports multiple files
+                </p>
               </div>
+
+              {isUploading && (
+          <div className="space-y-2">
+            <div className="bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-blue-600 h-3 rounded-full"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-center text-sm">{progress}%</p>
+          </div>
+        )}
             </CardContent>
           </Card>
+
           <FormMessage />
         </FormItem>
       )}
