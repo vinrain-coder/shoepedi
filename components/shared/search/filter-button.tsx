@@ -24,8 +24,8 @@ export default function FilterButton({
       className={cn(
         "border px-2 py-1 rounded-full transition-colors",
         {
-          "text-primary border-primary bg-primary/70": active,
-          "hover:border-primary hover:text-primary hover:bg-primary/70": !active,
+          "text-primary border-primary bg-primary/10": active,
+          "hover:border-primary hover:text-primary hover:bg-primary/10": !active,
         },
         className
       )}
