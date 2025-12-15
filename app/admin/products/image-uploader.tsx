@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
-// import { useUploadThing } from "@/lib/uploadthing";
+import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
 
 import {
@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
-import { useUploadThing } from "@/lib/uploadthing";
 
 type MediaItem = {
   url: string;
@@ -43,7 +42,6 @@ type ImageUploaderProps = {
 };
 
 /* ---------------------------- Sortable Item ---------------------------- */
-
 function SortableMedia({
   item,
   onRemove,
@@ -60,13 +58,7 @@ function SortableMedia({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative shrink-0"
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative shrink-0">
       {item.type === "image" ? (
         <Image
           src={item.url}
@@ -95,26 +87,33 @@ function SortableMedia({
 }
 
 /* ---------------------------- Main Component ---------------------------- */
-
 export default function ImageUploader({ form }: ImageUploaderProps) {
-  const [media, setMedia] = useState<MediaItem[]>(
-    form.getValues("images") || []
+  // Initialize state from form
+  const initialMedia: MediaItem[] = (form.getValues("images") || []).map(
+    (url: string) => ({
+      url,
+      type: url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
+    })
   );
-  const [progress, setProgress] = useState(0);
+
+  const [media, setMedia] = useState<MediaItem[]>(initialMedia);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    form.setValue("images", media);
+    // Sync media with form values
+    form.setValue(
+      "images",
+      media.map((m) => m.url)
+    );
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
-
-  const { startUpload, isUploading } = useUploadThing("products", {
+  const { startUpload, isUploading } = useUploadThing("productImages", {
     onClientUploadComplete: (res) => {
-      const uploaded = res.map((f) => ({
+      const uploaded: MediaItem[] = res.map((f) => ({
         url: f.url,
-        type: f.type.startsWith("video") ? "video" : "image",
+        type: f.url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
       }));
 
       setMedia((prev) => [...prev, ...uploaded]);
@@ -126,7 +125,6 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   });
 
   /* --------------------------- Dropzone --------------------------- */
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: true,
     accept: {
@@ -134,12 +132,11 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       "video/*": [],
     },
     onDrop: (files) => {
-      startUpload(files);
+      startUpload(files); // Upload selected files
     },
   });
 
-  /* --------------------------- DND --------------------------- */
-
+  /* --------------------------- Drag & Drop --------------------------- */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -155,21 +152,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     setMedia((prev) => prev.filter((m) => m.url !== url));
   };
 
-  const uploaded: MediaItem[] = res.map((f) => {
-      const isVideo = f.url.match(/\.(mp4|webm|mov|ogg)$/i);
-
-        return {
-            url: f.url,
-                type: isVideo ? "video" : "image",
-                  };
-                  });
-
-                  setMedia((prev) => [...prev, ...uploaded]);
-
-  
-
   /* --------------------------- UI --------------------------- */
-
   return (
     <FormField
       control={form.control}
@@ -242,4 +225,5 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-}
+        }
+  
