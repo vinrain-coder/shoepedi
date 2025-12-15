@@ -116,7 +116,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
-  const { startUpload, isUploading } = useUploadThing("products", {
+  const { startUpload, isUploading } = useUploadThing("productImages", {
     onClientUploadComplete: (res) => {
       const uploaded: MediaItem[] = res.map((f) => ({
         url: f.url,
