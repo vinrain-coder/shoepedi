@@ -159,7 +159,7 @@ const ProductCard = ({
         </CardHeader>
         {!hideDetails && (
           <>
-            <CardContent className="px-0 flex-1 text-center -mt-2">
+            <CardContent className="px-0 flex-1 text-center -mt-6">
               <ProductDetails />
             </CardContent>
 
