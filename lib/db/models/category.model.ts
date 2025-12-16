@@ -1,4 +1,4 @@
-import { Schema, model, models, Document, Types, Model, Query } from "mongoose";
+import { Schema, model, models, Document, Types, Model } from "mongoose";
 
 export interface ICategory extends Document {
   name: string;
@@ -9,14 +9,18 @@ export interface ICategory extends Document {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
-  subcategories?: Types.ObjectId[] | ICategory[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const categorySchema = new Schema<ICategory>(
   {
-    name: { type: String, required: true, trim: true, maxlength: 100 },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
     slug: {
       type: String,
       required: true,
@@ -25,34 +29,40 @@ const categorySchema = new Schema<ICategory>(
       lowercase: true,
       match: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     },
-    parent: { type: Schema.Types.ObjectId, ref: "Category", default: null },
-    description: { type: String, maxlength: 500 },
-    image: { type: String },
-    seoTitle: { type: String, maxlength: 60 },
-    seoDescription: { type: String, maxlength: 160 },
-    seoKeywords: { type: [String], default: [] },
-    subcategories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
+    parent: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+    },
+    description: {
+      type: String,
+      maxlength: 500,
+    },
+    image: String,
+    seoTitle: {
+      type: String,
+      maxlength: 60,
+    },
+    seoDescription: {
+      type: String,
+      maxlength: 160,
+    },
+    seoKeywords: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );
 
-// Auto-populate subcategories
+// Optional: populate parent category
 categorySchema.pre(/^find/, function (next) {
-  const query = this as Query<ICategory[], ICategory>;
-  query.populate("subcategories");
+  this.populate("parent");
   next();
 });
-
-// Optional: helper method to add a subcategory
-categorySchema.methods.addSubcategory = async function (
-  subcategoryId: Types.ObjectId
-) {
-  if (!this.subcategories) this.subcategories = [];
-  this.subcategories.push(subcategoryId);
-  await this.save();
-};
 
 const Category: Model<ICategory> =
   models.Category || model<ICategory>("Category", categorySchema);
 
 export default Category;
+      
