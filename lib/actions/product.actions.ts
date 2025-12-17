@@ -341,7 +341,10 @@ export async function getAllProducts({
           },
         }
       : {};
-  const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
+  const tagFilter =
+    tag && tag !== "all"
+      ? { tags: { $elemMatch: { $regex: `^${tag}$`, $options: "i" } } }
+      : {};
   const brandFilter =
     brand && brand !== "all"
       ? { brand: { $regex: `^${brand}$`, $options: "i" } }
