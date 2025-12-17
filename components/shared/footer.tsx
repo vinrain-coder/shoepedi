@@ -1,5 +1,5 @@
 "use client";
-import { ChevronUp, Mail, MapPin, Phone } from "lucide-react";
+import { ChevronUp, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,121 +12,259 @@ import Facebook from "@/public/icons/facebook.svg";
 import Instagram from "@/public/icons/instagram.svg";
 
 export default function Footer() {
-  const { setting: { site } } = useSettingStore();
+  const {
+    setting: { site },
+  } = useSettingStore();
+
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-
   const message = encodeURIComponent("Hello, ShoePedi!");
+
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${message}`;
- const twitterUrl = process.env.NEXT_PUBLIC_TWITTER_URL || "#";
+
+  const twitterUrl = process.env.NEXT_PUBLIC_TWITTER_URL || "#";
   const tiktokUrl = process.env.NEXT_PUBLIC_TIKTOK_URL || "#";
-
-const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || "#";
-
-const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
+  const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || "#";
+  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
   const youtubeUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
+
   return (
-    <footer className="bg-black text-white border-t border-gray-800">
-      {/* Back to Top */}
-      <Button
-        variant="ghost"
-        className="w-full rounded-none bg-neutral-900 hover:bg-neutral-800 text-gray-400 hover:text-white border-b border-gray-800 h-12"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      >
-        <ChevronUp className="mr-2 h-4 w-4" />
-        Back to top
-      </Button>
+    <footer className="bg-black text-white underline-link">
+      {/* Back to Top Button */}
+      <div className="w-full">
+        <Button
+          variant="ghost"
+          className="bg-gray-800 w-full rounded-none"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ChevronUp className="mr-2 h-4 w-4" />
+          Back to top
+        </Button>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Main Footer Grid - Responsive Column Spanning */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10">
-          
-          {/* Column 1: Shop */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight">Shop</h3>
+      {/* Main Footer Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 p-8 max-w-7xl mx-auto">
+        {/* Column 1: Shop */}
+        <div>
+            <h3 className="font-bold mb-4">Shop</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/search" className="hover:text-white transition-colors">Products</Link></li>
-              <li><Link href="/categories" className="hover:text-white transition-colors">Categories</Link></li>
-              <li><Link href="/search?tag=new-arrivals" className="hover:text-white transition-colors">New Arrivals</Link></li>
-              <li><Link href="/search?tag=best-sellers" className="hover:text-white transition-colors">Best Sellers</Link></li>
-              <li><Link href="/search?tag=featured" className="hover:text-white transition-colors">Featured</Link></li>
+              <li><Link href="/search" className="hover:text-gray-300">Products</Link></li>
+              <li><Link href="/categories" className="hover:text-300">Categories</Link></li>
+              <li><Link href="/brands" className="hover:text-300">Our brands</Link></li>
+              <li><Link href="/search?tag=best-sellers" className="hover:text-300">Best Sellers</Link></li>
+              <li><Link href="/search?tag=featured" className="hover:text-300">Featured</Link></li>
             </ul>
           </div>
-
-          {/* Column 2: Get to Know Us */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight">Get to Know Us</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/page/about-us" className="hover:text-white transition-colors">About {site.name}</Link></li>
-              <li><Link href="/blogs" className="hover:text-white transition-colors">Blogs</Link></li>
-              <li><Link href="/page/FAQs" className="hover:text-white transition-colors">FAQs</Link></li>
-              <li className="pt-2 text-xs text-gray-500 uppercase tracking-widest">Mon - Sat | 9 AM - 7 PM</li>
-            </ul>
-          </div>
-
-          {/* Column 3: Make Money */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight">Make Money</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/page/sell" className="hover:text-white transition-colors">Sell on {site.name}</Link></li>
-              <li><Link href="/page/become-affiliate" className="hover:text-white transition-colors">Affiliate Program</Link></li>
-              <li><Link href="/page/advertise" className="hover:text-white transition-colors">Advertise Products</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 4: Let Us Help */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight">Help & Support</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/page/shipping" className="hover:text-white transition-colors">Shipping Policies</Link></li>
-              <li><Link href="/page/returns-policy" className="hover:text-white transition-colors">Returns & Replacements</Link></li>
-              <li><Link href="/page/shoe-size-guide" className="hover:text-white transition-colors">Shoe Size Guide</Link></li>
-              <li><Link href="/page/help" className="hover:text-white transition-colors">Help Center</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 5: Social & Contact */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight">Connect</h3>
-            <div className="flex flex-wrap gap-4 mb-6">
-               <Link href={instagramUrl} target="_blank"><Image src={Instagram} alt="Instagram" width={22} height={22} className="hover:scale-110 transition-transform" /></Link>
-               <Link href={facebookUrl} target="_blank"><Image src={Facebook} alt="Facebook" width={22} height={22} className="hover:scale-110 transition-transform" /></Link>
-               <Link href={twitterUrl} target="_blank"><Image src={XIcon} alt="X" width={20} height={20} className="bg-white rounded-sm hover:scale-110 transition-transform" /></Link>
-               <Link href={tiktokUrl} target="_blank"><Image src={Tiktok} alt="Tiktok" width={22} height={22} className="hover:scale-110 transition-transform" /></Link>
-            </div>
-            
-            <div className="space-y-3 text-sm text-gray-400">
-              <Link href="mailto:info@shoepedi.co.ke" className="flex items-center gap-2 hover:text-white">
-                <Mail size={16} /> info@shoepedi.co.ke
+        {/* Column 2: Get to Know Us */}
+        <div>
+          <h3 className="font-bold mb-4">Get to Know Us</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link href="/page/FAQs" className="hover:text-gray-300">
+                FAQs
               </Link>
-              <Link href={whatsappLink} target="_blank" className="flex items-center gap-2 hover:text-white text-green-500 font-medium">
-                <Image src={WhatsApp} alt="WhatsApp" width={20} height={20} />
-                WhatsApp Chat
+            </li>
+            <li>
+              <Link href="/blogs" className="hover:text-gray-300">
+                Blogs
               </Link>
-            </div>
+            </li>
+            <li>
+              <Link href="/page/about-us" className="hover:text-gray-300">
+                About {site.name}
+              </Link>
+            </li>
+            <li className="flex items-center gap-2">
+              {/* <Clock size={20} /> */}
+              <span>Mon - Sat | 9:00 AM - 7:00 PM</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Column 3: Make Money with Us */}
+        <div>
+          <h3 className="font-bold mb-4">Make Money with Us</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link href="/page/sell" className="hover:text-gray-300">
+                Sell products on {site.name}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/page/become-affiliate"
+                className="hover:text-gray-300"
+              >
+                Become an Affiliate
+              </Link>
+            </li>
+            <li>
+              <Link href="/page/advertise" className="hover:text-gray-300">
+                Advertise Your Products
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Column 4: Let Us Help You */}
+        <div>
+          <h3 className="font-bold mb-4">Let Us Help You</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link href="/page/shipping" className="hover:text-gray-300">
+                Shipping Rates & Policies
+              </Link>
+            </li>
+            <li>
+              <Link href="/page/returns-policy" className="hover:text-gray-300">
+                Returns & Replacements
+              </Link>
+            </li>
+            <li>
+              <Link href="/page/help" className="hover:text-gray-300">
+                Help
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/page/shoe-size-guide"
+                className="hover:text-gray-300"
+              >
+                Size Guide (Shoes)
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Column 5: Social Media Links */}
+        <div>
+          <h3 className="font-bold mb-4">Follow us</h3>
+          <ul className="flex items-center gap-3 flex-wrap">
+            <li>
+              <Link
+                href={instagramUrl}
+                target="_blank"
+                className="hover:opacity-80 flex items-center gap-1"
+              >
+                <Image src={Instagram} alt="x.com" width={24} height={24} />
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={facebookUrl}
+                target="_blank"
+                className="hover:opacity-80 flex items-center gap-1"
+              >
+                <Image src={Facebook} alt="x.com" width={24} height={24} />
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                href={twitterUrl}
+                target="_blank"
+                className="hover:opacity-80 flex items-center gap-1"
+              >
+                <Image
+                  src={XIcon}
+                  alt="x.com"
+                  width={18}
+                  height={18}
+                  className="bg-white rounded-sm"
+                />
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                href={tiktokUrl}
+                target="_blank"
+                className="hover:opacity-80 flex items-center gap-1"
+              >
+                <Image src={Tiktok} alt="Tiktok" width={24} height={24} />
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                href={youtubeUrl}
+                target="_blank"
+                className="hover:opacity-80 flex items-center gap-1"
+              >
+                <Image src={Youtube} alt="Tiktok" width={24} height={24} />
+              </Link>
+            </li>
+          </ul>
+          <div className="my-2">
+            <Link
+              href="mailto:info@shoepedi.co.ke"
+              className="hover:text-gray-300 flex items-center gap-1"
+            >
+              <Mail size={20} className="text-gray-500" />
+              info@shoepedi.co.ke
+            </Link>
+          </div>
+          <div className="my-2">
+            <Link
+              href={whatsappLink}
+              target="_blank"
+              className="hover:text-gray-300 flex items-center gap-1"
+            >
+              <Image src={WhatsApp} alt="WhatsApp" width={24} height={24} />
+              Ask on WhatsApp
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Bottom Legal Section */}
-      <div className="bg-neutral-950 py-8 border-t border-gray-900">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Image src={site.logo} alt="Logo" width={40} height={40} className="brightness-110" />
-            <span className="text-xl font-black tracking-tighter uppercase italic">{site.name}</span>
+      {/* Footer Bottom */}
+      <div className="border-t border-gray-800">
+        <div className="max-w-7xl mx-auto py-6 px-4 flex flex-wrap items-center justify-center md:justify-between gap-y-4">
+          <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
+            <Link href="/" className="flex items-center justify-center">
+              <Image
+                src={site.logo}
+                alt={`${site.name} logo`}
+                width={48}
+                height={48}
+                priority
+                className="w-12 h-auto"
+              />
+              <h1 className="text-2xl font-bold">{site.name}</h1>
+              {/* <div className="mt-1">
+                <h1 className="text-2xl font-bold">{site.name}</h1>
+                <p className="text-xs -mt-2 text-end text-primary">
+                  Collections
+                </p>
+              </div> */}
+            </Link>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-xs font-medium text-gray-500 uppercase tracking-widest">
-            <Link href="/page/conditions-of-use" className="hover:text-white">Conditions</Link>
-            <Link href="/page/privacy-policy" className="hover:text-white">Privacy</Link>
-            <Link href="/page/help" className="hover:text-white">Help</Link>
+          {/* Navigation Links */}
+          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
+            <Link
+              href="/page/conditions-of-use"
+              className="hover:text-gray-300"
+            >
+              Conditions of Use
+            </Link>
+            <Link href="/page/privacy-policy" className="hover:text-gray-300">
+              Privacy Notice
+            </Link>
+            <Link href="/page/help" className="hover:text-gray-300">
+              Help
+            </Link>
           </div>
 
-          <div className="text-right space-y-1 hidden md:block">
-            <p className="text-[10px] text-gray-600 uppercase tracking-widest">{site.copyright}</p>
-            <p className="text-xs text-gray-500">{site.address}</p>
+          {/* Address and Contact */}
+          <div className="flex flex-col items-center md:items-start text-sm text-gray-400">
+            <div className="text-center">{site.address}</div>
+            <div className="text-center">{site.phone}</div>
           </div>
+
+          {/* Copyright */}
+          <div className="text-center w-full">{site.copyright}</div>
         </div>
       </div>
     </footer>
   );
-  }
+}
