@@ -5,16 +5,23 @@ import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category from "@/lib/db/models/category.model";
 import { formatError } from "@/lib/utils";
-import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
+import {
+  CategoryInputSchema,
+  CategoryUpdateSchema,
+} from "../validator";
 
-// CREATE CATEGORY
+/* ---------------------------------
+   CREATE CATEGORY
+---------------------------------- */
 export async function createCategory(
   data: z.infer<typeof CategoryInputSchema>
 ) {
   try {
-    const category = CategoryInputSchema.parse(data); // validate
+    const category = CategoryInputSchema.parse(data);
+
     await connectToDatabase();
     await Category.create(category);
+
     revalidatePath("/admin/categories");
 
     return { success: true, message: "Category created successfully" };
@@ -23,16 +30,27 @@ export async function createCategory(
   }
 }
 
-// UPDATE CATEGORY
+/* ---------------------------------
+   UPDATE CATEGORY
+---------------------------------- */
 export async function updateCategory(
   data: z.infer<typeof CategoryUpdateSchema>
 ) {
   try {
     const category = CategoryUpdateSchema.parse(data);
-    if (!category._id) throw new Error("Category ID is required");
 
     await connectToDatabase();
-    await Category.findByIdAndUpdate(category._id, category);
+
+    const updated = await Category.findByIdAndUpdate(
+      category._id,
+      { $set: category },
+      { new: true }
+    );
+
+    if (!updated) {
+      throw new Error("Category not found");
+    }
+
     revalidatePath("/admin/categories");
 
     return { success: true, message: "Category updated successfully" };
@@ -41,13 +59,24 @@ export async function updateCategory(
   }
 }
 
-// DELETE CATEGORY
+/* ---------------------------------
+   DELETE CATEGORY
+---------------------------------- */
 export async function deleteCategory(id: string) {
   try {
     await connectToDatabase();
+
     const category = await Category.findById(id);
     if (!category) throw new Error("Category not found");
+
+    // Optional safety: prevent deleting category with children
+    const hasChildren = await Category.exists({ parent: id });
+    if (hasChildren) {
+      throw new Error("Cannot delete a category with child categories");
+    }
+
     await Category.findByIdAndDelete(id);
+
     revalidatePath("/admin/categories");
 
     return { success: true, message: "Category deleted successfully" };
@@ -56,28 +85,28 @@ export async function deleteCategory(id: string) {
   }
 }
 
-// Fetch a single category by ID
+/* ---------------------------------
+   GET CATEGORY BY ID
+---------------------------------- */
 export async function getCategoryById(id: string) {
   try {
-    // Connect to database
     await connectToDatabase();
 
-    // Find category
-    const category = await Category.findById(id).lean();
+    const category = await Category.findById(id)
+      .populate("parent", "name")
+      .lean();
 
-    if (!category) {
-      return null;
-    }
-
-    return category;
+    return category || null;
   } catch (error) {
     console.error("Error fetching category by ID:", error);
     return null;
   }
 }
 
-//  Get all categories for admin panel with pagination and search
-interface GetAllCategoriesParams {
+/* ---------------------------------
+   GET ALL CATEGORIES (ADMIN)
+---------------------------------- */
+export interface GetAllCategoriesParams {
   query?: string;
   page?: number;
   limit?: number;
@@ -108,7 +137,7 @@ export async function getAllCategoriesForAdmin({
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("parent", "name") // populate parent category name
+      .populate("parent", "name")
       .lean();
 
     return {
@@ -130,17 +159,17 @@ export async function getAllCategoriesForAdmin({
   }
 }
 
+/* ---------------------------------
+   GET ALL CATEGORIES FOR PRODUCT INPUT
+   (Flat list or parent-based)
+---------------------------------- */
 export async function getAllCategoriesForAdminProductInput() {
-  // Fetch top-level categories and populate subcategories and minicategories
-  const categories = await Category.find({ parent: null })
-    .populate({
-      path: "subcategories",
-      populate: { path: "subcategories" }, // populate mini-categories
-    })
+  await connectToDatabase();
+
+  const categories = await Category.find()
+    .sort({ name: 1 })
+    .populate("parent", "name")
     .lean();
 
-  return categories.map((cat) => ({
-    ...cat,
-    subcategories: cat.subcategories || [],
-  }));
+  return categories;
 }
