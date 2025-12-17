@@ -98,9 +98,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError={(error: Error) => {
-          toast.error(error.message);
-            }}
+    onUploadError: (e) => toast.error(e.message), 
   });
 
   /* --------------------------- Dropzone --------------------------- */
