@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category from "@/lib/db/models/category.model";
 import { formatError } from "@/lib/utils";
@@ -20,6 +20,7 @@ export async function createCategory(
     await Category.create(category);
 
     revalidatePath("/admin/categories");
+    updateTag("categories")
 
     return { success: true, message: "Category created successfully" };
   } catch (error) {
@@ -49,6 +50,7 @@ export async function updateCategory(
     }
 
     revalidatePath("/admin/categories");
+    updateTag("categories");
 
     return { success: true, message: "Category updated successfully" };
   } catch (error) {
@@ -86,6 +88,9 @@ export async function deleteCategory(id: string) {
    GET CATEGORY BY ID
 ---------------------------------- */
 export async function getCategoryById(id: string) {
+  "use cache"
+  cacheLife("hours")
+  cacheTag("categories")
   try {
     await connectToDatabase();
 
@@ -114,6 +119,9 @@ export async function getAllCategoriesForAdmin({
   page = 1,
   limit = 10,
 }: GetAllCategoriesParams) {
+  "use cache"
+  cacheLife("hours")
+  cacheTag("categories")
   try {
     await connectToDatabase();
 
@@ -161,6 +169,9 @@ export async function getAllCategoriesForAdmin({
    (Flat list or parent-based)
 ---------------------------------- */
 export async function getAllCategoriesForAdminProductInput() {
+  "use cache";
+  cacheLife("hours")
+  cacheTag("categories")
   await connectToDatabase();
 
   const categories = await Category.find()
@@ -177,6 +188,7 @@ export async function getAllCategoriesForAdminProductInput() {
 export async function getAllCategoriesForStore() {
   "use cache";
   cacheLife("days");
+  cacheTag("categories")
 
   try {
     await connectToDatabase();
