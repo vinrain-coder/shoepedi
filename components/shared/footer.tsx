@@ -51,7 +51,7 @@ export default function Footer() {
               <li><Link href="/categories" className="hover:text-300">Categories</Link></li>
               <li><Link href="/brands" className="hover:text-300">Our brands</Link></li>
               <li><Link href="/search?tag=todays-deal" className="hover:text-300">Today's deal</Link></li>
-              <li><Link href="/search?tag=featured" className="hover:text-300">Featured products</Link></li>
+              <li><Link href="/search?tag=best-seller" className="hover:text-300">Featured products</Link></li>
             </ul>
           </div>
         {/* Column 2: Get to Know Us */}
