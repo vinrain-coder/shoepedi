@@ -46,12 +46,12 @@ export default function Footer() {
         {/* Column 1: Shop */}
         <div>
             <h3 className="font-bold mb-4">Shop</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2">
               <li><Link href="/search" className="hover:text-gray-300">Products</Link></li>
               <li><Link href="/categories" className="hover:text-300">Categories</Link></li>
               <li><Link href="/brands" className="hover:text-300">Our brands</Link></li>
-              <li><Link href="/search?tag=best-sellers" className="hover:text-300">Best Sellers</Link></li>
-              <li><Link href="/search?tag=featured" className="hover:text-300">Featured</Link></li>
+              <li><Link href="/search?tag=todays-deal" className="hover:text-300">Today's deal</Link></li>
+              <li><Link href="/search?tag=featured" className="hover:text-300">Featured products</Link></li>
             </ul>
           </div>
         {/* Column 2: Get to Know Us */}
