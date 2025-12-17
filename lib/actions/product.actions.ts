@@ -331,24 +331,29 @@ export async function getAllProducts({
           },
         }
       : {};
-  
-const categoryFilter =
-  category && category !== "all"
-    ? {
-        category: {
-          $regex: `^${category}$`, // Match the whole string exactly
-          $options: "i",           // Case-insensitive
-        },
-      }
-    : {};
+
+  const categoryFilter =
+    category && category !== "all"
+      ? {
+          category: {
+            $regex: `^${category}$`, // Match the whole string exactly
+            $options: "i", // Case-insensitive
+          },
+        }
+      : {};
   const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
-  const brandFilter = 
-  brand && brand !== "all" 
-    ? { brand: { $regex: `^${brand}$`, $options: "i" } } 
-    : {};
+  const brandFilter =
+    brand && brand !== "all"
+      ? { brand: { $regex: `^${brand}$`, $options: "i" } }
+      : {};
   const colorFilter =
-    color && color !== "all" ? { colors: { $in: [color] } } : {};
-  const sizeFilter = size && size !== "all" ? { sizes: { $in: [size] } } : {};
+    color && color !== "all"
+      ? { colors: { $elemMatch: { $regex: `^${color}$`, $options: "i" } } }
+      : {};
+  const sizeFilter =
+    size && size !== "all"
+      ? { sizes: { $elemMatch: { $regex: `^${size}$`, $options: "i" } } }
+      : {};
   const ratingFilter =
     rating && rating !== "all"
       ? {

@@ -49,6 +49,7 @@ export default function CategoryForm({
       parent: category?.parent || "",
       description: category?.description || "",
       image: category?.image || "",
+      isFeatured: category?.isFeatured || false,
       seoTitle: category?.seoTitle || "",
       seoDescription: category?.seoDescription || "",
       seoKeywords: category?.seoKeywords || [],
@@ -240,7 +241,7 @@ export default function CategoryForm({
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="isFeatured"

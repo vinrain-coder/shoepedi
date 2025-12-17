@@ -9,7 +9,7 @@ export default function SearchLoading() {
       {/* Top row loader */}
       <div className="flex items-center gap-2 mb-6">
         <Loader2 className="animate-spin h-5 w-5 text-gray-500" />
-        <p className="text-sm text-gray-600">Searching products...</p>
+        <p className="text-sm text-gray-600">Loading...</p>
       </div>
 
       {/* Grid skeleton */}

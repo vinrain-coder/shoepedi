@@ -17,10 +17,19 @@ export async function createCategory(
     const category = CategoryInputSchema.parse(data);
 
     await connectToDatabase();
+
+    const existing = await Category.findOne({ slug: category.slug });
+    if (existing) {
+      return {
+        success: false,
+        message: "A category with this name/slug already exists.",
+      };
+    }
+
     await Category.create(category);
 
     revalidatePath("/admin/categories");
-    updateTag("categories")
+    updateTag("categories");
 
     return { success: true, message: "Category created successfully" };
   } catch (error) {
@@ -88,9 +97,9 @@ export async function deleteCategory(id: string) {
    GET CATEGORY BY ID
 ---------------------------------- */
 export async function getCategoryById(id: string) {
-  "use cache"
-  cacheLife("hours")
-  cacheTag("categories")
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
   try {
     await connectToDatabase();
 
@@ -119,9 +128,9 @@ export async function getAllCategoriesForAdmin({
   page = 1,
   limit = 10,
 }: GetAllCategoriesParams) {
-  "use cache"
-  cacheLife("hours")
-  cacheTag("categories")
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
   try {
     await connectToDatabase();
 
@@ -170,8 +179,8 @@ export async function getAllCategoriesForAdmin({
 ---------------------------------- */
 export async function getAllCategoriesForAdminProductInput() {
   "use cache";
-  cacheLife("hours")
-  cacheTag("categories")
+  cacheLife("hours");
+  cacheTag("categories");
   await connectToDatabase();
 
   const categories = await Category.find()
@@ -188,7 +197,7 @@ export async function getAllCategoriesForAdminProductInput() {
 export async function getAllCategoriesForStore() {
   "use cache";
   cacheLife("days");
-  cacheTag("categories")
+  cacheTag("categories");
 
   try {
     await connectToDatabase();

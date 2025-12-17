@@ -44,11 +44,7 @@ function MediaPreview({
         />
       ) : (
         <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
-          <video
-            src={item.url}
-            className="w-full h-full object-cover"
-            muted
-          />
+          <video src={item.url} className="w-full h-full object-cover" muted />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <Play size={32} className="text-white/80" />
           </div>
@@ -72,34 +68,40 @@ function MediaPreview({
 
 /* ---------------------------- Main Component ---------------------------- */
 export default function CategoryImageUploader({ form }: ImageUploaderProps) {
-  const initialMedia: MediaItem[] = (form.getValues("images") || []).map(
-    (url: string) => ({
-      url,
-      type: url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
-    })
-  );
+  const currentImageUrl = form.getValues("image");
+
+  const initialMedia: MediaItem[] = currentImageUrl
+    ? [
+        {
+          url: currentImageUrl,
+          type: currentImageUrl.match(/\.(mp4|webm|mov|ogg)$/i)
+            ? "video"
+            : "image",
+        },
+      ]
+    : [];
 
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    form.setValue("images", media.map((m) => m.url));
+    // 2. Set the first uploaded file URL to the "image" field
+    const url = media.length > 0 ? media[0].url : "";
+    form.setValue("image", url, { shouldValidate: true });
   }, [media, form]);
+  const [progress, setProgress] = useState(0);
 
   /* --------------------------- UploadThing --------------------------- */
   const { startUpload, isUploading } = useUploadThing("categories", {
     onClientUploadComplete: (res) => {
-      const uploaded: MediaItem[] = res.map((f) => ({
-        url: f.url,
-        type: f.url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
-      }));
-
-      setProgress(0);
-      setMedia((prev) => [...prev, ...uploaded]);
+      const uploaded: MediaItem = {
+        url: res[0].url,
+        type: res[0].url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
+      };
+      setMedia([uploaded]); // Replace existing with new one
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => toast.error(e.message), 
+    onUploadError: (e) => toast.error(e.message),
   });
 
   /* --------------------------- Dropzone --------------------------- */
@@ -135,7 +137,7 @@ export default function CategoryImageUploader({ form }: ImageUploaderProps) {
   return (
     <FormField
       control={form.control}
-      name="images"
+      name="image"
       render={() => (
         <FormItem className="w-full">
           <FormLabel>Product Media</FormLabel>
@@ -192,4 +194,4 @@ export default function CategoryImageUploader({ form }: ImageUploaderProps) {
       )}
     />
   );
-  }
+}

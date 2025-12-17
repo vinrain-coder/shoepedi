@@ -28,7 +28,7 @@ export default async function CategoriesPage() {
             href={`/categories/${category.slug}`}
             className="group"
           >
-            <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none bg-secondary/20 h-full">
+            <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none bg-secondary/20 h-full p-0">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
                 {category.image ? (
                   <Image
