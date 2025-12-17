@@ -26,7 +26,7 @@ export const ourFileRouter = {
     }),
 
   // Category Images
-  categoryImages: f({
+  categories: f({
     image: {
       maxFileSize: "2MB",
       maxFileCount: 1,

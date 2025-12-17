@@ -44,11 +44,7 @@ function MediaPreview({
         />
       ) : (
         <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10 flex items-center justify-center">
-          <video
-            src={item.url}
-            className="w-full h-full object-cover"
-            muted
-          />
+          <video src={item.url} className="w-full h-full object-cover" muted />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <Play size={32} className="text-white/80" />
           </div>
@@ -83,7 +79,10 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    form.setValue("images", media.map((m) => m.url));
+    form.setValue(
+      "images",
+      media.map((m) => m.url)
+    );
   }, [media, form]);
 
   /* --------------------------- UploadThing --------------------------- */
@@ -99,7 +98,9 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError={(error: Error) => {
+          toast.error(error.message);
+            }}
   });
 
   /* --------------------------- Dropzone --------------------------- */
