@@ -367,14 +367,14 @@ export const CategoryBase = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
       message: "Slug must be lowercase and can contain hyphens only",
     }),
-    
+
   // ✅ FIX: Allow string/null, but transform empty string "" to null
   parent: z
     .string()
     .optional()
     .nullable()
-    .transform((val) => (val === "" ? null : val)), 
-
+    .transform((val) => (val === "" ? null : val)),
+  isFeatured: z.boolean().default(false),
   description: z.string().max(500).optional(),
   image: z.string().url().optional().or(z.literal("")), // Also handles empty image strings safely
   seoTitle: z.string().max(60).optional(),

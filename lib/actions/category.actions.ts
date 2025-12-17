@@ -1,14 +1,11 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { cacheLife, revalidatePath } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category from "@/lib/db/models/category.model";
 import { formatError } from "@/lib/utils";
-import {
-  CategoryInputSchema,
-  CategoryUpdateSchema,
-} from "../validator";
+import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
 
 /* ---------------------------------
    CREATE CATEGORY
@@ -172,4 +169,30 @@ export async function getAllCategoriesForAdminProductInput() {
     .lean();
 
   return categories;
+}
+
+/* ---------------------------------
+   GET ALL CATEGORIES FOR STOREFRONT (Public & Cached)
+   ---------------------------------- */
+export async function getAllCategoriesForStore() {
+  "use cache";
+  cacheLife("days");
+
+  try {
+    await connectToDatabase();
+
+    const categories = await Category.find({ parent: null })
+      .sort({ isFeatured: -1, name: 1 })
+      .select("name slug image description isFeatured")
+      .lean();
+
+    return categories.map((category: any) => ({
+      ...category,
+      _id: category._id.toString(),
+      parent: category.parent ? category.parent.toString() : null,
+    }));
+  } catch (error) {
+    console.error("Error fetching store categories:", error);
+    return [];
+  }
 }

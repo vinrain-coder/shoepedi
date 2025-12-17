@@ -544,3 +544,26 @@ export async function getAllSizes(): Promise<string[]> {
       .trim()
   );
 }
+
+export async function getProductsByCategory({
+  category,
+  limit = 10,
+}: {
+  category: string;
+  limit?: number;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("products");
+
+  await connectToDatabase();
+
+  const products = await Product.find({
+    category: { $regex: new RegExp(`^${category}$`, "i") }, // case-insensitive match
+    isPublished: true,
+  })
+    .sort({ createdAt: -1 }) // newest first
+    .limit(limit);
+
+  return JSON.parse(JSON.stringify(products)) as IProduct[];
+}

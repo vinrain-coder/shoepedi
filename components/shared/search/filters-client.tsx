@@ -15,16 +15,6 @@ import { X } from "lucide-react";
 
 import PriceControl from "./price-control";
 import SelectedFiltersPills from "./selected-filters-pills";
-import { toSlug } from "@/lib/utils";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { DialogOverlay } from "@/components/ui/dialog";
 import FilterButton from "./filter-button";
 
 type ParamsShape = {
@@ -38,6 +28,8 @@ type ParamsShape = {
   rating?: string;
   sort?: string;
   page?: string;
+  basePath?: string;
+  lockCategory?: boolean;
 };
 
 export default function FiltersClient({
@@ -47,6 +39,8 @@ export default function FiltersClient({
   brands,
   colors,
   sizes,
+  basePath = "/search",
+  lockCategory = false,
 }: {
   initialParams: ParamsShape;
   categories: string[];
@@ -54,6 +48,8 @@ export default function FiltersClient({
   brands: string[];
   colors: string[];
   sizes: string[];
+  basePath?: string;
+  lockCategory?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,8 +81,9 @@ export default function FiltersClient({
   function buildSearchUrl(params: ParamsShape) {
     const p = new URLSearchParams();
     if (params.q && params.q !== "all") p.set("q", params.q);
-    if (params.category && params.category !== "all")
+    if (!lockCategory && params.category && params.category !== "all") {
       p.set("category", params.category);
+    }
     if (params.tag && params.tag !== "all") p.set("tag", params.tag);
     if (params.brand && params.brand !== "all") p.set("brand", params.brand);
     if (params.color && params.color !== "all") p.set("color", params.color);
@@ -97,13 +94,17 @@ export default function FiltersClient({
     if (params.sort) p.set("sort", params.sort);
     if (params.page) p.set("page", params.page);
     const s = p.toString();
-    return s ? `/search?${s}` : `/search`;
+    return s ? `${basePath}?${s}` : basePath;
   }
 
   function updateParam(key: keyof ParamsShape, value: string | undefined) {
     const next: ParamsShape = { ...current, page: "1" };
+
+    if (lockCategory && key === "category") return; // ✅ prevent overwrite
+
     if (!value || value === "all") delete next[key];
     else next[key] = value;
+
     router.push(buildSearchUrl(next));
   }
 
@@ -143,26 +144,31 @@ export default function FiltersClient({
       <div className="space-y-6">
         {/* Categories */}
         <div>
-          <div className="font-bold mb-2">Categories</div>
-
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              active={current.category === "all"}
-              onClick={() => updateParam("category", "all")}
-            >
-              All
-            </FilterButton>
-
-            {categories.map((c) => (
-              <FilterButton
-                key={c}
-                active={current.category === c}
-                onClick={() => updateParam("category", c)}
-              >
-                {c}
-              </FilterButton>
-            ))}
-          </div>
+          {!lockCategory && (
+            <div>
+              <div className="font-bold mb-2">Categories</div>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((c) => (
+                  <FilterButton
+                    key={c}
+                    active={current.category === c}
+                    onClick={() => updateParam("category", c)}
+                  >
+                    {c}
+                  </FilterButton>
+                ))}
+                <div>
+                  <FilterButton
+                    key="all"
+                    active={current.category === "all"}
+                    onClick={() => updateParam("category", "all")}
+                  >
+                    All
+                  </FilterButton>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Price */}

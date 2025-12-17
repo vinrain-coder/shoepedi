@@ -24,9 +24,10 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>;
   searchParams: Promise<any>;
 }) {
+  const { category } = await params;
   const sp = await searchParams;
 
   const {
@@ -41,8 +42,6 @@ export default async function CategoryPage({
     page = "1",
   } = sp;
 
-  const category = params.category;
-
   const filterParams = {
     q,
     category,
@@ -56,26 +55,25 @@ export default async function CategoryPage({
     page,
   };
 
-  const [categories, tags, brands, colors, sizes, data] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        category,
-        tag,
-        brand,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-    ]);
+  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      category,
+      tag,
+      brand,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+  ]);
 
   return (
     <div className="space-y-4">
@@ -83,7 +81,7 @@ export default async function CategoryPage({
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
-            {category.replace(/-/g, " ")}
+            {category.replace("-", "")}
           </h1>
           {data.totalProducts === 0
             ? "No results"
@@ -106,10 +104,9 @@ export default async function CategoryPage({
           brands={brands}
           colors={colors}
           sizes={sizes}
-          basePath={`/category/${category}`}
+          basePath={`/categories/${category}`}
           lockCategory
         />
-
         <div className="md:col-span-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
             {data.products.length === 0 ? (
@@ -128,5 +125,4 @@ export default async function CategoryPage({
       </div>
     </div>
   );
-  }
-  
+}

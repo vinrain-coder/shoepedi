@@ -5,6 +5,7 @@ export interface ICategory extends Document {
   slug: string;
   parent?: Types.ObjectId | null;
   description?: string;
+  isFeatured?: boolean;
   image?: string;
   seoTitle?: string;
   seoDescription?: string;
@@ -38,6 +39,10 @@ const categorySchema = new Schema<ICategory>(
       type: String,
       maxlength: 500,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     image: String,
     seoTitle: {
       type: String,
@@ -57,7 +62,7 @@ const categorySchema = new Schema<ICategory>(
 
 // Optional: populate parent category
 categorySchema.pre(/^find/, function (next) {
-  this.populate("parent");
+  this.populate<ICategory>("parent");
   next();
 });
 
@@ -65,4 +70,3 @@ const Category: Model<ICategory> =
   models.Category || model<ICategory>("Category", categorySchema);
 
 export default Category;
-      

@@ -120,13 +120,14 @@ export default function CategoryForm({
                 <FormControl>
                   <Input {...field} placeholder="nike-dunk-low" />
                 </FormControl>
-                <FormDescription>URL-friendly version of the name.</FormDescription>
+                <FormDescription>
+                  URL-friendly version of the name.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-
         {/* Hierarchy & Description */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -160,23 +161,26 @@ export default function CategoryForm({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Short description for admin use" />
+                  <Input
+                    {...field}
+                    placeholder="Short description for admin use"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-
         {/* Media */}
         <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
-           <CategoryImageUploader form={form} />
+          <CategoryImageUploader form={form} />
         </div>
-
         {/* SEO Section */}
         <div className="space-y-6 border-t pt-6">
-          <h3 className="text-lg font-semibold text-slate-700">SEO & Metadata</h3>
-          
+          <h3 className="text-lg font-semibold text-slate-700">
+            SEO & Metadata
+          </h3>
+
           <FormField
             control={form.control}
             name="seoTitle"
@@ -184,7 +188,10 @@ export default function CategoryForm({
               <FormItem>
                 <FormLabel>SEO Title</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Meta title for search engines" />
+                  <Input
+                    {...field}
+                    placeholder="Meta title for search engines"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -198,7 +205,10 @@ export default function CategoryForm({
               <FormItem>
                 <FormLabel>SEO Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} placeholder="Brief summary for search results" />
+                  <Textarea
+                    {...field}
+                    placeholder="Brief summary for search results"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -222,13 +232,37 @@ export default function CategoryForm({
                     }
                   />
                 </FormControl>
-                <FormDescription>Separate keywords with commas.</FormDescription>
+                <FormDescription>
+                  Separate keywords with commas.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-
+        
+        <FormField
+          control={form.control}
+          name="isFeatured"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+              <FormControl>
+                <input
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={field.onChange}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Featured Category</FormLabel>
+                <FormDescription>
+                  This category will be displayed on the homepage cards.
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
         {/* Action Button */}
         <SubmitButton
           isLoading={form.formState.isSubmitting}

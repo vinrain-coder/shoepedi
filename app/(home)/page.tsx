@@ -16,6 +16,7 @@ import {
 import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 import { cacheLife } from "next/cache";
+import { getAllCategoriesForStore } from "@/lib/actions/category.actions";
 
 // Async wrapper components for streaming
 const AsyncHomeCarousel = async () => {
@@ -52,7 +53,7 @@ const AsyncNewArrivalsCards = async () => {
   cacheLife("days");
   const [allCategories, newArrivals, featureds, bestSellers] =
     await Promise.all([
-      getAllCategories(),
+      getAllCategoriesForStore(),
       getProductsForCard({ tag: "new-arrival" }),
       getProductsForCard({ tag: "featured" }),
       getProductsForCard({ tag: "best-seller" }),
@@ -63,11 +64,11 @@ const AsyncNewArrivalsCards = async () => {
   const cards = [
     {
       title: "Categories to explore",
-      link: { text: "See More", href: "/search" },
-      items: categories.map((category: string) => ({
-        name: category,
-        image: `/images/${toSlug(category)}.jpg`,
-        href: `/search?category=${category}`,
+      link: { text: "See More", href: "/categories" },
+      items: categories.map((category: any) => ({
+        name: category.name,
+        image: category.image || "/images/not-found.png",
+        href: `/categories=${category.slug}`,
       })),
     },
     {
