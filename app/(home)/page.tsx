@@ -68,7 +68,7 @@ const AsyncNewArrivalsCards = async () => {
       items: categories.map((category: any) => ({
         name: category.name,
         image: category.image || "/images/not-found.png",
-        href: `/categories=${category.slug}`,
+        href: `/categories/${category.slug}`,
       })),
     },
     {
