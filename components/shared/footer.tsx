@@ -13,9 +13,17 @@ import Instagram from "@/public/icons/instagram.svg";
 
 export default function Footer() {
   const { setting: { site } } = useSettingStore();
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
-  const whatsappLink = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hello, ShoePedi!")}`;
+  const message = encodeURIComponent("Hello, ShoePedi!");
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${message}`;
+ const twitterUrl = process.env.NEXT_PUBLIC_TWITTER_URL || "#";
+  const tiktokUrl = process.env.NEXT_PUBLIC_TIKTOK_URL || "#";
 
+const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || "#";
+
+const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
+  const youtubeUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
   return (
     <footer className="bg-black text-white border-t border-gray-800">
       {/* Back to Top */}
