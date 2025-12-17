@@ -148,15 +148,6 @@ export default function FiltersClient({
             <div>
               <div className="font-bold mb-2">Categories</div>
               <div className="flex flex-wrap gap-2">
-                {categories.map((c) => (
-                  <FilterButton
-                    key={c}
-                    active={current.category === c}
-                    onClick={() => updateParam("category", c)}
-                  >
-                    {c}
-                  </FilterButton>
-                ))}
                 <div>
                   <FilterButton
                     key="all"
@@ -166,6 +157,15 @@ export default function FiltersClient({
                     All
                   </FilterButton>
                 </div>
+                {categories.map((c) => (
+                  <FilterButton
+                    key={c}
+                    active={current.category === c}
+                    onClick={() => updateParam("category", c)}
+                  >
+                    {c}
+                  </FilterButton>
+                ))}
               </div>
             </div>
           )}
@@ -388,3 +388,4 @@ export default function FiltersClient({
     </>
   );
 }
+
