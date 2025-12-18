@@ -20,10 +20,6 @@ import ShareProduct from "@/components/shared/product/share-product";
 import SubscribeButton from "@/components/shared/product/stock-subscription-button";
 import OrderViaWhatsApp from "@/components/shared/product/order-via-whatsapp";
 import WishlistButton from "@/components/shared/product/wishlist-button";
-import { getServerSession } from "@/lib/get-session";
-import Image from "next/image";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
@@ -32,50 +28,40 @@ export async function generateMetadata({ params }: { params: any }) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   const { site } = await getSetting();
-
   if (!product) return { title: "Product not found" };
-
   const ogImageUrl = product.images?.[0];
-
   return {
-    title: product.name,
+    title: `${product.name} | ${site.name}`,
     description:
-      product.description || "Check out this amazing product at ShoePedi!",
+      product.description?.slice(0, 160) ||
+      `Buy ${product.name} online at ${site.name}. Fast delivery in Kenya.`,
+    alternates: {
+      canonical: `${site.url}/product/${product.slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
+      type: "product",
       title: product.name,
-      description: product.description || "Discover this product on ShoePedi!",
+      description: product.description,
       url: `${site.url}/product/${product.slug}`,
       siteName: site.name,
       images: [
-        { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        },
       ],
-      price: { amount: product.price.toString(), currency: "KES" },
     },
     twitter: {
       card: "summary_large_image",
-      site: "@ShoePedi",
-      creator: "@ShoePedi",
       title: product.name,
-      description: product.description || "Discover this product on ShoePedi!",
-      images: [ogImageUrl],
-    },
-    additionalMetaTags: [
-      { property: "product:price:amount", content: product.price.toString() },
-      { property: "product:price:currency", content: "KES" },
-    ],
-    jsonLd: {
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      name: product.name,
-      image: ogImageUrl,
       description: product.description,
-      brand: { "@type": "Brand", name: "ShoePedi" },
-      offers: {
-        "@type": "Offer",
-        url: `${site.url}/product/${product.slug}`,
-        priceCurrency: "KES",
-        price: product.price.toString(),
-      },
+      images: [ogImageUrl],
     },
   };
 }
@@ -112,6 +98,7 @@ function RelatedLoading() {
 export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
+  const { site } = await getSetting();
 
   const product = await getProductBySlug(slug);
   if (!product) return <div>Product not found</div>;
@@ -125,12 +112,52 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   const selectedColor = query.color || product.colors?.[0];
   const selectedSize = query.size || product.sizes?.[0];
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${site.url}/product/${product.slug}`,
+    name: product.name,
+    image: product.images?.filter(Boolean),
+    description: product.description,
+    sku: product._id.toString(),
+    brand: {
+      "@type": "Brand",
+      name: product.brand || "ShoePedi",
+    },
+    offers: {
+      "@type": "Offer",
+      url: `${site.url}/product/${product.slug}`,
+      priceCurrency: "KES",
+      price: product.price,
+      availability:
+        product.countInStock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    aggregateRating:
+      product.numReviews > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: product.avgRating,
+            reviewCount: product.numReviews,
+          }
+        : undefined,
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productJsonLd),
+        }}
+      />
       <AddToBrowsingHistory
         id={product._id.toString()}
         category={product.category}
       />
+
       <div className="my-1">
         <Breadcrumb />
       </div>
@@ -156,7 +183,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
-                  Watch Here
+                  Watch here
                 </a>
               </div>
             )}
@@ -168,7 +195,15 @@ export default async function ProductDetails({ params, searchParams }: Props) {
               <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
                 {product.brand} {product.category}
               </p>
-              <h1 className="font-bold text-lg lg:text-xl">{product.name}</h1>
+              <h1 className="font-bold text-lg lg:text-xl">
+                {product.name}{" "}
+                <span className="sr-only">Buy Online in Kenya</span>
+              </h1>
+              <p className="sr-only">
+                Buy {product.name} online in Kenya at {site.name}. Price: KES{" "}
+                {product.price}. Available in {product.colors?.join(", ")}{" "}
+                colors and sizes.
+              </p>
 
               <RatingSummary
                 avgRating={product.avgRating}

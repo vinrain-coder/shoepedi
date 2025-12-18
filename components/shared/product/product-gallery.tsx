@@ -65,14 +65,14 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 <Zoom>
                   <Image
                     src={image}
-                    alt={`Product Image ${index + 1}`}
+                    alt={`${image} ${index + 1}`}
                     fill
                     sizes="100vw"
                     className="object-contain"
                     //unoptimized
                     placeholder="blur"
                     blurDataURL="/icons/logo.svg"
-                    priority
+                    priority={index === 0}
                   />
                 </Zoom>
               </CarouselItem>

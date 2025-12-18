@@ -37,9 +37,10 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   }
 
   return (
+    <div className="mx-auto w-full max-w-md md:max-w-3xl">
     <Form {...form}>
       <form
-        className="space-y-4"
+        className="space-y-4 w-full"
         method="post"
         onSubmit={form.handleSubmit(onSubmit)}
       >
@@ -64,6 +65,7 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
         </div>
       </form>
     </Form>
+  </div>
   );
 };
 

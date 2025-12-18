@@ -11,6 +11,50 @@ import {
 } from "@/lib/actions/product.actions";
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
+import Breadcrumb from "@/components/shared/breadcrumb";
+import type { Metadata } from "next";
+import { getSetting } from "@/lib/actions/setting.actions";
+import { getCategoryBySlug } from "@/lib/actions/category.actions";
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: { category: string };
+  searchParams: any;
+}): Promise<Metadata> {
+  const categorySlug = params.category;
+  const category = await getCategoryBySlug(categorySlug);
+  const { site } = await getSetting();
+
+  const titleBase = category?.name ?? categorySlug;
+  const hasFilters = Object.keys(searchParams || {}).some(
+    (k) => searchParams[k] && searchParams[k] !== "all"
+  );
+
+  return {
+    title: hasFilters
+      ? `${titleBase} Products | Filtered Results`
+      : `${titleBase} Products | ${site.name}`,
+    description:
+      category?.description ??
+      `Shop ${titleBase} products. Browse the best deals, top brands, and latest arrivals.`,
+    alternates: {
+      canonical: `${site.url}/categories/${categorySlug}`,
+    },
+    robots: hasFilters
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
+    openGraph: {
+      title: `${titleBase} Products`,
+      description:
+        category?.description ??
+        `Browse ${titleBase} products and find the best deals.`,
+      url: `${site.url}/categories/${categorySlug}`,
+      type: "website",
+    },
+  };
+}
 
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
@@ -29,6 +73,7 @@ export default async function CategoryPage({
 }) {
   const { category } = await params;
   const sp = await searchParams;
+  const { site } = await getSetting();
 
   const {
     q = "all",
@@ -75,14 +120,42 @@ export default async function CategoryPage({
     }),
   ]);
 
+  const categorySchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: category.replace("-", " "),
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: data.totalProducts,
+      itemListElement: data.products.map((p: IProduct, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${site.url}/product/${p.slug}`,
+        name: p.name,
+      })),
+    },
+  };
+
   return (
     <div className="space-y-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
+      />
+      <Breadcrumb />
       {/* Header */}
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
-            {category.replace("-", "")}
+            {category
+              .split("-")
+              .map((w) => w[0].toUpperCase() + w.slice(1))
+              .join(" ")}
           </h1>
+          <p className="sr-only">
+            Shop {category.replace(/-/g, " ")} products from top brands. Filter
+            by price, color, size, rating, and more to find the perfect item.
+          </p>
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}

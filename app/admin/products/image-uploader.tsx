@@ -143,7 +143,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
             <CardContent className="space-y-4 pt-4">
               {/* Preview */}
               {media.length > 0 && (
-                <div className="flex gap-3 overflow-x-auto pb-2">
+                <div className="flex gap-3 overflow-x-scroll pb-2">
                   {media.map((item) => (
                     <MediaPreview
                       key={item.url}

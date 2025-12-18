@@ -3,9 +3,11 @@
 import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
-import Category from "@/lib/db/models/category.model";
+import Category, { ICategory } from "@/lib/db/models/category.model";
 import { formatError } from "@/lib/utils";
 import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
+import { notFound } from "next/navigation";
+import { IProduct } from "../db/models/product.model";
 
 /* ---------------------------------
    CREATE CATEGORY
@@ -216,4 +218,15 @@ export async function getAllCategoriesForStore() {
     console.error("Error fetching store categories:", error);
     return [];
   }
+}
+
+// GET ONE PRODUCT BY SLUG
+export async function getCategoryBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
+  await connectToDatabase();
+  const category = await Category.findOne({ slug, isPublished: true });
+  if (!category) return notFound();
+  return JSON.parse(JSON.stringify(category)) as ICategory;
 }
