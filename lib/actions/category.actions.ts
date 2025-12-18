@@ -226,7 +226,7 @@ export async function getCategoryBySlug(slug: string) {
   cacheLife("hours");
   cacheTag("categories");
   await connectToDatabase();
-  const category = await Category.findOne({ slug, isPublished: true });
+  const category = await Category.findOne({ slug });
   if (!category) return notFound();
   return JSON.parse(JSON.stringify(category)) as ICategory;
 }
