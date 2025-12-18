@@ -30,6 +30,7 @@ type ParamsShape = {
   page?: string;
   basePath?: string;
   lockCategory?: boolean;
+  lockBrand?: boolean;
 };
 
 export default function FiltersClient({
@@ -41,6 +42,7 @@ export default function FiltersClient({
   sizes,
   basePath = "/search",
   lockCategory = false,
+  lockBrand = false,
 }: {
   initialParams: ParamsShape;
   categories: string[];
@@ -50,6 +52,7 @@ export default function FiltersClient({
   sizes: string[];
   basePath?: string;
   lockCategory?: boolean;
+  lockBrand?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,8 +87,10 @@ export default function FiltersClient({
     if (!lockCategory && params.category && params.category !== "all") {
       p.set("category", params.category);
     }
+    if (!lockBrand && params.brand && params.brand !== "all") {
+      p.set("brand", params.brand);
+    }
     if (params.tag && params.tag !== "all") p.set("tag", params.tag);
-    if (params.brand && params.brand !== "all") p.set("brand", params.brand);
     if (params.color && params.color !== "all") p.set("color", params.color);
     if (params.size && params.size !== "all") p.set("size", params.size);
     if (params.price && params.price !== "all") p.set("price", params.price);
@@ -101,7 +106,7 @@ export default function FiltersClient({
     const next: ParamsShape = { ...current, page: "1" };
 
     if (lockCategory && key === "category") return; // ✅ prevent overwrite
-
+    if (lockBrand && key === "brand") return;
     if (!value || value === "all") delete next[key];
     else next[key] = value;
 
@@ -228,26 +233,31 @@ export default function FiltersClient({
 
         {/* Brands */}
         <div>
-          <div className="font-bold mb-2">Brands</div>
-
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              active={current.brand === "all"}
-              onClick={() => updateParam("brand", "all")}
-            >
-              All
-            </FilterButton>
-
-            {brands.map((b) => (
-              <FilterButton
-                key={b}
-                active={current.brand === b}
-                onClick={() => updateParam("brand", b)}
-              >
-                {b}
-              </FilterButton>
-            ))}
-          </div>
+          {!lockBrand && (
+            <div>
+              <div className="font-bold mb-2">Brands</div>
+              <div className="flex flex-wrap gap-2">
+                <div>
+                  <FilterButton
+                    key="all"
+                    active={current.brand === "all"}
+                    onClick={() => updateParam("brand", "all")}
+                  >
+                    All
+                  </FilterButton>
+                </div>
+                {brands.map((b) => (
+                  <FilterButton
+                    key={b}
+                    active={current.brand === b}
+                    onClick={() => updateParam("brand", b)}
+                  >
+                    {b}
+                  </FilterButton>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Colors */}
@@ -388,4 +398,3 @@ export default function FiltersClient({
     </>
   );
 }
-

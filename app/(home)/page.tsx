@@ -17,6 +17,7 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { toSlug } from "@/lib/utils";
 import { cacheLife } from "next/cache";
 import { getAllCategoriesForStore } from "@/lib/actions/category.actions";
+import { getAllBrandsForStore } from "@/lib/actions/brand.actions";
 
 // Async wrapper components for streaming
 const AsyncHomeCarousel = async () => {
@@ -51,15 +52,17 @@ const AsyncTodaysDeals = async () => {
 const AsyncNewArrivalsCards = async () => {
   "use cache";
   cacheLife("days");
-  const [allCategories, newArrivals, featureds, bestSellers] =
+  const [allCategories, allBrands, newArrivals, featureds, bestSellers] =
     await Promise.all([
       getAllCategoriesForStore(),
+      getAllBrandsForStore(),
       getProductsForCard({ tag: "new-arrival" }),
       getProductsForCard({ tag: "featured" }),
       getProductsForCard({ tag: "best-seller" }),
     ]);
 
   const categories = allCategories.slice(0, 4);
+  const brands = allBrands.slice(0, 4);
 
   const cards = [
     {
@@ -69,6 +72,15 @@ const AsyncNewArrivalsCards = async () => {
         name: category.name,
         image: category.image || "/images/not-found.png",
         href: `/categories/${category.slug}`,
+      })),
+    },
+    {
+      title: "Our Brands",
+      link: { text: "Shop Brands", href: "/brands" },
+      items: brands.map((brand: any) => ({
+        name: brand.name,
+        image: brand.image || "/images/not-found.png",
+        href: `/brands/${brand.slug}`,
       })),
     },
     {

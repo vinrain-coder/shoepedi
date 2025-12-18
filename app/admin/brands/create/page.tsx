@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import BrandForm from "../brand-form";
 
 
 export const metadata: Metadata = {

@@ -15,10 +15,7 @@ import {
 
 import DeleteDialog from "@/components/shared/delete-dialog";
 
-import {
-  getAllBrandsForAdmin,
-  deleteBrand,
-} from "@/lib/actions/brand.actions";
+import { getAllBrandsForAdmin, deleteBrand } from "@/lib/actions/brand.actions";
 
 import { ChevronLeft, ChevronRight, PenBox, Loader2 } from "lucide-react";
 import { formatId, formatDateTime } from "@/lib/utils";
@@ -112,7 +109,6 @@ const BrandList = () => {
             <TableRow>
               <TableHead className="w-[80px]">ID</TableHead>
               <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead className="w-[150px]">Parent</TableHead>
               <TableHead className="hidden md:table-cell max-w-[150px]">
                 SEO Title
               </TableHead>
@@ -131,20 +127,7 @@ const BrandList = () => {
                   {formatId(brand._id as string)}
                 </TableCell>
 
-                <TableCell className="font-medium">
-                  {brand.name}
-                  {brand.parent && (
-                    <span className="block text-xs text-muted-foreground">
-                      ↳ Child
-                    </span>
-                  )}
-                </TableCell>
-
-                <TableCell>
-                  {typeof brand.parent === "object" && brand.parent?.name
-                    ? brand.parent.name
-                    : "-"}
-                </TableCell>
+                <TableCell className="font-medium">{brand.name}</TableCell>
 
                 <TableCell
                   className="hidden md:table-cell truncate max-w-[150px]"
@@ -175,9 +158,7 @@ const BrandList = () => {
                     <DeleteDialog
                       id={brand._id as string}
                       action={deleteBrand}
-                      callbackAction={() =>
-                        fetchBrands(inputValue, page)
-                      }
+                      callbackAction={() => fetchBrands(inputValue, page)}
                     />
                   </div>
                 </TableCell>
@@ -230,4 +211,3 @@ const BrandList = () => {
 };
 
 export default BrandList;
-  

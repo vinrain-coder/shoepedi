@@ -49,7 +49,6 @@ export default function BrandForm({
     defaultValues: {
       name: brand?.name || "",
       slug: brand?.slug || "",
-      parent: brand?.parent || "",
       description: brand?.description || "",
       image: brand?.image || "",
       isFeatured: brand?.isFeatured || false,
@@ -72,7 +71,6 @@ export default function BrandForm({
     try {
       const formattedValues = {
         ...values,
-        parent: values.parent === "" ? null : values.parent,
       };
 
       const res =
@@ -133,33 +131,8 @@ export default function BrandForm({
           />
         </div>
 
-        {/* Hierarchy & Description */}
+        {/* Description */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="parent"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Parent Brand</FormLabel>
-                <select
-                  value={field.value || ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="">No Parent</option>
-                  {brandsList
-                    .filter((b) => b._id !== brandId)
-                    .map((b) => (
-                      <option key={b._id} value={b._id}>
-                        {b.name}
-                      </option>
-                    ))}
-                </select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="description"
@@ -167,10 +140,7 @@ export default function BrandForm({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Short brand description"
-                  />
+                  <Input {...field} placeholder="Short brand description" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -210,10 +180,7 @@ export default function BrandForm({
               <FormItem>
                 <FormLabel>SEO Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Meta description"
-                  />
+                  <Textarea {...field} placeholder="Meta description" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -232,9 +199,7 @@ export default function BrandForm({
                     value={field.value?.join(", ") || ""}
                     onChange={(e) =>
                       field.onChange(
-                        e.target.value
-                          .split(",")
-                          .map((k) => k.trim())
+                        e.target.value.split(",").map((k) => k.trim())
                       )
                     }
                   />
@@ -281,5 +246,4 @@ export default function BrandForm({
       </form>
     </FormProvider>
   );
-  }
-  
+}

@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import CategoryList from "./categories-list";
+import BrandList from "./brand-list";
 
 export const metadata: Metadata = {
-  title: "Admin Products",
+  title: "Admin Brands",
 };
 
-export default async function AdminProduct() {
-  return <CategoryList />;
+export default async function AdminBrand() {
+  return <BrandList />;
 }
