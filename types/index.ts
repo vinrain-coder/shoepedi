@@ -1,5 +1,6 @@
 import {
   BlogInputSchema,
+  BrandInputSchema,
   CarouselSchema,
   CartSchema,
   CategoryInputSchema,
@@ -34,6 +35,8 @@ export type IReviewDetails = IReviewInput & {
 export type IProductInput = z.infer<typeof ProductInputSchema>;
 
 export type ICategoryInput = z.infer<typeof CategoryInputSchema>;
+
+export type IBrandInput = z.infer<typeof BrandInputSchema>;
 
 export type Data = {
   settings: ISettingInput[];

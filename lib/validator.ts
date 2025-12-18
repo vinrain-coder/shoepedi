@@ -388,6 +388,33 @@ export const CategoryUpdateSchema = CategoryBase.partial().extend({
   _id: z.string({ required_error: "Category ID is required" }),
 });
 
+// brand schema
+export const BrandBase = z.object({
+  name: z
+    .string({ required_error: "Brand name is required" })
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters"),
+  slug: z
+    .string({ required_error: "Slug is required" })
+    .min(2)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+      message: "Slug must be lowercase and can contain hyphens only",
+    }),
+  isFeatured: z.boolean().default(false),
+  description: z.string().max(500).optional(),
+  image: z.string().url().optional().or(z.literal("")), 
+  seoTitle: z.string().max(60).optional(),
+  seoDescription: z.string().max(160).optional(),
+  seoKeywords: z.array(z.string()).optional(),
+});
+
+export const BrandInputSchema = BrandBase;
+
+export const BrandUpdateSchema = BrandBase.partial().extend({
+  _id: z.string({ required_error: "Brand ID is required" }),
+});
+
 // Coupon input schema
 export const CouponInputSchema = z.object({
   code: z
