@@ -20,16 +20,19 @@ export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: { category: string };
-  searchParams: any;
+  params: Promise<{ category: string }>;
+  searchParams: Promise<any>;
 }): Promise<Metadata> {
-  const categorySlug = params.category;
+  // Await params and searchParams for Next.js 15+
+  const { category: categorySlug } = await params;
+  const sp = await searchParams;
+  
   const category = await getCategoryBySlug(categorySlug);
   const { site } = await getSetting();
 
   const titleBase = category?.name ?? categorySlug;
-  const hasFilters = Object.keys(searchParams || {}).some(
-    (k) => searchParams[k] && searchParams[k] !== "all"
+  const hasFilters = Object.keys(sp || {}).some(
+    (k) => sp[k] && sp[k] !== "all"
   );
 
   return {
@@ -71,6 +74,7 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
   searchParams: Promise<any>;
 }) {
+  // Correctly awaiting asynchronous props
   const { category } = await params;
   const sp = await searchParams;
   const { site } = await getSetting();
@@ -123,7 +127,7 @@ export default async function CategoryPage({
   const categorySchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: category.replace("-", " "),
+    name: category.replace(/-/g, " "),
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: data.totalProducts,
@@ -143,8 +147,9 @@ export default async function CategoryPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
       />
       <Breadcrumb />
+      
       {/* Header */}
-      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
+      <div className="my-2 bg-card md:border-b flex justify-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
             {category
@@ -156,10 +161,12 @@ export default async function CategoryPage({
             Shop {category.replace(/-/g, " ")} products from top brands. Filter
             by price, color, size, rating, and more to find the perfect item.
           </p>
-          {data.totalProducts === 0
-            ? "No results"
-            : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
-          products
+          <p className="text-sm text-muted-foreground">
+            {data.totalProducts === 0
+              ? "No results"
+              : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
+            products
+          </p>
         </div>
 
         <ProductSortSelector
@@ -183,7 +190,9 @@ export default async function CategoryPage({
         <div className="md:col-span-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
             {data.products.length === 0 ? (
-              <div>No product found</div>
+              <div className="col-span-full text-center py-10">
+                No products found in this category.
+              </div>
             ) : (
               data.products.map((p: IProduct) => (
                 <ProductCard key={p._id.toString()} product={p} />
@@ -198,4 +207,4 @@ export default async function CategoryPage({
       </div>
     </div>
   );
-}
+  }
