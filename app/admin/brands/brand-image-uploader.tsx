@@ -101,6 +101,9 @@ export default function BrandImageUploader({ form }: ImageUploaderProps) {
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
+    onUploadError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+    },
   });
 
   /* --------------------------- Dropzone --------------------------- */
@@ -194,4 +197,3 @@ export default function BrandImageUploader({ form }: ImageUploaderProps) {
     />
   );
 }
-

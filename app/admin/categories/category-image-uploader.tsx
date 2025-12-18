@@ -101,7 +101,9 @@ export default function CategoryImageUploader({ form }: ImageUploaderProps) {
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+    },
   });
 
   /* --------------------------- Dropzone --------------------------- */

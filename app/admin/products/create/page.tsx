@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 const CreateProductPage = () => {
+  
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex mb-4">
