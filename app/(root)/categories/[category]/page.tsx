@@ -20,16 +20,17 @@ export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: { category: string };
-  searchParams: any;
+  params: Promise<{ category: string }>; // Update type to Promise
+    searchParams: Promise<any>;
 }): Promise<Metadata> {
-  const categorySlug = params.category;
+  const { category: categorySlug } = await params; 
+  const sp = await searchParams;
   const category = await getCategoryBySlug(categorySlug);
   const { site } = await getSetting();
 
   const titleBase = category?.name ?? categorySlug;
-  const hasFilters = Object.keys(searchParams || {}).some(
-    (k) => searchParams[k] && searchParams[k] !== "all"
+  const hasFilters = Object.keys(sp || {}).some(
+    (k) => sp[k] && sp[k] !== "all"
   );
 
   return {
@@ -68,7 +69,7 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ category: string }>;
+params: Promise<{ category: string }>; // Update type to Promise
   searchParams: Promise<any>;
 }) {
   const { category } = await params;
