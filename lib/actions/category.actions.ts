@@ -185,12 +185,14 @@ export async function getAllCategoriesForAdminProductInput() {
   cacheTag("categories");
   await connectToDatabase();
 
-  const categories = await Category.find()
+  const categories = await Category.find({ parent: null })
     .sort({ name: 1 })
-    .populate("parent", "name")
     .lean();
 
-  return categories;
+  return categories.map((cat) => ({
+    _id: cat._id.toString(),
+    name: cat.name,
+  }));
 }
 
 /* ---------------------------------

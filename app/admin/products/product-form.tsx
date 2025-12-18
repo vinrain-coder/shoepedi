@@ -29,7 +29,14 @@ import MarkdownEditor from "react-markdown-editor-lite";
 import ReactMarkdown from "react-markdown";
 import "react-markdown-editor-lite/lib/index.css";
 import { useTheme } from "next-themes";
-import CategoryInput from "./category-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ICategory } from "@/lib/db/models/category.model";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -91,10 +98,12 @@ const ProductForm = ({
   type,
   product,
   productId,
+  categories,
 }: {
   type: "Create" | "Update";
   product?: IProduct;
   productId?: string;
+  categories: ICategory[];
 }) => {
   const { theme } = useTheme();
   const router = useRouter();
@@ -185,9 +194,23 @@ const ProductForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter category" {...field} />
-                </FormControl>
+
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.name} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <FormMessage />
               </FormItem>
             )}
