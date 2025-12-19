@@ -10,7 +10,13 @@ export interface IBlog extends Document, IBlogInput {
 const blogSchema = new Schema<IBlog>(
   {
     title: { type: String, required: true, trim: true, minlength: 3 },
-    slug: { type: String, required: true, unique: true, lowercase: true, minlength: 3 },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      minlength: 3,
+    },
     content: { type: String, required: true, minlength: 10 },
     category: { type: String, required: true, minlength: 3 },
     views: { type: Number },
@@ -23,6 +29,6 @@ const blogSchema = new Schema<IBlog>(
   }
 );
 
-const Blog = (models.Blog as Model<IBlog>) || model<IBlog>("Blog", blogSchema);
+const Blog: Model<IBlog> = models.Blog || model<IBlog>("Blog", blogSchema);
 
 export default Blog;

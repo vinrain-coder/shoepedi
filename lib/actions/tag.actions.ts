@@ -38,9 +38,7 @@ export async function createTag(data: z.infer<typeof TagInputSchema>) {
 /* ---------------------------------
    UPDATE TAG
 ---------------------------------- */
-export async function updateTagAction(
-  data: z.infer<typeof TagUpdateSchema>
-) {
+export async function updateTagAction(data: z.infer<typeof TagUpdateSchema>) {
   try {
     const tag = TagUpdateSchema.parse(data);
     await connectToDatabase();
@@ -172,10 +170,7 @@ export async function getAllTagsForAdminProductCreate() {
 
   await connectToDatabase();
 
-  const tags = await Tag.find()
-    .sort({ name: 1 })
-    .select("name")
-    .lean();
+  const tags = await Tag.find().sort({ name: 1 }).select("name").lean();
 
   return tags.map((t) => t.name);
 }
@@ -191,10 +186,7 @@ export async function getAllTagsForStore() {
   try {
     await connectToDatabase();
 
-    const tags = await Tag.find()
-      .sort({ name: 1 })
-      .select("name slug")
-      .lean();
+    const tags = await Tag.find().sort({ name: 1 }).select("name slug").lean();
 
     return tags.map((tag: any) => ({
       ...tag,
@@ -220,5 +212,4 @@ export async function getTagBySlug(slug: string) {
   if (!tag) return notFound();
 
   return JSON.parse(JSON.stringify(tag)) as ITag;
-      }
-      
+}

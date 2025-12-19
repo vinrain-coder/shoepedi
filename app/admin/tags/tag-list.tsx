@@ -15,17 +15,9 @@ import {
 
 import DeleteDialog from "@/components/shared/delete-dialog";
 
-import {
-  getAllTagsForAdmin,
-  deleteTag,
-} from "@/lib/actions/tag.actions";
+import { getAllTagsForAdmin, deleteTag } from "@/lib/actions/tag.actions";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  PenBox,
-  Loader2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, PenBox, Loader2 } from "lucide-react";
 
 import { formatId, formatDateTime } from "@/lib/utils";
 import { ITag } from "@/lib/db/models/tag.model";
@@ -118,7 +110,7 @@ const TagList = () => {
             <TableRow>
               <TableHead className="w-[80px]">ID</TableHead>
               <TableHead className="w-[200px]">Name</TableHead>
-              
+
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -126,18 +118,12 @@ const TagList = () => {
 
           <TableBody>
             {data?.tags.map((tag) => (
-              <TableRow key={tag._id as string}>
+              <TableRow key={tag.id as string}>
                 <TableCell className="font-mono text-xs text-muted-foreground">
-                  {formatId(tag._id as string)}
+                  {formatId(tag.id as string)}
                 </TableCell>
 
-                <TableCell className="font-medium">
-                  {tag.name}
-                </TableCell>
-
-              
-
-                
+                <TableCell className="font-medium">{tag.name}</TableCell>
 
                 <TableCell className="text-sm">
                   {formatDateTime(tag.createdAt).dateTime}
@@ -145,23 +131,16 @@ const TagList = () => {
 
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      title="Edit"
-                    >
+                    <Button asChild variant="ghost" size="icon" title="Edit">
                       <Link href={`/admin/tags/${tag._id}`}>
                         <PenBox className="w-4 h-4" />
                       </Link>
                     </Button>
 
                     <DeleteDialog
-                      id={tag._id as string}
+                      id={tag.id as string}
                       action={deleteTag}
-                      callbackAction={() =>
-                        fetchTags(inputValue, page)
-                      }
+                      callbackAction={() => fetchTags(inputValue, page)}
                     />
                   </div>
                 </TableCell>
@@ -201,9 +180,7 @@ const TagList = () => {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange("next")}
-              disabled={
-                page >= (data?.totalPages ?? 0) || isPending
-              }
+              disabled={page >= (data?.totalPages ?? 0) || isPending}
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -216,4 +193,3 @@ const TagList = () => {
 };
 
 export default TagList;
-  

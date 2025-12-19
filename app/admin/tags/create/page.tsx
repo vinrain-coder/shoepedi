@@ -29,4 +29,3 @@ const CreateTagPage = () => {
 };
 
 export default CreateTagPage;
-    

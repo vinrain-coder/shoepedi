@@ -55,8 +55,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${titleBase} Products`,
       description:
-        tag?.description ??
-        `Browse products tagged with ${titleBase}.`,
+        tag?.description ?? `Browse products tagged with ${titleBase}.`,
       url: `${site.url}/tags/${tagSlug}`,
       type: "website",
     },
@@ -110,26 +109,25 @@ export default async function TagPage({
     page,
   };
 
-  const [categories, tags, brands, colors, sizes, data] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        tag,
-        category,
-        brand,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-    ]);
+  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      tag,
+      category,
+      brand,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+  ]);
 
   /* ---------------------- Schema ----------------------- */
   const tagSchema = {
@@ -139,14 +137,12 @@ export default async function TagPage({
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: data.totalProducts,
-      itemListElement: data.products.map(
-        (p: IProduct, index: number) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          url: `${site.url}/product/${p.slug}`,
-          name: p.name,
-        })
-      ),
+      itemListElement: data.products.map((p: IProduct, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${site.url}/product/${p.slug}`,
+        name: p.name,
+      })),
     },
   };
 
@@ -168,12 +164,10 @@ export default async function TagPage({
               .map((w) => w[0].toUpperCase() + w.slice(1))
               .join(" ")}
           </h1>
-
           <p className="sr-only">
             Shop products tagged with {tag.replace(/-/g, " ")}. Filter by
             category, brand, price, color, size, rating, and more.
           </p>
-
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}

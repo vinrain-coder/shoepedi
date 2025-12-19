@@ -31,6 +31,7 @@ type ParamsShape = {
   basePath?: string;
   lockCategory?: boolean;
   lockBrand?: boolean;
+  lockTag?: boolean;
 };
 
 export default function FiltersClient({
@@ -43,6 +44,7 @@ export default function FiltersClient({
   basePath = "/search",
   lockCategory = false,
   lockBrand = false,
+  lockTag = false,
 }: {
   initialParams: ParamsShape;
   categories: string[];
@@ -53,6 +55,7 @@ export default function FiltersClient({
   basePath?: string;
   lockCategory?: boolean;
   lockBrand?: boolean;
+  lockTag?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,7 +93,10 @@ export default function FiltersClient({
     if (!lockBrand && params.brand && params.brand !== "all") {
       p.set("brand", params.brand);
     }
-    if (params.tag && params.tag !== "all") p.set("tag", params.tag);
+    if (!lockTag && params.tag && params.tag !== "all") {
+      p.set("tag", params.tag);
+    }
+
     if (params.color && params.color !== "all") p.set("color", params.color);
     if (params.size && params.size !== "all") p.set("size", params.size);
     if (params.price && params.price !== "all") p.set("price", params.price);
@@ -107,6 +113,7 @@ export default function FiltersClient({
 
     if (lockCategory && key === "category") return; // ✅ prevent overwrite
     if (lockBrand && key === "brand") return;
+    if (lockTag && key === "tag") return;
     if (!value || value === "all") delete next[key];
     else next[key] = value;
 
@@ -149,7 +156,7 @@ export default function FiltersClient({
       <div className="space-y-6">
         {/* Categories */}
         <div>
-          {!lockCategory && (
+          {!lockCategory && !lockBrand && (
             <div>
               <div className="font-bold mb-2">Categories</div>
               <div className="flex flex-wrap gap-2">
@@ -209,26 +216,31 @@ export default function FiltersClient({
 
         {/* Tags */}
         <div>
-          <div className="font-bold mb-2">Tags</div>
-
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              active={current.tag === "all"}
-              onClick={() => updateParam("tag", "all")}
-            >
-              All
-            </FilterButton>
-
-            {tags.map((t) => (
-              <FilterButton
-                key={t}
-                active={current.tag === t}
-                onClick={() => updateParam("tag", t)}
-              >
-                {t}
-              </FilterButton>
-            ))}
-          </div>
+          {!lockTag && (
+            <div>
+              <div className="font-bold mb-2">Tags</div>
+              <div className="flex flex-wrap gap-2">
+                <div>
+                  <FilterButton
+                    key="all"
+                    active={current.tag === "all"}
+                    onClick={() => updateParam("tag", "all")}
+                  >
+                    All
+                  </FilterButton>
+                </div>
+                {tags.map((t) => (
+                  <FilterButton
+                    key={t}
+                    active={current.tag === t}
+                    onClick={() => updateParam("tag", t)}
+                  >
+                    {t}
+                  </FilterButton>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Brands */}

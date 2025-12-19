@@ -22,7 +22,7 @@ import SubmitButton from "@/components/shared/submit-button";
 
 import { TagInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
-import { createTag, updateTag } from "@/lib/actions/tag.actions";
+import { createTag, updateTagAction } from "@/lib/actions/tag.actions";
 
 // Infer values directly from your Zod schema
 type TagFormValues = z.infer<typeof TagInputSchema>;
@@ -48,7 +48,6 @@ export default function TagForm({
       name: tag?.name || "",
       slug: tag?.slug || "",
       description: tag?.description || "",
-       
     },
   });
 
@@ -66,7 +65,7 @@ export default function TagForm({
       const res =
         type === "Create"
           ? await createTag(values)
-          : await updateTag({ ...values, _id: tagId! });
+          : await updateTagAction({ ...values, _id: tagId! });
 
       if (res.success) {
         toast.success(res.message);
@@ -137,11 +136,11 @@ export default function TagForm({
             )}
           />
         </div>
-
+        <SubmitButton>
+          isLoading={form.formState.isSubmitting}
           {type === "Create" ? "Create Tag" : "Update Tag"}
         </SubmitButton>
       </form>
     </FormProvider>
   );
-  }
-  
+}

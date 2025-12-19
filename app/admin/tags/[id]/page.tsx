@@ -35,15 +35,10 @@ const UpdateTag = async (props: UpdateTagProps) => {
       </div>
 
       <div className="my-8">
-        <TagForm
-          type="Update"
-          tag={tag}
-          tagId={tag._id.toString()}
-        />
+        <TagForm type="Update" tag={tag} tagId={tag._id.toString()} />
       </div>
     </main>
   );
 };
 
 export default UpdateTag;
-  

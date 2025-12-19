@@ -62,12 +62,10 @@ export default async function TagsPage() {
 
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Browse Tags</h1>
-        <p className="text-muted-foreground">
-          Discover products using tags
-        </p>
+        <p className="text-muted-foreground">Discover products using tags</p>
         <p className="sr-only">
-          Browse our full list of product tags and quickly find products you
-          are interested in.
+          Browse our full list of product tags and quickly find products you are
+          interested in.
         </p>
       </div>
 
