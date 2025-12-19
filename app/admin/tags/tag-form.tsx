@@ -17,55 +17,60 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import SubmitButton from "@/components/shared/submit-button";
 
 import { TagInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createTag, updateTagAction } from "@/lib/actions/tag.actions";
 
-// Infer values directly from your Zod schema
+/* ---------------- Types ---------------- */
 type TagFormValues = z.infer<typeof TagInputSchema>;
 
 interface TagFormProps {
   type: "Create" | "Update";
   tag?: Partial<TagFormValues>;
   tagId?: string;
-  tagsList?: { _id: string; name: string }[];
 }
 
+/* ---------------- Component ---------------- */
 export default function TagForm({
   type,
   tag,
   tagId,
-  tagsList = [],
 }: TagFormProps) {
   const router = useRouter();
 
   const form = useForm<TagFormValues>({
     resolver: zodResolver(TagInputSchema),
     defaultValues: {
-      name: tag?.name || "",
-      slug: tag?.slug || "",
-      description: tag?.description || "",
+      name: tag?.name ?? "",
+      slug: tag?.slug ?? "",
+      description: tag?.description ?? "",
     },
   });
 
   const nameValue = form.watch("name");
 
-  // Auto-generate slug in Create mode
+  /* -------- Auto-generate slug -------- */
   useEffect(() => {
     if (type === "Create" && nameValue) {
-      form.setValue("slug", toSlug(nameValue), { shouldValidate: true });
+      form.setValue("slug", toSlug(nameValue), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
     }
   }, [nameValue, form, type]);
 
+  /* ---------------- Submit ---------------- */
   const onSubmit = async (values: TagFormValues) => {
     try {
       const res =
         type === "Create"
           ? await createTag(values)
-          : await updateTagAction({ ...values, _id: tagId! });
+          : await updateTagAction({
+              ...values,
+              _id: tagId!,
+            });
 
       if (res.success) {
         toast.success(res.message);
@@ -74,17 +79,18 @@ export default function TagForm({
       } else {
         toast.error(res.message);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       toast.error("Something went wrong. Please try again.");
     }
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-5xl mx-auto"
+        className="space-y-8 w-full"
       >
         {/* Core Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,18 +135,27 @@ export default function TagForm({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Short tag description" />
+                  <Input
+                    {...field}
+                    placeholder="Short tag description"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <SubmitButton>
-          isLoading={form.formState.isSubmitting}
-          {type === "Create" ? "Create Tag" : "Update Tag"}
-        </SubmitButton>
+
+        {/* Submit */}
+        <div className="flex justify-end">
+          <SubmitButton
+            isLoading={form.formState.isSubmitting}
+          >
+            {type === "Create" ? "Create Tag" : "Update Tag"}
+          </SubmitButton>
+        </div>
       </form>
     </FormProvider>
   );
-}
+        }
+  
