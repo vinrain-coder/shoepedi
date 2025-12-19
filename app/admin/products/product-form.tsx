@@ -196,8 +196,8 @@ const ProductForm = ({
                 <FormLabel>Category</FormLabel>
 
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
+                  <FormControl className="w-full">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </FormControl>
