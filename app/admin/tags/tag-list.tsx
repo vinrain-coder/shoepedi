@@ -118,9 +118,9 @@ const TagList = () => {
 
           <TableBody>
             {data?.tags.map((tag) => (
-              <TableRow key={tag.id as string}>
+              <TableRow key={tag._id as string}>
                 <TableCell className="font-mono text-xs text-muted-foreground">
-                  {formatId(tag.id as string)}
+                  {formatId(tag._id as string)}
                 </TableCell>
 
                 <TableCell className="font-medium">{tag.name}</TableCell>
@@ -138,7 +138,7 @@ const TagList = () => {
                     </Button>
 
                     <DeleteDialog
-                      id={tag.id as string}
+                      id={tag._id as string}
                       action={deleteTag}
                       callbackAction={() => fetchTags(inputValue, page)}
                     />
@@ -193,3 +193,4 @@ const TagList = () => {
 };
 
 export default TagList;
+
