@@ -403,6 +403,7 @@ export async function getAllProducts({
     .lean();
 
   const countProducts = await Product.countDocuments({
+    ...isPublished,
     ...queryFilter,
     ...tagFilter,
     ...categoryFilter,
