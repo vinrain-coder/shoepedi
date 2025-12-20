@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { X, ChevronRight, UserCircle, MenuIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -11,99 +12,124 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Separator } from "@/components/ui/separator";
+
 import { authClient } from "@/lib/auth-client";
 import { UserSidebar } from "./user-sidebar";
 
-export default function Sidebar({ categories }: { categories: string[] }) {
+interface SidebarProps {
+  categories: string[];
+  brands: string[];
+}
+
+export default function Sidebar({ categories, brands }: SidebarProps) {
   const { data: session } = authClient.useSession();
 
   return (
     <Drawer direction="left">
-      <DrawerTrigger className="header-button flex items-center !p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300 cursor-pointer">
-        <MenuIcon className="h-5 w-5 mr-2" />
+      {/* Trigger */}
+      <DrawerTrigger className="header-button flex items-center gap-2 !p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition">
+        <MenuIcon className="h-5 w-5" />
         <span className="text-base font-medium">All</span>
       </DrawerTrigger>
-      <DrawerContent className="w-[350px] shadow-lg">
+
+      {/* Drawer */}
+      <DrawerContent className="w-[350px] max-w-[90vw] shadow-xl">
         <div className="flex flex-col h-full">
-          {/* User Sign In Section */}
-          <div className="text-foreground flex items-center justify-between p-4 rounded-t-lg h-10 mt-3w">
-            <DrawerHeader>
-              <DrawerTitle className="flex items-center text-lg font-semibold">
-                <UserCircle className="h-6 w-6 mr-2" />
+          {/* ---------------- HEADER ---------------- */}
+          <div className="sticky top-0 z-10 bg-background border-b">
+            <DrawerHeader className="flex flex-row items-center justify-between">
+              <DrawerTitle className="flex items-center gap-2 text-lg font-semibold">
+                <UserCircle className="h-6 w-6" />
                 {session ? (
                   <DrawerClose asChild>
-                    <Link href="/account">
-                      <span className="text-lg font-semibold">
-                        Hello, {session.user.name}
-                      </span>
+                    <Link href="/account" className="hover:underline">
+                      Hello, {session.user.name}
                     </Link>
                   </DrawerClose>
                 ) : (
                   <DrawerClose asChild>
-                    <Link href="/sign-in">
-                      <span className="text-lg font-semibold">
-                        Hello, Sign In
-                      </span>
+                    <Link href="/sign-in" className="hover:underline">
+                      Hello, Sign In
                     </Link>
                   </DrawerClose>
                 )}
               </DrawerTitle>
+
+              <DrawerClose asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-muted">
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Close</span>
+                </Button>
+              </DrawerClose>
             </DrawerHeader>
-            <DrawerClose asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-2 p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
-              >
-                <X className="h-5 w-5" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </DrawerClose>
           </div>
 
-          {/* Shop By Category */}
+          {/* ---------------- CONTENT ---------------- */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold">Shop By Category</h2>
+            {/* -------- Categories -------- */}
+            <div className="px-4 py-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Shop by Category
+              </h2>
             </div>
-            <nav className="flex flex-col space-y-2 px-4 py-2">
+
+            <nav className="px-2">
               {categories.map((category) => (
                 <DrawerClose asChild key={category}>
                   <Link
-                    href={`/search?category=${category}`}
-                    className="flex items-center justify-between py-2 px-3 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-all duration-300"
+                    href={`/search?category=${encodeURIComponent(category)}`}
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-muted transition"
                   >
                     <span>{category}</span>
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                </DrawerClose>
+              ))}
+            </nav>
+
+            <Separator className="my-4" />
+
+            {/* -------- Brands -------- */}
+            <div className="px-4 py-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Shop by Brand
+              </h2>
+            </div>
+
+            <nav className="px-2 pb-4 max-h-[260px] overflow-y-auto">
+              {brands.map((brand) => (
+                <DrawerClose asChild key={brand}>
+                  <Link
+                    href={`/search?brand=${encodeURIComponent(brand)}`}
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-muted transition"
+                  >
+                    <span>{brand}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </Link>
                 </DrawerClose>
               ))}
             </nav>
           </div>
 
-          <div className="flex flex-col mb-4">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold">Help & Settings</h2>
-            </div>
-
+          {/* ---------------- FOOTER ---------------- */}
+          <div className="border-t px-4 py-3 space-y-2">
             <DrawerClose asChild>
               <Link
                 href="/page/customer-service"
-                className="item-button py-2 px-4 rounded-md"
+                className="block rounded-md px-3 py-2 text-sm hover:bg-muted transition"
               >
                 Customer Service
               </Link>
             </DrawerClose>
 
             {session ? (
-              <div className="">
-                <UserSidebar />
-              </div>
+              <UserSidebar />
             ) : (
               <DrawerClose asChild>
                 <Link
                   href="/sign-in"
-                  className="item-button py-2 px-4 rounded-md"
+                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted transition"
                 >
                   Sign In
                 </Link>
@@ -114,4 +140,5 @@ export default function Sidebar({ categories }: { categories: string[] }) {
       </DrawerContent>
     </Drawer>
   );
-}
+  }
+      
