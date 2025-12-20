@@ -139,38 +139,7 @@ export async function createUpdateReview({
 }
 
 const updateProductReview = async (productId: string) => {
-  // Calculate the new average rating, number of reviews, and rating distribution
-  const result = await Review.aggregate([
-    { $match: { product: new mongoose.Types.ObjectId(productId) } },
-    {
-      $group: {
-        _id: "$rating",
-        count: { $sum: 1 },
-      },
-    },
-  ]);
-  // Calculate the total number of reviews and average rating
-  const totalReviews = result.reduce((sum, { count }) => sum + count, 0);
-  const avgRating =
-    result.reduce((sum, { _id, count }) => sum + _id * count, 0) / totalReviews;
 
-  // Convert aggregation result to a map for easier lookup
-  const ratingMap = result.reduce((map, { _id, count }) => {
-    map[_id] = count;
-    return map;
-  }, {});
-  // Ensure all ratings 1-5 are represented, with missing ones set to count: 0
-  const ratingDistribution = [];
-  for (let i = 1; i <= 5; i++) {
-    ratingDistribution.push({ rating: i, count: ratingMap[i] || 0 });
-  }
-  // Update product fields with calculated values
-  await Product.findByIdAndUpdate(productId, {
-    avgRating: avgRating.toFixed(1),
-    numReviews: totalReviews,
-    ratingDistribution,
-  });
-};
 
 export async function getReviews({
   productId,
