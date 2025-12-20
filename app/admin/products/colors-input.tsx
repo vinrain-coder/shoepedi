@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   FormItem,
@@ -14,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+
 import { REACT_NATIVE_COLORS } from "@/lib/constants";
 
 interface ColorInputProps {
@@ -27,38 +29,57 @@ interface ColorInputProps {
 export default function ColorInput({ field, label }: ColorInputProps) {
   const [search, setSearch] = useState("");
 
-  const filteredColors = useMemo(() => {
-    return REACT_NATIVE_COLORS.filter((c) =>
-      c.includes(search.toLowerCase())
-    );
-  }, [search]);
+  const selected = field.value ?? [];
+
+  const filteredColors = useMemo(
+    () =>
+      REACT_NATIVE_COLORS.filter((c) =>
+        c.includes(search.toLowerCase())
+      ),
+    [search]
+  );
 
   const toggleColor = (color: string) => {
-    const current = field.value ?? [];
     field.onChange(
-      current.includes(color)
-        ? current.filter((c) => c !== color)
-        : [...current, color]
+      selected.includes(color)
+        ? selected.filter((c) => c !== color)
+        : [...selected, color]
     );
   };
+
+  const removeColor = (color: string) => {
+    field.onChange(selected.filter((c) => c !== color));
+  };
+
+  const clearAll = () => field.onChange([]);
 
   return (
     <FormItem>
       <FormLabel>{label}</FormLabel>
 
+      {/* Trigger */}
       <Popover>
         <PopoverTrigger asChild>
           <Button
             type="button"
             variant="outline"
-            className="w-full justify-start"
+            className="w-full justify-between"
           >
-            {field.value?.length
-              ? `${field.value.length} color(s) selected`
-              : "Select colors"}
+            <span>
+              {selected.length
+                ? `${selected.length} color(s) selected`
+                : "Select colors"}
+            </span>
+
+            {selected.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                Click to edit
+              </span>
+            )}
           </Button>
         </PopoverTrigger>
 
+        {/* Popover */}
         <PopoverContent className="w-[320px] p-3">
           <Input
             placeholder="Search color…"
@@ -69,7 +90,7 @@ export default function ColorInput({ field, label }: ColorInputProps) {
 
           <div className="grid grid-cols-6 gap-2 max-h-60 overflow-y-auto">
             {filteredColors.map((color) => {
-              const selected = field.value?.includes(color);
+              const isSelected = selected.includes(color);
 
               return (
                 <button
@@ -77,21 +98,63 @@ export default function ColorInput({ field, label }: ColorInputProps) {
                   type="button"
                   onClick={() => toggleColor(color)}
                   className={`relative h-8 w-8 rounded-full border transition
-                    ${selected ? "ring-2 ring-primary" : ""}`}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                    ${isSelected ? "ring-2 ring-primary" : ""}`}
                   style={{ backgroundColor: color }}
                   title={color}
                 >
-                  {selected && (
+                  {isSelected && (
                     <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" />
                   )}
                 </button>
               );
             })}
           </div>
+
+          {selected.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearAll}
+              className="mt-3 w-full text-destructive"
+            >
+              Clear all
+            </Button>
+          )}
         </PopoverContent>
       </Popover>
+
+      {/* Selected Preview Chips */}
+      {selected.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {selected.map((color) => (
+            <div
+              key={color}
+              className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm bg-background"
+              title={color}
+            >
+              <span
+                className="h-3 w-3 rounded-full border"
+                style={{ backgroundColor: color }}
+              />
+              <span className="max-w-[120px] truncate">
+                {color}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeColor(color)}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <FormMessage />
     </FormItem>
   );
-      }
+    }
+    
