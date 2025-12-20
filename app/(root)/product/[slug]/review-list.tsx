@@ -246,15 +246,11 @@ export default function ReviewList({
                                   <FormItem>
                                     <FormLabel>Rating</FormLabel>
                                     <Select
-                                      onValueChange={(val) =>
-                                        field.onChange(Number(val))
-                                      }
-                                      value={
-                                        field.value
-                                          ? field.value.toString()
-                                          : ""
-                                      } // safe fallback
-                                    >
+  defaultValue="5"
+  onValueChange={(val) => field.onChange(Number(val))}
+  value={field.value.toString()}
+>
+          
                                       <FormControl>
                                         <SelectTrigger>
                                           <SelectValue placeholder="Select a Rating" />
