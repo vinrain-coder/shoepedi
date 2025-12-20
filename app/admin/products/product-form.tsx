@@ -234,7 +234,7 @@ const ProductForm = ({
                   </FormControl>
 
                   <SelectContent>
-                    {brand.map((brand) => (
+                    {brands.map((brand) => (
                       <SelectItem key={brand.name} value={brand.name}>
                         {brand.name}
                       </SelectItem>
