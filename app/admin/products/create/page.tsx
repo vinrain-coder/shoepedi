@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import ProductForm from "../product-form";
-import {
-  getAllCategoriesForAdmin,
-  getAllCategoriesForAdminProductInput,
-} from "@/lib/actions/category.actions";
+import { getAllCategoriesForAdminProductInput } from "@/lib/actions/category.actions";
 import { getAllBrandsForAdminProductInput } from "@/lib/actions/brand.actions";
 
 export const metadata: Metadata = {

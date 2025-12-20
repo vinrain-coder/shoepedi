@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { getAllTagsForAdminProductCreate } from "@/lib/actions/tag.actions";
 
@@ -30,9 +26,7 @@ export default function TagsInput({ field }: TagsInputProps) {
 
         if (!mounted) return;
 
-        setAvailableTags(
-          tags.filter((t): t is string => Boolean(t?.trim()))
-        );
+        setAvailableTags(tags.filter((t): t is string => Boolean(t?.trim())));
       } catch (error) {
         console.error("Failed to fetch tags:", error);
         setAvailableTags([]);
@@ -66,9 +60,7 @@ export default function TagsInput({ field }: TagsInputProps) {
 
       <div className="flex flex-wrap gap-2">
         {loading && (
-          <span className="text-sm text-muted-foreground">
-            Loading tags…
-          </span>
+          <span className="text-sm text-muted-foreground">Loading tags…</span>
         )}
 
         {!loading && availableTags.length === 0 && (

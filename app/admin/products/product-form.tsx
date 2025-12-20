@@ -22,7 +22,6 @@ import ImageUploader from "./image-uploader";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";
 import { useEffect } from "react";
-import TagsInput from "./tags-input";
 import ColorInput from "./colors-input";
 import SizeInput from "./size-input";
 import MarkdownEditor from "react-markdown-editor-lite";
@@ -38,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { ICategory } from "@/lib/db/models/category.model";
 import { IBrand } from "@/lib/db/models/brand.model";
+import TagsInput from "./tag-input";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
