@@ -288,23 +288,6 @@ export async function getRelatedProductsByCategory({
 }
 
 // GET ALL PRODUCTS
-
-  
-
-type GetAllProductsParams = {
-  query: string;
-  category?: string;
-  tag?: string;
-  brand?: string;
-  color?: string;
-  size?: string;
-  limit?: number;
-  page: number;
-  price?: string;
-  rating?: string;
-  sort?: string;
-};
-
 export async function getAllProducts({
   query,
   limit,
@@ -317,7 +300,19 @@ export async function getAllProducts({
   price,
   rating,
   sort,
-}: GetAllProductsParams) {
+}: {
+  query: string;
+  category: string;
+  tag: string;
+  brand: string;
+  color: string;
+  size: string;
+  limit?: number;
+  page: number;
+  price?: string;
+  rating?: string;
+  sort?: string;
+}) {
   "use cache";
   cacheLife("hours");
   cacheTag("products");
@@ -326,33 +321,98 @@ export async function getAllProducts({
     common: { pageSize },
   } = await getSetting();
 
-  limit = limit || pageSize;
+  const pageLimit = limit ?? pageSize;
+  const skip = pageLimit * (page - 1);
 
   await connectToDatabase();
 
-  // --- Filters ---
-  const filters: Record<string, any> = { isPublished: true };
+  const queryFilter =
+    query && query !== "all"
+      ? {
+          name: {
+            $regex: query,
+            $options: "i",
+          },
+        }
+      : {};
 
-  // Text search for product name
-  if (query && query !== "all") {
-    filters.$text = { $search: query }; // requires text index on `name`
-  }
+  const categoryFilter =
+    category && category !== "all"
+      ? {
+          category: {
+            $regex: `^${category}$`,
+            $options: "i",
+          },
+        }
+      : {};
 
-  // Exact matches (case-insensitive) using normalized strings
-  if (category && category !== "all") filters.categoryLower = category.toLowerCase();
-  if (brand && brand !== "all") filters.brandLower = brand.toLowerCase();
-  if (tag && tag !== "all") filters.tagsLower = tag.toLowerCase();
-  if (color && color !== "all") filters.colorsLower = color.toLowerCase();
-  if (size && size !== "all") filters.sizesLower = size.toLowerCase();
+  const tagFilter =
+    tag && tag !== "all"
+      ? {
+          tags: {
+            $elemMatch: {
+              $regex: `^${tag}$`,
+              $options: "i",
+            },
+          },
+        }
+      : {};
 
-  if (rating && rating !== "all") filters.avgRating = { $gte: Number(rating) };
+  const brandFilter =
+    brand && brand !== "all"
+      ? {
+          brand: {
+            $regex: `^${brand}$`,
+            $options: "i",
+          },
+        }
+      : {};
 
-  if (price && price !== "all") {
-    const [min, max] = price.split("-").map(Number);
-    filters.price = { $gte: min, $lte: max };
-  }
+  const colorFilter =
+    color && color !== "all"
+      ? {
+          colors: {
+            $elemMatch: {
+              $regex: `^${color}$`,
+              $options: "i",
+            },
+          },
+        }
+      : {};
 
-  // --- Sorting ---
+  const sizeFilter =
+    size && size !== "all"
+      ? {
+          sizes: {
+            $elemMatch: {
+              $regex: `^${size}$`,
+              $options: "i",
+            },
+          },
+        }
+      : {};
+
+  const ratingFilter =
+    rating && rating !== "all"
+      ? {
+          avgRating: {
+            $gte: Number(rating),
+          },
+        }
+      : {};
+
+  const priceFilter =
+    price && price !== "all"
+      ? {
+          price: {
+            $gte: Number(price.split("-")[0]),
+            $lte: Number(price.split("-")[1]),
+          },
+        }
+      : {};
+
+  const isPublishedFilter = { isPublished: true };
+
   const sortOrder: Record<string, 1 | -1> =
     sort === "best-selling"
       ? { numSales: -1 }
@@ -364,33 +424,37 @@ export async function getAllProducts({
       ? { avgRating: -1 }
       : { _id: -1 };
 
-  // --- Aggregation: get products + total count in one query ---
-  const aggResult = await Product.aggregate([
-    { $match: filters },
-    {
-      $facet: {
-        products: [
-          { $sort: sortOrder },
-          { $skip: limit * (page - 1) },
-          { $limit: limit },
-        ],
-        totalCount: [{ $count: "count" }],
-      },
-    },
-  ]);
+  const filters = {
+    ...isPublishedFilter,
+    ...queryFilter,
+    ...categoryFilter,
+    ...tagFilter,
+    ...brandFilter,
+    ...colorFilter,
+    ...sizeFilter,
+    ...priceFilter,
+    ...ratingFilter,
+  };
 
-  const products: IProduct[] = aggResult[0]?.products || [];
-  const totalProducts = aggResult[0]?.totalCount[0]?.count || 0;
+  const [products, totalProducts] = await Promise.all([
+    Product.find(filters)
+      .sort(sortOrder)
+      .skip(skip)
+      .limit(pageLimit)
+      .lean(),
+
+    Product.countDocuments(filters),
+  ]);
 
   return {
     products: JSON.parse(JSON.stringify(products)) as IProduct[],
-    totalPages: Math.ceil(totalProducts / limit),
     totalProducts,
-    from: limit * (page - 1) + 1,
-    to: limit * (page - 1) + products.length,
+    totalPages: Math.ceil(totalProducts / pageLimit),
+    from: skip + 1,
+    to: skip + products.length,
   };
-      }
-  
+                                     }
+                            
 
 export async function getAllTags() {
   "use cache";
