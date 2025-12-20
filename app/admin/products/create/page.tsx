@@ -5,6 +5,7 @@ import {
   getAllCategoriesForAdmin,
   getAllCategoriesForAdminProductInput,
 } from "@/lib/actions/category.actions";
+import { getAllBrandsForAdminProductInput } from "@/lib/actions/brand.actions";
 
 export const metadata: Metadata = {
   title: "Create Product",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 
 const CreateProductPage = async () => {
   const categories = await getAllCategoriesForAdminProductInput();
+  const brand = await getAllBrandsForAdminProductInput();
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex mb-4">
@@ -21,7 +23,7 @@ const CreateProductPage = async () => {
       </div>
 
       <div className="my-8">
-        <ProductForm type="Create" categories={categories} />
+        <ProductForm type="Create" categories={categories} brands={brands} />
       </div>
     </main>
   );
