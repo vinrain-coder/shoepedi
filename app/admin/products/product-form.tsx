@@ -219,34 +219,42 @@ const ProductForm = ({
               </FormItem>
             )}
           />
+<FormField
+  control={form.control}
+  name="brand"
+  render={({ field }) => (
+    <FormItem className="w-full">
+      <FormLabel>Brand (optional)</FormLabel>
 
-          <FormField
-            control={form.control}
-            name="brand"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Brand</FormLabel>
+      <Select
+        value={field.value || ""}
+        onValueChange={(val) => field.onChange(val === "none" ? "" : val)}
+      >
+        <FormControl className="w-full">
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select brand (optional)" />
+          </SelectTrigger>
+        </FormControl>
 
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl className="w-full">
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select brand" />
-                    </SelectTrigger>
-                  </FormControl>
+        <SelectContent>
+          {/* CLEAR OPTION */}
+          <SelectItem value="none">
+            — No brand —
+          </SelectItem>
 
-                  <SelectContent>
-                    {brands.map((brand) => (
-                      <SelectItem key={brand.name} value={brand.name}>
-                        {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {brands.map((brand) => (
+            <SelectItem key={brand.name} value={brand.name}>
+              {brand.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+                
 
           <FormField
             control={form.control}
