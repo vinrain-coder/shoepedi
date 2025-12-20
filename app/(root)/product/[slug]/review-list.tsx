@@ -135,20 +135,26 @@ export default function ReviewList({
     defaultValues: reviewFormDefaultValues,
   });
 
-  const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
-    const res = await createUpdateReview({
-      data: { ...values, product: product._id.toString() },
-      path: `/product/${product.slug}`,
-    });
-    if (!res.success) {
-      toast.error(res.message);
-      return;
-    }
+const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
+  const res = await submitReviewAction(
+    {
+      ...values,
+      product: product._id.toString(),
+    },
+    `/product/${product.slug}`
+  );
 
-    setOpen(false);
-    reload();
-    toast.success(res.message);
-  };
+  if (!res.success) {
+    toast.error(res.message);
+    return;
+  }
+
+  form.reset(reviewFormDefaultValues);
+  setOpen(false);
+  reload();
+  toast.success(res.message);
+};
+        
 
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
