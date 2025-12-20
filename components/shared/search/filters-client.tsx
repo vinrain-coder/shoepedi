@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo} from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { X } from "lucide-react";
 
-import PriceControl from "./price-control";
 import SelectedFiltersPills from "./selected-filters-pills";
-import FilterButton from "./filter-button";
 import {
   Accordion,
   AccordionContent,
@@ -24,7 +22,6 @@ import {
 } from "@/components/ui/accordion";
 import PriceControl from "./price-control";
 import FilterButton from "./filter-button";
-
 
 type ParamsShape = {
   q?: string;
@@ -51,7 +48,6 @@ type FilterKey =
   | "size"
   | "price"
   | "rating";
-
 
 export default function FiltersClient({
   initialParams,
@@ -98,55 +94,55 @@ export default function FiltersClient({
   const [local, setLocal] = useState<ParamsShape>({ ...current });
 
   const [categorySearch, setCategorySearch] = useState("");
-const [brandSearch, setBrandSearch] = useState("");
-const [colorSearch, setColorSearch] = useState("");
+  const [brandSearch, setBrandSearch] = useState("");
+  const [colorSearch, setColorSearch] = useState("");
 
   const dCategorySearch = useDebounce(categorySearch);
-const dBrandSearch = useDebounce(brandSearch);
-const dColorSearch = useDebounce(colorSearch);
-  
-const filteredCategories = useMemo(
-  () =>
-    categories.filter((c) =>
-      c.toLowerCase().includes(dCategorySearch.toLowerCase())
-    ),
-  [categories, dCategorySearch]
-);
+  const dBrandSearch = useDebounce(brandSearch);
+  const dColorSearch = useDebounce(colorSearch);
 
-const filteredBrands = useMemo(
-  () =>
-    brands.filter((b) =>
-      b.toLowerCase().includes(dBrandSearch.toLowerCase())
-    ),
-  [brands, dBrandSearch]
-);
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter((c) =>
+        c.toLowerCase().includes(dCategorySearch.toLowerCase())
+      ),
+    [categories, dCategorySearch]
+  );
 
-const filteredColors = useMemo(
-  () =>
-    colors.filter((c) =>
-      c.toLowerCase().includes(dColorSearch.toLowerCase())
-    ),
-  [colors, dColorSearch]
-);
+  const filteredBrands = useMemo(
+    () =>
+      brands.filter((b) =>
+        b.toLowerCase().includes(dBrandSearch.toLowerCase())
+      ),
+    [brands, dBrandSearch]
+  );
+
+  const filteredColors = useMemo(
+    () =>
+      colors.filter((c) =>
+        c.toLowerCase().includes(dColorSearch.toLowerCase())
+      ),
+    [colors, dColorSearch]
+  );
 
   const defaultAccordionValues = useMemo(
-  () =>
-    [
-      current.category !== "all" && "categories",
-      current.price !== "all" && "price",
-      current.rating !== "all" && "rating",
-      current.tag !== "all" && "tags",
-      current.brand !== "all" && "brands",
-      current.color !== "all" && "colors",
-      current.size !== "all" && "sizes",
-    ].filter(Boolean) as string[],
-  [current]
-);
+    () =>
+      [
+        current.category !== "all" && "categories",
+        current.price !== "all" && "price",
+        current.rating !== "all" && "rating",
+        current.tag !== "all" && "tags",
+        current.brand !== "all" && "brands",
+        current.color !== "all" && "colors",
+        current.size !== "all" && "sizes",
+      ].filter(Boolean) as string[],
+    [current]
+  );
 
-const [openAccordions, setOpenAccordions] = useState<string[]>(
-  defaultAccordionValues
-);
-  
+  const [openAccordions, setOpenAccordions] = useState<string[]>(
+    defaultAccordionValues
+  );
+
   // Update local state whenever URL changes
   useEffect(() => {
     setLocal({ ...current });
@@ -219,241 +215,230 @@ const [openAccordions, setOpenAccordions] = useState<string[]>(
     setLocal((s) => ({ ...s, price: value }));
   }
 
-      function useDebounce<T>(value: T, delay = 300) {
-  const [debounced, setDebounced] = useState(value);
+  function useDebounce<T>(value: T, delay = 300) {
+    const [debounced, setDebounced] = useState(value);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
+    useEffect(() => {
+      const t = setTimeout(() => setDebounced(value), delay);
+      return () => clearTimeout(t);
+    }, [value, delay]);
 
-  return debounced;
-      }
-    
+    return debounced;
+  }
 
   // --- Filters content (desktop + mobile scroll) ---
-              
-function FiltersContent() {
-  return (
-    <Accordion
-      type="multiple"
-      value={openAccordions}
-      onValueChange={setOpenAccordions}
-      className="space-y-4"
-    >
-      {/* ================= Categories ================= */}
-      {!lockCategory && !lockBrand && (
-        <AccordionItem value="categories">
+
+  function FiltersContent() {
+    return (
+      <Accordion
+        type="multiple"
+        value={openAccordions}
+        onValueChange={setOpenAccordions}
+        className="space-y-4"
+      >
+        {/* ================= Categories ================= */}
+        {!lockCategory && !lockBrand && (
+          <AccordionItem value="categories">
+            <AccordionTrigger className="font-bold">
+              Categories
+            </AccordionTrigger>
+            <AccordionContent>
+              <input
+                placeholder="Search categories…"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+              />
+
+              <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+                <FilterButton
+                  disabled={current.category === "all"}
+                  active={current.category === "all"}
+                  onClick={() => updateParam("category", "all")}
+                >
+                  All
+                </FilterButton>
+
+                {filteredCategories.map((c) => (
+                  <FilterButton
+                    key={c}
+                    active={current.category === c}
+                    onClick={() => updateParam("category", c)}
+                  >
+                    {c}
+                  </FilterButton>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* ================= Price ================= */}
+        <AccordionItem value="price">
+          <AccordionTrigger className="font-bold">Price</AccordionTrigger>
+          <AccordionContent>
+            <PriceControl
+              initialPrice={current.price ?? "all"}
+              onApply={applyPriceFromControl}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* ================= Rating ================= */}
+        <AccordionItem value="rating">
           <AccordionTrigger className="font-bold">
-            Categories
+            Customer Review
           </AccordionTrigger>
           <AccordionContent>
-            <input
-              placeholder="Search categories…"
-              value={categorySearch}
-              onChange={(e) => setCategorySearch(e.target.value)}
-              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
-            />
-
-            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <div className="flex flex-wrap gap-2">
               <FilterButton
-                disabled={current.category === "all"}
-                active={current.category === "all"}
-                onClick={() => updateParam("category", "all")}
+                disabled={current.rating === "all"}
+                active={current.rating === "all"}
+                onClick={() => updateParam("rating", "all")}
               >
                 All
               </FilterButton>
 
-              {filteredCategories.map((c) => (
+              <FilterButton
+                active={current.rating === "4"}
+                onClick={() => updateParam("rating", "4")}
+              >
+                4 & Up
+              </FilterButton>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* ================= Tags ================= */}
+        {!lockTag && (
+          <AccordionItem value="tags">
+            <AccordionTrigger className="font-bold">Tags</AccordionTrigger>
+            <AccordionContent>
+              <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+                <FilterButton
+                  disabled={current.tag === "all"}
+                  active={current.tag === "all"}
+                  onClick={() => updateParam("tag", "all")}
+                >
+                  All
+                </FilterButton>
+
+                {tags.map((t) => (
+                  <FilterButton
+                    key={t}
+                    active={current.tag === t}
+                    onClick={() => updateParam("tag", t)}
+                  >
+                    {t}
+                  </FilterButton>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* ================= Brands ================= */}
+        {!lockBrand && (
+          <AccordionItem value="brands">
+            <AccordionTrigger className="font-bold">Brands</AccordionTrigger>
+            <AccordionContent>
+              <input
+                placeholder="Search brands…"
+                value={brandSearch}
+                onChange={(e) => setBrandSearch(e.target.value)}
+                className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+              />
+
+              <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+                <FilterButton
+                  disabled={current.brand === "all"}
+                  active={current.brand === "all"}
+                  onClick={() => updateParam("brand", "all")}
+                >
+                  All
+                </FilterButton>
+
+                {filteredBrands.map((b) => (
+                  <FilterButton
+                    key={b}
+                    active={current.brand === b}
+                    onClick={() => updateParam("brand", b)}
+                  >
+                    {b}
+                  </FilterButton>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* ================= Colors (WITH SEARCH) ================= */}
+        <AccordionItem value="colors">
+          <AccordionTrigger className="font-bold">Colors</AccordionTrigger>
+          <AccordionContent>
+            <input
+              placeholder="Search colors…"
+              value={colorSearch}
+              onChange={(e) => setColorSearch(e.target.value)}
+              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+            />
+
+            <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+              <FilterButton
+                disabled={current.color === "all"}
+                active={current.color === "all"}
+                onClick={() => updateParam("color", "all")}
+              >
+                All
+              </FilterButton>
+
+              {filteredColors.map((c) => (
                 <FilterButton
                   key={c}
-                  active={current.category === c}
-                  onClick={() => updateParam("category", c)}
+                  active={current.color === c}
+                  onClick={() => updateParam("color", c)}
+                  className="flex items-center gap-2"
                 >
-                  {c}
+                  <span
+                    className="h-4 w-4 rounded-full border border-muted-foreground"
+                    style={{ backgroundColor: c }}
+                  />
+                  <span>{c}</span>
                 </FilterButton>
               ))}
             </div>
           </AccordionContent>
         </AccordionItem>
-      )}
 
-      {/* ================= Price ================= */}
-      <AccordionItem value="price">
-        <AccordionTrigger className="font-bold">
-          Price
-        </AccordionTrigger>
-        <AccordionContent>
-          <PriceControl
-            initialPrice={current.price ?? "all"}
-            onApply={applyPriceFromControl}
-          />
-        </AccordionContent>
-      </AccordionItem>
-
-      {/* ================= Rating ================= */}
-      <AccordionItem value="rating">
-        <AccordionTrigger className="font-bold">
-          Customer Review
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              disabled={current.rating === "all"}
-              active={current.rating === "all"}
-              onClick={() => updateParam("rating", "all")}
-            >
-              All
-            </FilterButton>
-
-            <FilterButton
-              active={current.rating === "4"}
-              onClick={() => updateParam("rating", "4")}
-            >
-              4 & Up
-            </FilterButton>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-
-      {/* ================= Tags ================= */}
-      {!lockTag && (
-        <AccordionItem value="tags">
-          <AccordionTrigger className="font-bold">
-            Tags
-          </AccordionTrigger>
+        {/* ================= Sizes ================= */}
+        <AccordionItem value="sizes">
+          <AccordionTrigger className="font-bold">Sizes</AccordionTrigger>
           <AccordionContent>
             <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
               <FilterButton
-                disabled={current.tag === "all"}
-                active={current.tag === "all"}
-                onClick={() => updateParam("tag", "all")}
+                disabled={current.size === "all"}
+                active={current.size === "all"}
+                onClick={() => updateParam("size", "all")}
               >
                 All
               </FilterButton>
 
-              {tags.map((t) => (
+              {sizes.map((s) => (
                 <FilterButton
-                  key={t}
-                  active={current.tag === t}
-                  onClick={() => updateParam("tag", t)}
+                  key={s}
+                  active={current.size === s}
+                  onClick={() => updateParam("size", s)}
                 >
-                  {t}
+                  {s}
                 </FilterButton>
               ))}
             </div>
           </AccordionContent>
         </AccordionItem>
-      )}
+      </Accordion>
+    );
+  }
 
-      {/* ================= Brands ================= */}
-      {!lockBrand && (
-        <AccordionItem value="brands">
-          <AccordionTrigger className="font-bold">
-            Brands
-          </AccordionTrigger>
-          <AccordionContent>
-            <input
-              placeholder="Search brands…"
-              value={brandSearch}
-              onChange={(e) => setBrandSearch(e.target.value)}
-              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
-            />
-
-            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
-              <FilterButton
-                disabled={current.brand === "all"}
-                active={current.brand === "all"}
-                onClick={() => updateParam("brand", "all")}
-              >
-                All
-              </FilterButton>
-
-              {filteredBrands.map((b) => (
-                <FilterButton
-                  key={b}
-                  active={current.brand === b}
-                  onClick={() => updateParam("brand", b)}
-                >
-                  {b}
-                </FilterButton>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      )}
-
-      {/* ================= Colors (WITH SEARCH) ================= */}
-      <AccordionItem value="colors">
-        <AccordionTrigger className="font-bold">
-          Colors
-        </AccordionTrigger>
-        <AccordionContent>
-          <input
-            placeholder="Search colors…"
-            value={colorSearch}
-            onChange={(e) => setColorSearch(e.target.value)}
-            className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
-          />
-
-          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
-            <FilterButton
-              disabled={current.color === "all"}
-              active={current.color === "all"}
-              onClick={() => updateParam("color", "all")}
-            >
-              All
-            </FilterButton>
-
-            {filteredColors.map((c) => (
-              <FilterButton
-                key={c}
-                active={current.color === c}
-                onClick={() => updateParam("color", c)}
-                className="flex items-center gap-2"
-              >
-                <span
-                  className="h-4 w-4 rounded-full border border-muted-foreground"
-                  style={{ backgroundColor: c }}
-                />
-                <span>{c}</span>
-              </FilterButton>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-
-      {/* ================= Sizes ================= */}
-      <AccordionItem value="sizes">
-        <AccordionTrigger className="font-bold">
-          Sizes
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
-            <FilterButton
-              disabled={current.size === "all"}
-              active={current.size === "all"}
-              onClick={() => updateParam("size", "all")}
-            >
-              All
-            </FilterButton>
-
-            {sizes.map((s) => (
-              <FilterButton
-                key={s}
-                active={current.size === s}
-                onClick={() => updateParam("size", s)}
-              >
-                {s}
-              </FilterButton>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  );
-    }
-    
   return (
     <>
       {/* Mobile */}
@@ -533,4 +518,3 @@ function FiltersContent() {
     </>
   );
 }
-
