@@ -5,6 +5,8 @@ import Link from "next/link";
 import ProductForm from "../product-form";
 import { Metadata } from "next";
 import { getAllCategoriesForAdminProductInput } from "@/lib/actions/category.actions";
+import { getAllBrandsForAdminProductInput } from "@/lib/actions/brand.actions";
+
 
 export const metadata: Metadata = {
   title: "Edit Product",
@@ -25,6 +27,7 @@ const UpdateProduct = async (props: UpdateProductProps) => {
   if (!product) notFound();
 
   const categories = await getAllCategoriesForAdminProductInput();
+  const brands = await getAllBrandsForAdminProductInput();
   
   return (
     <main className="max-w-6xl mx-auto p-4">
@@ -42,6 +45,7 @@ const UpdateProduct = async (props: UpdateProductProps) => {
           product={product}
           productId={product._id.toString()}
           categories={categories}
+          brands={brands}
         />
       </div>
     </main>
