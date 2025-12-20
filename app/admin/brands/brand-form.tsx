@@ -25,6 +25,7 @@ import BrandImageUploader from "./brand-image-uploader";
 import { BrandInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createBrand, updateBrand } from "@/lib/actions/brand.actions";
+import MediaUploader from "@/components/shared/media-uploader";
 
 // Infer values directly from your Zod schema
 type BrandFormValues = z.infer<typeof BrandInputSchema>;
@@ -150,7 +151,12 @@ export default function BrandForm({
 
         {/* Media */}
         <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
-          <BrandImageUploader form={form} />
+          <MediaUploader
+            form={form}
+            name="image"
+            label="Brand Image"
+            uploadRoute="brands"
+          />
         </div>
 
         {/* SEO */}

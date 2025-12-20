@@ -72,11 +72,11 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
-  // reviews
-  reviews: f({
+  // brands
+  brands: f({
     image: {
       maxFileSize: "2MB",
-      maxFileCount: 2,
+      maxFileCount: 1,
     },
   })
     .middleware(async () => {

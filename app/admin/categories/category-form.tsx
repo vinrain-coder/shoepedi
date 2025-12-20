@@ -22,6 +22,7 @@ import CategoryImageUploader from "./category-image-uploader";
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
+import MediaUploader from "@/components/shared/media-uploader";
 
 // Infer values directly from your Zod schema
 type CategoryFormValues = z.infer<typeof CategoryInputSchema>;
@@ -174,7 +175,12 @@ export default function CategoryForm({
         </div>
         {/* Media */}
         <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
-          <CategoryImageUploader form={form} />
+          <MediaUploader
+            form={form}
+            name="image"
+            label="Category Image"
+            uploadRoute="categories"
+          />
         </div>
         {/* SEO Section */}
         <div className="space-y-6 border-t pt-6">

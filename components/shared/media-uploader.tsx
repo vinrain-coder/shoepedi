@@ -26,7 +26,7 @@ interface MediaUploaderProps {
   form: any;
   name: string; // "images" | "image"
   label: string;
-  uploadRoute: "products" | "categories";
+  uploadRoute: "products" | "categories" | "brands";
   multiple?: boolean;
   maxFiles?: number;
 }
@@ -92,9 +92,7 @@ export default function MediaUploader({
     ? [
         {
           url: rawValue,
-          type: rawValue.match(/\.(mp4|webm|mov|ogg)$/i)
-            ? "video"
-            : "image",
+          type: rawValue.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
         },
       ]
     : [];
@@ -104,9 +102,7 @@ export default function MediaUploader({
 
   /* Sync with RHF */
   useEffect(() => {
-    const value = multiple
-      ? media.map((m) => m.url)
-      : media[0]?.url || "";
+    const value = multiple ? media.map((m) => m.url) : media[0]?.url || "";
 
     form.setValue(name, value, { shouldValidate: true });
   }, [media, form, name, multiple]);
@@ -116,20 +112,18 @@ export default function MediaUploader({
     onClientUploadComplete: (res) => {
       const uploaded = res.map((f) => ({
         url: f.url,
-        type: f.url.match(/\.(mp4|webm|mov|ogg)$/i)
-          ? "video"
-          : "image",
+        type: f.url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
       }));
 
       setProgress(0);
-      setMedia((prev) =>
-        multiple ? [...prev, ...uploaded] : [uploaded[0]]
-      );
+      setMedia((prev) => [...prev, ...uploaded]);
 
       toast.success("Upload completed");
     },
     onUploadProgress: setProgress,
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+    },
   });
 
   /* Dropzone */
@@ -214,5 +208,4 @@ export default function MediaUploader({
       )}
     />
   );
-  }
-  
+}

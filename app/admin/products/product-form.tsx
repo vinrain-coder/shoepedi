@@ -38,6 +38,7 @@ import {
 import { ICategory } from "@/lib/db/models/category.model";
 import { IBrand } from "@/lib/db/models/brand.model";
 import TagsInput from "./tag-input";
+import MediaUploader from "@/components/shared/media-uploader";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -345,7 +346,13 @@ const ProductForm = ({
           />
         </div>
 
-        <ImageUploader form={form} />
+        <MediaUploader
+          form={form}
+          name="images"
+          label="Product Media"
+          uploadRoute="products"
+          multiple
+        />
 
         <div>
           <FormField
