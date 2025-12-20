@@ -22,7 +22,8 @@ import SubmitButton from "@/components/shared/submit-button";
 import { TagInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createTag, updateTagAction } from "@/lib/actions/tag.actions";
-
+import MediaUploader from "@/components/shared/media-uploader";
+  
 /* ---------------- Types ---------------- */
 type TagFormValues = z.infer<typeof TagInputSchema>;
 
@@ -45,6 +46,7 @@ export default function TagForm({
     defaultValues: {
       name: tag?.name ?? "",
       slug: tag?.slug ?? "",
+      image: tag?.image || "",
       description: tag?.description ?? "",
     },
   });
@@ -126,6 +128,16 @@ export default function TagForm({
           />
         </div>
 
+        {/* Media */}
+        <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
+          <MediaUploader
+            form={form}
+            name="image"
+            label="Tag Image"
+            uploadRoute="tags"
+          />
+        </div>
+
         {/* Description */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -159,3 +171,4 @@ export default function TagForm({
   );
         }
   
+
