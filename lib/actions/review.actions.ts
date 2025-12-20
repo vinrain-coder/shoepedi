@@ -14,8 +14,6 @@ import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 
-
-
 export async function submitReviewAction(
   values: z.infer<typeof ReviewInputSchema>,
   path: string
@@ -67,9 +65,7 @@ async function updateProductReview(productId: string) {
 
   const total = stats.reduce((a, b) => a + b.count, 0);
   const avg =
-    total === 0
-      ? 0
-      : stats.reduce((a, b) => a + b._id * b.count, 0) / total;
+    total === 0 ? 0 : stats.reduce((a, b) => a + b._id * b.count, 0) / total;
 
   const distribution = Array.from({ length: 5 }, (_, i) => ({
     rating: i + 1,
@@ -90,7 +86,6 @@ export async function createUpdateReview({
   data: z.infer<typeof ReviewInputSchema>;
   path: string;
 }) {
-  
   try {
     const session = await getServerSession();
     if (!session) {
@@ -138,9 +133,6 @@ export async function createUpdateReview({
   }
 }
 
-const updateProductReview = async (productId: string) => {
-
-
 export async function getReviews({
   productId,
   limit,
@@ -150,7 +142,6 @@ export async function getReviews({
   limit?: number;
   page: number;
 }) {
-
   const {
     common: { pageSize },
   } = await getSetting();
@@ -198,7 +189,6 @@ export async function getAllReviews({
   page?: number;
   limit?: number;
 }) {
-
   await connectToDatabase();
 
   const skip = (page - 1) * limit;
@@ -221,7 +211,6 @@ export async function getAllReviews({
 }
 
 export async function deleteReview(id: string) {
-  
   try {
     await connectToDatabase();
     await Review.findByIdAndDelete(id);
