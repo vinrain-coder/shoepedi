@@ -14,6 +14,75 @@ import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 
+
+
+export async function submitReviewAction(
+  values: z.infer<typeof ReviewInputSchema>,
+  path: string
+) {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Not authenticated");
+
+    const data = ReviewInputSchema.parse({
+      ...values,
+      user: session.user.id,
+    });
+
+    await connectToDatabase();
+
+    const existing = await Review.findOne({
+      product: data.product,
+      user: data.user,
+    });
+
+    if (existing) {
+      existing.title = data.title;
+      existing.comment = data.comment;
+      existing.rating = data.rating;
+      await existing.save();
+    } else {
+      await Review.create(data);
+    }
+
+    await updateProductReview(data.product);
+    revalidatePath(path);
+
+    return { success: true, message: "Review saved" };
+  } catch (err) {
+    return { success: false, message: formatError(err) };
+  }
+}
+
+async function updateProductReview(productId: string) {
+  const stats = await Review.aggregate([
+    { $match: { product: new mongoose.Types.ObjectId(productId) } },
+    {
+      $group: {
+        _id: "$rating",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const total = stats.reduce((a, b) => a + b.count, 0);
+  const avg =
+    total === 0
+      ? 0
+      : stats.reduce((a, b) => a + b._id * b.count, 0) / total;
+
+  const distribution = Array.from({ length: 5 }, (_, i) => ({
+    rating: i + 1,
+    count: stats.find((s) => s._id === i + 1)?.count || 0,
+  }));
+
+  await Product.findByIdAndUpdate(productId, {
+    avgRating: avg.toFixed(1),
+    numReviews: total,
+    ratingDistribution: distribution,
+  });
+}
+
 export async function createUpdateReview({
   data,
   path,
