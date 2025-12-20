@@ -26,7 +26,7 @@ interface MediaUploaderProps {
   form: any;
   name: string; // "images" | "image"
   label: string;
-  uploadRoute: "products" | "categories" | "brands";
+  uploadRoute: "products" | "categories" | "brands" | "tags";
   multiple?: boolean;
   maxFiles?: number;
 }
@@ -64,8 +64,8 @@ function MediaPreview({
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute -top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
-      >
+        className="absolute top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
+      
         <X size={14} />
       </button>
     </div>
@@ -209,3 +209,4 @@ export default function MediaUploader({
     />
   );
 }
+
