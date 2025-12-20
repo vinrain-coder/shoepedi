@@ -1,7 +1,20 @@
 "use client";
 
-import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { REACT_NATIVE_COLORS } from "@/lib/constants";
 
 interface ColorInputProps {
   field: {
@@ -11,55 +24,74 @@ interface ColorInputProps {
   label: string;
 }
 
-// Predefined colors (name first, hex only for UI)
-const DEFAULT_COLORS = [
-  { name: "Black", hex: "#000000" },
-  { name: "White", hex: "#FFFFFF" },
-  { name: "Red", hex: "#FF0000" },
-  { name: "Green", hex: "#00FF00" },
-  { name: "Blue", hex: "#0000FF" },
-  { name: "Yellow", hex: "#FFFF00" },
-  { name: "Orange", hex: "#FFA500" },
-  { name: "Purple", hex: "#800080" },
-  { name: "Gray", hex: "#808080" },
-];
-
 export default function ColorInput({ field, label }: ColorInputProps) {
-  const toggleColor = (name: string) => {
-    const current = field.value || [];
-    if (current.includes(name)) {
-      field.onChange(current.filter((c) => c !== name));
-    } else {
-      field.onChange([...current, name]);
-    }
+  const [search, setSearch] = useState("");
+
+  const filteredColors = useMemo(() => {
+    return REACT_NATIVE_COLORS.filter((c) =>
+      c.includes(search.toLowerCase())
+    );
+  }, [search]);
+
+  const toggleColor = (color: string) => {
+    const current = field.value ?? [];
+    field.onChange(
+      current.includes(color)
+        ? current.filter((c) => c !== color)
+        : [...current, color]
+    );
   };
 
   return (
     <FormItem>
       <FormLabel>{label}</FormLabel>
-      <div className="flex flex-wrap gap-2">
-        {DEFAULT_COLORS.map(({ name, hex }) => {
-          const selected = field.value?.includes(name);
-          return (
-            <Button
-              key={name}
-              type="button"
-              onClick={() => toggleColor(name)}
-              variant="outline"
-              className={`h-10 px-3 rounded-full flex items-center gap-2 ${
-                selected ? "ring-2 ring-primary" : ""
-              }`}
-            >
-              <span
-                className="inline-block h-5 w-5 rounded-full border"
-                style={{ backgroundColor: hex }}
-              />
-              {name}
-            </Button>
-          );
-        })}
-      </div>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-start"
+          >
+            {field.value?.length
+              ? `${field.value.length} color(s) selected`
+              : "Select colors"}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-[320px] p-3">
+          <Input
+            placeholder="Search color…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mb-3"
+          />
+
+          <div className="grid grid-cols-6 gap-2 max-h-60 overflow-y-auto">
+            {filteredColors.map((color) => {
+              const selected = field.value?.includes(color);
+
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => toggleColor(color)}
+                  className={`relative h-8 w-8 rounded-full border transition
+                    ${selected ? "ring-2 ring-primary" : ""}`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                >
+                  {selected && (
+                    <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+
       <FormMessage />
     </FormItem>
   );
-}
+      }
