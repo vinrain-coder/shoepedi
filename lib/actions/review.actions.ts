@@ -21,7 +21,7 @@ export async function createUpdateReview({
   data: z.infer<typeof ReviewInputSchema>;
   path: string;
 }) {
-  cacheTag("reviews");
+  
   try {
     const session = await getServerSession();
     if (!session) {
@@ -112,9 +112,7 @@ export async function getReviews({
   limit?: number;
   page: number;
 }) {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("reviews");
+
   const {
     common: { pageSize },
   } = await getSetting();
@@ -162,9 +160,7 @@ export async function getAllReviews({
   page?: number;
   limit?: number;
 }) {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("reviews");
+
   await connectToDatabase();
 
   const skip = (page - 1) * limit;
@@ -187,7 +183,7 @@ export async function getAllReviews({
 }
 
 export async function deleteReview(id: string) {
-  updateTag("reviews");
+  
   try {
     await connectToDatabase();
     await Review.findByIdAndDelete(id);
