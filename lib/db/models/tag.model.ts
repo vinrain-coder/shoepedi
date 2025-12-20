@@ -1,8 +1,10 @@
 import { Schema, model, models, Document, Types, Model } from "mongoose";
+import { StrictMode } from "react";
 
 export interface ITag extends Document {
   name: string;
   slug: string;
+  image: string;
   description?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -24,6 +26,7 @@ const tagSchema = new Schema<ITag>(
       lowercase: true,
       match: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     },
+    image: String,
     description: {
       type: String,
       maxlength: 500,
@@ -32,6 +35,5 @@ const tagSchema = new Schema<ITag>(
   { timestamps: true }
 );
 
-const Tag: Model<ITag> =
-  models.Tag || model<ITag>("Tag", tagSchema);
+const Tag: Model<ITag> = models.Tag || model<ITag>("Tag", tagSchema);
 export default Tag;

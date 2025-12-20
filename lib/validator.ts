@@ -403,7 +403,7 @@ export const BrandBase = z.object({
     }),
   isFeatured: z.boolean().default(false),
   description: z.string().max(500).optional(),
-  image: z.string().url().optional().or(z.literal("")), 
+  image: z.string().url().optional().or(z.literal("")),
   seoTitle: z.string().max(60).optional(),
   seoDescription: z.string().max(160).optional(),
   seoKeywords: z.array(z.string()).optional(),
@@ -414,7 +414,6 @@ export const BrandInputSchema = BrandBase;
 export const BrandUpdateSchema = BrandBase.partial().extend({
   _id: z.string({ required_error: "Brand ID is required" }),
 });
-
 
 // Tag
 export const TagBase = z.object({
@@ -429,6 +428,7 @@ export const TagBase = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
       message: "Slug must be lowercase and can contain hyphens only",
     }),
+  image: z.string().url().optional().or(z.literal("")),
   description: z.string().max(500).optional(),
 });
 
