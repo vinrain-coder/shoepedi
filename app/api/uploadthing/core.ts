@@ -25,7 +25,7 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
-  // Category Images
+  // Categories 
   categories: f({
     image: {
       maxFileSize: "2MB",
@@ -40,6 +40,7 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
+  
   //carousels
   carousels: f({
     image: {
@@ -74,6 +75,38 @@ export const ourFileRouter = {
 
   // brands
   brands: f({
+    image: {
+      maxFileSize: "2MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await getServerSession();
+      if (!session) throw new UploadThingError("Unauthorized");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, fileUrl: file.url };
+    }),
+
+  // tags 
+  tags: f({
+    image: {
+      maxFileSize: "2MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await getServerSession();
+      if (!session) throw new UploadThingError("Unauthorized");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, fileUrl: file.url };
+    }),
+
+  // reviews
+  reviews: f({
     image: {
       maxFileSize: "2MB",
       maxFileCount: 1,
