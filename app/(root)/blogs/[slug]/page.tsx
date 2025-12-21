@@ -49,13 +49,13 @@ export async function generateMetadata({
       description: "Discover expert insights on footwear trends at ShoePedi!",
       url: `${site.url}/blogs/${blog.slug}`,
       type: "article",
-      images: [blog.image, ogImage],
+      images: [blog.image || ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: blog.title,
       description: blog.content.slice(0, 160),
-      images: [blog.image, ogImage],
+      images: [blog.image || ogImage],
     },
   };
 }
@@ -81,6 +81,16 @@ export default async function BlogPage({
       day: "numeric",
     });
 
+        let firstImageUrl = extractFirstImageUrl(blog.content);
+  if (firstImageUrl && !firstImageUrl.startsWith("http"))
+    firstImageUrl = `${site.url}${firstImageUrl}`;
+  
+
+  const heroImage =
+  blog.image ??
+  extractFirstImageUrl(blog.content) ??
+  "/images/not-found.png";
+
   return (
     <div className="max-w-3xl mx-auto px-1 sm:px-2 md:px-4">
       <Breadcrumb />
@@ -95,7 +105,7 @@ export default async function BlogPage({
 
       <div className="">
         <Image
-          src={blog.image}
+          src={heroImage}
           alt={blog.title}
           width={900}
           height={500}
