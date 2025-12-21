@@ -103,16 +103,6 @@ export default async function BlogPage({
         {formatDate(blog.createdAt)} • 👁 {blog.views} views
       </p>
 
-      <div className="">
-        <Image
-          src={heroImage}
-          alt={blog.title}
-          width={900}
-          height={500}
-          className="rounded-xl"
-        />
-      </div>
-
       {/* Blog Content */}
       <MarkdownRenderer content={blog.content} className="mt-2" />
 
