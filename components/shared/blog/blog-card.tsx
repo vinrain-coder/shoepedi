@@ -28,14 +28,18 @@ export default function BlogCard({ blog }: { blog: any }) {
   }
 
   const firstImageUrl = extractFirstImageUrl(blog.content);
-
+const imageSrc =
+  blog.image ??
+  firstImageUrl ??
+  "/images/not-found.png";
+                                 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg p-0">
       {/* Image */}
       <Link href={`/blogs/${blog.slug}`} className="group block">
         <div className="relative h-40 w-full overflow-hidden">
           <Image
-            src={blog.image || firstImageUrl || "/images/not-found.png"}
+            src={imageSrc"}
             alt={blog.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -57,14 +61,10 @@ export default function BlogCard({ blog }: { blog: any }) {
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="px-2 mb-2 py-0 flex flex-col gap-1 items-center justify-center hidden">
-        <Badge variant="secondary" className="text-xs">
-          {blog.category}
-        </Badge>
-
+      <CardFooter className="px-2 mb-2 py-0 flex flex-col gap-1 items-center justify-center">
         <Link
           href={`/blogs/${blog.slug}`}
-          className="text-xs font-medium text-primary hover:underline flex gap-1"
+          className="text-sm font-medium text-primary hover:underline flex gap-1"
         >
           Read more <ArrowRight size={16} />
         </Link>
