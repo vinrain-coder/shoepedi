@@ -26,11 +26,7 @@ const blogSchema = new Schema<IBlog>(
       lowercase: true,
       minlength: 3,
     },
-    image: {
-  type: String,
-  default: undefined,
-  trim: true,
-},            
+    image: String,      
     content: { type: String, required: true, minlength: 10 },
     category: { type: String, required: true, minlength: 3 },
     views: { type: Number },
