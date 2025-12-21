@@ -4,6 +4,7 @@ import StockSubscriptionNotificationEmail from "./templates/transactional/stock-
 import { IOrder } from "@/lib/db/models/order.model";
 import { IProduct } from "@/lib/db/models/product.model";
 import { getSetting } from "@/lib/actions/setting.actions";
+import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
 
 export const sendPurchaseReceipt = async (order: IOrder) => {
   await sendEmail({
@@ -41,6 +42,7 @@ export const sendStockSubscriptionNotification = async (
         siteUrl={site.url}
         siteName={site.name}
         siteCopyright={site.copyright}
+        email=""
       />
     ),
   });
