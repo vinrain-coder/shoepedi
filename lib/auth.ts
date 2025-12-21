@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
-import { sendEmail } from "./email";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+
+import { sendEmail } from "./email";
 import { passwordSchema } from "./validator";
 import { getDb } from "./db/client";
+
 import {
   sendChangeEmailVerification,
   sendResetPasswordEmail,
@@ -14,36 +16,41 @@ const db = await getDb();
 
 export const auth = betterAuth({
   database: mongodbAdapter(db),
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
+
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 7 * 24 * 60 * 60, // Cache duration in seconds (e.g., 7 days)
-      strategy: "jwe", // Recommended for secure, encrypted session data in the cookie
-      refreshCache: true, // Enable stateless refresh of the cookie c
-    },
-
-    emailAndPassword: {
-      enabled: true,
-      minPasswordLength: 6,
-      autoSignIn: false,
-      requireEmailVerification: true,
-      async sendResetPassword({ user, url }) {
-        await sendResetPasswordEmail({
-          email: user.email,
-          url,
-        });
-      },
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      strategy: "jwe",
+      refreshCache: true,
     },
   },
+
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 6,
+    autoSignIn: false,
+    requireEmailVerification: true,
+
+    async sendResetPassword({ user, url }) {
+      await sendResetPasswordEmail({
+        email: user.email,
+        url,
+      });
+    },
+  },
+
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
+
     async sendVerificationEmail({ user, url }) {
       await sendVerifyEmail({
         email: user.email,
@@ -52,10 +59,13 @@ export const auth = betterAuth({
       });
     },
   },
+
   user: {
     modelName: "users",
+
     changeEmail: {
       enabled: true,
+
       async sendChangeEmailVerification({ user, newEmail, url }) {
         await sendChangeEmailVerification({
           email: user.email,
@@ -64,6 +74,7 @@ export const auth = betterAuth({
         });
       },
     },
+
     additionalFields: {
       role: {
         type: "string",
@@ -71,12 +82,14 @@ export const auth = betterAuth({
         defaultValue: "USER",
         options: ["USER", "ADMIN"],
       },
+
       wishlist: {
         type: "json",
         defaultValue: [],
       },
     },
   },
+
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (
@@ -86,6 +99,7 @@ export const auth = betterAuth({
       ) {
         const password = ctx.body.password || ctx.body.newPassword;
         const { error } = passwordSchema.safeParse(password);
+
         if (error) {
           throw new APIError("BAD_REQUEST", {
             message: "Password not strong enough",
@@ -99,15 +113,29 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
+          const ADMIN_EMAILS =
+            process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-          const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
+          const wishlist = Array.isArray(user.wishlist)
+            ? user.wishlist
+            : [];
 
           if (ADMIN_EMAILS.includes(user.email)) {
-            return { data: { ...user, role: "ADMIN", wishlist } };
+            return {
+              data: {
+                ...user,
+                role: "ADMIN",
+                wishlist,
+              },
+            };
           }
 
-          return { data: { ...user, wishlist } };
+          return {
+            data: {
+              ...user,
+              wishlist,
+            },
+          };
         },
       },
     },
@@ -122,3 +150,4 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session;
 export type User = typeof auth.$Infer.Session.user;
+  
