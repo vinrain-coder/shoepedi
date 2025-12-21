@@ -75,7 +75,7 @@ export async function getAllBlogs({
     .skip((page - 1) * limit)
     .limit(limit)
     .select(
-      "_id title slug content category views tags createdAt updatedAt isPublished"
+      "_id title slug image content category views tags createdAt updatedAt isPublished"
     )
     .lean();
 
@@ -84,6 +84,7 @@ export async function getAllBlogs({
       _id: blog._id.toString(),
       title: blog.title,
       slug: blog.slug,
+      image: blog.image,
       content: blog.content,
       category: blog.category,
       views: blog.views,
@@ -206,7 +207,7 @@ export async function getMostViewedBlogs(limit: number = 5) {
     const blogs = await Blog.find()
       .sort({ views: -1 })
       .limit(limit)
-      .select("title slug coverImage views");
+      .select("title slug image views");
     return blogs;
   } catch (error) {
     return [];
@@ -225,6 +226,7 @@ export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
     _id: blog._id.toString(),
     title: blog.title,
     slug: blog.slug,
+    image: blog.image,
     content: blog.content,
     category: blog.category,
     tags: blog.tags,
