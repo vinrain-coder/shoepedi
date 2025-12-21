@@ -25,7 +25,7 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
-  // Categories 
+  // Categories
   categories: f({
     image: {
       maxFileSize: "2MB",
@@ -40,7 +40,7 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
-  
+
   //carousels
   carousels: f({
     image: {
@@ -89,7 +89,7 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
-  // tags 
+  // tags
   tags: f({
     image: {
       maxFileSize: "2MB",
@@ -105,8 +105,8 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
-  // reviews
-  reviews: f({
+  // blogs
+  blogs: f({
     image: {
       maxFileSize: "2MB",
       maxFileCount: 1,

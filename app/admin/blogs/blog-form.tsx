@@ -27,11 +27,13 @@ import { X } from "lucide-react";
 import SubmitButton from "@/components/shared/submit-button";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
+import MediaUploader from "@/components/shared/media-uploader";
 
 // Set default values correctly based on the BlogInputSchema
 const blogDefaultValues = {
   title: "",
   slug: "",
+  image: "",
   content: "",
   category: "",
   views: 0,
@@ -207,6 +209,15 @@ const BlogForm = ({
             </FormItem>
           )}
         />
+
+        <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
+          <MediaUploader
+            form={form}
+            label="image"
+            name="Blog image"
+            uploadRoute="blogs"
+          />
+        </div>
 
         {/* Content */}
         <FormField

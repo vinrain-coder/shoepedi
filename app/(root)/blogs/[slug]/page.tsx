@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getBlogBySlug, incrementBlogViews } from "@/lib/actions/blog.actions";
 import { IBlog } from "@/lib/db/models/blog.model";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Separator } from "@/components/ui/separator";
 import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
@@ -51,13 +49,13 @@ export async function generateMetadata({
       description: "Discover expert insights on footwear trends at ShoePedi!",
       url: `${site.url}/blogs/${blog.slug}`,
       type: "article",
-      images: [ogImage],
+      images: [blog.image, ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: blog.title,
       description: blog.content.slice(0, 160),
-      images: [ogImage],
+      images: [blog.image, ogImage],
     },
   };
 }
@@ -95,8 +93,18 @@ export default async function BlogPage({
         {formatDate(blog.createdAt)} • 👁 {blog.views} views
       </p>
 
+      <div className="">
+        <Image
+          src={blog.image}
+          alt={blog.title}
+          width={900}
+          height={500}
+          className="rounded-xl"
+        />
+      </div>
+
       {/* Blog Content */}
-      <MarkdownRenderer content={blog.content} className="mt-2"/>
+      <MarkdownRenderer content={blog.content} className="mt-2" />
 
       {/* Blog Meta Info */}
       <div className="mt-6 flex flex-wrap gap-4 text-sm text-gray-600 justify-between">

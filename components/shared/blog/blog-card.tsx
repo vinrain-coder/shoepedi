@@ -35,7 +35,7 @@ export default function BlogCard({ blog }: { blog: any }) {
       <Link href={`/blogs/${blog.slug}`} className="group block">
         <div className="relative h-40 w-full overflow-hidden">
           <Image
-            src={firstImageUrl || "/images/not-found.png"}
+            src={blog.image || firstImageUrl || "/images/not-found.png"}
             alt={blog.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -52,12 +52,12 @@ export default function BlogCard({ blog }: { blog: any }) {
         </Link>
       </CardHeader>
 
-      <CardContent className="px-2 py-0">
+      <CardContent className="px-2 py-0 hidden">
         <p className="text-xs text-muted-foreground">{formattedDate}</p>
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="px-2 mb-2 py-0 flex flex-col gap-1 items-center justify-center">
+      <CardFooter className="px-2 mb-2 py-0 flex flex-col gap-1 items-center justify-center hidden">
         <Badge variant="secondary" className="text-xs">
           {blog.category}
         </Badge>

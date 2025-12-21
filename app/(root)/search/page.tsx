@@ -12,6 +12,7 @@ import {
 } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import FiltersClient from "@/components/shared/search/filters-client";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
@@ -72,6 +73,7 @@ export default async function SearchPage(props: {
 
   return (
     <div className="space-y-4">
+      <Breadcrumb />
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           {data.totalProducts === 0

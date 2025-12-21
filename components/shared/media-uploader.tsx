@@ -26,7 +26,7 @@ interface MediaUploaderProps {
   form: any;
   name: string; // "images" | "image"
   label: string;
-  uploadRoute: "products" | "categories" | "brands" | "tags";
+  uploadRoute: "products" | "categories" | "brands" | "tags" | "blogs";
   multiple?: boolean;
   maxFiles?: number;
 }
@@ -209,5 +209,3 @@ export default function MediaUploader({
     />
   );
 }
-
-
