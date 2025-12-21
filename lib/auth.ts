@@ -4,6 +4,11 @@ import { sendEmail } from "./email";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { passwordSchema } from "./validator";
 import { getDb } from "./db/client";
+import {
+  sendChangeEmailVerification,
+  sendResetPasswordEmail,
+  sendVerifyEmail,
+} from "./email/auth-emails";
 
 const db = await getDb();
 
@@ -20,31 +25,30 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 7 * 24 * 60 * 60, // Cache duration in seconds (e.g., 7 days)
       strategy: "jwe", // Recommended for secure, encrypted session data in the cookie
-      refreshCache: true, // Enable stateless refresh of the cookie cache
+      refreshCache: true, // Enable stateless refresh of the cookie c
     },
-  },
 
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 6,
-    autoSignIn: false,
-    requireEmailVerification: true,
-    async sendResetPassword({ user, url }) {
-      await sendEmail({
-        to: user.email,
-        subject: "Reset your password",
-        text: `Click the link to reset your password: ${url}`,
-      });
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 6,
+      autoSignIn: false,
+      requireEmailVerification: true,
+      async sendResetPassword({ user, url }) {
+        await sendResetPasswordEmail({
+          email: user.email,
+          url,
+        });
+      },
     },
   },
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     async sendVerificationEmail({ user, url }) {
-      await sendEmail({
-        to: user.email,
-        subject: "Verify your email",
-        text: `Click the link to verify your email: ${url}`,
+      await sendVerifyEmail({
+        email: user.email,
+        name: user.name,
+        url,
       });
     },
   },
@@ -53,10 +57,10 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
       async sendChangeEmailVerification({ user, newEmail, url }) {
-        await sendEmail({
-          to: user.email,
-          subject: "Approve email change",
-          text: `Your email has been changed to ${newEmail}. Click the link to approve the change: ${url}`,
+        await sendChangeEmailVerification({
+          email: user.email,
+          newEmail,
+          url,
         });
       },
     },
