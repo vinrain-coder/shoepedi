@@ -39,7 +39,7 @@ const imageSrc =
       <Link href={`/blogs/${blog.slug}`} className="group block">
         <div className="relative h-40 w-full overflow-hidden">
           <Image
-            src={imageSrc}
+            src={firstImageUrl}
             alt={blog.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
