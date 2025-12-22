@@ -14,6 +14,7 @@ import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
+//import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
