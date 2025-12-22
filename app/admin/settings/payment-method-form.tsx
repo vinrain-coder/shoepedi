@@ -128,9 +128,14 @@ export default function PaymentMethodForm({
                   value={field.value || ""}
                   onValueChange={(value) => field.onChange(value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a payment method" />
-                  </SelectTrigger>
+                  <SelectTrigger className="w-full">
+  <div className="flex w-full items-center overflow-hidden">
+    <span className="truncate">
+      {field.value || "Select a payment method"}
+    </span>
+  </div>
+</SelectTrigger>
+                    
                   <SelectContent>
                     {availablePaymentMethods
                       .filter((x) => x.name)
