@@ -130,9 +130,9 @@ export default function PaymentMethodForm({
                 >
                   <SelectTrigger className="w-full">
   <div className="flex w-full items-center overflow-hidden">
-    <span className="truncate">
-      {field.value || "Select a payment method"}
-    </span>
+    <span className="truncate" title={field.value}>
+  {field.value || "Select a payment method"}
+</span>    
   </div>
 </SelectTrigger>
                     
@@ -141,7 +141,7 @@ export default function PaymentMethodForm({
                       .filter((x) => x.name)
                       .map((lang, index) => (
                         <SelectItem key={index} value={lang.name}>
-                          {lang.name} ({lang.name})
+                          {lang.name} ({lang.commission}%)
                         </SelectItem>
                       ))}
                   </SelectContent>
