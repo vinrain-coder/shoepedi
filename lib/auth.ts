@@ -24,15 +24,6 @@ export const auth = betterAuth({
     },
   },
 
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      strategy: "jwe",
-      refreshCache: true,
-    },
-  },
-
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
