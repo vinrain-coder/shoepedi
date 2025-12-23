@@ -186,7 +186,7 @@ export async function getAllTagsForStore() {
   try {
     await connectToDatabase();
 
-    const tags = await Tag.find().sort({ name: 1 }).select("name slug").lean();
+    const tags = await Tag.find().sort({ name: 1 }).select("name slug image description").lean();
 
     return tags.map((tag: any) => ({
       ...tag,
@@ -213,3 +213,4 @@ export async function getTagBySlug(slug: string) {
 
   return JSON.parse(JSON.stringify(tag)) as ITag;
 }
+
