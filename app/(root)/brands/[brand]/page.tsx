@@ -137,90 +137,74 @@ export default async function BrandPage({
     },
   };
 
-  return (
-    <div className="container mx-auto space-y-4 px-4">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
-      />
-      
-      <Breadcrumb />
+return (
+  <div className="space-y-4">
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
+    />
 
-      {/* Header Section */}
-      <div className="my-4 bg-card border-b py-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-extrabold capitalize">
-              {brandData?.name || brandSlug.replace(/-/g, " ")}
-            </h1>
-            
-            {brandData?.description && (
-              <p className="text-muted-foreground max-w-3xl text-base leading-relaxed">
-                {brandData.description}
-              </p>
-            )}
-            
-            <div className="text-sm font-medium text-muted-foreground">
-              {data.totalProducts === 0
-                ? "No products found"
-                : `Showing ${data.from}-${data.to} of ${data.totalProducts} results`}
-            </div>
-          </div>
-          
-          <div className="min-w-[200px]">
-            <ProductSortSelector 
-              sortOrders={sortOrders} 
-              sort={sort} 
-              params={filterParams} 
-            />
-          </div>
-        </div>
+    <Breadcrumb />
+
+    {/* Header */}
+    <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
+      <div>
+        <h1 className="text-xl font-bold capitalize">
+          {brand
+            .split("-")
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(" ")}
+        </h1>
+
+        <p className="sr-only">
+          Shop products from {brand.replace(/-/g, " ")}. Filter by category,
+          price, color, size, rating, and more.
+        </p>
+
+        {data.totalProducts === 0
+          ? "No results"
+          : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
+        products
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid md:grid-cols-5 md:gap-8 py-3">
-        {/* Sidebar Filters */}
-        <aside className="md:col-span-1">
-          <FiltersClient
-            initialParams={filterParams}
-            categories={categories}
-            tags={tags}
-            brands={brands}
-            colors={colors}
-            sizes={sizes}
-            basePath={`/brands/${brandSlug}`}
-            lockBrand
-          />
-        </aside>
+      <ProductSortSelector
+        sortOrders={sortOrders}
+        sort={sort}
+        params={filterParams}
+      />
+    </div>
 
-        {/* Product Listing */}
-        <main className="md:col-span-4 space-y-8">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {data.products.length === 0 ? (
-              <div className="col-span-full py-20 text-center text-xl text-muted-foreground">
-                No products found in this category.
-              </div>
-            ) : (
-              data.products.map((p: IProduct) => (
-                <ProductCard
-                  key={p._id.toString()}
-                  product={p}
-                />
-              ))
-            )}
-          </div>
+    {/* Content */}
+    <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
+      <FiltersClient
+        initialParams={filterParams}
+        categories={categories}
+        tags={tags}
+        brands={brands}
+        colors={colors}
+        sizes={sizes}
+        basePath={`/brands/${brand}`}
+        lockBrand
+      />
 
-          {/* Pagination */}
-          {data.totalPages > 1 && (
-            <div className="flex justify-center py-8">
-              <Pagination
-                page={page}
-                totalPages={data.totalPages}
-              />
-            </div>
+      <div className="md:col-span-4 space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+          {data.products.length === 0 ? (
+            <div>No product found</div>
+          ) : (
+            data.products.map((p: IProduct) => (
+              <ProductCard key={p._id.toString()} product={p} />
+            ))
           )}
-        </main>
+        </div>
+
+        {data.totalPages > 1 && (
+          <Pagination page={page} totalPages={data.totalPages} />
+        )}
       </div>
     </div>
-  );
-                                         }
+  </div>
+);                             }
+
+
+      
