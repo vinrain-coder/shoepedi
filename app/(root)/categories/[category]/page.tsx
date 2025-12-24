@@ -16,30 +16,37 @@ import type { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getCategoryBySlug } from "@/lib/actions/category.actions";
 
+/* ------------------------- Metadata ------------------------- */
 export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: Promise<{ category: string }>; // Update type to Promise
-    searchParams: Promise<any>;
+  params: Promise<{ category: string }>;
+  searchParams: Promise<any>;
 }): Promise<Metadata> {
-  const { category: categorySlug } = await params; 
+  const { category: categorySlug } = await params;
   const sp = await searchParams;
-  const category = await getCategoryBySlug(categorySlug);
+
+  const categoryData = await getCategoryBySlug(categorySlug);
   const { site } = await getSetting();
 
-  const titleBase = category?.name ?? categorySlug;
+  const titleBase =
+    categoryData?.seoTitle ||
+    categoryData?.name ||
+    categorySlug.replace(/-/g, " ");
+
+  const descriptionBase =
+    categoryData?.seoDescription ||
+    categoryData?.description ||
+    `Shop ${titleBase} products at ${site.name}.`;
+
   const hasFilters = Object.keys(sp || {}).some(
-    (k) => sp[k] && sp[k] !== "all"
+    (k) => sp[k] && sp[k] !== "all" && k !== "page"
   );
 
   return {
-    title: hasFilters
-      ? `${titleBase} Products | Filtered Results`
-      : `${titleBase} Products | ${site.name}`,
-    description:
-      category?.description ??
-      `Shop ${titleBase} products. Browse the best deals, top brands, and latest arrivals.`,
+    title: hasFilters ? `${titleBase} - Page ${sp.page || 1}` : titleBase,
+    description: descriptionBase,
     alternates: {
       canonical: `${site.url}/categories/${categorySlug}`,
     },
@@ -47,16 +54,16 @@ export async function generateMetadata({
       ? { index: false, follow: true }
       : { index: true, follow: true },
     openGraph: {
-      title: `${titleBase} Products`,
-      description:
-        category?.description ??
-        `Browse ${titleBase} products and find the best deals.`,
+      title: titleBase,
+      description: descriptionBase,
       url: `${site.url}/categories/${categorySlug}`,
+      images: categoryData?.image ? [categoryData.image] : [],
       type: "website",
     },
   };
 }
 
+/* ------------------------- Sorting -------------------------- */
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -65,21 +72,23 @@ const sortOrders = [
   { value: "best-selling", name: "Best selling" },
 ];
 
+/* ------------------------- Page ----------------------------- */
 export default async function CategoryPage({
   params,
   searchParams,
 }: {
-params: Promise<{ category: string }>; // Update type to Promise
+  params: Promise<{ category: string }>;
   searchParams: Promise<any>;
 }) {
-  const { category } = await params;
+  const { category: categorySlug } = await params;
   const sp = await searchParams;
+
   const { site } = await getSetting();
 
   const {
     q = "all",
-    tag = "all",
     brand = "all",
+    tag = "all",
     color = "all",
     size = "all",
     price = "all",
@@ -90,9 +99,9 @@ params: Promise<{ category: string }>; // Update type to Promise
 
   const filterParams = {
     q,
-    category,
-    tag,
+    category: categorySlug,
     brand,
+    tag,
     color,
     size,
     price,
@@ -101,30 +110,41 @@ params: Promise<{ category: string }>; // Update type to Promise
     page,
   };
 
-  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
-    getAllCategories(),
-    getAllTags(),
-    getAllBrands(),
-    getAllColors(),
-    getAllSizes(),
-    getAllProducts({
-      query: q,
-      category,
-      tag,
-      brand,
-      color,
-      size,
-      price,
-      rating,
-      sort,
-      page: Number(page),
-    }),
-  ]);
+  // Fetch all data (IDENTICAL to brand page)
+  const [categories, tags, brands, colors, sizes, data, categoryData] =
+    await Promise.all([
+      getAllCategories(),
+      getAllTags(),
+      getAllBrands(),
+      getAllColors(),
+      getAllSizes(),
+      getAllProducts({
+        query: q,
+        category: categorySlug,
+        brand,
+        tag,
+        color,
+        size,
+        price,
+        rating,
+        sort,
+        page: Number(page),
+      }),
+      getCategoryBySlug(categorySlug),
+    ]);
 
+  /* ---------------------- Schema ----------------------- */
   const categorySchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: category.replace("-", " "),
+    name: categoryData?.name || categorySlug.replace(/-/g, " "),
+    description:
+      categoryData?.seoDescription || categoryData?.description,
+    publisher: {
+      "@type": "Organization",
+      name: site.name,
+      logo: site.logo,
+    },
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: data.totalProducts,
@@ -133,6 +153,7 @@ params: Promise<{ category: string }>; // Update type to Promise
         position: index + 1,
         url: `${site.url}/product/${p.slug}`,
         name: p.name,
+        image: p.images[0],
       })),
     },
   };
@@ -143,20 +164,24 @@ params: Promise<{ category: string }>; // Update type to Promise
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
       />
+
       <Breadcrumb />
+
       {/* Header */}
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
-            {category
+            {categoryData.name
               .split("-")
               .map((w) => w[0].toUpperCase() + w.slice(1))
               .join(" ")}
           </h1>
-          <p className="sr-only">
-            Shop {category.replace(/-/g, " ")} products from top brands. Filter
-            by price, color, size, rating, and more to find the perfect item.
+
+          <p>
+            Shop products in {categoryData.name.replace(/-/g, " ")}.
+            Filter by brand, price, color, size, rating, and more.
           </p>
+
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
@@ -170,6 +195,7 @@ params: Promise<{ category: string }>; // Update type to Promise
         />
       </div>
 
+      {/* Content */}
       <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
         <FiltersClient
           initialParams={filterParams}
@@ -178,9 +204,10 @@ params: Promise<{ category: string }>; // Update type to Promise
           brands={brands}
           colors={colors}
           sizes={sizes}
-          basePath={`/categories/${category}`}
+          basePath={`/categories/${categoryData.slug}`}
           lockCategory
         />
+
         <div className="md:col-span-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
             {data.products.length === 0 ? (
@@ -198,5 +225,6 @@ params: Promise<{ category: string }>; // Update type to Promise
         </div>
       </div>
     </div>
-  )
-}
+  );
+  }
+  
