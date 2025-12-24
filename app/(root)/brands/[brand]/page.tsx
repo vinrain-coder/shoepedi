@@ -1,4 +1,3 @@
-// Note: Remove this if your components are already Server Components
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
@@ -30,8 +29,12 @@ export async function generateMetadata({
   const brandData = await getBrandBySlug(brandSlug);
   const { site } = await getSetting();
 
-  const titleBase = brandData?.seoTitle || brandData?.name || brandSlug.replace(/-/g, " ");
-  const descriptionBase = brandData?.seoDescription || brandData?.description || `Shop ${titleBase} products at ${site.name}.`;
+  const titleBase =
+    brandData?.seoTitle || brandData?.name || brandSlug.replace(/-/g, " ");
+  const descriptionBase =
+    brandData?.seoDescription ||
+    brandData?.description ||
+    `Shop ${titleBase} products at ${site.name}.`;
 
   const hasFilters = Object.keys(sp || {}).some(
     (k) => sp[k] && sp[k] !== "all" && k !== "page"
@@ -89,122 +92,130 @@ export default async function BrandPage({
     page = "1",
   } = sp;
 
-  const filterParams = { q, category, brand: brandSlug, tag, color, size, price, rating, sort, page };
+  const filterParams = {
+    q,
+    category,
+    brand: brandSlug,
+    tag,
+    color,
+    size,
+    price,
+    rating,
+    sort,
+    page,
+  };
 
   // Fetch all data
-  const [categories, tags, brands, colors, sizes, data, brandData] = await Promise.all([
-    getAllCategories(),
-    getAllTags(),
-    getAllBrands(),
-    getAllColors(),
-    getAllSizes(),
-    getAllProducts({
-      query: q,
-      brand: brandSlug,
-      category,
-      tag,
-      color,
-      size,
-      price,
-      rating,
-      sort,
-      page: Number(page),
-    }),
-    getBrandBySlug(brandSlug),
-  ]);
+  const [categories, tags, brands, colors, sizes, data, brandData] =
+    await Promise.all([
+      getAllCategories(),
+      getAllTags(),
+      getAllBrands(),
+      getAllColors(),
+      getAllSizes(),
+      getAllProducts({
+        query: q,
+        brand: brandSlug,
+        category,
+        tag,
+        color,
+        size,
+        price,
+        rating,
+        sort,
+        page: Number(page),
+      }),
+      getBrandBySlug(brandSlug),
+    ]);
 
   /* ---------------------- Schema ----------------------- */
   const brandSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": brandData?.name || brandSlug.replace(/-/g, " "),
-    "description": brandData?.seoDescription || brandData?.description,
-    "publisher": {
+    name: brandData?.name || brandSlug.replace(/-/g, " "),
+    description: brandData?.seoDescription || brandData?.description,
+    publisher: {
       "@type": "Organization",
-      "name": site.name,
-      "logo": site.logo,
+      name: site.name,
+      logo: site.logo,
     },
-    "mainEntity": {
+    mainEntity: {
       "@type": "ItemList",
-      "numberOfItems": data.totalProducts,
-      "itemListElement": data.products.map((p: IProduct, index: number) => ({
+      numberOfItems: data.totalProducts,
+      itemListElement: data.products.map((p: IProduct, index: number) => ({
         "@type": "ListItem",
-        "position": index + 1,
-        "url": `${site.url}/product/${p.slug}`,
-        "name": p.name,
-        "image": p.images[0],
+        position: index + 1,
+        url: `${site.url}/product/${p.slug}`,
+        name: p.name,
+        image: p.images[0],
       })),
     },
   };
 
-return (
-  <div className="space-y-4">
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
-    />
-
-    <Breadcrumb />
-
-    {/* Header */}
-    <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
-      <div>
-        <h1 className="text-xl font-bold capitalize">
-          {brand
-            .split("-")
-            .map((w) => w[0].toUpperCase() + w.slice(1))
-            .join(" ")}
-        </h1>
-
-        <p className="sr-only">
-          Shop products from {brand.replace(/-/g, " ")}. Filter by category,
-          price, color, size, rating, and more.
-        </p>
-
-        {data.totalProducts === 0
-          ? "No results"
-          : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
-        products
-      </div>
-
-      <ProductSortSelector
-        sortOrders={sortOrders}
-        sort={sort}
-        params={filterParams}
-      />
-    </div>
-
-    {/* Content */}
-    <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
-      <FiltersClient
-        initialParams={filterParams}
-        categories={categories}
-        tags={tags}
-        brands={brands}
-        colors={colors}
-        sizes={sizes}
-        basePath={`/brands/${brand}`}
-        lockBrand
+  return (
+    <div className="space-y-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
       />
 
-      <div className="md:col-span-4 space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-          {data.products.length === 0 ? (
-            <div>No product found</div>
-          ) : (
-            data.products.map((p: IProduct) => (
-              <ProductCard key={p._id.toString()} product={p} />
-            ))
-          )}
+      <Breadcrumb />
+
+      {/* Header */}
+      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
+        <div>
+          <h1 className="text-xl font-bold capitalize">
+            {brandData.name
+              .split("-")
+              .map((w) => w[0].toUpperCase() + w.slice(1))
+              .join(" ")}
+          </h1>
+          <p className="">
+            Shop products from {brandData.name.replace(/-/g, " ")}. Filter by
+            category, price, color, size, rating, and more.
+          </p>
+          {data.totalProducts === 0
+            ? "No results"
+            : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
+          products
         </div>
 
-        {data.totalPages > 1 && (
-          <Pagination page={page} totalPages={data.totalPages} />
-        )}
+        <ProductSortSelector
+          sortOrders={sortOrders}
+          sort={sort}
+          params={filterParams}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
+        <FiltersClient
+          initialParams={filterParams}
+          categories={categories}
+          tags={tags}
+          brands={brands}
+          colors={colors}
+          sizes={sizes}
+          basePath={`/brands/${brandData.slug}`}
+          lockBrand
+        />
+
+        <div className="md:col-span-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+            {data.products.length === 0 ? (
+              <div>No product found</div>
+            ) : (
+              data.products.map((p: IProduct) => (
+                <ProductCard key={p._id.toString()} product={p} />
+              ))
+            )}
+          </div>
+
+          {data.totalPages > 1 && (
+            <Pagination page={page} totalPages={data.totalPages} />
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);                             }
-
-
-      
+  );
+}
