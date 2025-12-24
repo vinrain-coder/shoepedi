@@ -1,7 +1,7 @@
+// Note: Remove this if your components are already Server Components
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
-
 import {
   getAllProducts,
   getAllCategories,
@@ -10,17 +10,14 @@ import {
   getAllColors,
   getAllSizes,
 } from "@/lib/actions/product.actions";
-
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-
 import type { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getBrandBySlug } from "@/lib/actions/brand.actions";
 
 /* ------------------------- Metadata ------------------------- */
-
 export async function generateMetadata({
   params,
   searchParams,
@@ -30,46 +27,36 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { brand: brandSlug } = await params;
   const sp = await searchParams;
-
-  const brand = await getBrandBySlug(brandSlug);
+  const brandData = await getBrandBySlug(brandSlug);
   const { site } = await getSetting();
 
-  const titleBase = brand?.name ?? brandSlug;
+  const titleBase = brandData?.seoTitle || brandData?.name || brandSlug.replace(/-/g, " ");
+  const descriptionBase = brandData?.seoDescription || brandData?.description || `Shop ${titleBase} products at ${site.name}.`;
 
   const hasFilters = Object.keys(sp || {}).some(
-    (k) => sp[k] && sp[k] !== "all"
+    (k) => sp[k] && sp[k] !== "all" && k !== "page"
   );
 
   return {
-    title: hasFilters
-      ? `${titleBase} Products | Filtered Results`
-      : `${titleBase} Products | ${site.name}`,
-
-    description:
-      brand?.description ??
-      `Shop ${titleBase} products. Browse the latest arrivals and best deals.`,
-
+    title: hasFilters ? `${titleBase} - Page ${sp.page || 1}` : titleBase,
+    description: descriptionBase,
     alternates: {
       canonical: `${site.url}/brands/${brandSlug}`,
     },
-
     robots: hasFilters
       ? { index: false, follow: true }
       : { index: true, follow: true },
-
     openGraph: {
-      title: `${titleBase} Products`,
-      description:
-        brand?.description ??
-        `Browse ${titleBase} products and discover the best offers.`,
+      title: titleBase,
+      description: descriptionBase,
       url: `${site.url}/brands/${brandSlug}`,
+      images: brandData?.image ? [brandData.image] : [],
       type: "website",
     },
   };
 }
 
 /* ------------------------- Sorting -------------------------- */
-
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -79,7 +66,6 @@ const sortOrders = [
 ];
 
 /* ------------------------- Page ----------------------------- */
-
 export default async function BrandPage({
   params,
   searchParams,
@@ -87,9 +73,8 @@ export default async function BrandPage({
   params: Promise<{ brand: string }>;
   searchParams: Promise<any>;
 }) {
-  const { brand } = await params;
+  const { brand: brandSlug } = await params;
   const sp = await searchParams;
-
   const { site } = await getSetting();
 
   const {
@@ -104,114 +89,117 @@ export default async function BrandPage({
     page = "1",
   } = sp;
 
-  const filterParams = {
-    q,
-    category,
-    brand,
-    tag,
-    color,
-    size,
-    price,
-    rating,
-    sort,
-    page,
-  };
+  const filterParams = { q, category, brand: brandSlug, tag, color, size, price, rating, sort, page };
 
-  const [categories, tags, brands, colors, sizes, data] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        brand,
-        category,
-        tag,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-    ]);
+  // Fetch all data
+  const [categories, tags, brands, colors, sizes, data, brandData] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      brand: brandSlug,
+      category,
+      tag,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+    getBrandBySlug(brandSlug),
+  ]);
 
   /* ---------------------- Schema ----------------------- */
-
   const brandSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: brand.replace("-", " "),
-    mainEntity: {
+    "name": brandData?.name || brandSlug.replace(/-/g, " "),
+    "description": brandData?.seoDescription || brandData?.description,
+    "publisher": {
+      "@type": "Organization",
+      "name": site.name,
+      "logo": site.logo,
+    },
+    "mainEntity": {
       "@type": "ItemList",
-      numberOfItems: data.totalProducts,
-      itemListElement: data.products.map(
-        (p: IProduct, index: number) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          url: `${site.url}/product/${p.slug}`,
-          name: p.name,
-        })
-      ),
+      "numberOfItems": data.totalProducts,
+      "itemListElement": data.products.map((p: IProduct, index: number) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `${site.url}/product/${p.slug}`,
+        "name": p.name,
+        "image": p.images[0],
+      })),
     },
   };
 
   return (
-    <div className="space-y-4">
+    <div className="container mx-auto space-y-4 px-4">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
       />
-
+      
       <Breadcrumb />
 
-      {/* Header */}
-      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
-        <div>
-          <h1 className="text-xl font-bold capitalize">
-            {brand
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")}
-          </h1>
-
-          <p className="sr-only">
-            Shop {brand.replace(/-/g, " ")} products. Filter by category,
-            price, color, size, rating, and more.
-          </p>
-
-          {data.totalProducts === 0
-            ? "No results"
-            : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
-          products
+      {/* Header Section */}
+      <div className="my-4 bg-card border-b py-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-4xl font-extrabold capitalize">
+              {brandData?.name || brandSlug.replace(/-/g, " ")}
+            </h1>
+            
+            {brandData?.description && (
+              <p className="text-muted-foreground max-w-3xl text-base leading-relaxed">
+                {brandData.description}
+              </p>
+            )}
+            
+            <div className="text-sm font-medium text-muted-foreground">
+              {data.totalProducts === 0
+                ? "No products found"
+                : `Showing ${data.from}-${data.to} of ${data.totalProducts} results`}
+            </div>
+          </div>
+          
+          <div className="min-w-[200px]">
+            <ProductSortSelector 
+              sortOrders={sortOrders} 
+              sort={sort} 
+              params={filterParams} 
+            />
+          </div>
         </div>
-
-        <ProductSortSelector
-          sortOrders={sortOrders}
-          sort={sort}
-          params={filterParams}
-        />
       </div>
 
-      {/* Content */}
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
-        <FiltersClient
-          initialParams={filterParams}
-          categories={categories}
-          tags={tags}
-          brands={brands}
-          colors={colors}
-          sizes={sizes}
-          basePath={`/brands/${brand}`}
-          lockBrand
-        />
+      {/* Main Content Grid */}
+      <div className="grid md:grid-cols-5 md:gap-8 py-3">
+        {/* Sidebar Filters */}
+        <aside className="md:col-span-1">
+          <FiltersClient
+            initialParams={filterParams}
+            categories={categories}
+            tags={tags}
+            brands={brands}
+            colors={colors}
+            sizes={sizes}
+            basePath={`/brands/${brandSlug}`}
+            lockBrand
+          />
+        </aside>
 
-        <div className="md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+        {/* Product Listing */}
+        <main className="md:col-span-4 space-y-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {data.products.length === 0 ? (
-              <div>No product found</div>
+              <div className="col-span-full py-20 text-center text-xl text-muted-foreground">
+                No products found in this category.
+              </div>
             ) : (
               data.products.map((p: IProduct) => (
                 <ProductCard
@@ -222,15 +210,17 @@ export default async function BrandPage({
             )}
           </div>
 
+          {/* Pagination */}
           {data.totalPages > 1 && (
-            <Pagination
-              page={page}
-              totalPages={data.totalPages}
-            />
+            <div className="flex justify-center py-8">
+              <Pagination
+                page={page}
+                totalPages={data.totalPages}
+              />
+            </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
-  }
-  
+                                         }
