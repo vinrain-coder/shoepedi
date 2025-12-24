@@ -1,7 +1,6 @@
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
-
 import {
   getAllProducts,
   getAllCategories,
@@ -10,11 +9,9 @@ import {
   getAllColors,
   getAllSizes,
 } from "@/lib/actions/product.actions";
-
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-
 import type { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getTagBySlug } from "@/lib/actions/tag.actions";
@@ -30,22 +27,24 @@ export async function generateMetadata({
   const { tag: tagSlug } = await params;
   const sp = await searchParams;
 
-  const tag = await getTagBySlug(tagSlug);
+  const tagData = await getTagBySlug(tagSlug);
   const { site } = await getSetting();
 
-  const titleBase = tag?.name ?? tagSlug;
+  const titleBase =
+    tagData?.seoTitle || tagData?.name || tagSlug.replace(/-/g, " ");
+
+  const descriptionBase =
+    tagData?.seoDescription ||
+    tagData?.description ||
+    `Shop ${titleBase} products at ${site.name}.`;
 
   const hasFilters = Object.keys(sp || {}).some(
-    (k) => sp[k] && sp[k] !== "all"
+    (k) => sp[k] && sp[k] !== "all" && k !== "page"
   );
 
   return {
-    title: hasFilters
-      ? `${titleBase} Products | Filtered Results`
-      : `${titleBase} Products | ${site.name}`,
-    description:
-      tag?.description ??
-      `Shop products tagged with ${titleBase}. Browse the latest arrivals and deals.`,
+    title: hasFilters ? `${titleBase} - Page ${sp.page || 1}` : titleBase,
+    description: descriptionBase,
     alternates: {
       canonical: `${site.url}/tags/${tagSlug}`,
     },
@@ -53,16 +52,16 @@ export async function generateMetadata({
       ? { index: false, follow: true }
       : { index: true, follow: true },
     openGraph: {
-      title: `${titleBase} Products`,
-      description:
-        tag?.description ?? `Browse products tagged with ${titleBase}.`,
+      title: titleBase,
+      description: descriptionBase,
       url: `${site.url}/tags/${tagSlug}`,
+      images: tagData?.image ? [tagData.image] : [],
       type: "website",
     },
   };
 }
 
-/* ------------------------- Sorting ------------------------- */
+/* ------------------------- Sorting -------------------------- */
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -71,7 +70,7 @@ const sortOrders = [
   { value: "best-selling", name: "Best selling" },
 ];
 
-/* ------------------------- Page ------------------------- */
+/* ------------------------- Page ----------------------------- */
 export default async function TagPage({
   params,
   searchParams,
@@ -79,7 +78,7 @@ export default async function TagPage({
   params: Promise<{ tag: string }>;
   searchParams: Promise<any>;
 }) {
-  const { tag } = await params;
+  const { tag: tagSlug } = await params;
   const sp = await searchParams;
 
   const { site } = await getSetting();
@@ -100,7 +99,7 @@ export default async function TagPage({
     q,
     category,
     brand,
-    tag,
+    tag: tagSlug,
     color,
     size,
     price,
@@ -109,31 +108,40 @@ export default async function TagPage({
     page,
   };
 
-  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
-    getAllCategories(),
-    getAllTags(),
-    getAllBrands(),
-    getAllColors(),
-    getAllSizes(),
-    getAllProducts({
-      query: q,
-      tag,
-      category,
-      brand,
-      color,
-      size,
-      price,
-      rating,
-      sort,
-      page: Number(page),
-    }),
-  ]);
+  // Fetch all data
+  const [categories, tags, brands, colors, sizes, data, tagData] =
+    await Promise.all([
+      getAllCategories(),
+      getAllTags(),
+      getAllBrands(),
+      getAllColors(),
+      getAllSizes(),
+      getAllProducts({
+        query: q,
+        tag: tagSlug,
+        category,
+        brand,
+        color,
+        size,
+        price,
+        rating,
+        sort,
+        page: Number(page),
+      }),
+      getTagBySlug(tagSlug),
+    ]);
 
   /* ---------------------- Schema ----------------------- */
   const tagSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: tag.replace("-", " "),
+    name: tagData?.name || tagSlug.replace(/-/g, " "),
+    description: tagData?.seoDescription || tagData?.description,
+    publisher: {
+      "@type": "Organization",
+      name: site.name,
+      logo: site.logo,
+    },
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: data.totalProducts,
@@ -142,6 +150,7 @@ export default async function TagPage({
         position: index + 1,
         url: `${site.url}/product/${p.slug}`,
         name: p.name,
+        image: p.images[0],
       })),
     },
   };
@@ -159,15 +168,17 @@ export default async function TagPage({
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
-            {tag
+            {tagData.name
               .split("-")
               .map((w) => w[0].toUpperCase() + w.slice(1))
               .join(" ")}
           </h1>
-          <p className="sr-only">
-            Shop products tagged with {tag.replace(/-/g, " ")}. Filter by
-            category, brand, price, color, size, rating, and more.
+
+          <p>
+            Shop products tagged with {tagData.name.replace(/-/g, " ")}. Filter
+            by category, brand, price, color, size, rating, and more.
           </p>
+
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
@@ -190,7 +201,7 @@ export default async function TagPage({
           brands={brands}
           colors={colors}
           sizes={sizes}
-          basePath={`/tags/${tag}`}
+          basePath={`/tags/${tagData.slug}`}
           lockTag
         />
 
@@ -212,4 +223,5 @@ export default async function TagPage({
       </div>
     </div>
   );
-}
+                   }
+                                                          
