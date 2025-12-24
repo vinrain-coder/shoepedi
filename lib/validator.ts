@@ -325,7 +325,7 @@ export const SettingInputSchema = z.object({
 export const BlogInputSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
-   image: z.string().url().optional().or(z.literal("")), 
+  image: z.string().url().optional().or(z.literal("")),
   content: z.string().min(10, "Content must be at least 10 characters"),
   category: z.string().min(3, "Category is required"),
   views: z.number(),
@@ -405,6 +405,7 @@ export const BrandBase = z.object({
   isFeatured: z.boolean().default(false),
   description: z.string().max(500).optional(),
   image: z.string().url().optional().or(z.literal("")),
+  logo: z.string().url().optional().or(z.literal("")),
   seoTitle: z.string().max(60).optional(),
   seoDescription: z.string().max(160).optional(),
   seoKeywords: z.array(z.string()).optional(),

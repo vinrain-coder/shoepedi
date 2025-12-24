@@ -33,7 +33,7 @@ export default function NavbarWishlist() {
 
   const handleClick = () => {
     if (!session) {
-      toast.error("You need to log in to access your wishlist", {
+      toast.error("You need sign in to access your wishlist", {
         action: { label: "Sign in", onClick: () => router.push("/sign-in") },
       });
       return;

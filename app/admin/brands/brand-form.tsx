@@ -51,6 +51,7 @@ export default function BrandForm({
       name: brand?.name || "",
       slug: brand?.slug || "",
       description: brand?.description || "",
+      logo: brand?.logo || "",
       image: brand?.image || "",
       isFeatured: brand?.isFeatured || false,
       seoTitle: brand?.seoTitle || "",
@@ -155,6 +156,14 @@ export default function BrandForm({
             form={form}
             name="image"
             label="Brand Image"
+            uploadRoute="brands"
+          />
+        </div>
+        <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
+          <MediaUploader
+            form={form}
+            name="logo"
+            label="Brand logo"
             uploadRoute="brands"
           />
         </div>

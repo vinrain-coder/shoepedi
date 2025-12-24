@@ -59,16 +59,13 @@ export default async function BrandsPage() {
       <Breadcrumb />
 
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Browse Brands
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Browse Brands</h1>
         <p className="text-muted-foreground">
           Discover products from your favorite brands
         </p>
         <p className="sr-only">
-          Browse our full list of product brands including Nike, Adidas,
-          Apple, Samsung, and more. Shop by brand to find products you
-          trust.
+          Browse our full list of product brands including Nike, Adidas, Apple,
+          Samsung, and more. Shop by brand to find products you trust.
         </p>
       </div>
 
@@ -82,10 +79,10 @@ export default async function BrandsPage() {
           >
             <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none bg-secondary/20 h-full p-0">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
-                {brand.image ? (
+                {brand.logo ? (
                   <Image
-                    src={brand.image}
-                    alt={`${brand.name} brand image`}
+                    src={brand.logo}
+                    alt={`${brand.logo} brand logo`}
                     fill
                     className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"

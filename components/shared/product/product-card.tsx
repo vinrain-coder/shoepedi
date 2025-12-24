@@ -63,7 +63,7 @@ const ProductCard = ({
   const ProductImage = ({ withFloatingIcons = false }) => (
     <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
       {discount && (
-        <Badge className="absolute top-1 left-1 z-10 rounded-none rounded-tl-md rounded-br-md bg-destructive text-xs">
+        <Badge className="absolute top-0 left-0 z-10 rounded-none rounded-br-md bg-destructive text-xs">
           {discount}% OFF
         </Badge>
       )}

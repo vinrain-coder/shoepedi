@@ -11,7 +11,10 @@ import { useSession } from "@/lib/auth-client";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
 import { getProductById } from "@/lib/actions/product.actions";
 
-export function useWishlistToggle(productId: string, initialInWishlist: boolean) {
+export function useWishlistToggle(
+  productId: string,
+  initialInWishlist: boolean
+) {
   const { data: session } = useSession();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -21,7 +24,7 @@ export function useWishlistToggle(productId: string, initialInWishlist: boolean)
 
   const toggleWishlist = () => {
     if (!session) {
-      toast.error("You need to log in to use the wishlist", {
+      toast.error("You need to sign in to use the wishlist", {
         action: { label: "Sign in", onClick: () => router.push("/sign-in") },
       });
       return;

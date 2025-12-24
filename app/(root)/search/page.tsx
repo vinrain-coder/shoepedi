@@ -98,7 +98,7 @@ export default async function SearchPage(props: {
           sizes={sizes}
         />
         <div className="md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-4">
             {data.products.length === 0 ? (
               <div>No product found</div>
             ) : (

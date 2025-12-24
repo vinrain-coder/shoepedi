@@ -79,7 +79,7 @@ const AsyncNewArrivalsCards = async () => {
       link: { text: "Shop Brands", href: "/brands" },
       items: brands.map((brand: any) => ({
         name: brand.name,
-        image: brand.image || "/images/not-found.png",
+        image: brand.logo || "/images/not-found.png",
         href: `/brands/${brand.slug}`,
       })),
     },

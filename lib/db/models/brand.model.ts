@@ -6,6 +6,7 @@ export interface IBrand extends Document {
   description?: string;
   isFeatured?: boolean;
   image?: string;
+  logo?: string;
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
@@ -38,6 +39,7 @@ const brandSchema = new Schema<IBrand>(
       default: false,
     },
     image: String,
+    logo: String,
     seoTitle: {
       type: String,
       maxlength: 60,

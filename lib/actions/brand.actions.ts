@@ -148,7 +148,7 @@ export async function getAllBrandsForAdmin({
       .lean();
 
     return {
-    brands,
+      brands,
       totalBrands,
       totalPages,
       from: skip + 1,
@@ -175,10 +175,7 @@ export async function getAllBrandsForAdminProductInput() {
   cacheTag("brands");
   await connectToDatabase();
 
-  const brands = await Brand.find()
-    .sort({ name: 1 })
-    .populate("name")
-    .lean();
+  const brands = await Brand.find().sort({ name: 1 }).populate("name").lean();
 
   return brands;
 }
