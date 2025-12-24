@@ -24,30 +24,45 @@ import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
 
-export async function generateMetadata({ params }: { params: any }) {
+export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   const { site } = await getSetting();
-  if (!product) return { title: "Product not found" };
+
+  if (!product) {
+    return { title: "Product Not Found" };
+  }
+
+  const title = `${product.name} - ${product.brand} | Buy Online in Kenya`;
+  const description = product.description 
+    ? product.description.replace(/[#*]/g, "").slice(0, 160) // Clean markdown and trim
+    : `Shop the ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, and fast delivery across Kenya.`;
+
   const ogImageUrl = product.images?.[0];
+
   return {
-    title: `${product.name} | ${site.name}`,
-    description:
-      product.description?.slice(0, 160) ||
-      `Buy ${product.name} online at ${site.name}. Fast delivery in Kenya.`,
+    title,
+    description,
     alternates: {
       canonical: `${site.url}/product/${product.slug}`,
     },
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
     openGraph: {
-      //type: "product",
-      title: product.name,
-      description: product.description,
+      title,
+      description,
       url: `${site.url}/product/${product.slug}`,
       siteName: site.name,
+      type: "website", // Use "website" or "og:product" if supported by your provider
       images: [
         {
           url: ogImageUrl,
@@ -59,12 +74,12 @@ export async function generateMetadata({ params }: { params: any }) {
     },
     twitter: {
       card: "summary_large_image",
-      title: product.name,
-      description: product.description,
+      title,
+      description,
       images: [ogImageUrl],
     },
   };
-}
+        
 
 type Props = {
   params: any;
@@ -112,38 +127,63 @@ export default async function ProductDetails({ params, searchParams }: Props) {
   const selectedColor = query.color || product.colors?.[0];
   const selectedSize = query.size || product.sizes?.[0];
 
-  const productJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "@id": `${site.url}/product/${product.slug}`,
-    name: product.name,
-    image: product.images?.filter(Boolean),
-    description: product.description,
-    sku: product._id.toString(),
-    brand: {
-      "@type": "Brand",
-      name: product.brand || "ShoePedi",
+const productJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": `${site.url}/product/${product.slug}`,
+  "name": product.name,
+  "image": product.images?.filter((img: string) => img && img !== ""),
+  "description": product.description?.replace(/[#*]/g, ""),
+  "sku": product._id.toString(),
+  "brand": {
+    "@type": "Brand",
+    "name": product.brand || "ShoePedi",
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": `${site.url}/product/${product.slug}`,
+    "priceCurrency": "KES",
+    "price": product.price,
+    "priceValidUntil": "2026-12-31", // Keeps the price relevant in search
+    "availability": product.countInStock > 0 
+      ? "https://schema.org/InStock" 
+      : "https://schema.org/OutOfStock",
+    "itemCondition": "https://schema.org/NewCondition",
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "0", // Change if you have shipping costs
+        "currency": "KES"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "businessDays": {
+          "minValue": 1,
+          "maxValue": 3
+        }
+      }
     },
-    offers: {
-      "@type": "Offer",
-      url: `${site.url}/product/${product.slug}`,
-      priceCurrency: "KES",
-      price: product.price,
-      availability:
-        product.countInStock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      itemCondition: "https://schema.org/NewCondition",
-    },
-    aggregateRating:
-      product.numReviews > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: product.avgRating,
-            reviewCount: product.numReviews,
-          }
-        : undefined,
-  };
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "KE",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnPeriod",
+      "merchantReturnDays": 7,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
+    }
+  },
+  // This enables Star Ratings in Google
+  ...(product.numReviews > 0 ? {
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": product.avgRating,
+      "reviewCount": product.numReviews,
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+  } : {})
+};
 
   return (
     <div>
@@ -349,3 +389,4 @@ async function RelatedBoundary({
     />
   );
 }
+
