@@ -193,7 +193,7 @@ export async function getAllBrandsForStore() {
 
     const brands = await Brand.find()
       .sort({ isFeatured: -1, name: 1 })
-      .select("name slug image description isFeatured")
+      .select("name slug image logo description isFeatured")
       .lean();
 
     return brands.map((brand: any) => ({
