@@ -79,6 +79,7 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
       images: [ogImageUrl],
     },
   };
+}
         
 
 type Props = {
@@ -389,4 +390,5 @@ async function RelatedBoundary({
     />
   );
 }
+
 
