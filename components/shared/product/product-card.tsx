@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { IProduct } from "@/lib/db/models/product.model";
 import Rating from "./rating";
-import { formatNumber, generateId, round2 } from "@/lib/utils";
+import { cn, formatNumber, generateId, round2 } from "@/lib/utils";
 import ProductPrice from "./product-price";
 import ImageHover from "./image-hover";
 import AddToCart from "./add-to-cart";
@@ -22,8 +22,9 @@ import ProductQuickView from "./quick-view";
 
 const ProductCard = ({
   product,
-  hideBorder = false,
   hideDetails = false,
+  hideBorder = false,
+
   hideAddToCart = false,
   isInWishlist = false,
 }: {
@@ -42,25 +43,38 @@ const ProductCard = ({
     const normalizedTag = tag.toLowerCase();
     switch (normalizedTag) {
       case "todays-deal":
-        return { label: "Today's Deal", className: "bg-red-600 hover:bg-red-600" };
+        return {
+          label: "Today's Deal",
+          className: "bg-red-600 hover:bg-red-600",
+        };
       case "new-arrival":
-        return { label: "New Arrival", className: "bg-blue-600 hover:bg-blue-600" };
+        return {
+          label: "New Arrival",
+          className: "bg-blue-600 hover:bg-blue-600",
+        };
       case "featured":
-        return { label: "Featured", className: "bg-purple-600 hover:bg-purple-600" };
+        return {
+          label: "Featured",
+          className: "bg-purple-600 hover:bg-purple-600",
+        };
       case "best-seller":
-        return { label: "Best Seller", className: "bg-orange-500 hover:bg-orange-500" };
+        return {
+          label: "Best Seller",
+          className: "bg-orange-500 hover:bg-orange-500",
+        };
       default:
         return { label: tag, className: "bg-black hover:bg-black" };
     }
   };
 
-  const firstTag = product.tags && product.tags.length > 0 ? product.tags[0] : null;
+  const firstTag =
+    product.tags && product.tags.length > 0 ? product.tags[0] : null;
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
     <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
       {tagStyle && (
-        <Badge 
+        <Badge
           className={cn(
             "absolute top-0 left-0 z-10 rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-1 border-none text-white",
             tagStyle.className
@@ -118,10 +132,10 @@ const ProductCard = ({
         <span className="mt-0.5">({formatNumber(product.numReviews)})</span>
       </div>
       <div className="pt-1">
-        <ProductPrice 
-          price={product.price} 
-          listPrice={product.listPrice} 
-          isDeal={firstTag === "todays-deal"} 
+        <ProductPrice
+          price={product.price}
+          listPrice={product.listPrice}
+          isDeal={firstTag === "todays-deal"}
         />
       </div>
     </div>
