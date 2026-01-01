@@ -21,75 +21,81 @@ const ProductPrice = ({
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
 
-  // Helper to format numbers with commas
-  const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
-
+  // Logic to calculate discount remains the same
   const discountPercent = Math.round(100 - (price / listPrice) * 100);
-  const formattedPrice = formatNumber(price);
-  const formattedListPrice = formatNumber(listPrice);
 
-  const [intValue, floatValue] = formattedPrice.includes(".")
-    ? formattedPrice.split(".")
-    : [formattedPrice, ""];
+  // Formatting logic for prices using Intl.NumberFormat for commas
+  const formattedPrice = new Intl.NumberFormat().format(price);
+  const formattedListPrice = new Intl.NumberFormat().format(listPrice);
+  
+  const stringValue = formattedPrice.toString();
+  const [intValue, floatValue] = stringValue.includes(".")
+    ? stringValue.split(".")
+    : [stringValue, ""];
 
-  // Plain text return (e.g. for meta tags or simple labels)
+  // Replace format.number with standard Intl
   if (plain) {
-    return `${currency.symbol}${formattedPrice}`;
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency.code,
+      currencyDisplay: "narrowSymbol",
+    }).format(price);
   }
 
-  // Case 1: No list price (Simple Price)
+  // No list price display
   if (listPrice === 0) {
     return (
-      <div className={cn("flex items-baseline font-bold tracking-tight", className)}>
-        <span className="text-sm mr-0.5 self-start mt-1">{currency.symbol}</span>
-        <span className="text-2xl sm:text-3xl">{intValue}</span>
-        {floatValue && <span className="text-sm self-start mt-1">{floatValue}</span>}
+      <div className={cn("text-2xl sm:text-3xl", className)}>
+        <span className="text-xs align-super">{currency.symbol}</span>
+        {intValue}
+        <span className="text-xs align-super">{floatValue}</span>
       </div>
     );
   }
 
-  // Case 2: Limited Time Deal Layout
+  // Deal layout
   if (isDeal) {
     return (
-      <div className={cn("flex flex-col gap-1", forListing ? "items-center" : "items-start")}>
-        <div className="flex items-center gap-2">
-          <span className="bg-red-600 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider text-white font-bold">
+      <div className="space-y-2">
+        <div className="flex justify-center items-center gap-2">
+          <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
             {discountPercent}% Off
           </span>
-          <span className="text-red-600 text-[11px] font-bold uppercase tracking-tight">
+          <span className="text-red-700 text-xs font-bold">
             Limited time deal
           </span>
         </div>
-        
-        <div className="flex items-baseline gap-2 flex-wrap">
-          <div className={cn("flex items-baseline font-bold text-red-600", className)}>
-            <span className="text-sm mr-0.5 self-start mt-1">{currency.symbol}</span>
-            <span className="text-2xl sm:text-3xl">{intValue}</span>
-            {floatValue && <span className="text-sm self-start mt-1">{floatValue}</span>}
+        <div
+          className={`flex ${forListing ? "justify-center" : "justify-start"} items-center gap-2 flex-wrap`}
+        >
+          <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+            <span className="text-xs align-super">{currency.symbol}</span>
+            {intValue}
+            <span className="text-xs align-super">{floatValue}</span>
           </div>
-          <div className="text-muted-foreground text-xs line-through decoration-1">
-            Was: {currency.symbol}{formattedListPrice}
+          <div className="text-muted-foreground text-xs whitespace-nowrap">
+            Was: {currency.code}. <span className="line-through">{formattedListPrice}</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // Case 3: Standard Discount Layout
+  // Standard discount layout
   return (
-    <div className={cn("flex flex-col", forListing ? "items-center" : "items-start")}>
-      <div className="flex items-center gap-3">
-        <div className="text-2xl sm:text-3xl font-light text-orange-600">
+    <div className="">
+      <div className="flex justify-center gap-2 flex-wrap items-center">
+        <div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
           -{discountPercent}%
         </div>
-        <div className={cn("flex items-baseline font-bold tracking-tight", className)}>
-          <span className="text-sm mr-0.5 self-start mt-1">{currency.symbol}</span>
-          <span className="text-2xl sm:text-3xl">{intValue}</span>
-          {floatValue && <span className="text-sm self-start mt-1">{floatValue}</span>}
+        <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+          <span className="text-xs align-super">{currency.symbol}</span>
+          {intValue}
+          <span className="text-xs align-super">{floatValue}</span>
         </div>
       </div>
-      <div className="text-muted-foreground text-[11px] mt-1 italic">
-        List Price: <span className="line-through">{currency.symbol}{formattedListPrice}</span>
+      <div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
+        List price: <span className="line-through">{currency.code} {formattedListPrice}</span>
       </div>
     </div>
   );
