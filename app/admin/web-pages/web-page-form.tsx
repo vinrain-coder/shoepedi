@@ -25,20 +25,25 @@ import { WebPageInputSchema, WebPageUpdateSchema } from "@/lib/validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toSlug } from "@/lib/utils";
 import { toast } from "sonner";
-import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
+import MediaUploader from "@/components/shared/media-uploader";
+import { Textarea } from "@/components/ui/textarea";
 
 const webPageDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
         title: "Sample Page",
         slug: "sample-page",
+        excerpt: "Sample Excerpt",
+        image: "Sample Image",
         content: "Sample Content",
       }
     : {
         title: "",
         slug: "",
+        image: "",
+        excerpt: "",
         content: "",
       };
 
@@ -148,6 +153,34 @@ const WebPageForm = ({
                 <FormMessage />
               </FormItem>
             )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="excerpt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>WebPage Excerpt</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    placeholder="Short WebPage description"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/*Media */}
+        <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
+          <MediaUploader
+            form={form}
+            name="image"
+            label="WebPage Image"
+            uploadRoute="pages"
           />
         </div>
         <div className="flex flex-col gap-5 md:flex-row">
