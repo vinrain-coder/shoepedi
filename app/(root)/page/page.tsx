@@ -4,6 +4,7 @@ import WebPagesList from "./pages-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Metadata } from "next";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export const metadata: Metadata = {
   title: "Website Pages",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default function WebPagesPage() {
   return (
     <div className="space-y-6">
+          <Breadcrumb />
       <h1 className="text-2xl font-bold">Website Pages</h1>
 
       <Suspense fallback={<WebPagesSkeleton />}>
