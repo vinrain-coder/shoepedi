@@ -1,8 +1,15 @@
 "use client";
+
 import { ChevronUp, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import useSettingStore from "@/hooks/use-setting-store";
 import XIcon from "@/public/icons/x.svg";
 import Tiktok from "@/public/icons/tiktok.svg";
@@ -18,253 +25,172 @@ export default function Footer() {
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const message = encodeURIComponent("Hello, ShoePedi!");
-
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${message}`;
+  
+  const socialLinks = {
+    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "#",
+    tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL || "#",
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "#",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#",
+    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "#", // Fixed typo from your snippet
+  };
 
-  const twitterUrl = process.env.NEXT_PUBLIC_TWITTER_URL || "#";
-  const tiktokUrl = process.env.NEXT_PUBLIC_TIKTOK_URL || "#";
-  const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || "#";
-  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
-  const youtubeUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#";
+  const footerSections = [
+    {
+      title: "Shop",
+      links: [
+        { label: "Products", href: "/search" },
+        { label: "Categories", href: "/categories" },
+        { label: "Our brands", href: "/brands" },
+        { label: "Today's deal", href: "/search?tag=todays-deal" },
+        { label: "Featured products", href: "/search?tag=best-seller" },
+      ],
+    },
+    {
+      title: "Get to Know Us",
+      links: [
+        { label: "FAQs", href: "/page/FAQs" },
+        { label: "Blogs", href: "/blogs" },
+        { label: `About ${site.name}`, href: "/page/about-us" },
+        { label: "Mon - Sat | 9:00 AM - 7:00 PM", href: "#", static: true },
+      ],
+    },
+    {
+      title: "Make Money with Us",
+      links: [
+        { label: `Sell products on ${site.name}`, href: "/page/sell" },
+        { label: "Become an Affiliate", href: "/page/become-affiliate" },
+        { label: "Advertise Your Products", href: "/page/advertise" },
+      ],
+    },
+    {
+      title: "Let Us Help You",
+      links: [
+        { label: "Shipping Rates & Policies", href: "/page/shipping" },
+        { label: "Returns & Replacements", href: "/page/returns-policy" },
+        { label: "Help", href: "/page/help" },
+        { label: "Size Guide (Shoes)", href: "/page/shoe-size-guide" },
+      ],
+    },
+  ];
 
   return (
-    <footer className="bg-black text-white underline-link">
-      {/* Back to Top Button */}
-      <div className="w-full">
-        <Button
-          variant="ghost"
-          className="bg-gray-800 w-full rounded-none"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          <ChevronUp className="mr-2 h-4 w-4" />
-          Back to top
-        </Button>
-      </div>
+    <footer className="bg-black text-white">
+      {/* Back to Top */}
+      <Button
+        variant="ghost"
+        className="bg-[#232f3e] hover:bg-[#37475a] text-white w-full rounded-none h-12 transition-colors"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        <ChevronUp className="mr-2 h-4 w-4" />
+        Back to top
+      </Button>
 
-      {/* Main Footer Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 p-8 max-w-7xl mx-auto">
-        {/* Column 1: Shop */}
-        <div>
-            <h3 className="font-bold mb-4">Shop</h3>
-            <ul className="space-y-2">
-              <li><Link href="/search" className="hover:text-gray-300">Products</Link></li>
-              <li><Link href="/categories" className="hover:text-300">Categories</Link></li>
-              <li><Link href="/brands" className="hover:text-300">Our brands</Link></li>
-              <li><Link href="/search?tag=todays-deal" className="hover:text-300">Today's deal</Link></li>
-              <li><Link href="/search?tag=best-seller" className="hover:text-300">Featured products</Link></li>
-            </ul>
-          </div>
-        {/* Column 2: Get to Know Us */}
-        <div>
-          <h3 className="font-bold mb-4">Get to Know Us</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/page/FAQs" className="hover:text-gray-300">
-                FAQs
-              </Link>
-            </li>
-            <li>
-              <Link href="/blogs" className="hover:text-gray-300">
-                Blogs
-              </Link>
-            </li>
-            <li>
-              <Link href="/page/about-us" className="hover:text-gray-300">
-                About {site.name}
-              </Link>
-            </li>
-            <li className="flex items-center gap-2">
-              {/* <Clock size={20} /> */}
-              <span>Mon - Sat | 9:00 AM - 7:00 PM</span>
-            </li>
-          </ul>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* MOBILE: Accordion View (Visible on small screens only) */}
+        <div className="block md:hidden mb-8">
+          <Accordion type="single" collapsible className="w-full border-t border-gray-800">
+            {footerSections.map((section, idx) => (
+              <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-gray-800">
+                <AccordionTrigger className="hover:no-underline font-bold py-4">
+                  {section.title}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="flex flex-col space-y-3 pb-4">
+                    {section.links.map((link, lIdx) => (
+                      <li key={lIdx}>
+                        {link.static ? (
+                          <span className="text-gray-400 text-sm">{link.label}</span>
+                        ) : (
+                          <Link href={link.href} className="text-gray-300 hover:text-white text-sm">
+                            {link.label}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
 
-        {/* Column 3: Make Money with Us */}
-        <div>
-          <h3 className="font-bold mb-4">Make Money with Us</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/page/sell" className="hover:text-gray-300">
-                Sell products on {site.name}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/page/become-affiliate"
-                className="hover:text-gray-300"
-              >
-                Become an Affiliate
-              </Link>
-            </li>
-            <li>
-              <Link href="/page/advertise" className="hover:text-gray-300">
-                Advertise Your Products
-              </Link>
-            </li>
-          </ul>
-        </div>
+        {/* DESKTOP: Grid View (Hidden on small screens) */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+          {footerSections.map((section, idx) => (
+            <div key={idx}>
+              <h3 className="font-bold text-lg mb-4 text-white">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link, lIdx) => (
+                  <li key={lIdx}>
+                    {link.static ? (
+                      <span className="text-gray-400 text-sm">{link.label}</span>
+                    ) : (
+                      <Link href={link.href} className="text-gray-400 hover:text-white transition-colors text-sm">
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-        {/* Column 4: Let Us Help You */}
-        <div>
-          <h3 className="font-bold mb-4">Let Us Help You</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/page/shipping" className="hover:text-gray-300">
-                Shipping Rates & Policies
+          {/* Social Media Column (Fixed for both) */}
+          <div className="col-span-1">
+            <h3 className="font-bold text-lg mb-4">Follow us</h3>
+            <div className="flex gap-4 mb-6">
+              {[
+                { src: Instagram, url: socialLinks.instagram },
+                { src: Facebook, url: socialLinks.facebook },
+                { src: XIcon, url: socialLinks.twitter, size: 18, bg: true },
+                { src: Tiktok, url: socialLinks.tiktok },
+                { src: Youtube, url: socialLinks.youtube },
+              ].map((social, i) => (
+                <Link key={i} href={social.url} target="_blank" className="hover:opacity-75">
+                  <Image 
+                    src={social.src} 
+                    alt="social" 
+                    width={social.size || 24} 
+                    height={social.size || 24} 
+                    className={social.bg ? "bg-white rounded-sm p-0.5" : ""} 
+                  />
+                </Link>
+              ))}
+            </div>
+            
+            <div className="space-y-3">
+              <Link href="mailto:info@shoepedi.co.ke" className="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+                <Mail size={18} /> info@shoepedi.co.ke
               </Link>
-            </li>
-            <li>
-              <Link href="/page/returns-policy" className="hover:text-gray-300">
-                Returns & Replacements
+              <Link href={whatsappLink} target="_blank" className="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+                <Image src={WhatsApp} alt="WA" width={20} height={20} /> Ask on WhatsApp
               </Link>
-            </li>
-            <li>
-              <Link href="/page/help" className="hover:text-gray-300">
-                Help
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/page/shoe-size-guide"
-                className="hover:text-gray-300"
-              >
-                Size Guide (Shoes)
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Column 5: Social Media Links */}
-        <div>
-          <h3 className="font-bold mb-4">Follow us</h3>
-          <ul className="flex items-center gap-3 flex-wrap">
-            <li>
-              <Link
-                href={instagramUrl}
-                target="_blank"
-                className="hover:opacity-80 flex items-center gap-1"
-              >
-                <Image src={Instagram} alt="x.com" width={24} height={24} />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={facebookUrl}
-                target="_blank"
-                className="hover:opacity-80 flex items-center gap-1"
-              >
-                <Image src={Facebook} alt="x.com" width={24} height={24} />
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href={twitterUrl}
-                target="_blank"
-                className="hover:opacity-80 flex items-center gap-1"
-              >
-                <Image
-                  src={XIcon}
-                  alt="x.com"
-                  width={18}
-                  height={18}
-                  className="bg-white rounded-sm"
-                />
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href={tiktokUrl}
-                target="_blank"
-                className="hover:opacity-80 flex items-center gap-1"
-              >
-                <Image src={Tiktok} alt="Tiktok" width={24} height={24} />
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href={youtubeUrl}
-                target="_blank"
-                className="hover:opacity-80 flex items-center gap-1"
-              >
-                <Image src={Youtube} alt="Tiktok" width={24} height={24} />
-              </Link>
-            </li>
-          </ul>
-          <div className="my-2">
-            <Link
-              href="mailto:info@shoepedi.co.ke"
-              className="hover:text-gray-300 flex items-center gap-1"
-            >
-              <Mail size={20} className="text-gray-500" />
-              info@shoepedi.co.ke
-            </Link>
-          </div>
-          <div className="my-2">
-            <Link
-              href={whatsappLink}
-              target="_blank"
-              className="hover:text-gray-300 flex items-center gap-1"
-            >
-              <Image src={WhatsApp} alt="WhatsApp" width={24} height={24} />
-              Ask on WhatsApp
-            </Link>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Footer Bottom */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto py-6 px-4 flex flex-wrap items-center justify-center md:justify-between gap-y-4">
-          <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
-            <Link href="/" className="flex items-center justify-center">
-              <Image
-                src={site.logo}
-                alt={`${site.name} logo`}
-                width={48}
-                height={48}
-                priority
-                className="w-12 h-auto"
-              />
-              <h1 className="text-2xl font-bold">{site.name}</h1>
-              {/* <div className="mt-1">
-                <h1 className="text-2xl font-bold">{site.name}</h1>
-                <p className="text-xs -mt-2 text-end text-primary">
-                  Collections
-                </p>
-              </div> */}
-            </Link>
+      <div className="bg-[#131a22] border-t border-gray-800 py-10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-6">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src={site.logo} alt="Logo" width={40} height={40} className="w-10 h-auto" />
+            <span className="text-xl font-bold tracking-tight">{site.name}</span>
+          </Link>
+
+          <div className="flex flex-wrap justify-center gap-6 text-xs text-gray-400">
+            <Link href="/page/conditions-of-use" className="hover:underline">Conditions of Use</Link>
+            <Link href="/page/privacy-policy" className="hover:underline">Privacy Notice</Link>
+            <Link href="/page/help" className="hover:underline">Help</Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
-            <Link
-              href="/page/conditions-of-use"
-              className="hover:text-gray-300"
-            >
-              Conditions of Use
-            </Link>
-            <Link href="/page/privacy-policy" className="hover:text-gray-300">
-              Privacy Notice
-            </Link>
-            <Link href="/page/help" className="hover:text-gray-300">
-              Help
-            </Link>
+          <div className="text-center text-xs text-gray-500 space-y-1">
+            <p>{site.address} • {site.phone}</p>
+            <p>{site.copyright}</p>
           </div>
-
-          {/* Address and Contact */}
-          <div className="flex flex-col items-center md:items-start text-sm text-gray-400">
-            <div className="text-center">{site.address}</div>
-            <div className="text-center">{site.phone}</div>
-          </div>
-
-          {/* Copyright */}
-          <div className="text-center w-full">{site.copyright}</div>
         </div>
       </div>
     </footer>
   );
-}
+  }
