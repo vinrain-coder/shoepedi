@@ -40,7 +40,7 @@ export default async function WebPagesList() {
               />
             </div> */}
 
-            <CardContent className="p-0 flex flex-col h-[calc(100%-auto)]">
+            <CardContent className="p-5 flex flex-col h-[calc(100%-auto)]">
               {/* 2. Content Info */}
               <h2 className="font-bold text-xl mb-2 text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">
                 {page.title}
