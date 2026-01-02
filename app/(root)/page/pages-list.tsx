@@ -29,18 +29,18 @@ export default async function WebPagesList() {
           href={`/page/${page.slug}`}
           className="group" // Used for child hover effects
         >
-          <Card className="h-full overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-secondary/20">
+          <Card className="h-full overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-secondary/20 p-0">
             {/* 1. Image Thumbnail Section */}
-            <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          {/* <div className="relative aspect-video w-full overflow-hidden bg-muted">
               <Image
                 src={page.image || "/placeholder-shoe.jpg"} 
                 alt={page.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
-            </div>
+            </div> */}
 
-            <CardContent className="p-5 flex flex-col h-[calc(100%-auto)]">
+            <CardContent className="p-0 flex flex-col h-[calc(100%-auto)]">
               {/* 2. Content Info */}
               <h2 className="font-bold text-xl mb-2 text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">
                 {page.title}
