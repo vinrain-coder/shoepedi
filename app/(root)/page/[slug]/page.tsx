@@ -101,7 +101,7 @@ export default async function WebPage({ params }: PageProps) {
   };
 
   return (
-    <main className="min-h-screen px-4 py-8 md:py-16">
+    <main className="min-h-screen">
       {/* Schema.org JSON-LD */}
       <script
         type="application/ld+json"
