@@ -23,20 +23,31 @@ import WishlistButton from "@/components/shared/product/wishlist-button";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
+import type { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
-  const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  const { site } = await getSetting();
+/* -------------------------------- METADATA -------------------------------- */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: any;
+}): Promise<Metadata> {
+  const { slug } = params;
+
+  const [product, { site }] = await Promise.all([
+    getProductBySlug(slug),
+    getSetting(),
+  ]);
 
   if (!product) {
     return { title: "Product Not Found" };
   }
 
   const title = `${product.name} - ${product.brand} | Buy Online in Kenya`;
-  const description = product.description 
-    ? product.description.replace(/[#*]/g, "").slice(0, 160) // Clean markdown and trim
-    : `Shop the ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, and fast delivery across Kenya.`;
+
+  const description = product.description
+    ? product.description.replace(/[#*]/g, "").slice(0, 160)
+    : `Shop the ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, fast delivery across Kenya.`;
 
   const ogImageUrl = product.images?.[0];
 
@@ -62,7 +73,7 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
       description,
       url: `${site.url}/product/${product.slug}`,
       siteName: site.name,
-      type: "website", // Use "website" or "og:product" if supported by your provider
+      type: "website",
       images: [
         {
           url: ogImageUrl,
@@ -80,16 +91,19 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
     },
   };
 }
-        
+
+/* -------------------------------- TYPES -------------------------------- */
 
 type Props = {
   params: any;
   searchParams: any;
 };
 
+/* ------------------------------ LOADERS -------------------------------- */
+
 function ReviewsLoading() {
   return (
-    <div id="reviews-loading" className="p-4 bg-white rounded-lg shadow-sm">
+    <div className="p-4 bg-white rounded-lg shadow-sm">
       <div className="h-6 w-48 bg-gray-200 rounded mb-3 animate-pulse" />
       <div className="space-y-2">
         <div className="h-4 bg-gray-200 rounded animate-pulse" />
@@ -99,6 +113,7 @@ function ReviewsLoading() {
     </div>
   );
 }
+
 function RelatedLoading() {
   return (
     <div className="p-4">
@@ -111,254 +126,179 @@ function RelatedLoading() {
   );
 }
 
-export default async function ProductDetails({ params, searchParams }: Props) {
-  const { slug } = await params;
-  const query = await searchParams;
-  const { site } = await getSetting();
+/* ---------------------------- PAGE -------------------------------- */
 
-  const product = await getProductBySlug(slug);
+export default async function ProductDetails({
+  params,
+  searchParams,
+}: Props) {
+  const { slug } = params;
+
+  /* ✅ Parallel fetch (critical path) */
+  const [product, { site }] = await Promise.all([
+    getProductBySlug(slug),
+    getSetting(),
+  ]);
+
   if (!product) return <div>Product not found</div>;
+
+  const selectedColor = searchParams.color || product.colors?.[0];
+  const selectedSize = searchParams.size || product.sizes?.[0];
 
   const relatedProductsPromise = getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
-    page: Number(query.page || "1"),
+    page: Number(searchParams.page || "1"),
   });
 
-  const selectedColor = query.color || product.colors?.[0];
-  const selectedSize = query.size || product.sizes?.[0];
+  /* ---------------------------- JSON-LD ---------------------------- */
 
-const productJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "@id": `${site.url}/product/${product.slug}`,
-  "name": product.name,
-  "image": product.images?.filter((img: string) => img && img !== ""),
-  "description": product.description?.replace(/[#*]/g, ""),
-  "sku": product._id.toString(),
-  "brand": {
-    "@type": "Brand",
-    "name": product.brand || "ShoePedi",
-  },
-  "offers": {
-    "@type": "Offer",
-    "url": `${site.url}/product/${product.slug}`,
-    "priceCurrency": "KES",
-    "price": product.price,
-    "priceValidUntil": "2026-12-31", // Keeps the price relevant in search
-    "availability": product.countInStock > 0 
-      ? "https://schema.org/InStock" 
-      : "https://schema.org/OutOfStock",
-    "itemCondition": "https://schema.org/NewCondition",
-    "shippingDetails": {
-      "@type": "OfferShippingDetails",
-      "shippingRate": {
-        "@type": "MonetaryAmount",
-        "value": "0", // Change if you have shipping costs
-        "currency": "KES"
-      },
-      "deliveryTime": {
-        "@type": "ShippingDeliveryTime",
-        "businessDays": {
-          "minValue": 1,
-          "maxValue": 3
-        }
-      }
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${site.url}/product/${product.slug}`,
+    name: product.name,
+    image: product.images?.filter(Boolean),
+    description: product.description?.replace(/[#*]/g, ""),
+    sku: product._id.toString(),
+    brand: {
+      "@type": "Brand",
+      name: product.brand || site.name,
     },
-    "hasMerchantReturnPolicy": {
-      "@type": "MerchantReturnPolicy",
-      "applicableCountry": "KE",
-      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnPeriod",
-      "merchantReturnDays": 7,
-      "returnMethod": "https://schema.org/ReturnByMail",
-      "returnFees": "https://schema.org/FreeReturn"
-    }
-  },
-  // This enables Star Ratings in Google
-  ...(product.numReviews > 0 ? {
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": product.avgRating,
-      "reviewCount": product.numReviews,
-      "bestRating": "5",
-      "worstRating": "1"
-    }
-  } : {})
-};
+    offers: {
+      "@type": "Offer",
+      url: `${site.url}/product/${product.slug}`,
+      priceCurrency: "KES",
+      price: product.price,
+      availability:
+        product.countInStock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    ...(product.numReviews > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.avgRating,
+        reviewCount: product.numReviews,
+      },
+    }),
+  };
 
   return (
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productJsonLd),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
+
       <AddToBrowsingHistory
         id={product._id.toString()}
         category={product.category}
       />
 
-      <div className="my-1">
-        <Breadcrumb />
-      </div>
+      <Breadcrumb />
 
-      <section>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* LEFT: Gallery & video — relatively static per product and fast to resolve */}
-          <div className="col-span-2">
-            <ProductGallery
-              images={
-                product.images?.filter(
-                  (img: string) => img && img.trim() !== ""
-                ) || []
-              }
-            />
+      {/* ================== TOP GRID ================== */}
+      <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-2">
+        {/* LEFT */}
+        <div className="md:col-span-2">
+          <ProductGallery images={product.images || []} />
+        </div>
 
-            {product.videoLink && (
-              <div className="mt-2">
-                <h3 className="font-semibold mb-2">Product Video</h3>
-                <a
-                  href={product.videoLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Watch here
-                </a>
-              </div>
-            )}
-          </div>
+        {/* CENTER */}
+        <div className="md:col-span-2 flex flex-col gap-4">
+          <h1 className="text-xl font-bold">{product.name}</h1>
 
-          {/* CENTER: Core product info — price, variant selection, description */}
-          <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
-            <div className="flex flex-col gap-3">
-              <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
-                {product.brand} {product.category}
-              </p>
-              <h1 className="font-bold text-lg lg:text-xl">
-                {product.name}{" "}
-                <span className="sr-only">Buy Online in Kenya</span>
-              </h1>
-              <p className="sr-only">
-                Buy {product.name} online in Kenya at {site.name}. Price: KES{" "}
-                {product.price}. Available in {product.colors?.join(", ")}{" "}
-                colors and sizes.
-              </p>
+          <RatingSummary
+            avgRating={product.avgRating}
+            numReviews={product.numReviews}
+            ratingDistribution={product.ratingDistribution}
+            asPopover
+          />
 
-              <RatingSummary
-                avgRating={product.avgRating}
-                numReviews={product.numReviews}
-                asPopover
-                ratingDistribution={product.ratingDistribution}
-              />
+          <ProductPrice
+            price={product.price}
+            listPrice={product.listPrice}
+            isDeal={product.tags.includes("todays-deal")}
+          />
 
-              <Separator />
+          <SelectVariant
+            product={product}
+            color={selectedColor}
+            size={selectedSize}
+          />
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <ProductPrice
-                  price={product.price}
-                  listPrice={product.listPrice}
-                  isDeal={product.tags.includes("todays-deal")}
-                  forListing={false}
-                />
-              </div>
-            </div>
+          <Separator />
 
-            <Separator className="my-2" />
+          {/* ✅ Share moved here */}
+          <ShareProduct slug={product.slug} name={product.name} />
+        </div>
 
-            <SelectVariant
-              product={product}
-              color={selectedColor}
-              size={selectedSize}
-            />
+        {/* RIGHT */}
+        <div>
+          <Card>
+            <CardContent className="p-4 flex flex-col gap-4">
+              <ProductPrice price={product.price} />
 
-            <Separator className="my-2" />
+              {product.countInStock > 0 && (
+                <>
+                  <AddToCart
+                    item={{
+                      clientId: generateId(),
+                      product: product._id.toString(),
+                      countInStock: product.countInStock,
+                      name: product.name,
+                      slug: product.slug,
+                      category: product.category,
+                      price: round2(product.price),
+                      quantity: 1,
+                      image: product.images?.[0],
+                      size: selectedSize,
+                      color: selectedColor,
+                    }}
+                  />
+                  <OrderViaWhatsApp
+                    productName={product.name}
+                    color={selectedColor}
+                    size={selectedSize}
+                    quantity={1}
+                    price={product.price}
+                  />
+                  <WishlistButton
+                    productId={product._id.toString()}
+                    //@ts-expect-error
+                    initialWishlist={[]}
+                  />
+                </>
+              )}
 
-            <div className="flex flex-col gap-2">
-              <p className="font-bold-20 text-grey-600">Description:</p>
-              <MarkdownRenderer
-                content={product.description}
-                className="prose prose-lg max-w-none"
-              />
-            </div>
-          </div>
-
-          {/* RIGHT: buy card (fast to show) */}
-          <div>
-            <Card>
-              <CardContent className="p-4 flex flex-col gap-4">
-                <ProductPrice price={product.price} />
-
-                {product.countInStock > 0 && product.countInStock <= 3 && (
-                  <div className="text-destructive font-bold">
-                    Only {product.countInStock} left in stock - order soon
-                  </div>
-                )}
-
-                {product.countInStock !== 0 ? (
-                  <div className="text-green-700 text-xl">In Stock</div>
-                ) : (
-                  <div className="text-destructive text-xl">Out of Stock</div>
-                )}
-
-                {product.countInStock !== 0 && (
-                  <div className="flex justify-center items-center">
-                    <div className="flex flex-col gap-2 items-center">
-                      <AddToCart
-                        item={{
-                          clientId: generateId(),
-                          product: product._id.toString(),
-                          countInStock: product.countInStock,
-                          name: product.name,
-                          slug: product.slug,
-                          category: product.category,
-                          price: round2(product.price),
-                          quantity: 1,
-                          image: product.images?.[0],
-                          size: selectedSize,
-                          color: selectedColor,
-                        }}
-                      />
-                      <OrderViaWhatsApp
-                        productName={product.name}
-                        color={selectedColor}
-                        size={selectedSize}
-                        quantity={1}
-                        price={product.price}
-                      />
-                      <WishlistButton
-                        productId={product._id.toString()}
-                        //@ts-expect-error
-                        initialWishlist={[]}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {product.countInStock === 0 && (
-                  <div className="flex justify-center items-center mt-4">
-                    <SubscribeButton productId={product._id.toString()} />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              {product.countInStock === 0 && (
+                <SubscribeButton productId={product._id.toString()} />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      <div className="flex flex-col gap-2 my-2">
-        <h3 className="font-semibold">Share this product</h3>
-        <ShareProduct slug={product.slug} name={product.name} />
-      </div>
+      {/* ================== FULL-WIDTH DESCRIPTION ================== */}
+      <section className="mt-8 max-w-5xl mx-auto">
+        <h2 className="font-bold text-lg mb-2">Product Description</h2>
+        <MarkdownRenderer
+          content={product.description}
+          className="prose prose-lg max-w-none"
+        />
+      </section>
 
-      <section className="mt-10" id="reviews">
+      {/* ================== REVIEWS ================== */}
+      <section className="mt-10">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
           <ReviewList product={product} />
         </Suspense>
       </section>
 
+      {/* ================== RELATED ================== */}
       <section className="mt-10">
         <Suspense fallback={<RelatedLoading />}>
           <RelatedBoundary
@@ -373,6 +313,8 @@ const productJsonLd = {
   );
 }
 
+/* ---------------------------- RELATED ---------------------------- */
+
 async function RelatedBoundary({
   relatedProductsPromise,
   category,
@@ -382,7 +324,9 @@ async function RelatedBoundary({
 }) {
   "use cache";
   cacheLife("days");
+
   const related = await relatedProductsPromise;
+
   return (
     <ProductSlider
       products={related?.data || []}
@@ -390,5 +334,3 @@ async function RelatedBoundary({
     />
   );
 }
-
-
