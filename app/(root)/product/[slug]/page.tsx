@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
 import AddToCart from "@/components/shared/product/add-to-cart";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,14 +26,15 @@ import WishlistButton from "@/components/shared/product/wishlist-button";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
-import type { Metadata } from "next";
 
-/* -------------------------------- METADATA -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   METADATA                                 */
+/* -------------------------------------------------------------------------- */
 
 export async function generateMetadata({
   params,
 }: {
-  params: any;
+  params: { slug: string };
 }): Promise<Metadata> {
   const { slug } = params;
 
@@ -40,14 +44,17 @@ export async function generateMetadata({
   ]);
 
   if (!product) {
-    return { title: "Product Not Found" };
+    return {
+      title: "Product Not Found",
+      robots: { index: false, follow: false },
+    };
   }
 
   const title = `${product.name} - ${product.brand} | Buy Online in Kenya`;
 
   const description = product.description
     ? product.description.replace(/[#*]/g, "").slice(0, 160)
-    : `Shop the ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, fast delivery across Kenya.`;
+    : `Shop ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, fast delivery across Kenya.`;
 
   const ogImageUrl = product.images?.[0];
 
@@ -57,49 +64,52 @@ export async function generateMetadata({
     alternates: {
       canonical: `${site.url}/product/${product.slug}`,
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
     openGraph: {
       title,
       description,
       url: `${site.url}/product/${product.slug}`,
       siteName: site.name,
       type: "website",
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        },
-      ],
+      images: ogImageUrl
+        ? [
+            {
+              url: ogImageUrl,
+              width: 1200,
+              height: 630,
+              alt: product.name,
+            },
+          ]
+        : [],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImageUrl],
+      images: ogImageUrl ? [ogImageUrl] : [],
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }
 
-/* -------------------------------- TYPES -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
 
 type Props = {
-  params: any;
-  searchParams: any;
+  params: { slug: string };
+  searchParams: {
+    page?: string;
+    color?: string;
+    size?: string;
+  };
 };
 
-/* ------------------------------ LOADERS -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   LOADERS                                  */
+/* -------------------------------------------------------------------------- */
 
 function ReviewsLoading() {
   return (
@@ -126,7 +136,9 @@ function RelatedLoading() {
   );
 }
 
-/* ---------------------------- PAGE -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                    PAGE                                    */
+/* -------------------------------------------------------------------------- */
 
 export default async function ProductDetails({
   params,
@@ -134,24 +146,24 @@ export default async function ProductDetails({
 }: Props) {
   const { slug } = params;
 
-  /* ✅ Parallel fetch (critical path) */
+  /* ✅ Parallel fetch (safe in Next.js 16) */
   const [product, { site }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
   ]);
 
-  if (!product) return <div>Product not found</div>;
+  if (!product) notFound();
 
-  const selectedColor = searchParams.color || product.colors?.[0];
-  const selectedSize = searchParams.size || product.sizes?.[0];
+  const selectedColor = searchParams.color ?? product.colors?.[0];
+  const selectedSize = searchParams.size ?? product.sizes?.[0];
 
   const relatedProductsPromise = getRelatedProductsByCategory({
     category: product.category,
     productId: product._id.toString(),
-    page: Number(searchParams.page || "1"),
+    page: Number(searchParams.page ?? "1"),
   });
 
-  /* ---------------------------- JSON-LD ---------------------------- */
+  /* ------------------------------- JSON-LD -------------------------------- */
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -199,7 +211,7 @@ export default async function ProductDetails({
 
       <Breadcrumb />
 
-      {/* ================== TOP GRID ================== */}
+      {/* ========================== TOP GRID ========================== */}
       <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-2">
         {/* LEFT */}
         <div className="md:col-span-2">
@@ -231,7 +243,7 @@ export default async function ProductDetails({
 
           <Separator />
 
-          {/* ✅ Share moved here */}
+          {/* ✅ Share placed near CTA */}
           <ShareProduct slug={product.slug} name={product.name} />
         </div>
 
@@ -241,7 +253,7 @@ export default async function ProductDetails({
             <CardContent className="p-4 flex flex-col gap-4">
               <ProductPrice price={product.price} />
 
-              {product.countInStock > 0 && (
+              {product.countInStock > 0 ? (
                 <>
                   <AddToCart
                     item={{
@@ -258,6 +270,7 @@ export default async function ProductDetails({
                       color: selectedColor,
                     }}
                   />
+
                   <OrderViaWhatsApp
                     productName={product.name}
                     color={selectedColor}
@@ -265,15 +278,14 @@ export default async function ProductDetails({
                     quantity={1}
                     price={product.price}
                   />
+
                   <WishlistButton
                     productId={product._id.toString()}
                     //@ts-expect-error
                     initialWishlist={[]}
                   />
                 </>
-              )}
-
-              {product.countInStock === 0 && (
+              ) : (
                 <SubscribeButton productId={product._id.toString()} />
               )}
             </CardContent>
@@ -281,8 +293,8 @@ export default async function ProductDetails({
         </div>
       </section>
 
-      {/* ================== FULL-WIDTH DESCRIPTION ================== */}
-      <section className="mt-8 max-w-5xl mx-auto">
+      {/* ===================== FULL-WIDTH DESCRIPTION ===================== */}
+      <section className="mt-10 max-w-5xl mx-auto">
         <h2 className="font-bold text-lg mb-2">Product Description</h2>
         <MarkdownRenderer
           content={product.description}
@@ -290,7 +302,7 @@ export default async function ProductDetails({
         />
       </section>
 
-      {/* ================== REVIEWS ================== */}
+      {/* =========================== REVIEWS =========================== */}
       <section className="mt-10">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
@@ -298,7 +310,7 @@ export default async function ProductDetails({
         </Suspense>
       </section>
 
-      {/* ================== RELATED ================== */}
+      {/* =========================== RELATED =========================== */}
       <section className="mt-10">
         <Suspense fallback={<RelatedLoading />}>
           <RelatedBoundary
@@ -313,7 +325,9 @@ export default async function ProductDetails({
   );
 }
 
-/* ---------------------------- RELATED ---------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                               RELATED BOUNDARY                              */
+/* -------------------------------------------------------------------------- */
 
 async function RelatedBoundary({
   relatedProductsPromise,
@@ -333,4 +347,5 @@ async function RelatedBoundary({
       title={`Best Sellers in ${category}`}
     />
   );
-}
+    }
+    
