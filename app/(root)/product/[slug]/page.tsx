@@ -551,24 +551,7 @@ const productJsonLd = {
             />
 
 
-
-            <Separator className="my-2" />
-
-
-
-            <div className="flex flex-col gap-2">
-
-              <p className="font-bold-20 text-grey-600">Description:</p>
-
-              <MarkdownRenderer
-
-                content={product.description}
-
-                className="prose prose-lg max-w-none"
-
-              />
-
-            </div>
+         
 
           </div>
 
@@ -698,7 +681,13 @@ const productJsonLd = {
 
       </section>
 
-
+    <section className="mt-10 max-w-5xl mx-auto">
+        <h2 className="font-bold text-lg mb-2">Product Description</h2>
+        <MarkdownRenderer
+          content={product.description}
+          className="prose prose-lg max-w-none"
+        />
+      </section>
 
       <div className="flex flex-col gap-2 my-2">
 
@@ -789,4 +778,5 @@ async function RelatedBoundary({
 
 
     
+
 
