@@ -54,9 +54,14 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
 
   const { slug } = await params;
 
-  const product = await getProductBySlug(slug);
+  
 
-  const { site } = await getSetting();
+
+  const [product, { site }] = await Promise.all([
+    getProductBySlug(slug),
+    getSetting(),
+  ]);
+  
 
 
 
@@ -230,11 +235,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
   const query = await searchParams;
 
-  const { site } = await getSetting();
-
-
-
-  const product = await getProductBySlug(slug);
+  const [product, { site }] = await Promise.all([
+    getProductBySlug(slug),
+    getSetting(),
+  ]);
 
   if (!product) return <div>Product not found</div>;
 
@@ -785,3 +789,4 @@ async function RelatedBoundary({
 
 
     
+
