@@ -17,18 +17,19 @@ export async function proxy(req: NextRequest) {
 
   const path = nextUrl.pathname;
 
-  // Normalize callbackUrl → redirect
-  if (nextUrl.searchParams.has("callbackUrl")) {
-    const redirectUrl = nextUrl.clone();
-    const callbackUrl = nextUrl.searchParams.get("callbackUrl");
+// Normalize callbackUrl → redirect (AUTH ROUTES ONLY)
+if (isOnAuthRoute && nextUrl.searchParams.has("callbackUrl")) {
+  const redirectUrl = nextUrl.clone();
+  const callbackUrl = nextUrl.searchParams.get("callbackUrl");
 
-    redirectUrl.searchParams.delete("callbackUrl");
-    if (callbackUrl) {
-      redirectUrl.searchParams.set("redirect", callbackUrl);
-    }
+  redirectUrl.searchParams.delete("callbackUrl");
 
-    return NextResponse.redirect(redirectUrl);
+  if (callbackUrl) {
+    redirectUrl.searchParams.set("redirect", callbackUrl);
   }
+
+  return NextResponse.redirect(redirectUrl);
+}
 
   // Check if route is protected (including nested ones like /admin/overview)
   const isOnProtectedRoute = protectedRoutes.some(
