@@ -47,31 +47,27 @@ import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
-
+import { notFound } from "next/navigation";
 
 
 export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
 
   const { slug } = await params;
 
-  
-
-
   const [product, { site }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
   ]);
-  
-
-
 
   if (!product) {
-
-    return { title: "Product Not Found" };
-
+    return {
+      title: "Product Not Found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
-
-
 
   const title = `${product.name} - ${product.brand} | Buy Online in Kenya`;
 
@@ -240,8 +236,10 @@ export default async function ProductDetails({ params, searchParams }: Props) {
     getSetting(),
   ]);
 
-  if (!product) return <div>Product not found</div>;
+  if (!product) {
+  notFound();
 
+  }
 
 
   const relatedProductsPromise = getRelatedProductsByCategory({
@@ -778,5 +776,6 @@ async function RelatedBoundary({
 
 
     
+
 
 
