@@ -17,6 +17,15 @@ const db = await getDb();
 export const auth = betterAuth({
   database: mongodbAdapter(db),
 
+  session: {
+    cookieCache: {
+      enabled: true, // Enables storing session data in a short-lived cookie
+      maxAge: 5 * 60, // Cache duration in seconds (e.g., 5 minutes)
+      strategy: "jwe", // Recommended for security
+      refreshCache: true, // Automatically refresh the cookie before expiry
+    },
+  },
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
