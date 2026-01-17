@@ -26,7 +26,7 @@ export default function Footer() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const message = encodeURIComponent("Hello, ShoePedi!");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${message}`;
-  
+
   const socialLinks = {
     twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "#",
     tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL || "#",
@@ -49,7 +49,7 @@ export default function Footer() {
     {
       title: "Get to Know Us",
       links: [
-        { label: "FAQs", href: "/page/FAQs" },
+        { label: "FAQs", href: "/page/frequently-asked-questions" },
         { label: "Blogs", href: "/blogs" },
         { label: `About ${site.name}`, href: "/page/about-us" },
         { label: "Mon - Sat | 9:00 AM - 7:00 PM", href: "#", static: true },
@@ -89,9 +89,17 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* MOBILE: Accordion View (Visible on small screens only) */}
         <div className="block md:hidden mb-8">
-          <Accordion type="single" collapsible className="w-full border-t border-gray-800">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full border-t border-gray-800"
+          >
             {footerSections.map((section, idx) => (
-              <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-gray-800">
+              <AccordionItem
+                key={idx}
+                value={`item-${idx}`}
+                className="border-b border-gray-800"
+              >
                 <AccordionTrigger className="hover:no-underline font-bold py-4">
                   {section.title}
                 </AccordionTrigger>
@@ -100,9 +108,14 @@ export default function Footer() {
                     {section.links.map((link, lIdx) => (
                       <li key={lIdx}>
                         {link.static ? (
-                          <span className="text-gray-400 text-sm">{link.label}</span>
+                          <span className="text-gray-400 text-sm">
+                            {link.label}
+                          </span>
                         ) : (
-                          <Link href={link.href} className="text-gray-300 hover:text-white text-sm">
+                          <Link
+                            href={link.href}
+                            className="text-gray-300 hover:text-white text-sm"
+                          >
                             {link.label}
                           </Link>
                         )}
@@ -119,14 +132,21 @@ export default function Footer() {
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           {footerSections.map((section, idx) => (
             <div key={idx}>
-              <h3 className="font-bold text-lg mb-4 text-white">{section.title}</h3>
+              <h3 className="font-bold text-lg mb-4 text-white">
+                {section.title}
+              </h3>
               <ul className="space-y-2">
                 {section.links.map((link, lIdx) => (
                   <li key={lIdx}>
                     {link.static ? (
-                      <span className="text-gray-400 text-sm">{link.label}</span>
+                      <span className="text-gray-400 text-sm">
+                        {link.label}
+                      </span>
                     ) : (
-                      <Link href={link.href} className="text-gray-400 hover:text-white transition-colors text-sm">
+                      <Link
+                        href={link.href}
+                        className="text-gray-400 hover:text-white transition-colors text-sm"
+                      >
                         {link.label}
                       </Link>
                     )}
@@ -147,24 +167,37 @@ export default function Footer() {
                 { src: Tiktok, url: socialLinks.tiktok },
                 { src: Youtube, url: socialLinks.youtube },
               ].map((social, i) => (
-                <Link key={i} href={social.url} target="_blank" className="hover:opacity-75">
-                  <Image 
-                    src={social.src} 
-                    alt="social" 
-                    width={social.size || 24} 
-                    height={social.size || 24} 
-                    className={social.bg ? "bg-white rounded-sm p-0.5" : ""} 
+                <Link
+                  key={i}
+                  href={social.url}
+                  target="_blank"
+                  className="hover:opacity-75"
+                >
+                  <Image
+                    src={social.src}
+                    alt="social"
+                    width={social.size || 24}
+                    height={social.size || 24}
+                    className={social.bg ? "bg-white rounded-sm p-0.5" : ""}
                   />
                 </Link>
               ))}
             </div>
-            
+
             <div className="space-y-3">
-              <Link href="mailto:info@shoepedi.co.ke" className="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+              <Link
+                href="mailto:info@shoepedi.co.ke"
+                className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
+              >
                 <Mail size={18} /> info@shoepedi.co.ke
               </Link>
-              <Link href={whatsappLink} target="_blank" className="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
-                <Image src={WhatsApp} alt="WA" width={20} height={20} /> Ask on WhatsApp
+              <Link
+                href={whatsappLink}
+                target="_blank"
+                className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
+              >
+                <Image src={WhatsApp} alt="WA" width={20} height={20} /> Ask on
+                WhatsApp
               </Link>
             </div>
           </div>
@@ -175,22 +208,38 @@ export default function Footer() {
       <div className="bg-[#131a22] border-t border-gray-800 py-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <Image src={site.logo} alt="Logo" width={40} height={40} className="w-10 h-auto" />
-            <span className="text-xl font-bold tracking-tight">{site.name}</span>
+            <Image
+              src={site.logo}
+              alt="Logo"
+              width={40}
+              height={40}
+              className="w-10 h-auto"
+            />
+            <span className="text-xl font-bold tracking-tight">
+              {site.name}
+            </span>
           </Link>
 
           <div className="flex flex-wrap justify-center gap-6 text-xs text-gray-400">
-            <Link href="/page/conditions-of-use" className="hover:underline">Conditions of Use</Link>
-            <Link href="/page/privacy-policy" className="hover:underline">Privacy Notice</Link>
-            <Link href="/page/help" className="hover:underline">Help</Link>
+            <Link href="/page/conditions-of-use" className="hover:underline">
+              Conditions of Use
+            </Link>
+            <Link href="/page/privacy-policy" className="hover:underline">
+              Privacy Notice
+            </Link>
+            <Link href="/page/help" className="hover:underline">
+              Help
+            </Link>
           </div>
 
           <div className="text-center text-xs text-gray-500 space-y-1">
-            <p>{site.address} • {site.phone}</p>
+            <p>
+              {site.address} • {site.phone}
+            </p>
             <p>{site.copyright}</p>
           </div>
         </div>
       </div>
     </footer>
   );
-  }
+}

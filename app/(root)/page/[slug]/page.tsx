@@ -12,9 +12,11 @@ interface PageProps {
 /**
  * SEO METADATA GENERATION
  */
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  
+
   // Fetch data in parallel for better performance
   const [webPage, { site }] = await Promise.all([
     getWebPageBySlug(slug),
@@ -26,7 +28,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   // Clean the description: Use excerpt or strip markdown from content
-  const description = webPage.excerpt || webPage.content.substring(0, 160).replace(/[#*`_]/g, "");
+  const description =
+    webPage.excerpt || webPage.content.substring(0, 160).replace(/[#*`_]/g, "");
 
   return {
     title: `${webPage.title} | ${site.name}`,
@@ -115,7 +118,7 @@ export default async function WebPage({ params }: PageProps) {
           <h1 className="mt-6 text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
             {webPage.title}
           </h1>
-          
+
           {webPage.excerpt && (
             <p className="mt-4 text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
               {webPage.excerpt}
@@ -124,10 +127,11 @@ export default async function WebPage({ params }: PageProps) {
 
           {/* Optional: Add a separator or metadata line */}
           <div className="mt-6 border-b border-gray-200 dark:border-gray-800 pb-6 text-sm text-gray-500">
-            Updated on {new Date(webPage.updatedAt).toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
+            Updated on{" "}
+            {new Date(webPage.updatedAt).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </div>
         </header>
@@ -140,11 +144,11 @@ export default async function WebPage({ params }: PageProps) {
         {/* Footer for Page Freshness */}
         <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
           <p className="text-sm text-gray-500 italic">
-            Thank you for reading about {webPage.title}. 
-            Check back for more updates on our latest collections.
+            Thank you for reading about {webPage.title}. Check back for more
+            updates on our latest collections.
           </p>
         </footer>
       </article>
     </main>
   );
-      }
+}
