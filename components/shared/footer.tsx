@@ -58,15 +58,15 @@ export default function Footer() {
     {
       title: "Make Money with Us",
       links: [
-        { label: `Sell products on ${site.name}`, href: "/page/sell" },
+        { label: `Sell products on ${site.name}`, href: "/page/sell-products" },
         { label: "Become an Affiliate", href: "/page/become-affiliate" },
-        { label: "Advertise Your Products", href: "/page/advertise" },
+        { label: "Advertise Your Products", href: "/page/advertise-your-products" },
       ],
     },
     {
       title: "Let Us Help You",
       links: [
-        { label: "Shipping Rates & Policies", href: "/page/shipping" },
+        { label: "Shipping Rates & Policies", href: "/page/shipping-rates-policies" },
         { label: "Returns & Replacements", href: "/page/returns-policy" },
         { label: "Help", href: "/page/help" },
         { label: "Size Guide (Shoes)", href: "/page/shoe-size-guide" },
