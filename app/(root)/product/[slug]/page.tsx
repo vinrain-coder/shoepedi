@@ -328,9 +328,22 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
-              <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
-                {product.brand} {product.category}
-              </p>
+              <div className="flex gap-2">
+  <Link
+    href={`/brand/${product.brandSlug}`}
+    className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
+  >
+    {product.brand}
+  </Link>
+
+  <Link
+    href={`/category/${product.categorySlug}`}
+    className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
+  >
+    {product.category}
+  </Link>
+</div>
+
 
               <h1 className="font-bold text-lg lg:text-xl">
                 {product.name}{" "}
@@ -506,3 +519,4 @@ async function RelatedBoundary({
     />
   );
 }
+
