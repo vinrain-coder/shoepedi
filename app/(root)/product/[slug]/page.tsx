@@ -334,7 +334,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.brand && (
                   <Link
                     href={`/brands/${product.brand}`}
-                    className="flex rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+                    className="flex justify-center gap-1 rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
                   >
                     <Factory className="h-3 w-3" /> {product.brand}
                   </Link>
@@ -343,7 +343,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.category && (
                   <Link
                     href={`/categories/${product.category}`}
-                    className="flex rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
+                    className="flex justify-center gap-1 rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
                   >
                     <Layers className="h-3 w-3" /> {product.category}
                   </Link>
@@ -352,7 +352,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.tags?.[0] && (
                   <Link
                     href={`/tags/${product.tags[0]}`}
-                    className="flex rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+                    className="flex justify-center gap-1 rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
                   >
                     <Tag className="h-3 w-3" /> #{product.tags[0]}
                   </Link>
