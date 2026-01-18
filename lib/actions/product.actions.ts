@@ -460,13 +460,17 @@ export async function getAllTags() {
   "use cache";
   cacheLife("hours");
   cacheTag("products");
+
   await connectToDatabase();
+
   const tags = await Product.aggregate([
     // Ensure tags exist and are not empty
     { $match: { tags: { $exists: true, $ne: [] } } },
-    // Unwind the tags array to process each tag individually
+
+    // Unwind the tags array
     { $unwind: "$tags" },
-    // Trim whitespace and convert to lowercase
+
+    // Normalize for deduplication
     {
       $set: {
         tags: {
@@ -474,24 +478,34 @@ export async function getAllTags() {
         },
       },
     },
-    // Group by tag to ensure uniqueness
+
+    // Ensure uniqueness
     { $group: { _id: "$tags" } },
+
     // Sort alphabetically
     { $sort: { _id: 1 } },
-    // Format the output
+
+    // Format output
     { $project: { tag: "$_id", _id: 0 } },
   ]);
 
-  // Format tags: capitalize each word and handle dashes/spaces
-  return tags.map(
-    (t) =>
-      t.tag
-        .split(/\s+|-/) // Handle both spaces and dashes
-        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
-        .trim() // Ensure no leading/trailing spaces
+  // Format tags while preserving dashes
+  return tags.map(({ tag }) =>
+    tag
+      .split(" ") // handle multi-word tags
+      .map(word =>
+        word
+          .split("-") // handle dashed words
+          .map(
+            part => part.charAt(0).toUpperCase() + part.slice(1)
+          )
+          .join("-")
+      )
+      .join(" ")
+      .trim()
   );
-}
+  }
+    
 
 export async function getAllTagsForAdminProductCreate() {
   "use cache";
