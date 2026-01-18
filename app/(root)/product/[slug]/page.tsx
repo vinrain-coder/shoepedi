@@ -26,7 +26,7 @@ import MarkdownRenderer from "@/components/shared/markdown-renderer";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { Factory, Layers, Tag } from "lucide-react";
+import { Factory, Layers, RotateCcw, Tag, Truck, Wallet } from "lucide-react";
 
 export async function generateMetadata({
   params,
@@ -404,19 +404,16 @@ export default async function ProductDetails({ params, searchParams }: Props) {
             <Card>
               <CardContent className="p-4 flex flex-col gap-4">
                 <ProductPrice price={product.price} />
-
                 {product.countInStock > 0 && product.countInStock <= 3 && (
                   <div className="text-destructive font-bold">
                     Only {product.countInStock} left in stock - order soon
                   </div>
                 )}
-
                 {product.countInStock !== 0 ? (
                   <div className="text-green-700 text-xl">In Stock</div>
                 ) : (
                   <div className="text-destructive text-xl">Out of Stock</div>
                 )}
-
                 {product.countInStock !== 0 && (
                   <div className="flex justify-center items-center">
                     <div className="flex flex-col gap-2 items-center">
@@ -463,17 +460,28 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     </div>
                   </div>
                 )}
-
                 {product.countInStock === 0 && (
                   <div className="flex justify-center items-center mt-4">
                     <SubscribeButton productId={product._id.toString()} />
                   </div>
                 )}
-                <ul className="text-sm text-gray-600 space-y-1 mt">
-                  <li>✓ Free delivery in Nairobi</li>
-                  <li>✓ 7-day return policy</li>
-                  <li>✓ Pay on deliveryhin Nairobi</li>
-                </ul>
+
+                <div className="rounded-lg border bg-primary/10 p-3">
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-green-600" />
+                      Fast delivery across Kenya
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <RotateCcw className="h-4 w-4 text-green-600" />
+                      7-day easy returns
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-green-600" />
+                      Pay on delivery available
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>
