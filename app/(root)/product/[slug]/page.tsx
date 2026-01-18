@@ -26,6 +26,7 @@ import MarkdownRenderer from "@/components/shared/markdown-renderer";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
+import { Factory, Layers, Tag } from "lucide-react";
 
 export async function generateMetadata({
   params,
@@ -300,7 +301,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* LEFT: Gallery & video — relatively static per product and fast to resolve */}
 
-          <div className="col-span-2">
+          <div className="col-span-2 md:sticky md:top-24">
             <ProductGallery
               images={
                 product.images?.filter(
@@ -329,34 +330,34 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
-         <div className="flex flex-wrap gap-2">
-  {product.brand && (
-    <Link
-      href={`/brands/${product.brand}`}
-      className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
-    >
-      {product.brand}
-    </Link>
-  )}
+              <div className="flex flex-wrap gap-2">
+                {product.brand && (
+                  <Link
+                    href={`/brands/${product.brand}`}
+                    className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+                  >
+                    <Factory className="h-3 w-3" /> {product.brand}
+                  </Link>
+                )}
 
-  {product.category && (
-    <Link
-      href={`/categories/${product.category}`}
-      className="rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
-    >
-      {product.category}
-    </Link>
-  )}
+                {product.category && (
+                  <Link
+                    href={`/categories/${product.category}`}
+                    className="rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
+                  >
+                    <Layers className="h-3 w-3" /> {product.category}
+                  </Link>
+                )}
 
-  {product.tags?.[0] && (
-    <Link
-      href={`/tags/${product.tags[0]}`}
-      className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
-    >
-      #{product.tags[0]}
-    </Link>
-  )}
-</div>
+                {product.tags?.[0] && (
+                  <Link
+                    href={`/tags/${product.tags[0]}`}
+                    className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+                  >
+                    <Tag className="h-3 w-3" /> #{product.tags[0]}
+                  </Link>
+                )}
+              </div>
 
               <h1 className="font-bold text-lg lg:text-xl">
                 {product.name}{" "}
@@ -399,7 +400,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
           {/* RIGHT: buy card (fast to show) */}
 
-          <div>
+          <div className="md:sticky md:top-24">
             <Card>
               <CardContent className="p-4 flex flex-col gap-4">
                 <ProductPrice price={product.price} />
@@ -468,6 +469,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     <SubscribeButton productId={product._id.toString()} />
                   </div>
                 )}
+                <ul className="text-sm text-gray-600 space-y-1 mt">
+                  <li>✓ Free delivery in Nairobi</li>
+                  <li>✓ 7-day return policy</li>
+                  <li>✓ Pay on deliveryhin Nairobi</li>
+                </ul>
               </CardContent>
             </Card>
           </div>
@@ -532,5 +538,3 @@ async function RelatedBoundary({
     />
   );
 }
-
-
