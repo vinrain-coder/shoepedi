@@ -52,97 +52,14 @@ export default function ProductQuickView({
 
         {/* Description */}
         <Separator />
-        <article className="prose prose-lg max-w-none mt-6">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: (props) => (
-                <h1
-                  className="text-3xl font-bold mt-5 dark:text-gray-400 text-gray-900"
-                  {...props}
-                />
-              ),
-              h2: (props) => (
-                <h2
-                  className="text-2xl font-semibold mt-4 dark:text-gray-400 text-gray-800"
-                  {...props}
-                />
-              ),
-              h3: (props) => (
-                <h3
-                  className="text-xl font-medium mt-3 dark:text-gray-400 text-gray-700"
-                  {...props}
-                />
-              ),
-              p: (props) => (
-                <p
-                  className="leading-relaxed my-2 dark:text-gray-300 text-gray-800"
-                  {...props}
-                />
-              ),
-              ul: (props) => (
-                <ul
-                  className="list-disc pl-6 my-2 dark:text-gray-300 text-gray-800"
-                  {...props}
-                />
-              ),
-              ol: (props) => (
-                <ol
-                  className="list-decimal pl-6 my-2 dark:text-gray-300 text-gray-800"
-                  {...props}
-                />
-              ),
-              li: (props) => (
-                <li
-                  className="mb-1 dark:text-gray-300 text-gray-800"
-                  {...props}
-                />
-              ),
-              blockquote: (props) => (
-                <blockquote
-                  className="border-l-4 border-gray-500 pl-4 italic dark:text-gray-400 text-gray-700 my-3"
-                  {...props}
-                />
-              ),
-              a: (props) => (
-                <a
-                  target="_self"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 font-medium hover:underline dark:text-blue-400"
-                  {...props}
-                />
-              ),
-              strong: (props) => (
-                <strong
-                  className="font-semibold dark:text-white text-gray-900"
-                  {...props}
-                />
-              ),
-              pre: (props) => (
-                <pre
-                  className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4"
-                  {...props}
-                />
-              ),
-              img: ({ src = "", alt = "" }) => {
-                if (!src) return null;
+       <section className="mt-10 max-w-5xl mx-auto">
+        <h2 className="font-bold text-lg mb-2">Product Description</h2>
+        <MarkdownRenderer
+          content={product.description}
+          className="prose prose-lg max-w-none"
+        />
+      </section>
 
-                return (
-                  <Image
-                    src={src as string}
-                    alt={alt}
-                    width={800}
-                    height={450}
-                    className="rounded-xl object-contain"
-                    unoptimized
-                  />
-                );
-              },
-            }}
-          >
-            {product.description}
-          </ReactMarkdown>
-        </article>
 
         {/* Add to Cart */}
         <AddToCart
