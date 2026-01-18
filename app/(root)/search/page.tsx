@@ -4,11 +4,12 @@ import ProductSortSelector from "@/components/shared/product/product-sort-select
 import {
   getAllProducts,
   getAllCategories,
-  getAllTags,
+  //getAllTags,
   getAllBrands,
   getAllColors,
   getAllSizes,
 } from "@/lib/actions/product.actions";
+import { getAllTagsForStore } from "@/lib/actions/tag.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import FiltersClient from "@/components/shared/search/filters-client";
 import Breadcrumb from "@/components/shared/breadcrumb";
@@ -52,7 +53,7 @@ export default async function SearchPage(props: {
 
   const [categories, tags, brands, colors, sizes, data] = await Promise.all([
     getAllCategories(),
-    getAllTags(),
+    getAllTagsForStore(),
     getAllBrands(),
     getAllColors(),
     getAllSizes(),
