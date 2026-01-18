@@ -329,27 +329,33 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-2">
-  <Link
-    href={`/brands/${product.brand}`}
-    className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
-  >
-    {product.brand}
-  </Link>
+         <div className="flex flex-wrap gap-2">
+  {product.brand && (
+    <Link
+      href={`/brands/${product.brand}`}
+      className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+    >
+      {product.brand}
+    </Link>
+  )}
 
-  <Link
-    href={`/categories/${product.category}`}
-    className="rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
-  >
-    {product.category}
-  </Link>
+  {product.category && (
+    <Link
+      href={`/categories/${product.category}`}
+      className="rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-500/20 transition"
+    >
+      {product.category}
+    </Link>
+  )}
 
-  <Link
-    href={`/tags/${product.tags[0]}`}
-    className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
-  >
-    #{product.tags[0]}
-  </Link>
+  {product.tags?.[0] && (
+    <Link
+      href={`/tags/${product.tags[0]}`}
+      className="rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
+    >
+      #{product.tags[0]}
+    </Link>
+  )}
 </div>
 
               <h1 className="font-bold text-lg lg:text-xl">
@@ -526,4 +532,5 @@ async function RelatedBoundary({
     />
   );
 }
+
 
