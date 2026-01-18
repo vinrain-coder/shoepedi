@@ -9,15 +9,11 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-/**
- * SEO METADATA GENERATION
- */
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  // Fetch data in parallel for better performance
   const [webPage, { site }] = await Promise.all([
     getWebPageBySlug(slug),
     getSetting(),
@@ -42,6 +38,7 @@ export async function generateMetadata({
       description: description,
       url: `${site.url}/page/${slug}`,
       type: "article",
+      //@ts-ignore
       publishedTime: webPage.createdAt,
       images: [
         {

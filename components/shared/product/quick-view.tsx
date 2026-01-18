@@ -12,9 +12,7 @@ import { IProduct } from "@/lib/db/models/product.model";
 import { generateId, round2 } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SubscribeButton from "./stock-subscription-button";
-import Image from "next/image";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "../markdown-renderer";
 
 interface QuickViewProps {
   product: IProduct | null;
@@ -52,14 +50,13 @@ export default function ProductQuickView({
 
         {/* Description */}
         <Separator />
-       <section className="mt-10 max-w-5xl mx-auto">
-        <h2 className="font-bold text-lg mb-2">Product Description</h2>
-        <MarkdownRenderer
-          content={product.description}
-          className="prose prose-lg max-w-none"
-        />
-      </section>
-
+        <section className="mt-10 max-w-5xl mx-auto">
+          <h2 className="font-bold text-lg mb-2">Product Description</h2>
+          <MarkdownRenderer
+            content={product.description}
+            className="prose prose-lg max-w-none"
+          />
+        </section>
 
         {/* Add to Cart */}
         <AddToCart

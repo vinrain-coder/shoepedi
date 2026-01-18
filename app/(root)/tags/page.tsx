@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAllTagsForStore } from "@/lib/actions/tag.actions";
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
@@ -36,9 +36,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /* ------------------------- Page ------------------------- */
 export default async function TagsPage() {
-  const tags = await getAllTagsForStore();
-  const { site } = await getSetting();
-
+  const [tags, { site }] = await Promise.all([
+    getAllTagsForStore(),
+    getSetting(),
+  ]);
   const tagSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",

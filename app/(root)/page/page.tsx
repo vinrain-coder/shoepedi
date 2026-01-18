@@ -1,4 +1,3 @@
-// app/webpages/page.tsx
 import { Suspense } from "react";
 import WebPagesList from "./pages-list";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 export default function WebPagesPage() {
   return (
     <div className="space-y-6">
-          <Breadcrumb />
+      <Breadcrumb />
       <h1 className="text-2xl font-bold">Website Pages</h1>
 
       <Suspense fallback={<WebPagesSkeleton />}>

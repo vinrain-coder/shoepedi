@@ -12,7 +12,7 @@ import {
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getBrandBySlug } from "@/lib/actions/brand.actions";
 

@@ -27,14 +27,16 @@ export async function generateMetadata({
   const { tag: tagSlug } = await params;
   const sp = await searchParams;
 
-  const tagData = await getTagBySlug(tagSlug);
-  const { site } = await getSetting();
+  const [tagData, { site }] = await Promise.all([
+    getTagBySlug(tagSlug),
+    getSetting(),
+  ]);
 
   const titleBase =
-    tagData?.seoTitle || tagData?.name || tagSlug.replace(/-/g, " ");
+    tagData?.name || tagData?.name || tagSlug.replace(/-/g, " ");
 
   const descriptionBase =
-    tagData?.seoDescription ||
+    tagData?.description ||
     tagData?.description ||
     `Shop ${titleBase} products at ${site.name}.`;
 
@@ -81,7 +83,7 @@ export default async function TagPage({
   const { tag: tagSlug } = await params;
   const sp = await searchParams;
 
-  const { site } = await getSetting();
+  //const { site } = await getSetting();
 
   const {
     q = "all",
@@ -109,7 +111,7 @@ export default async function TagPage({
   };
 
   // Fetch all data
-  const [categories, tags, brands, colors, sizes, data, tagData] =
+  const [categories, tags, brands, colors, sizes, data, tagData, { site }] =
     await Promise.all([
       getAllCategories(),
       getAllTags(),
@@ -129,6 +131,7 @@ export default async function TagPage({
         page: Number(page),
       }),
       getTagBySlug(tagSlug),
+      getSetting(),
     ]);
 
   /* ---------------------- Schema ----------------------- */
@@ -136,7 +139,7 @@ export default async function TagPage({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: tagData?.name || tagSlug.replace(/-/g, " "),
-    description: tagData?.seoDescription || tagData?.description,
+    description: tagData?.description || tagData?.description,
     publisher: {
       "@type": "Organization",
       name: site.name,
@@ -173,12 +176,10 @@ export default async function TagPage({
               .map((w) => w[0].toUpperCase() + w.slice(1))
               .join(" ")}
           </h1>
-
           <p>
             Shop products tagged with {tagData.name.replace(/-/g, " ")}. Filter
             by category, brand, price, color, size, rating, and more.
           </p>
-
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
@@ -223,5 +224,4 @@ export default async function TagPage({
       </div>
     </div>
   );
-                   }
-                                                          
+}

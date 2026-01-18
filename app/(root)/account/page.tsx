@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 export default async function AccountPage() {
   const session = await getServerSession();
-  if (!session?.user) {
+  if (!session) {
     redirect("/sign-in?callbackUrl=/account");
   }
 

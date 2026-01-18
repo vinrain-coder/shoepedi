@@ -7,6 +7,7 @@ import { connectToDatabase } from "../db";
 import Blog, { IBlog } from "../db/models/blog.model";
 import { BlogInputSchema, BlogUpdateSchema } from "../validator";
 import { cacheLife } from "next/cache";
+import { notFound } from "next/navigation";
 
 // 🔹 CREATE BLOG
 export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
@@ -97,7 +98,7 @@ export async function getAllBlogs({
   };
 }
 
-// get published bogs only
+// get published blogs only
 export async function getPublishedBlogs({
   page = 1,
   limit = 9,
@@ -117,19 +118,15 @@ export async function getPublishedBlogs({
 }
 
 // 🔹 GET BLOG BY SLUG
-export async function getBlogBySlug(slug: string): Promise<IBlog | null> {
+export async function getBlogBySlug(slug: string) {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
   await connectToDatabase();
-  const blog = await Blog.findOne({ slug }).lean();
-  if (!blog) return null;
+  const blog = await Blog.findOne({ slug, isPublished: true }).lean();
+  if (!blog) return notFound;
 
-  return {
-    ...blog,
-    createdAt: new Date(blog.createdAt),
-    updatedAt: new Date(blog.updatedAt),
-  };
+  return JSON.parse(JSON.stringify(blog)) as IBlog;
 }
 
 // 🔹 GET BLOG BY ID
@@ -141,12 +138,7 @@ export async function getBlogById(blogId: string) {
   const blog = await Blog.findById(blogId).lean();
   if (!blog) return null;
 
-  return {
-    ...blog,
-    _id: blog._id.toString(),
-    createdAt: blog.createdAt.toISOString(),
-    updatedAt: blog.updatedAt.toISOString(),
-  };
+  return JSON.parse(JSON.stringify(blog)) as IBlog;
 }
 
 // 🔹 GET ALL CATEGORIES

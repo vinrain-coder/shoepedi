@@ -6,20 +6,23 @@ import ProductCard from "@/components/shared/product/product-card";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
-import { authClient } from "@/lib/auth-client";
+//import { authClient } from "@/lib/auth-client";
 import { ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 
 export default function WishlistClient({ products }: { products: IProduct[] }) {
-  const { data: session } = authClient.useSession();
-  const router = useRouter();
+  //const { data: session } = authClient.useSession();
+  //const router = useRouter();
   const { products: wishlistProducts, setProducts } = useWishlistStore();
 
-  useEffect(() => {
-    if (!session?.user) {
+  {
+    /*useEffect(() => {
+    if (!session) {
       router.push("/sign-in?callbackUrl=/wishlist");
     }
   }, [session, router]);
+*/
+  }
 
   useEffect(() => {
     const normalized = products.map((p: any) => ({

@@ -190,7 +190,7 @@ export default function Footer() {
                 className="text-gray-400 hover:text-white flex items-center gap-2 text-sm"
               >
                 <Mail size={18} /> info@shoepedi.co.ke
-              </Link>
+              <Link/>
               <Link
                 href={whatsappLink}
                 target="_blank"

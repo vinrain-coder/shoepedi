@@ -16,7 +16,6 @@ import useSettingStore from "@/hooks/use-setting-store";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
 
 export default function CartPage() {
   const {
@@ -127,7 +126,7 @@ export default function CartPage() {
                           {item.quantity > 1 && (
                             <>
                               {item.quantity} x
-                           <ProductPrice price={item.price} plain />
+                              <ProductPrice price={item.price} plain />
                               <br />
                             </>
                           )}
@@ -182,7 +181,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{" "}
                     items):{" "}
                     <span className="font-bold">
-                       <ProductPrice price={itemsPrice} plain />
+                      <ProductPrice price={itemsPrice} plain />
                     </span>{" "}
                   </div>
                   <Button

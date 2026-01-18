@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAllCategoriesForStore } from "@/lib/actions/category.actions";
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Breadcrumb from "@/components/shared/breadcrumb";
 

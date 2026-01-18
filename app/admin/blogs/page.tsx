@@ -13,6 +13,7 @@ import { formatId } from "@/lib/utils";
 import { Metadata } from "next";
 import { getAllBlogs, deleteBlog } from "@/lib/actions/blog.actions";
 import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Admin Blog Pages",
@@ -26,6 +27,7 @@ export default async function BlogAdminPage({
   searchParams,
 }: BlogAdminPageProps) {
   const session = await getServerSession();
+
   if (session?.user.role !== "ADMIN")
     throw new Error("Admin permission required");
 
@@ -36,8 +38,8 @@ export default async function BlogAdminPage({
     filter === "published"
       ? true
       : filter === "unpublished"
-        ? false
-        : undefined;
+      ? false
+      : undefined;
 
   const { blogs } = await getAllBlogs({
     page: 1,

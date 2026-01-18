@@ -1,4 +1,3 @@
-import Link from "next/link";
 import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";

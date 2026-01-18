@@ -12,9 +12,9 @@ import {
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-import type { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getCategoryBySlug } from "@/lib/actions/category.actions";
+import { Metadata } from "next";
 
 /* ------------------------- Metadata ------------------------- */
 export async function generateMetadata({
@@ -138,8 +138,7 @@ export default async function CategoryPage({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: categoryData?.name || categorySlug.replace(/-/g, " "),
-    description:
-      categoryData?.seoDescription || categoryData?.description,
+    description: categoryData?.seoDescription || categoryData?.description,
     publisher: {
       "@type": "Organization",
       name: site.name,
@@ -176,12 +175,10 @@ export default async function CategoryPage({
               .map((w) => w[0].toUpperCase() + w.slice(1))
               .join(" ")}
           </h1>
-
           <p>
-            Shop products in {categoryData.name.replace(/-/g, " ")}.
-            Filter by brand, price, color, size, rating, and more.
+            Shop products in {categoryData.name.replace(/-/g, " ")}. Filter by
+            brand, price, color, size, rating, and more.
           </p>
-
           {data.totalProducts === 0
             ? "No results"
             : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
@@ -226,5 +223,4 @@ export default async function CategoryPage({
       </div>
     </div>
   );
-  }
-  
+}

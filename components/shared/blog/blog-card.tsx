@@ -28,18 +28,15 @@ export default function BlogCard({ blog }: { blog: any }) {
   }
 
   const firstImageUrl = extractFirstImageUrl(blog.content);
-const imageSrc =
-  blog.image ??
-  firstImageUrl ??
-  "/images/not-found.png";
-                                 
+  const imageSrc = blog.image ?? firstImageUrl ?? "/images/not-found.png";
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg p-0">
       {/* Image */}
       <Link href={`/blogs/${blog.slug}`} className="group block">
         <div className="relative h-40 w-full overflow-hidden">
           <Image
-            src={firstImageUrl}
+            src={imageSrc}
             alt={blog.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
