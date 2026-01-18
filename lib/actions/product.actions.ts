@@ -244,7 +244,10 @@ export async function getProductBySlug(slug: string) {
   cacheLife("hours");
   cacheTag("products");
   await connectToDatabase();
-  const product = await Product.findOne({ slug, isPublished: true });
+  const product = await Product.findOne({
+    slug,
+    isPublished: true,
+  });
   if (!product) return notFound();
   return JSON.parse(JSON.stringify(product)) as IProduct;
 }
@@ -437,11 +440,7 @@ export async function getAllProducts({
   };
 
   const [products, totalProducts] = await Promise.all([
-    Product.find(filters)
-      .sort(sortOrder)
-      .skip(skip)
-      .limit(pageLimit)
-      .lean(),
+    Product.find(filters).sort(sortOrder).skip(skip).limit(pageLimit).lean(),
 
     Product.countDocuments(filters),
   ]);
@@ -453,8 +452,7 @@ export async function getAllProducts({
     from: skip + 1,
     to: skip + products.length,
   };
-                                     }
-                            
+}
 
 export async function getAllTags() {
   "use cache";
@@ -493,19 +491,16 @@ export async function getAllTags() {
   return tags.map(({ tag }) =>
     tag
       .split(" ") // handle multi-word tags
-      .map(word =>
+      .map((word) =>
         word
           .split("-") // handle dashed words
-          .map(
-            part => part.charAt(0).toUpperCase() + part.slice(1)
-          )
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
           .join("-")
       )
       .join(" ")
       .trim()
   );
-  }
-    
+}
 
 export async function getAllTagsForAdminProductCreate() {
   "use cache";

@@ -60,12 +60,6 @@ const categorySchema = new Schema<ICategory>(
   { timestamps: true }
 );
 
-// Optional: populate parent category
-categorySchema.pre(/^find/, function (next) {
-  this.populate<ICategory>("parent");
-  next();
-});
-
 const Category: Model<ICategory> =
   models.Category || model<ICategory>("Category", categorySchema);
 

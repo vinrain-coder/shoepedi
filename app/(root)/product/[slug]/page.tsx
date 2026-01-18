@@ -25,6 +25,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import Link from "next/link";
 
 export async function generateMetadata({
   params,
@@ -329,21 +330,26 @@ export default async function ProductDetails({ params, searchParams }: Props) {
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
-  <Link
-    href={`/brand/${product.brandSlug}`}
-    className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
-  >
-    {product.brand}
-  </Link>
+                <Link
+                  href={`/brands/${product.brand}`}
+                  className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
+                >
+                  {product.brand}
+                </Link>
 
-  <Link
-    href={`/category/${product.categorySlug}`}
-    className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
-  >
-    {product.category}
-  </Link>
-</div>
-
+                <Link
+                  href={`/categories/${product.category}`}
+                  className="p-medium-16 rounded-full bg-primary-500/10 px-3 py-1 hover:bg-grey-500/20"
+                >
+                  {product.category}
+                </Link>
+                <Link
+                  href={`/tags/${product.tags[0]}`}
+                  className="p-medium-16 rounded-full bg-grey-500/10 px-3 py-1 hover:bg-grey-500/20"
+                >
+                  {product.tags[0]}
+                </Link>
+              </div>
 
               <h1 className="font-bold text-lg lg:text-xl">
                 {product.name}{" "}
@@ -519,4 +525,3 @@ async function RelatedBoundary({
     />
   );
 }
-

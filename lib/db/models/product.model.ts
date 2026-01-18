@@ -37,7 +37,6 @@ const productSchema = new Schema<IProduct>(
     images: [String],
     brand: {
       type: String,
-      // required: true,
     },
     videoLink: {
       type: String,
