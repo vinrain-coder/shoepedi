@@ -354,7 +354,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     href={`/tags/${product.tags[0]}`}
                     className="flex justify-center gap-1 rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-500/20 transition"
                   >
-                    <Tag className="h-3 w-3" /> #{product.tags[0]}
+                    <Tag className="h-3 w-3" /> {product.tags[0]}
                   </Link>
                 )}
               </div>
