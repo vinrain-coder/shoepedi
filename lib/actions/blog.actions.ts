@@ -1,61 +1,80 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
-import { cacheTag, revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
+import { notFound } from "next/navigation";
+
 import { connectToDatabase } from "../db";
 import Blog, { IBlog } from "../db/models/blog.model";
 import { BlogInputSchema, BlogUpdateSchema } from "../validator";
-import { cacheLife } from "next/cache";
-import { notFound } from "next/navigation";
 
-// 🔹 CREATE BLOG
-export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
+/* ================================
+   CREATE BLOG
+================================ */
+export async function createBlog(
+  data: z.infer<typeof BlogInputSchema>
+) {
   try {
     const blog = BlogInputSchema.parse(data);
     await connectToDatabase();
     await Blog.create(blog);
+
     revalidatePath("/admin/blogs");
-    updateTag("blogs");
+    revalidateTag("blogs");
+
     return { success: true, message: "Blog created successfully" };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Error creating blog" };
   }
 }
 
-// 🔹 UPDATE BLOG
-export async function updateBlog(data: z.infer<typeof BlogUpdateSchema>) {
+/* ================================
+   UPDATE BLOG
+================================ */
+export async function updateBlog(
+  data: z.infer<typeof BlogUpdateSchema>
+) {
   try {
     const blog = BlogUpdateSchema.parse(data);
     await connectToDatabase();
     await Blog.findByIdAndUpdate(blog._id, blog);
+
     revalidatePath("/admin/blogs");
-    updateTag("blogs");
+    revalidateTag("blogs");
+
     return { success: true, message: "Blog updated successfully" };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Error updating blog" };
   }
 }
 
-// 🔹 DELETE BLOG
+/* ================================
+   DELETE BLOG
+================================ */
 export async function deleteBlog(id: string) {
   try {
     await connectToDatabase();
     const res = await Blog.findByIdAndDelete(id);
     if (!res) throw new Error("Blog not found");
+
     revalidatePath("/admin/blogs");
-    updateTag("blogs");
+    revalidateTag("blogs");
+
     return { success: true, message: "Blog deleted successfully" };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Error deleting blog" };
   }
 }
 
-// 🔹 GET ALL BLOGS (WITH OPTIONAL PUBLISHED FILTER)
+/* ================================
+   GET ALL BLOGS
+================================ */
 export async function getAllBlogs({
   page = 1,
   limit = 9,
-  onlyPublished = false, // ✅ New optional filter
+  onlyPublished = false,
 }: {
   page?: number;
   limit?: number;
@@ -64,10 +83,10 @@ export async function getAllBlogs({
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
+
   await connectToDatabase();
 
-  const filter = onlyPublished ? { isPublished: true } : {}; // fetch all if false
-
+  const filter = onlyPublished ? { isPublished: true } : {};
   const totalBlogs = await Blog.countDocuments(filter);
   const totalPages = Math.ceil(totalBlogs / limit);
 
@@ -98,7 +117,9 @@ export async function getAllBlogs({
   };
 }
 
-// get published blogs only
+/* ================================
+   GET PUBLISHED BLOGS
+================================ */
 export async function getPublishedBlogs({
   page = 1,
   limit = 9,
@@ -106,56 +127,65 @@ export async function getPublishedBlogs({
   page?: number;
   limit?: number;
 }) {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("blogs");
-  await connectToDatabase();
-  return getAllBlogs({
-    page,
-    limit,
-    onlyPublished: true,
-  });
+  return getAllBlogs({ page, limit, onlyPublished: true });
 }
 
-// 🔹 GET BLOG BY SLUG
+/* ================================
+   GET BLOG BY SLUG
+================================ */
 export async function getBlogBySlug(slug: string) {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
-  await connectToDatabase();
-  const blog = await Blog.findOne({ slug, isPublished: true }).lean();
-  if (!blog) return notFound;
 
-  return JSON.parse(JSON.stringify(blog)) as IBlog;
+  await connectToDatabase();
+  const blog = await Blog.findOne({
+    slug,
+    isPublished: true,
+  }).lean();
+
+  if (!blog) notFound();
+
+  return blog as IBlog;
 }
 
-// 🔹 GET BLOG BY ID
+/* ================================
+   GET BLOG BY ID
+================================ */
 export async function getBlogById(blogId: string) {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
+
   await connectToDatabase();
   const blog = await Blog.findById(blogId).lean();
   if (!blog) return null;
 
-  return JSON.parse(JSON.stringify(blog)) as IBlog;
+  return blog as IBlog;
 }
 
-// 🔹 GET ALL CATEGORIES
+/* ================================
+   GET ALL CATEGORIES
+================================ */
 export async function getAllBlogCategories() {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
+
   await connectToDatabase();
-  return await Blog.distinct("category");
+  return Blog.distinct("category");
 }
 
-// 🔹 GET ALL TAGS
+/* ================================
+   GET ALL TAGS
+================================ */
 export async function getAllBlogTags() {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
+
   await connectToDatabase();
+
   const tags = await Blog.aggregate([
     { $unwind: "$tags" },
     { $group: { _id: "$tags", count: { $sum: 1 } } },
@@ -163,56 +193,66 @@ export async function getAllBlogTags() {
     { $sort: { _id: 1 } },
     { $project: { tag: "$_id", _id: 0 } },
   ]);
-  return tags.map((tag) =>
-    tag.tag
+
+  return tags.map((t) =>
+    t.tag
       .split("-")
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((w: string) => w[0].toUpperCase() + w.slice(1))
       .join(" ")
   );
 }
 
-// 🔹 INCREMENT BLOG VIEWS
+/* ================================
+   INCREMENT BLOG VIEWS (NO CACHE)
+================================ */
 export async function incrementBlogViews(slug: string) {
-  "use cache";
-  cacheLife("hours");
-
   try {
     await connectToDatabase();
     const blog = await Blog.findOneAndUpdate(
-      { slug },
+      { slug, isPublished: true },
       { $inc: { views: 1 } },
       { new: true }
     );
-    return { success: true, views: blog?.views || 0 };
-  } catch (error) {
+
+    return { success: true, views: blog?.views ?? 0 };
+  } catch {
     return { success: false, message: "Failed to update views" };
   }
 }
 
-// 🔹 GET MOST VIEWED BLOGS
-export async function getMostViewedBlogs(limit: number = 5) {
+/* ================================
+   MOST VIEWED BLOGS
+================================ */
+export async function getMostViewedBlogs(limit = 5) {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
-  try {
-    await connectToDatabase();
-    const blogs = await Blog.find()
-      .sort({ views: -1 })
-      .limit(limit)
-      .select("title slug image views");
-    return blogs;
-  } catch (error) {
-    return [];
-  }
+
+  await connectToDatabase();
+  return Blog.find({ isPublished: true })
+    .sort({ views: -1 })
+    .limit(limit)
+    .select("title slug image views")
+    .lean();
 }
 
-// 🔹 FETCH LATEST BLOGS
-export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
+/* ================================
+   LATEST BLOGS
+================================ */
+export async function fetchLatestBlogs({
+  limit = 4,
+}: {
+  limit?: number;
+}) {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
+
   await connectToDatabase();
-  const blogs = await Blog.find().sort({ createdAt: -1 }).limit(limit).lean();
+  const blogs = await Blog.find({ isPublished: true })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
 
   return blogs.map((blog) => ({
     _id: blog._id.toString(),
@@ -226,4 +266,5 @@ export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
     updatedAt: blog.updatedAt.toISOString(),
     isPublished: blog.isPublished,
   }));
-}
+      }
+  
