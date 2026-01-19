@@ -456,11 +456,17 @@ export default function FiltersClient({
     <>
       
       {/* Mobile */}
-       {isPending && (
-        <div className="fixed inset-0 z-[100] bg-background/60 backdrop-blur-sm flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+     {isPending && (
+  <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-md flex items-center justify-center">
+    <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <span className="text-sm text-muted-foreground">
+        Updating results…
+      </span>
+    </div>
+  </div>
+)}
+
       <div className="md:hidden mb-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
@@ -537,5 +543,6 @@ export default function FiltersClient({
     </>
   );
 }
+
 
 
