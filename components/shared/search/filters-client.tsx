@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
+import { X, loader2 } from "lucide-react";
 
 import SelectedFiltersPills from "./selected-filters-pills";
 import {
@@ -74,6 +74,7 @@ export default function FiltersClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   // --- Current URL parameters ---
   const current: ParamsShape = {
@@ -176,13 +177,16 @@ export default function FiltersClient({
   function updateParam(key: keyof ParamsShape, value: string | undefined) {
     const next: ParamsShape = { ...current, page: "1" };
 
-    if (lockCategory && key === "category") return; // ✅ prevent overwrite
+    if (lockCategory && key === "category") return;
     if (lockBrand && key === "brand") return;
     if (lockTag && key === "tag") return;
+
     if (!value || value === "all") delete next[key];
     else next[key] = value;
 
-    router.push(buildSearchUrl(next));
+    startTransition(() => {
+      router.push(buildSearchUrl(next));
+    });
   }
 
   function handleRemove(key: keyof ParamsShape) {
@@ -191,7 +195,9 @@ export default function FiltersClient({
 
   function applyLocalToUrl() {
     const next: ParamsShape = { ...local, page: "1" };
-    router.push(buildSearchUrl(next));
+    startTransition(() => {
+      router.push(buildSearchUrl(next));
+    });
   }
 
   function clearAllLocal() {
@@ -207,7 +213,10 @@ export default function FiltersClient({
       sort: current.sort,
       page: "1",
     });
-    router.push("/search");
+
+    startTransition(() => {
+      router.push("/search");
+    });
   }
 
   function applyPriceFromControl(value: string) {
@@ -230,6 +239,8 @@ export default function FiltersClient({
 
   function FiltersContent() {
     return (
+      
+        
       <Accordion
         type="multiple"
         value={openAccordions}
@@ -436,12 +447,20 @@ export default function FiltersClient({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    
+          
     );
   }
 
   return (
     <>
+      
       {/* Mobile */}
+       {isPending && (
+        <div className="fixed inset-0 z-[100] bg-background/60 backdrop-blur-sm flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <div className="md:hidden mb-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
@@ -518,3 +537,4 @@ export default function FiltersClient({
     </>
   );
 }
+
