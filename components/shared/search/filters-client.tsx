@@ -11,7 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { X, loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 import SelectedFiltersPills from "./selected-filters-pills";
 import {
@@ -537,4 +537,5 @@ export default function FiltersClient({
     </>
   );
 }
+
 
