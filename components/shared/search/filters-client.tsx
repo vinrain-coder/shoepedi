@@ -11,7 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader } from "lucide-react";
 
 import SelectedFiltersPills from "./selected-filters-pills";
 import {
@@ -457,9 +457,9 @@ export default function FiltersClient({
       
       {/* Mobile */}
      {isPending && (
-  <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-md flex items-center justify-center">
+  <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-sm flex items-center justify-center">
     <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <Loader className="h-6 w-6 animate-spin text-primary" />
       <span className="text-sm text-muted-foreground">
         Updating results…
       </span>
@@ -543,6 +543,7 @@ export default function FiltersClient({
     </>
   );
 }
+
 
 
 
