@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -15,16 +17,19 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
   const session = await getServerSession();
 
-  //if (!session?.user) {
-     //redirect unauthenticated users to login
-  return (
-     <div className="py-10 text-center">
+  // ✅ Redirect unauthenticated users
+  if (!session?.user) {
+    return (
+      <div className="py-10 text-center">
         <p>You need to sign in to view this page.</p>
         <Link href="/sign-in">
-         <Button className="mt-4">Sign In</Button>
-       </Link>
-     </div>
-   );
+          <Button className="mt-4">Sign In</Button>
+        </Link>
+      </div>
+    );
+
+    // OR use hard redirect instead of message page:
+    // redirect("/sign-in");
   }
 
   return (
@@ -46,6 +51,7 @@ export default async function ProfilePage() {
             </Button>
           </Link>
         </CardContent>
+
         <Separator />
 
         {/* Email */}
@@ -60,6 +66,7 @@ export default async function ProfilePage() {
             </Button>
           </Link>
         </CardContent>
+
         <Separator />
 
         {/* Password */}
@@ -75,6 +82,7 @@ export default async function ProfilePage() {
           </Link>
         </CardContent>
       </Card>
-    </div>
+    <
+  /div>
   );
-}
+  }
