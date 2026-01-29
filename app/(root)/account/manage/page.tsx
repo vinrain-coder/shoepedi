@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
   const session = await getServerSession();
 
-  if (!session?.user) {
-     redirect unauthenticated users to login
+  //if (!session?.user) {
+     //redirect unauthenticated users to login
   return (
      <div className="py-10 text-center">
         <p>You need to sign in to view this page.</p>
