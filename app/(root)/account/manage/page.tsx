@@ -82,7 +82,6 @@ export default async function ProfilePage() {
           </Link>
         </CardContent>
       </Card>
-    <
-  /div>
+    </div>
   );
   }
