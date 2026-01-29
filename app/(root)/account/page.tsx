@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   title: PAGE_TITLE,
 };
 export default async function AccountPage() {
-  const session = await getServerSession();
-  if (!session) {
-    redirect("/sign-in?callbackUrl=/account");
-  }
+ // const session = await getServerSession();
+ // if (!session) {
+   // redirect("/sign-in?callbackUrl=/account");
+  //}
 
   return (
     <div>
