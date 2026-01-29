@@ -13,19 +13,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
- // const session = await getServerSession();
+  const session = await getServerSession();
 
- // if (!session?.user) {
-    // redirect unauthenticated users to login
-  //  return (
-     // <div className="py-10 text-center">
-       // <p>You need to sign in to view this page.</p>
-       // <Link href="/sign-in">
-      //    <Button className="mt-4">Sign In</Button>
-       // </Link>
-   //   </div>
-  //  );
- // }
+  if (!session?.user) {
+     redirect unauthenticated users to login
+  return (
+     <div className="py-10 text-center">
+        <p>You need to sign in to view this page.</p>
+        <Link href="/sign-in">
+         <Button className="mt-4">Sign In</Button>
+       </Link>
+     </div>
+   );
+  }
 
   return (
     <div className="mb-24">
