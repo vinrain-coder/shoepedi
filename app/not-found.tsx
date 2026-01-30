@@ -1,5 +1,6 @@
 "use client";
 
+import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -48,7 +49,9 @@ export default function NotFound() {
             Back to Home
           </Button>
         </div>
+
+        <BrowsingHistoryList />
       </div>
     </div>
   );
-  }
+}

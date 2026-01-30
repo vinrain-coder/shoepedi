@@ -20,7 +20,9 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId }) => {
     >
       <Heart
         size={24}
-        className={`transition ${inWishlist ? "fill-red-500 text-red-500" : "text-gray-500"}`}
+        className={`transition ${
+          inWishlist ? "fill-red-500 text-red-500" : "text-gray-500"
+        }`}
       />
       {inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
     </Button>

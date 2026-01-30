@@ -16,7 +16,6 @@ const db = await getDb();
 
 export const auth = betterAuth({
   database: mongodbAdapter(db),
-
   session: {
     cookieCache: {
       enabled: true, // Enables storing session data in a short-lived cookie
@@ -113,12 +112,9 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          const ADMIN_EMAILS =
-            process.env.ADMIN_EMAILS?.split(";") ?? [];
+          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-          const wishlist = Array.isArray(user.wishlist)
-            ? user.wishlist
-            : [];
+          const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
 
           if (ADMIN_EMAILS.includes(user.email)) {
             return {
@@ -150,4 +146,3 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session;
 export type User = typeof auth.$Infer.Session.user;
-  

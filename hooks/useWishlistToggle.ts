@@ -43,7 +43,7 @@ export function useWishlistToggle(
           const product = await getProductById(productId);
           if (product) addProduct(product);
           await addToWishlist(productId);
-          toast.success("Added to wishlist");
+          toast.success("Added to wishlist♥️");
         }
       } catch {
         // revert if API fails

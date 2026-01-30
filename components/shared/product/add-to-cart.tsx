@@ -63,7 +63,7 @@ export default function AddToCart({
           setIsLoading(true);
           try {
             addItem(item, 1);
-            toast.success("Item added to cart", {
+            toast.success("Item added to cart🛒", {
               action: (
                 <Button
                   onClick={() => {
@@ -96,7 +96,7 @@ export default function AddToCart({
           setIsLoading(true);
           try {
             addItem(item, 1);
-            toast.success("Item added to cart", {
+            toast.success("Item added to cart🛒", {
               action: (
                 <Button
                   onClick={() => {
@@ -132,7 +132,11 @@ export default function AddToCart({
         </SelectTrigger>
         <SelectContent position="popper">
           {Array.from({ length: item.countInStock }).map((_, i) => (
-            <SelectItem key={i + 1} value={`${i + 1}`} className="cursor-pointer">
+            <SelectItem
+              key={i + 1}
+              value={`${i + 1}`}
+              className="cursor-pointer"
+            >
               {i + 1}
             </SelectItem>
           ))}
