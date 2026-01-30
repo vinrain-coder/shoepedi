@@ -5,7 +5,8 @@ import useBrowsingHistory from "@/hooks/use-browsing-history";
 import ProductSlider from "./product/product-slider";
 import { Separator } from "../ui/separator";
 import { cn } from "@/lib/utils";
-0;
+
+// Client-side memory cache
 const requestCache = new Map<string, any>();
 
 export default function BrowsingHistoryList({
@@ -15,11 +16,15 @@ export default function BrowsingHistoryList({
 }) {
   const { products } = useBrowsingHistory();
 
-  // Memoized values (IMPORTANT)
-  const ids = useMemo(() => products.map((p) => p.id).join(","), [products]);
+  // ✅ Memoized values
+  const ids = useMemo(
+    () => products.map((p) => p.id).filter(Boolean).join(","),
+    [products]
+  );
 
   const categories = useMemo(
-    () => [...new Set(products.map((p) => p.category))].join(","),
+    () =>
+      [...new Set(products.map((p) => p.category).filter(Boolean))].join(","),
     [products]
   );
 
@@ -28,14 +33,17 @@ export default function BrowsingHistoryList({
     related: any[];
   } | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!ids) return;
+    if (!ids) {
+      setLoading(false);
+      return;
+    }
 
     const cacheKey = `browsing-${ids}-${categories}`;
 
-    // 1️⃣ CLIENT CACHE HIT
+    // ✅ Cache hit
     if (requestCache.has(cacheKey)) {
       setData(requestCache.get(cacheKey));
       setLoading(false);
@@ -57,19 +65,18 @@ export default function BrowsingHistoryList({
           `/api/products/browsing-history?${query.toString()}`
         );
 
-        if (!res.ok) return;
+        if (!res.ok) throw new Error("Request failed");
 
         const result = await res.json();
 
         if (!mounted) return;
 
-        // 2️⃣ SAVE TO CACHE
         requestCache.set(cacheKey, result);
         setData(result);
       } catch (err) {
         console.error("Browsing history fetch failed:", err);
       } finally {
-        mounted && setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
@@ -84,7 +91,7 @@ export default function BrowsingHistoryList({
 
   return (
     <div className="bg-background">
-      <Separator className={cn("mb-4", className)} />
+    <Separator className={cn("mb-4", className)} />
 
       <ProductSection
         title="Related to items that you've viewed"
@@ -103,6 +110,7 @@ export default function BrowsingHistoryList({
     </div>
   );
 }
+
 function ProductSection({
   title,
   products,
@@ -136,4 +144,5 @@ function ProductSection({
       hideDetails={hideDetails}
     />
   );
-}
+                       }
+    
