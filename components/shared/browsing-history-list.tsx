@@ -16,7 +16,7 @@ export default function BrowsingHistoryList({
 }) {
   const { products } = useBrowsingHistory();
 
-  // ✅ Memoized values
+  // Memoized values
   const ids = useMemo(
     () => products.map((p) => p.id).filter(Boolean).join(","),
     [products]
@@ -43,7 +43,6 @@ export default function BrowsingHistoryList({
 
     const cacheKey = `browsing-${ids}-${categories}`;
 
-    // ✅ Cache hit
     if (requestCache.has(cacheKey)) {
       setData(requestCache.get(cacheKey));
       setLoading(false);
@@ -68,7 +67,6 @@ export default function BrowsingHistoryList({
         if (!res.ok) throw new Error("Request failed");
 
         const result = await res.json();
-
         if (!mounted) return;
 
         requestCache.set(cacheKey, result);
@@ -89,24 +87,38 @@ export default function BrowsingHistoryList({
 
   if (!products.length) return null;
 
+  const relatedProducts = data?.related ?? [];
+  const historyProducts = data?.history ?? [];
+
+  const showRelated = relatedProducts.length > 0;
+  const showHistory = historyProducts.length > 0;
+
   return (
     <div className="bg-background">
-    <Separator className={cn("mb-4", className)} />
+      {/* RELATED SECTION */}
+      {showRelated && (
+        <>
+          <Separator className={cn("mb-4", className)} />
+          <ProductSection
+            title="Related to items that you've viewed"
+            products={relatedProducts}
+            loading={loading}
+          />
+        </>
+      )}
 
-      <ProductSection
-        title="Related to items that you've viewed"
-        products={data?.related ?? []}
-        loading={loading}
-      />
-
-      <Separator className="mb-4" />
-
-      <ProductSection
-        title="Your browsing history"
-        products={data?.history ?? []}
-        hideDetails
-        loading={loading}
-      />
+      {/* HISTORY SECTION */}
+      {showHistory && (
+        <>
+          <Separator className="mb-4" />
+          <ProductSection
+            title="Your browsing history"
+            products={historyProducts}
+            hideDetails
+            loading={loading}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -144,5 +156,5 @@ function ProductSection({
       hideDetails={hideDetails}
     />
   );
-                       }
-    
+      }
+  
