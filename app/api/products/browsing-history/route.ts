@@ -1,36 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cache } from "react";
-
 import Product from "@/lib/db/models/product.model";
 import { connectToDatabase } from "@/lib/db";
 
-/* ---------------------------------------------
-   Stable cached DB call
-   ---------------------------------------------- */
+async function getBrowsingProducts(idsKey: string, categoriesKey: string) {
+  await connectToDatabase();
 
-const getBrowsingProducts = cache(
-  async (idsKey: string, categoriesKey: string) => {
-    await connectToDatabase();
+  const productIds = idsKey.split(",");
+  const categories = categoriesKey.split(",");
 
-    const productIds = idsKey.split(",");
-    const categories = categoriesKey.split(",");
+  const [history, related] = await Promise.all([
+    // Browsing history
+    Product.find({ _id: { $in: productIds } }).lean(),
 
-    const [history, related] = await Promise.all([
-      // Browsing history (ordered)
-      Product.find({ _id: { $in: productIds } }),
+    // Related products (stronger logic)
+    Product.find({
+      $or: [
+        { category: { $in: categories } },
+        { isFeatured: true }, // fallback if category is weak
+      ],
+      _id: { $nin: productIds },
+    })
+      .limit(20)
+      .lean(),
+  ]);
 
-      // Related products (bounded & fast)
-      Product.find({
-        category: { $in: categories },
-        _id: { $nin: productIds },
-      })
-        .limit(20)
-        .lean(),
-    ]);
-
-    return { history, related };
-  }
-);
+  return { history, related, productIds };
+}
 
 export const GET = async (request: NextRequest) => {
   const type = request.nextUrl.searchParams.get("type") || "both";
@@ -41,25 +36,24 @@ export const GET = async (request: NextRequest) => {
     return NextResponse.json({ history: [], related: [] });
   }
 
-  // 1️⃣ SINGLE CACHED CALL
-  const { history, related } = await getBrowsingProducts(ids, categories);
-
-  // 2️⃣ Preserve browsing order
-  const orderedHistory = history.sort(
-    (a, b) => ids.indexOf(a._id.toString()) - ids.indexOf(b._id.toString())
+  const { history, related, productIds } = await getBrowsingProducts(
+    ids,
+    categories
   );
 
-  if (type === "history") {
-    return NextResponse.json(orderedHistory);
-  }
+  // ✅ Preserve browsing order correctly
+  const orderedHistory = history.sort(
+    (a: any, b: any) =>
+      productIds.indexOf(a._id.toString()) -
+      productIds.indexOf(b._id.toString())
+  );
 
-  if (type === "related") {
-    return NextResponse.json(related);
-  }
+  if (type === "history") return NextResponse.json(orderedHistory);
+  if (type === "related") return NextResponse.json(related);
 
-  // 3️⃣ Default: both
   return NextResponse.json({
     history: orderedHistory,
-    related,
+    related
+         ,
   });
 };
