@@ -15,6 +15,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 import type { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getTagBySlug } from "@/lib/actions/tag.actions";
+import { notFound, redirect } from "next/navigation";
 
 /* ------------------------- Metadata ------------------------- */
 export async function generateMetadata({
@@ -32,13 +33,11 @@ export async function generateMetadata({
     getSetting(),
   ]);
 
-  const titleBase =
-    tagData?.name || tagData?.name || tagSlug.replace(/-/g, " ");
+  if (!tagData) return {};
 
+  const titleBase = tagData.name || tagSlug.replace(/-/g, " ");
   const descriptionBase =
-    tagData?.description ||
-    tagData?.description ||
-    `Shop ${titleBase} products at ${site.name}.`;
+    tagData.description || `Shop ${titleBase} products at ${site.name}.`;
 
   const hasFilters = Object.keys(sp || {}).some(
     (k) => sp[k] && sp[k] !== "all" && k !== "page"
@@ -48,7 +47,7 @@ export async function generateMetadata({
     title: hasFilters ? `${titleBase} - Page ${sp.page || 1}` : titleBase,
     description: descriptionBase,
     alternates: {
-      canonical: `${site.url}/tags/${tagSlug}`,
+      canonical: `${site.url}/tags/${tagData.slug}`,
     },
     robots: hasFilters
       ? { index: false, follow: true }
@@ -56,8 +55,8 @@ export async function generateMetadata({
     openGraph: {
       title: titleBase,
       description: descriptionBase,
-      url: `${site.url}/tags/${tagSlug}`,
-      images: tagData?.image ? [tagData.image] : [],
+      url: `${site.url}/tags/${tagData.slug}`,
+      images: tagData.image ? [tagData.image] : [],
       type: "website",
     },
   };
@@ -83,7 +82,13 @@ export default async function TagPage({
   const { tag: tagSlug } = await params;
   const sp = await searchParams;
 
-  //const { site } = await getSetting();
+  const tagData = await getTagBySlug(tagSlug);
+  if (!tagData) notFound();
+
+  // 🔥 Enforce canonical slug from DB
+  if (tagData.slug !== tagSlug) {
+    redirect(`/tags/${tagData.slug}`);
+  }
 
   const {
     q = "all",
@@ -101,7 +106,7 @@ export default async function TagPage({
     q,
     category,
     brand,
-    tag: tagSlug,
+    tag: tagData.slug,
     color,
     size,
     price,
@@ -110,36 +115,42 @@ export default async function TagPage({
     page,
   };
 
-  // Fetch all data
-  const [categories, tags, brands, colors, sizes, data, tagData, { site }] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        tag: tagSlug,
-        category,
-        brand,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-      getTagBySlug(tagSlug),
-      getSetting(),
-    ]);
+  const [
+    categories,
+    tags,
+    brands,
+    colors,
+    sizes,
+    data,
+    { site },
+  ] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      tag: tagData.slug,
+      category,
+      brand,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+    getSetting(),
+  ]);
 
   /* ---------------------- Schema ----------------------- */
   const tagSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: tagData?.name || tagSlug.replace(/-/g, " "),
-    description: tagData?.description || tagData?.description,
+    name: tagData.name,
+    description: tagData.description,
+    url: `${site.url}/tags/${tagData.slug}`,
     publisher: {
       "@type": "Organization",
       name: site.name,
@@ -170,15 +181,10 @@ export default async function TagPage({
       {/* Header */}
       <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
         <div>
-          <h1 className="text-xl font-bold capitalize">
-            {tagData.name
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")}
-          </h1>
+          <h1 className="text-xl font-bold capitalize">{tagData.name}</h1>
           <p>
-            Shop products tagged with {tagData.name.replace(/-/g, " ")}. Filter
-            by category, brand, price, color, size, rating, and more.
+            Shop products tagged with {tagData.name}. Filter by category, brand,
+            price, color, size, rating, and more.
           </p>
           {data.totalProducts === 0
             ? "No results"
@@ -224,4 +230,5 @@ export default async function TagPage({
       </div>
     </div>
   );
-}
+  }
+  
