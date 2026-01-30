@@ -115,34 +115,27 @@ export default async function TagPage({
     page,
   };
 
-  const [
-    categories,
-    tags,
-    brands,
-    colors,
-    sizes,
-    data,
-    { site },
-  ] = await Promise.all([
-    getAllCategories(),
-    getAllTags(),
-    getAllBrands(),
-    getAllColors(),
-    getAllSizes(),
-    getAllProducts({
-      query: q,
-      tag: tagData.slug,
-      category,
-      brand,
-      color,
-      size,
-      price,
-      rating,
-      sort,
-      page: Number(page),
-    }),
-    getSetting(),
-  ]);
+  const [categories, tags, brands, colors, sizes, data, { site }] =
+    await Promise.all([
+      getAllCategories(),
+      getAllTags(),
+      getAllBrands(),
+      getAllColors(),
+      getAllSizes(),
+      getAllProducts({
+        query: q,
+        tag: tagData.slug,
+        category,
+        brand,
+        color,
+        size,
+        price,
+        rating,
+        sort,
+        page: Number(page),
+      }),
+      getSetting(),
+    ]);
 
   /* ---------------------- Schema ----------------------- */
   const tagSchema = {
@@ -230,5 +223,4 @@ export default async function TagPage({
       </div>
     </div>
   );
-  }
-  
+}

@@ -330,40 +330,40 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
           <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
             <div className="flex flex-col gap-3">
-           <div className="flex flex-wrap gap-2">
-  {product.brand && (
-    <Link
-      href={`/brands/${product.brand}`}
-      className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
+              <div className="flex flex-wrap gap-2">
+                {product.brand && (
+                  <Link
+                    href={`/brands/${product.brand}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
                  hover:bg-gray-200 transition-colors"
-    >
-      <Factory className="h-4 w-4 shrink-0" />
-      <span className="leading-none">{product.brand}</span>
-    </Link>
-  )}
+                  >
+                    <Factory className="h-4 w-4 shrink-0" />
+                    <span className="leading-none">{product.brand}</span>
+                  </Link>
+                )}
 
-  {product.category && (
-    <Link
-      href={`/categories/${product.category}`}
-      className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700
+                {product.category && (
+                  <Link
+                    href={`/categories/${product.category}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700
                  hover:bg-blue-200 transition-colors"
-    >
-      <Layers className="h-4 w-4 shrink-0" />
-      <span className="leading-none">{product.category}</span>
-    </Link>
-  )}
+                  >
+                    <Layers className="h-4 w-4 shrink-0" />
+                    <span className="leading-none">{product.category}</span>
+                  </Link>
+                )}
 
-  {product.tags?.[0] && (
-    <Link
-      href={`/tags/${product.tags[0]}`}
-      className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
+                {product.tags?.[0] && (
+                  <Link
+                    href={`/tags/${product.tags[0]}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
                  hover:bg-gray-200 transition-colors"
-    >
-      <Tag className="h-4 w-4 shrink-0" />
-      <span className="leading-none">{product.tags[0]}</span>
-    </Link>
-  )}
-</div>
+                  >
+                    <Tag className="h-4 w-4 shrink-0" />
+                    <span className="leading-none">{product.tags[0]}</span>
+                  </Link>
+                )}
+              </div>
 
               <h1 className="font-bold text-lg lg:text-xl">
                 {product.name}{" "}
@@ -472,31 +472,30 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                   </div>
                 )}
 
-          <div className="rounded-xl border bg-primary/5 p-4">
-  <ul className="space-y-3 text-sm text-gray-700">
-    <li className="flex items-start gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-        <Truck className="h-4 w-4 text-green-600" />
-      </span>
-      <span>Fast delivery across Kenya</span>
-    </li>
+                <div className="rounded-xl border bg-primary/5 p-4">
+                  <ul className="space-y-3 text-sm text-gray-700">
+                    <li className="flex items-start gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                        <Truck className="h-4 w-4 text-green-600" />
+                      </span>
+                      <span>Fast delivery across Kenya</span>
+                    </li>
 
-    <li className="flex items-start gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-        <RotateCcw className="h-4 w-4 text-green-600" />
-      </span>
-      <span>7-day easy returns</span>
-    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                        <RotateCcw className="h-4 w-4 text-green-600" />
+                      </span>
+                      <span>7-day easy returns</span>
+                    </li>
 
-    <li className="flex items-start gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-        <Wallet className="h-4 w-4 text-green-600" />
-      </span>
-      <span>Secure online payment</span>
-    </li>
-  </ul>
-</div>
-
+                    <li className="flex items-start gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                        <Wallet className="h-4 w-4 text-green-600" />
+                      </span>
+                      <span>Secure online payment</span>
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -561,5 +560,3 @@ async function RelatedBoundary({
     />
   );
 }
-
-
