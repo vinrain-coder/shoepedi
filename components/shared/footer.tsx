@@ -51,6 +51,18 @@ export default function Footer() {
         { label: "Featured products", href: "/search?tag=best-seller" },
       ],
     },
+        {
+      title: "My Account",
+      links: [
+        {
+          label: "Account",
+          href: "/account",
+        },
+        { label: "Orders", href: "/account/orders" },
+        { label: "Wishlist", href: "/wishlist" },
+        { label: "Cart", href: "/cart" },
+      ],
+    },
     {
       title: "Get to Know Us",
       links: [
