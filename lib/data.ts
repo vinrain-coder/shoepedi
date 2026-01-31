@@ -1251,9 +1251,9 @@ We also provide helpful resources such as order tracking, product guides, and FA
         pageSize: 9,
       },
       site: {
-        name: "NxtAmzn",
+        name: "ShoePedi",
         description:
-          "NxtAmzn is a sample Ecommerce website built with Next.js, Tailwind CSS, and MongoDB.",
+          "ShoePedi is a sample Ecommerce website built with Next.js, Tailwind CSS, and MongoDB.",
         keywords: "Next Ecommerce, Next.js, Tailwind CSS, MongoDB",
         url: "https://next-mongo-ecommerce-final.vercel.app",
         logo: "/icons/logo.svg",
@@ -1303,7 +1303,7 @@ We also provide helpful resources such as order tracking, product guides, and FA
         { name: "Euro", code: "EUR", symbol: "€", convertRate: 0.96 },
         { name: "UAE Dirham", code: "AED", symbol: "AED", convertRate: 3.67 },
       ],
-      defaultCurrency: "USD",
+      defaultCurrency: "KES",
       availablePaymentMethods: [
         { name: "PayPal", commission: 0 },
         { name: "Stripe", commission: 0 },

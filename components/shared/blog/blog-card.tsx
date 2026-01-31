@@ -27,19 +27,30 @@ export default function BlogCard({ blog }: { blog: any }) {
   }
 
   const firstImageUrl = extractFirstImageUrl(blog.content);
-  const imageSrc = blog.image ?? firstImageUrl;
+  const imageSrc =
+    blog.image && blog.image.trim() !== ""
+      ? blog.image
+      : firstImageUrl && firstImageUrl.trim() !== ""
+      ? firstImageUrl
+      : null;
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg p-0">
       {/* Image */}
       <Link href={`/blogs/${blog.slug}`} className="group block">
         <div className="relative h-40 w-full overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={blog.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={blog.title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+              No Image
+            </div>
+          )}
         </div>
       </Link>
 
