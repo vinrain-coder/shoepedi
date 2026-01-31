@@ -11,7 +11,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 
 export default function BlogCard({ blog }: { blog: any }) {
@@ -28,7 +27,7 @@ export default function BlogCard({ blog }: { blog: any }) {
   }
 
   const firstImageUrl = extractFirstImageUrl(blog.content);
-  const imageSrc = blog.image ?? firstImageUrl ?? "/images/not-found.png";
+  const imageSrc = blog.image ?? firstImageUrl;
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg p-0">
