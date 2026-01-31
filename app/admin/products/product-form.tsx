@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ICategory } from "@/lib/db/models/category.model";
+import { IBrand } from "@/lib/db/models/brand.model";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -99,11 +100,13 @@ const ProductForm = ({
   product,
   productId,
   categories,
+  brands,
 }: {
   type: "Create" | "Update";
   product?: IProduct;
   productId?: string;
   categories: ICategory[];
+  brands: IBrand[];
 }) => {
   const { theme } = useTheme();
   const router = useRouter();
@@ -222,9 +225,22 @@ const ProductForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Brand</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter product brand" {...field} />
-                </FormControl>
+
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl className="w-full">
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                  </FormControl>
+
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.name} value={brand.name}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 <FormMessage />
               </FormItem>

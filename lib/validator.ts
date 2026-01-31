@@ -403,7 +403,7 @@ export const BrandBase = z.object({
     }),
   isFeatured: z.boolean().default(false),
   description: z.string().max(500).optional(),
-  image: z.string().url().optional().or(z.literal("")), 
+  image: z.string().url().optional().or(z.literal("")),
   seoTitle: z.string().max(60).optional(),
   seoDescription: z.string().max(160).optional(),
   seoKeywords: z.array(z.string()).optional(),
@@ -413,6 +413,27 @@ export const BrandInputSchema = BrandBase;
 
 export const BrandUpdateSchema = BrandBase.partial().extend({
   _id: z.string({ required_error: "Brand ID is required" }),
+});
+
+// Tags
+export const TagBase = z.object({
+  name: z
+    .string({ required_error: "Brand name is required" })
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters"),
+  slug: z
+    .string({ required_error: "Slug is required" })
+    .min(2)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+      message: "Slug must be lowercase and can contain hyphens only",
+    }),
+  description: z.string().max(500).optional(),
+});
+export const TagInputSchema = TagBase;
+
+export const TagUpdateSchema = TagBase.partial().extend({
+  _id: z.string({ required_error: "Tag ID is required" }),
 });
 
 // Coupon input schema
