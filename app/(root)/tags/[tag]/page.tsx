@@ -12,12 +12,12 @@ import {
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getTagBySlug } from "@/lib/actions/tag.actions";
 import { notFound, redirect } from "next/navigation";
 
-/* ------------------------- Metadata ------------------------- */
+/* Metadata */
 export async function generateMetadata({
   params,
   searchParams,
