@@ -11,13 +11,12 @@ import { getPublishedBlogs } from "@/lib/actions/blog.actions";
 import {
   getProductsForCard,
   getProductsByTag,
-  getAllCategories,
 } from "@/lib/actions/product.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
-import { toSlug } from "@/lib/utils";
 import { cacheLife } from "next/cache";
 import { getAllCategoriesForStore } from "@/lib/actions/category.actions";
 import { getAllBrandsForStore } from "@/lib/actions/brand.actions";
+import { getAllTagsForStore } from "@/lib/actions/tag.actions";
 
 // Async wrapper components for streaming
 const AsyncHomeCarousel = async () => {
@@ -27,7 +26,7 @@ const AsyncHomeCarousel = async () => {
   return <HomeCarousel items={carousels} />;
 };
 
-// const featureds = await getProductsForCard({ tag: "featured" });
+const featureds = await getProductsForCard({ tag: "featured" });
 
 const AsyncBestSellingProducts = async () => {
   "use cache";
@@ -52,17 +51,25 @@ const AsyncTodaysDeals = async () => {
 const AsyncNewArrivalsCards = async () => {
   "use cache";
   cacheLife("days");
-  const [allCategories, allBrands, newArrivals, featureds, bestSellers] =
-    await Promise.all([
-      getAllCategoriesForStore(),
-      getAllBrandsForStore(),
-      getProductsForCard({ tag: "new-arrival" }),
-      getProductsForCard({ tag: "featured" }),
-      getProductsForCard({ tag: "best-seller" }),
-    ]);
+  const [
+    allCategories,
+    allBrands,
+    allTags,
+    newArrivals,
+    featureds,
+    bestSellers,
+  ] = await Promise.all([
+    getAllCategoriesForStore(),
+    getAllBrandsForStore(),
+    getAllTagsForStore(),
+    getProductsForCard({ tag: "new-arrival" }),
+    getProductsForCard({ tag: "featured" }),
+    getProductsForCard({ tag: "best-seller" }),
+  ]);
 
   const categories = allCategories.slice(0, 4);
   const brands = allBrands.slice(0, 4);
+  const tags = allTags.slice(0, 4);
 
   const cards = [
     {
@@ -81,6 +88,15 @@ const AsyncNewArrivalsCards = async () => {
         name: brand.name,
         image: brand.logo || "/images/not-found.png",
         href: `/brands/${brand.slug}`,
+      })),
+    },
+    {
+      title: "Browse By Tags",
+      link: { text: "View All", href: "/tags" },
+      items: tags.map((tag: any) => ({
+        name: tag.name,
+        image: tag.image || "/images/not-found.png",
+        href: `/tags/${tag.slug}`,
       })),
     },
     {

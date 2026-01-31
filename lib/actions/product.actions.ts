@@ -491,7 +491,7 @@ export async function getAllTags() {
   return tags.map(({ tag }) =>
     tag
       .split(" ") // handle multi-word tags
-      .map((word) =>
+      .map((word: string) =>
         word
           .split("-") // handle dashed words
           .map((part) => part.charAt(0).toUpperCase() + part.slice(1))

@@ -50,11 +50,17 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${product.name} - ${product.brand} | Buy Online in Kenya`;
+  const title = `${product.name} - ${
+    product.brand || product.category
+  } | Buy Online in Kenya`;
 
   const description = product.description
     ? product.description.replace(/[#*]/g, "").slice(0, 160) // Clean markdown and trim
-    : `Shop the ${product.name} by ${product.brand} at ${site.name}. Authentic quality, KES ${product.price}, and fast delivery across Kenya.`;
+    : `Shop the ${product.name} by ${product.brand || product.category} at ${
+        site.name
+      }. Authentic quality, KES ${
+        product.price
+      }, and fast delivery across Kenya.`;
 
   const ogImageUrl = product.images?.[0];
 
