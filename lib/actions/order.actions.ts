@@ -42,10 +42,10 @@ export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
   coupon?: {
-    _id?: string
-    code: string
-    discountType: "percentage" | "fixed"
-    discountAmount: number
+    _id?: string;
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountAmount: number;
   }
 ) => {
   // Recalculate server-side (never trust client totals)
@@ -56,33 +56,30 @@ export const createOrderFromCart = async (
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
     }),
-  }
+  };
 
-  const itemsPrice = cart.itemsPrice
-  const taxPrice = cart.taxPrice
-  const shippingPrice = cart.shippingPrice
+  const itemsPrice = cart.itemsPrice;
+  const taxPrice = cart.taxPrice;
+  const shippingPrice = cart.shippingPrice;
 
-  /* ---------------- COUPON CALCULATION ---------------- */
-  let discountPrice = 0
+  let discountPrice = 0;
 
   if (coupon) {
     if (coupon.discountType === "percentage") {
-      discountPrice = (itemsPrice * coupon.discountAmount) / 100
+      discountPrice = (itemsPrice * coupon.discountAmount) / 100;
     } else {
-      discountPrice = coupon.discountAmount
+      discountPrice = coupon.discountAmount;
     }
 
-    // 🚨 safety: discount cannot exceed items price
-    discountPrice = Math.min(discountPrice, itemsPrice)
+    discountPrice = Math.min(discountPrice, itemsPrice);
   }
 
-  /* ---------------- TOTAL ---------------- */
   const totalPrice = Math.max(
     0,
+    //@ts-expect-error
     itemsPrice + taxPrice + shippingPrice - discountPrice
-  )
+  );
 
-  /* ---------------- ORDER OBJECT ---------------- */
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
@@ -93,7 +90,7 @@ export const createOrderFromCart = async (
     taxPrice,
     shippingPrice,
     discountPrice, // ✅ actual money removed
-    totalPrice,    // ✅ final payable
+    totalPrice, // ✅ final payable
 
     expectedDeliveryDate: cart.expectedDeliveryDate,
 
@@ -105,10 +102,10 @@ export const createOrderFromCart = async (
           discountAmount: coupon.discountAmount,
         }
       : null,
-  })
+  });
 
-  return await Order.create(order)
-}
+  return await Order.create(order);
+};
 
 export async function updateOrderToPaid(orderId: string) {
   try {
@@ -122,7 +119,7 @@ export async function updateOrderToPaid(orderId: string) {
     order.paidAt = new Date();
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order._id);
+      await updateProductStock(order.id);
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -583,7 +580,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
-    await updateProductStock(order._id);
+    await updateProductStock(order.id);
 
     // ----------------------------------------------------
     // 4. Email receipt
