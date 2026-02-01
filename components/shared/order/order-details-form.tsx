@@ -153,25 +153,20 @@ export default function OrderDetailsForm({
                 <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
-            {order.coupon && (
-              <div className="flex justify-between">
-                <span>Coupon ({order.coupon.code}):</span>
-                <span className="text-green-600">
-                  -<ProductPrice price={order.coupon.discountAmount} plain />
-                </span>
-              </div>
-            )}
+   {order.discountPrice > 0 && (
+  <div className="flex justify-between">
+    <span>Coupon ({order.coupon?.code})</span>
+    <span className="text-green-600">
+      -<ProductPrice price={order.discountPrice} plain />
+    </span>
+  </div>
+)}
+
 
             <div className="flex justify-between pt-2 font-bold text-lg">
               <span>Order Total:</span>
               <span>
-                <ProductPrice
-                  price={Math.max(
-                    0,
-                    totalPrice - (order.coupon?.discountAmount || 0)
-                  )}
-                  plain
-                />
+             <ProductPrice price={totalPrice} plain />
               </span>
             </div>
 
