@@ -26,8 +26,6 @@ const AsyncHomeCarousel = async () => {
   return <HomeCarousel items={carousels} />;
 };
 
-const featureds = await getProductsForCard({ tag: "featured" });
-
 const AsyncBestSellingProducts = async () => {
   "use cache";
   cacheLife("days");
