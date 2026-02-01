@@ -58,15 +58,19 @@ export const createOrderFromCart = async (
   };
 
   // Apply coupon if available
-  let totalPrice = cart.totalPrice;
-  if (coupon) {
-    if (coupon.discountType === "percentage") {
-      totalPrice -= (totalPrice * coupon.discountAmount) / 100;
-    } else if (coupon.discountType === "fixed") {
-      totalPrice -= coupon.discountAmount;
-    }
-    totalPrice = Math.max(0, parseFloat(totalPrice.toFixed(2))); // prevent negative totals
+  let totalPrice = itemsPrice + taxPrice + shippingPrice
+let discountPrice = 0
+
+if (coupon) {
+  if (coupon.discountType === "percentage") {
+    discountPrice = (itemsPrice * coupon.discountAmount) / 100
+  } else {
+    discountPrice = coupon.discountAmount
   }
+
+  totalPrice -= discountPrice
+}
+
 
   const order = OrderInputSchema.parse({
     user: userId,
@@ -76,6 +80,7 @@ export const createOrderFromCart = async (
     itemsPrice: cart.itemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
+    discountPrice,
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: coupon
