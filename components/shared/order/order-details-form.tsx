@@ -18,7 +18,6 @@ import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
-import { useState } from "react";
 
 export default function OrderDetailsForm({
   order,
@@ -33,6 +32,8 @@ export default function OrderDetailsForm({
     itemsPrice,
     taxPrice,
     shippingPrice,
+    discountPrice,
+    coupon,
     totalPrice,
     paymentMethod,
     isPaid,
@@ -153,11 +154,11 @@ export default function OrderDetailsForm({
                 <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
-            {order.discountPrice > 0 && (
+            {discountPrice > 0 && (
               <div className="flex justify-between">
-                <span>Coupon ({order.coupon?.code})</span>
+                <span>Coupon ({coupon?.code})</span>
                 <span className="text-green-600">
-                  -<ProductPrice price={order.discountPrice} plain />
+                  -<ProductPrice price={discountPrice} plain />
                 </span>
               </div>
             )}
