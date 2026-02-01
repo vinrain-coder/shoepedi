@@ -56,6 +56,7 @@ const orderSchema = new Schema<IOrder>(
     itemsPrice: { type: Number, required: true },
     shippingPrice: { type: Number, required: true },
     taxPrice: { type: Number, required: true },
+    discountPrice: { type: Number, required: true, default: 0 },
     coupon: {
       _id: { type: Schema.Types.ObjectId, ref: "Coupon" },
       code: { type: String },
