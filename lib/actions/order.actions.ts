@@ -58,19 +58,18 @@ export const createOrderFromCart = async (
   };
 
   // Apply coupon if available
-  let totalPrice = itemsPrice + taxPrice + shippingPrice
-let discountPrice = 0
+  let discountPrice = 0;
 
 if (coupon) {
   if (coupon.discountType === "percentage") {
-    discountPrice = (itemsPrice * coupon.discountAmount) / 100
+    discountPrice = (itemsPrice * coupon.discountAmount) / 100;
   } else {
-    discountPrice = coupon.discountAmount
+    discountPrice = coupon.discountAmount;
   }
-
-  totalPrice -= discountPrice
 }
 
+const totalPrice =
+  itemsPrice + taxPrice + shippingPrice - discountPrice;
 
   const order = OrderInputSchema.parse({
     user: userId,
