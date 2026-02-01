@@ -42,12 +42,13 @@ export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
   coupon?: {
-    _id?: string;
-    code: string;
-    discountType: "percentage" | "fixed";
-    discountAmount: number;
+    _id?: string
+    code: string
+    discountType: "percentage" | "fixed"
+    discountAmount: number
   }
 ) => {
+  // Recalculate server-side (never trust client totals)
   const cart = {
     ...clientSideCart,
     ...calcDeliveryDateAndPrice({
@@ -55,33 +56,47 @@ export const createOrderFromCart = async (
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
     }),
-  };
+  }
 
-  // Apply coupon if available
-  let discountPrice = 0;
+  const itemsPrice = cart.itemsPrice
+  const taxPrice = cart.taxPrice
+  const shippingPrice = cart.shippingPrice
+
+  /* ---------------- COUPON CALCULATION ---------------- */
+  let discountPrice = 0
 
   if (coupon) {
     if (coupon.discountType === "percentage") {
-      discountPrice = (cart.itemsPrice * coupon.discountAmount) / 100;
+      discountPrice = (itemsPrice * coupon.discountAmount) / 100
     } else {
-      discountPrice = coupon.discountAmount;
+      discountPrice = coupon.discountAmount
     }
+
+    // 🚨 safety: discount cannot exceed items price
+    discountPrice = Math.min(discountPrice, itemsPrice)
   }
 
-  const totalPrice =
-    cart.itemsPrice + cart.taxPrice + cart.shippingPrice - discountPrice;
+  /* ---------------- TOTAL ---------------- */
+  const totalPrice = Math.max(
+    0,
+    itemsPrice + taxPrice + shippingPrice - discountPrice
+  )
 
+  /* ---------------- ORDER OBJECT ---------------- */
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
-    itemsPrice: cart.itemsPrice,
-    shippingPrice: cart.shippingPrice,
-    taxPrice: cart.taxPrice,
-    discountPrice,
-    totalPrice,
+
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    discountPrice, // ✅ actual money removed
+    totalPrice,    // ✅ final payable
+
     expectedDeliveryDate: cart.expectedDeliveryDate,
+
     coupon: coupon
       ? {
           _id: coupon._id,
@@ -89,10 +104,11 @@ export const createOrderFromCart = async (
           discountType: coupon.discountType,
           discountAmount: coupon.discountAmount,
         }
-      : undefined,
-  });
-  return await Order.create(order);
-};
+      : null,
+  })
+
+  return await Order.create(order)
+}
 
 export async function updateOrderToPaid(orderId: string) {
   try {
