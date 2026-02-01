@@ -124,10 +124,11 @@ export default function AddToCart({
   return (
     <div className="w-full space-y-2">
       <Select
+      
         value={quantity.toString()}
         onValueChange={(i) => setQuantity(Number(i))}
       >
-        <SelectTrigger className="cursor-pointer">
+        <SelectTrigger className="cursor-pointer w-full">
           <SelectValue>Quantity: {quantity}</SelectValue>
         </SelectTrigger>
         <SelectContent position="popper">

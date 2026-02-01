@@ -201,7 +201,7 @@ const ProductForm = ({
 
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl className="w-full">
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </FormControl>
@@ -233,7 +233,7 @@ const ProductForm = ({
                   }
                 >
                   <FormControl className="w-full">
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select brand (optional)" />
                     </SelectTrigger>
                   </FormControl>

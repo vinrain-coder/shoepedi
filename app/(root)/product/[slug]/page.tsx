@@ -422,7 +422,12 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                   </div>
                 )}
                 {product.countInStock !== 0 ? (
-                  <div className="text-green-700 text-xl">In Stock</div>
+                  <div className="text-green-700 text-xl">
+                    In Stock{" "}
+                    <span className="text-primary font-semibold">
+                      ({product.countInStock})
+                    </span>
+                  </div>
                 ) : (
                   <div className="text-destructive text-xl">Out of Stock</div>
                 )}
