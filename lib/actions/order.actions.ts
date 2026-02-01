@@ -34,7 +34,9 @@ export const calcDeliveryDateAndPrice = async ({
     availableDeliveryDates[
       deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex
     ];
-
+  
+  const expectedDeliveryDate = deliveryDate.date; 
+  
   const shippingPrice =
     !shippingAddress || !deliveryDate
       ? 0
@@ -46,6 +48,7 @@ export const calcDeliveryDateAndPrice = async ({
 
   const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
 
+  
   return {
     availableDeliveryDates,
     deliveryDateIndex:
@@ -54,7 +57,7 @@ export const calcDeliveryDateAndPrice = async ({
     shippingPrice,
     taxPrice,
     totalPrice,
-    expectedDeliveryDate: deliveryDate,
+    expectedDeliveryDate
   };
 };
 
