@@ -22,42 +22,45 @@ export const calcDeliveryDateAndPrice = async ({
   shippingAddress,
   deliveryDateIndex,
 }: {
+  deliveryDateIndex?: number;
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
-  deliveryDateIndex?: number;
 }) => {
   const { availableDeliveryDates } = await getSetting();
-
-  const itemsPrice = round2(items.reduce((acc, item) => acc + item.price * item.quantity, 0));
+  const itemsPrice = round2(
+    items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  );
 
   const deliveryDate =
     availableDeliveryDates[
-      deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex
+      deliveryDateIndex === undefined
+        ? availableDeliveryDates.length - 1
+        : deliveryDateIndex
     ];
-  
-  const expectedDeliveryDate = deliveryDate.date; 
-  
   const shippingPrice =
     !shippingAddress || !deliveryDate
-      ? 0
-      : deliveryDate.freeShippingMinPrice > 0 && itemsPrice >= deliveryDate.freeShippingMinPrice
-      ? 0
-      : deliveryDate.shippingPrice;
+      ? undefined
+      : deliveryDate.freeShippingMinPrice > 0 &&
+          itemsPrice >= deliveryDate.freeShippingMinPrice
+        ? 0
+        : deliveryDate.shippingPrice;
 
-  const taxPrice = !shippingAddress ? 0 : round2(itemsPrice * 0); // change 0 to your tax formula
-
-  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
-
-  
+  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
+  const totalPrice = round2(
+    itemsPrice +
+      (shippingPrice ? round2(shippingPrice) : 0) +
+      (taxPrice ? round2(taxPrice) : 0)
+  );
   return {
     availableDeliveryDates,
     deliveryDateIndex:
-      deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex,
+      deliveryDateIndex === undefined
+        ? availableDeliveryDates.length - 1
+        : deliveryDateIndex,
     itemsPrice,
     shippingPrice,
     taxPrice,
     totalPrice,
-    expectedDeliveryDate
   };
 };
 
