@@ -80,6 +80,15 @@ export const createOrderFromCart = async (
     itemsPrice + taxPrice + shippingPrice - discountPrice
   );
 
+  const couponData = coupon && coupon.code
+  ? {
+      _id: coupon._id,
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountAmount: coupon.discountAmount,
+    }
+  : undefined;
+
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
@@ -91,17 +100,8 @@ export const createOrderFromCart = async (
     shippingPrice,
     discountPrice, // ✅ actual money removed
     totalPrice, // ✅ final payable
-
     expectedDeliveryDate: cart.expectedDeliveryDate,
-
-    coupon: coupon
-      ? {
-          _id: coupon._id,
-          code: coupon.code,
-          discountType: coupon.discountType,
-          discountAmount: coupon.discountAmount,
-        }
-      : null,
+coupon: couponData,    
   });
 
   return await Order.create(order);
@@ -121,7 +121,7 @@ export async function updateOrderToPaid(orderId: string) {
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
       await updateProductStock(order.id);
     if (order.user.email) await sendPurchaseReceipt({ order });
-    revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/accocoupon: couponData, unt/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };
