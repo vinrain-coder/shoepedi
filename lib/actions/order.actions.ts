@@ -16,28 +16,49 @@ import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
-// CREATE
-export const createOrder = async (clientSideCart: Cart) => {
-  try {
-    await connectToDatabase();
-    const session = await getServerSession();
-    if (!session) throw new Error("User not authenticated");
+// calculate delivery date and price 
+export const calcDeliveryDateAndPrice = async ({
+  items,
+  shippingAddress,
+  deliveryDateIndex,
+}: {
+  items: OrderItem[];
+  shippingAddress?: ShippingAddress;
+  deliveryDateIndex?: number;
+}) => {
+  const { availableDeliveryDates } = await getSetting();
 
-    const createdOrder = await createOrderFromCart(
-      clientSideCart,
-      session.user.id!
-    );
+  const itemsPrice = round2(items.reduce((acc, item) => acc + item.price * item.quantity, 0));
 
-    return {
-      success: true,
-      message: "Order placed successfully",
-      data: createdOrder, // <-- return full order
-    };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
+  const deliveryDate =
+    availableDeliveryDates[
+      deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex
+    ];
+
+  const shippingPrice =
+    !shippingAddress || !deliveryDate
+      ? 0
+      : deliveryDate.freeShippingMinPrice > 0 && itemsPrice >= deliveryDate.freeShippingMinPrice
+      ? 0
+      : deliveryDate.shippingPrice;
+
+  const taxPrice = !shippingAddress ? 0 : round2(itemsPrice * 0); // change 0 to your tax formula
+
+  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+
+  return {
+    availableDeliveryDates,
+    deliveryDateIndex:
+      deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex,
+    itemsPrice,
+    shippingPrice,
+    taxPrice,
+    totalPrice,
+    expectedDeliveryDate: deliveryDate,
+  };
 };
 
+// create order from cart 
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
@@ -48,64 +69,80 @@ export const createOrderFromCart = async (
     discountAmount: number;
   }
 ) => {
-  // Recalculate server-side (never trust client totals)
-  const cart = {
-    ...clientSideCart,
-    ...calcDeliveryDateAndPrice({
-      items: clientSideCart.items,
-      shippingAddress: clientSideCart.shippingAddress,
-      deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    }),
-  };
+  await connectToDatabase();
 
-  const itemsPrice = cart.itemsPrice;
-  const taxPrice = cart.taxPrice;
-  const shippingPrice = cart.shippingPrice;
-
-  let discountPrice = 0;
-
-  if (coupon) {
-    if (coupon.discountType === "percentage") {
-      discountPrice = (itemsPrice * coupon.discountAmount) / 100;
-    } else {
-      discountPrice = coupon.discountAmount;
-    }
-
-    discountPrice = Math.min(discountPrice, itemsPrice);
-  }
-
-  const totalPrice = Math.max(
-    0,
-    //@ts-expect-error
-    itemsPrice + taxPrice + shippingPrice - discountPrice
-  );
-
-  const couponData =
-    coupon && coupon.code
-      ? {
-          _id: coupon._id,
-          code: coupon.code,
-          discountType: coupon.discountType,
-          discountAmount: coupon.discountAmount,
-        }
-      : undefined;
-
-  const order = OrderInputSchema.parse({
-    user: userId,
-    items: cart.items,
-    shippingAddress: cart.shippingAddress,
-    paymentMethod: cart.paymentMethod,
-
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    discountPrice, // ✅ actual money removed
-    totalPrice, // ✅ final payable
-    expectedDeliveryDate: cart.expectedDeliveryDate,
-    coupon: couponData,
+  // Recalculate server-side totals
+  const cart = await calcDeliveryDateAndPrice({
+    items: clientSideCart.items,
+    shippingAddress: clientSideCart.shippingAddress,
+    deliveryDateIndex: clientSideCart.deliveryDateIndex,
   });
 
-  return await Order.create(order);
+  const itemsPrice = cart.itemsPrice;
+  const shippingPrice = cart.shippingPrice;
+  const taxPrice = cart.taxPrice;
+
+  // Apply coupon
+  let discountPrice = 0;
+  let couponData;
+  if (coupon && coupon.code) {
+    discountPrice =
+      coupon.discountType === "percentage"
+        ? round2((itemsPrice * coupon.discountAmount) / 100)
+        : round2(coupon.discountAmount);
+
+    discountPrice = Math.min(discountPrice, itemsPrice); // ensure not bigger than itemsPrice
+
+    couponData = {
+      _id: coupon._id,
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountAmount: discountPrice,
+    };
+  }
+
+  // Total after discount
+  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice - discountPrice);
+
+  // Build order for Zod validation
+  const orderData = {
+    user: userId,
+    items: clientSideCart.items,
+    shippingAddress: clientSideCart.shippingAddress,
+    paymentMethod: clientSideCart.paymentMethod,
+    itemsPrice,
+    shippingPrice,
+    taxPrice,
+    discountPrice,
+    totalPrice,
+    expectedDeliveryDate: cart.expectedDeliveryDate,
+    coupon: couponData,
+    isPaid: false,
+    isDelivered: false,
+  };
+
+  const parsedOrder = OrderInputSchema.parse(orderData);
+
+  return await Order.create(parsedOrder);
+};
+
+// Create order (server)
+export const createOrder = async (clientSideCart: Cart) => {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const createdOrder = await createOrderFromCart(clientSideCart, session.user.id!);
+
+    return {
+      success: true,
+      message: "Order placed successfully",
+      data: createdOrder,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
 };
 
 export async function updateOrderToPaid(orderId: string) {
@@ -266,53 +303,6 @@ export async function getOrderById(orderId: string): Promise<IOrder> {
   const order = await Order.findById(orderId);
   return JSON.parse(JSON.stringify(order));
 }
-
-export const calcDeliveryDateAndPrice = async ({
-  items,
-  shippingAddress,
-  deliveryDateIndex,
-}: {
-  deliveryDateIndex?: number;
-  items: OrderItem[];
-  shippingAddress?: ShippingAddress;
-}) => {
-  const { availableDeliveryDates } = await getSetting();
-  const itemsPrice = round2(
-    items.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  );
-
-  const deliveryDate =
-    availableDeliveryDates[
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex
-    ];
-  const shippingPrice =
-    !shippingAddress || !deliveryDate
-      ? undefined
-      : deliveryDate.freeShippingMinPrice > 0 &&
-        itemsPrice >= deliveryDate.freeShippingMinPrice
-      ? 0
-      : deliveryDate.shippingPrice;
-
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
-  const totalPrice = round2(
-    itemsPrice +
-      (shippingPrice ? round2(shippingPrice) : 0) +
-      (taxPrice ? round2(taxPrice) : 0)
-  );
-  return {
-    availableDeliveryDates,
-    deliveryDateIndex:
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex,
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
-    totalPrice,
-  };
-};
 
 // GET ORDERS BY USER
 export async function getOrderSummary(date: DateRange) {
@@ -607,3 +597,5 @@ export async function markPaystackOrderAsPaid(
     return { success: false, message: formatError(err) };
   }
 }
+
+    
