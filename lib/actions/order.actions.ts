@@ -16,7 +16,7 @@ import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
-// calculate delivery date and price 
+// calculate delivery date and price
 export const calcDeliveryDateAndPrice = async ({
   items,
   shippingAddress,
@@ -41,9 +41,9 @@ export const calcDeliveryDateAndPrice = async ({
     !shippingAddress || !deliveryDate
       ? undefined
       : deliveryDate.freeShippingMinPrice > 0 &&
-          itemsPrice >= deliveryDate.freeShippingMinPrice
-        ? 0
-        : deliveryDate.shippingPrice;
+        itemsPrice >= deliveryDate.freeShippingMinPrice
+      ? 0
+      : deliveryDate.shippingPrice;
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
   const totalPrice = round2(
@@ -60,22 +60,22 @@ export const calcDeliveryDateAndPrice = async ({
     itemsPrice,
     shippingPrice,
     taxPrice,
+
     totalPrice,
   };
 };
 
-// create order from cart 
+// create order from cart
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
-   coupon?: {
+  coupon?: {
     _id?: string;
     code: string;
     discountType: "percentage" | "fixed";
     discountAmount: number;
-   }
+  }
 ) => {
-
   await connectToDatabase();
   const cart = {
     ...clientSideCart,
@@ -89,7 +89,6 @@ export const createOrderFromCart = async (
   const itemsPrice = cart.itemsPrice;
   const shippingPrice = cart.shippingPrice;
   const taxPrice = cart.taxPrice;
-  
 
   // Apply coupon
   let discountPrice = 0;
@@ -111,8 +110,10 @@ export const createOrderFromCart = async (
   }
 
   // Total after discount
-  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice - discountPrice);
-
+  const totalPrice = round2(
+    //@ts-ignore
+    itemsPrice + shippingPrice + taxPrice - discountPrice
+  );
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
@@ -121,36 +122,12 @@ export const createOrderFromCart = async (
     itemsPrice: cart.itemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
-    totalPrice: cart.totalPrice,
-    expectedDeliveryDate: cart.expectedDeliveryDate,
-    coupon: couponData,
-  });
-  return await Order.create(order);
-};
-
-  // Total after discount
-  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice - discountPrice);
-
-  // Build order for Zod validation
-  const orderData = {
-    user: userId,
-    items: clientSideCart.items,
-    shippingAddress: clientSideCart.shippingAddress,
-    paymentMethod: clientSideCart.paymentMethod,
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
     discountPrice,
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: couponData,
-    isPaid: false,
-    isDelivered: false,
-  };
-
-  const parsedOrder = OrderInputSchema.parse(orderData);
-
-  return await Order.create(parsedOrder);
+  });
+  return await Order.create(order);
 };
 
 // Create order (server)
@@ -160,7 +137,10 @@ export const createOrder = async (clientSideCart: Cart) => {
     const session = await getServerSession();
     if (!session) throw new Error("User not authenticated");
 
-    const createdOrder = await createOrderFromCart(clientSideCart, session.user.id!);
+    const createdOrder = await createOrderFromCart(
+      clientSideCart,
+      session.user.id!
+    );
 
     return {
       success: true,
@@ -624,5 +604,3 @@ export async function markPaystackOrderAsPaid(
     return { success: false, message: formatError(err) };
   }
 }
-
-    
