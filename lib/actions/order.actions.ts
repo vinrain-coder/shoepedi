@@ -68,25 +68,28 @@ export const calcDeliveryDateAndPrice = async ({
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
-  coupon?: {
+   coupon?: {
     _id?: string;
     code: string;
     discountType: "percentage" | "fixed";
     discountAmount: number;
-  }
+   }
 ) => {
-  await connectToDatabase();
 
-  // Recalculate server-side totals
-  const cart = await calcDeliveryDateAndPrice({
-    items: clientSideCart.items,
-    shippingAddress: clientSideCart.shippingAddress,
-    deliveryDateIndex: clientSideCart.deliveryDateIndex,
-  });
+  await connectToDatabase();
+  const cart = {
+    ...clientSideCart,
+    ...calcDeliveryDateAndPrice({
+      items: clientSideCart.items,
+      shippingAddress: clientSideCart.shippingAddress,
+      deliveryDateIndex: clientSideCart.deliveryDateIndex,
+    }),
+  };
 
   const itemsPrice = cart.itemsPrice;
   const shippingPrice = cart.shippingPrice;
   const taxPrice = cart.taxPrice;
+  
 
   // Apply coupon
   let discountPrice = 0;
@@ -106,6 +109,24 @@ export const createOrderFromCart = async (
       discountAmount: discountPrice,
     };
   }
+
+  // Total after discount
+  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice - discountPrice);
+
+  const order = OrderInputSchema.parse({
+    user: userId,
+    items: cart.items,
+    shippingAddress: cart.shippingAddress,
+    paymentMethod: cart.paymentMethod,
+    itemsPrice: cart.itemsPrice,
+    shippingPrice: cart.shippingPrice,
+    taxPrice: cart.taxPrice,
+    totalPrice: cart.totalPrice,
+    expectedDeliveryDate: cart.expectedDeliveryDate,
+    coupon: couponData,
+  });
+  return await Order.create(order);
+};
 
   // Total after discount
   const totalPrice = round2(itemsPrice + shippingPrice + taxPrice - discountPrice);
