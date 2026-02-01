@@ -153,33 +153,32 @@ export default function OrderDetailsForm({
                 <ProductPrice price={shippingPrice} plain />
               </div>
             </div>
-   {order.discountPrice > 0 && (
-  <div className="flex justify-between">
-    <span>Coupon ({order.coupon?.code})</span>
-    <span className="text-green-600">
-      -<ProductPrice price={order.discountPrice} plain />
-    </span>
-  </div>
-)}
-
+            {order.discountPrice > 0 && (
+              <div className="flex justify-between">
+                <span>Coupon ({order.coupon?.code})</span>
+                <span className="text-green-600">
+                  -<ProductPrice price={order.discountPrice} plain />
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between pt-2 font-bold text-lg">
               <span>Order Total:</span>
               <span>
-             <ProductPrice price={totalPrice} plain />
+                <ProductPrice price={totalPrice} plain />
               </span>
             </div>
 
             {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
               <ActionButton
                 caption="Mark as paid"
-                action={() => updateOrderToPaid(order._id)}
+                action={() => updateOrderToPaid(order.id)}
               />
             )}
             {isAdmin && isPaid && !isDelivered && (
               <ActionButton
                 caption="Mark as delivered"
-                action={() => deliverOrder(order._id)}
+                action={() => deliverOrder(order.id)}
               />
             )}
           </CardContent>

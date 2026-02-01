@@ -60,16 +60,16 @@ export const createOrderFromCart = async (
   // Apply coupon if available
   let discountPrice = 0;
 
-if (coupon) {
-  if (coupon.discountType === "percentage") {
-    discountPrice = (itemsPrice * coupon.discountAmount) / 100;
-  } else {
-    discountPrice = coupon.discountAmount;
+  if (coupon) {
+    if (coupon.discountType === "percentage") {
+      discountPrice = (cart.itemsPrice * coupon.discountAmount) / 100;
+    } else {
+      discountPrice = coupon.discountAmount;
+    }
   }
-}
 
-const totalPrice =
-  itemsPrice + taxPrice + shippingPrice - discountPrice;
+  const totalPrice =
+    cart.itemsPrice + cart.taxPrice + cart.shippingPrice - discountPrice;
 
   const order = OrderInputSchema.parse({
     user: userId,

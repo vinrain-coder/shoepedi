@@ -9,10 +9,11 @@ export interface ICouponInfo {
 }
 
 export interface IOrder extends Document, IOrderInput {
-  _id: string;
+  id: string;
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
+  discountPrice: number;
 }
 
 const orderSchema = new Schema<IOrder>(
