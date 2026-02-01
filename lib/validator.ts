@@ -161,6 +161,7 @@ export const CartSchema = z.object({
   itemsPrice: z.number(),
   taxPrice: z.optional(z.number()),
   shippingPrice: z.optional(z.number()),
+  discountPrice: z.optional(z.number()),
   totalPrice: z.number(),
   paymentMethod: z.optional(z.string()),
   shippingAddress: z.optional(ShippingAddressSchema),
@@ -222,7 +223,7 @@ export const UserNameSchema = z.object({
 export const WebPageInputSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
-  image: z.string().url().optional().or(z.literal("")), 
+  image: z.string().url().optional().or(z.literal("")),
   excerpt: z.string().max(160).optional(),
   content: z.string().min(1, "Content is required"),
   isPublished: z.boolean(),

@@ -7,7 +7,7 @@ export enum DiscountType {
 }
 
 export interface ICoupon extends Document, ICouponInput {
-  _id: Types.ObjectId;
+  id: string;
   code: string;
   discountType: DiscountType;
   discountValue: number;

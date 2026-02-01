@@ -80,14 +80,15 @@ export const createOrderFromCart = async (
     itemsPrice + taxPrice + shippingPrice - discountPrice
   );
 
-  const couponData = coupon && coupon.code
-  ? {
-      _id: coupon._id,
-      code: coupon.code,
-      discountType: coupon.discountType,
-      discountAmount: coupon.discountAmount,
-    }
-  : undefined;
+  const couponData =
+    coupon && coupon.code
+      ? {
+          _id: coupon._id,
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountAmount: coupon.discountAmount,
+        }
+      : undefined;
 
   const order = OrderInputSchema.parse({
     user: userId,
@@ -101,7 +102,7 @@ export const createOrderFromCart = async (
     discountPrice, // ✅ actual money removed
     totalPrice, // ✅ final payable
     expectedDeliveryDate: cart.expectedDeliveryDate,
-coupon: couponData,    
+    coupon: couponData,
   });
 
   return await Order.create(order);
