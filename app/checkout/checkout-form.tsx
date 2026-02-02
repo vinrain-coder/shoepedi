@@ -100,7 +100,6 @@ const CheckoutForm = () => {
       itemsPrice,
       shippingPrice,
       taxPrice,
-      
       totalPrice,
       shippingAddress,
       deliveryDateIndex,
@@ -152,7 +151,7 @@ const CheckoutForm = () => {
         ),
         deliveryDateIndex,
         paymentMethod,
-        itemsPrice, 
+        itemsPrice,
         shippingPrice,
         taxPrice,
         totalPrice,

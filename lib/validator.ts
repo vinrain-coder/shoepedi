@@ -132,7 +132,6 @@ export const OrderInputSchema = z.object({
   itemsPrice: Price("Items price"),
   shippingPrice: Price("Shipping price"),
   taxPrice: Price("Tax price"),
-  discountPrice: Price("Discount price"),
   totalPrice: Price("Total price"),
   expectedDeliveryDate: z
     .date()
@@ -223,7 +222,7 @@ export const UserNameSchema = z.object({
 export const WebPageInputSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
-  image: z.string().url().optional().or(z.literal("")),
+  image: z.string().url().optional().or(z.literal("")), 
   excerpt: z.string().max(160).optional(),
   content: z.string().min(1, "Content is required"),
   isPublished: z.boolean(),

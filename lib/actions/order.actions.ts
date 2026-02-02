@@ -58,13 +58,12 @@ export const createOrderFromCart = async (
   };
 
   // Apply coupon if available
-  let itemsPrice = cart.itemsPrice;
   let totalPrice = cart.totalPrice;
   if (coupon) {
     if (coupon.discountType === "percentage") {
-      totalPrice = itemsPrice - (itemsPrice * coupon.discountAmount) / 100;
+      totalPrice -= (totalPrice * coupon.discountAmount) / 100;
     } else if (coupon.discountType === "fixed") {
-      totalPrice = itemsPrice - coupon.discountAmount;
+      totalPrice -= coupon.discountAmount;
     }
     totalPrice = Math.max(0, parseFloat(totalPrice.toFixed(2))); // prevent negative totals
   }
@@ -77,7 +76,6 @@ export const createOrderFromCart = async (
     itemsPrice: cart.itemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
-    discountPrice: coupon ? coupon.discountAmount : 0,
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: coupon
@@ -104,7 +102,7 @@ export async function updateOrderToPaid(orderId: string) {
     order.paidAt = new Date();
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order.id);
+      await updateProductStock(order._id);
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -565,7 +563,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
-    await updateProductStock(order.id);
+    await updateProductStock(order._id);
 
     // ----------------------------------------------------
     // 4. Email receipt

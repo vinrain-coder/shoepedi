@@ -33,7 +33,6 @@ export default function OrderDetailsForm({
     itemsPrice,
     taxPrice,
     shippingPrice,
-    discountPrice,
     totalPrice,
     paymentMethod,
     isPaid,
