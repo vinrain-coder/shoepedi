@@ -241,12 +241,14 @@ export async function getMyOrders({
     totalPages: Math.ceil(ordersCount / limit),
   };
 }
-export async function getOrderById(orderId: string): Promise<IOrder> {
-  "use cache";
-  cacheLife("hours");
+export async function getOrderById(orderId: string): Promise<IOrder | null> {
   await connectToDatabase();
-  const order = await Order.findById(orderId);
-  return JSON.parse(JSON.stringify(order));
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) return null;
+
+  const order = await Order.findById(orderId).lean();
+
+  return order ? JSON.parse(JSON.stringify(order)) : null;
 }
 
 export const calcDeliveryDateAndPrice = async ({
