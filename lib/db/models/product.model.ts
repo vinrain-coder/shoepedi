@@ -6,7 +6,7 @@ export interface IProduct extends Document, IProductInput {
   avgRating: number;
   ratingDistribution: { rating: number; count: number }[];
   slug: string;
-  _id: string;
+  id: string;
   createdAt: Date;
   updatedAt: Date;
 }

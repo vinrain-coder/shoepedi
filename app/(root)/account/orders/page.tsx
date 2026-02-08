@@ -58,10 +58,10 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
             )}
 
             {orders.data.map((order: IOrder) => (
-              <TableRow key={order._id}>
+              <TableRow key={order.id}>
                 <TableCell>
                   <Link href={`/account/orders/${order._id}`}>
-                    {formatId(order._id)}
+                    {formatId(order.id)}
                   </Link>
                 </TableCell>
 

@@ -23,7 +23,7 @@ export default function OrderDetailsForm({
 }: {
   order: IOrder;
   isAdmin: boolean;
-  clientSecret: string | null;
+  //clientSecret: string | null;
   paystackPublicKey?: string | null;
 }) {
   const { data: session } = authClient.useSession();
@@ -117,7 +117,7 @@ export default function OrderDetailsForm({
                     email={session?.user.email as string}
                     amount={Math.round(order.totalPrice * 100)}
                     publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={order._id}
+                    orderId={order.id}
                     onSuccess={() =>
                       router.push(`/account/orders/${order._id}`)
                     }
