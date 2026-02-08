@@ -23,6 +23,7 @@ import WishlistButton from "@/components/shared/product/wishlist-button";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
+import ReadMore from "@/components/shared/read-more";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -324,7 +325,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                   href={product.videoLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline text-sm font-medium"
                 >
                   Watch here
                 </a>
@@ -340,8 +341,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.brand && (
                   <Link
                     href={`/brands/${product.brand}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
-                 hover:bg-gray-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
                   >
                     <Factory className="h-4 w-4 shrink-0" />
                     <span className="leading-none">{product.brand}</span>
@@ -362,8 +362,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.tags?.[0] && (
                   <Link
                     href={`/tags/${product.tags[0]}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700
-                 hover:bg-gray-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
                   >
                     <Tag className="h-4 w-4 shrink-0" />
                     <span className="leading-none">{product.tags[0]}</span>
@@ -514,11 +513,13 @@ export default async function ProductDetails({ params, searchParams }: Props) {
       </section>
 
       <section className="mt-10 max-w-5xl mx-auto">
-        <h2 className="font-bold text-lg mb-2">Product Description</h2>
-        <MarkdownRenderer
-          content={product.description}
-          className="prose prose-lg max-w-none"
-        />
+        <h2 className="font-bold text-lg mb-2">Description</h2>
+        <ReadMore maxHeight={200}>
+          <MarkdownRenderer
+            content={product.description}
+            className="prose prose-lg max-w-none"
+          />
+        </ReadMore>
       </section>
 
       <div className="flex flex-col gap-2 my-2">

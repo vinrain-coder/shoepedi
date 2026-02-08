@@ -4,11 +4,7 @@ import OrderDetailsForm from "@/components/shared/order/order-details-form";
 import { formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string };
-}) {
+export async function generateMetadata({ params }: { params: { id: string } }) {
   return {
     title: `Order ${formatId(params.id)}`,
   };
@@ -36,6 +32,5 @@ export default async function OrderDetailsPage({
         isAdmin={session?.user?.role === "ADMIN"}
       />
     </div>
-
   );
 }

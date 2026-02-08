@@ -2,14 +2,14 @@ import { IOrderInput } from "@/types";
 import { Document, Model, model, models, Schema } from "mongoose";
 
 export interface ICouponInfo {
-  _id?: string; // optional if referencing a coupon document
+  id?: string; // optional if referencing a coupon document
   code: string;
   discountType: "percentage" | "fixed";
   discountAmount: number;
 }
 
 export interface IOrder extends Document, IOrderInput {
-  _id: string;
+  id: string;
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
