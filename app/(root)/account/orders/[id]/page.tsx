@@ -4,26 +4,25 @@ import OrderDetailsForm from "@/components/shared/order/order-details-form";
 import { formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
 
-export async function generateMetadata(props: {
-  params: Promise<{ id: string }>;
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
 }) {
-  const params = await props.params;
-
   return {
     title: `Order ${formatId(params.id)}`,
   };
 }
 
-export default async function OrderDetailsPage(props: {
-  params: Promise<{
-    id: string;
-  }>;
+export default async function OrderDetailsPage({
+  params,
+}: {
+  params: { id: string };
 }) {
-  const params = await props.params;
-
   const { id } = params;
 
   const order = await getOrderById(id);
+
   if (!order) notFound();
 
   const session = await getServerSession();
@@ -31,10 +30,12 @@ export default async function OrderDetailsPage(props: {
   return (
     <div>
       <h1 className="h1-bold py-4">Order {formatId(order.id)}</h1>
+
       <OrderDetailsForm
         order={order}
-        isAdmin={session?.user?.role === "Admin" || false}
+        isAdmin={session?.user?.role === "ADMIN"}
       />
     </div>
+
   );
 }
