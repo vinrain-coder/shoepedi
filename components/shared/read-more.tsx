@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default function ReadMore({
   children,
-  maxHeight = 180, // px before collapse
+  maxHeight = 200,
   className,
 }: {
   children: React.ReactNode;
@@ -37,7 +37,7 @@ export default function ReadMore({
         {children}
 
         {!expanded && showButton && (
-          <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent dark:bg-gradient-to-t dark:from-black/80 dark:to-transparent pointer-events-none" />
         )}
       </div>
 

@@ -341,7 +341,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.brand && (
                   <Link
                     href={`/brands/${product.brand}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted hover:bg-muted-200 px-3 py-1 text-sm font-medium transition-colors"
                   >
                     <Factory className="h-4 w-4 shrink-0" />
                     <span className="leading-none">{product.brand}</span>
@@ -351,8 +351,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.category && (
                   <Link
                     href={`/categories/${product.category}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700
-                 hover:bg-blue-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary/5 hover:bg-primary/10 px-3 py-1 text-sm font-medium text-primary/80 transition-colors"
                   >
                     <Layers className="h-4 w-4 shrink-0" />
                     <span className="leading-none">{product.category}</span>
@@ -362,7 +361,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.tags?.[0] && (
                   <Link
                     href={`/tags/${product.tags[0]}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-medium hover:bg-muted-200 transition-colors"
                   >
                     <Tag className="h-4 w-4 shrink-0" />
                     <span className="leading-none">{product.tags[0]}</span>
@@ -483,7 +482,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 )}
 
                 <div className="rounded-xl border bg-primary/5 p-4">
-                  <ul className="space-y-3 text-sm text-gray-700">
+                  <ul className="space-y-3 text-sm">
                     <li className="flex items-start gap-3">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
                         <Truck className="h-4 w-4 text-green-600" />
