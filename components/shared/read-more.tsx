@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default function ReadMore({
   children,
-  maxHeight = 200,
+  maxHeight = 180,
   className,
 }: {
   children: React.ReactNode;
