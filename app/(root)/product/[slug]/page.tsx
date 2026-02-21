@@ -67,50 +67,33 @@ export async function generateMetadata({
 
   return {
     title,
-
     description,
-
     alternates: {
       canonical: `${site.url}/product/${product.slug}`,
     },
-
     robots: {
       index: true,
-
       follow: true,
-
       googleBot: {
         index: true,
-
         follow: true,
-
         "max-video-preview": -1,
-
         "max-image-preview": "large",
-
         "max-snippet": -1,
       },
     },
 
     openGraph: {
       title,
-
       description,
-
       url: `${site.url}/product/${product.slug}`,
-
       siteName: site.name,
-
       type: "website", // Use "website" or "og:product" if supported by your provider
-
       images: [
         {
           url: ogImageUrl,
-
           width: 1200,
-
           height: 630,
-
           alt: product.name,
         },
       ],
@@ -118,11 +101,8 @@ export async function generateMetadata({
 
     twitter: {
       card: "summary_large_image",
-
       title,
-
       description,
-
       images: [ogImageUrl],
     },
   };
@@ -130,7 +110,6 @@ export async function generateMetadata({
 
 type Props = {
   params: any;
-
   searchParams: any;
 };
 
@@ -138,12 +117,9 @@ function ReviewsLoading() {
   return (
     <div id="reviews-loading" className="p-4 bg-white rounded-lg shadow-sm">
       <div className="h-6 w-48 bg-gray-200 rounded mb-3 animate-pulse" />
-
       <div className="space-y-2">
         <div className="h-4 bg-gray-200 rounded animate-pulse" />
-
         <div className="h-4 bg-gray-200 rounded animate-pulse" />
-
         <div className="h-4 bg-gray-200 rounded animate-pulse" />
       </div>
     </div>
@@ -154,10 +130,8 @@ function RelatedLoading() {
   return (
     <div className="p-4">
       <div className="h-6 w-56 bg-gray-200 rounded mb-3 animate-pulse" />
-
       <div className="grid grid-cols-2 gap-3">
         <div className="h-32 bg-gray-200 rounded animate-pulse" />
-
         <div className="h-32 bg-gray-200 rounded animate-pulse" />
       </div>
     </div>
@@ -166,9 +140,7 @@ function RelatedLoading() {
 
 export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
-
   const query = await searchParams;
-
   const [product, { site }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
@@ -180,72 +152,46 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
   const relatedProductsPromise = getRelatedProductsByCategory({
     category: product.category,
-
     productId: product._id.toString(),
-
     page: Number(query.page || "1"),
   });
 
   const selectedColor = query.color || product.colors?.[0];
-
   const selectedSize = query.size || product.sizes?.[0];
-
   const productJsonLd = {
     "@context": "https://schema.org",
-
     "@type": "Product",
-
     "@id": `${site.url}/product/${product.slug}`,
-
     name: product.name,
-
     image: product.images?.filter((img: string) => img && img !== ""),
-
     description: product.description?.replace(/[#*]/g, ""),
-
     sku: product._id.toString(),
-
     brand: {
       "@type": "Brand",
-
       name: product.brand || "ShoePedi",
     },
-
     offers: {
       "@type": "Offer",
-
       url: `${site.url}/product/${product.slug}`,
-
       priceCurrency: "KES",
-
       price: product.price,
-
       priceValidUntil: "2026-12-31", // Keeps the price relevant in search
-
       availability:
         product.countInStock > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
-
       itemCondition: "https://schema.org/NewCondition",
-
       shippingDetails: {
         "@type": "OfferShippingDetails",
-
         shippingRate: {
           "@type": "MonetaryAmount",
-
           value: "0", // Change if you have shipping costs
-
           currency: "KES",
         },
-
         deliveryTime: {
           "@type": "ShippingDeliveryTime",
-
           businessDays: {
             minValue: 1,
-
             maxValue: 3,
           },
         },
@@ -253,16 +199,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
-
         applicableCountry: "KE",
-
         returnPolicyCategory:
           "https://schema.org/MerchantReturnFiniteReturnPeriod",
-
         merchantReturnDays: 7,
-
         returnMethod: "https://schema.org/ReturnByMail",
-
         returnFees: "https://schema.org/FreeReturn",
       },
     },
@@ -273,13 +214,9 @@ export default async function ProductDetails({ params, searchParams }: Props) {
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
-
             ratingValue: product.avgRating,
-
             reviewCount: product.numReviews,
-
             bestRating: "5",
-
             worstRating: "1",
           },
         }
@@ -435,25 +372,15 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       <AddToCart
                         item={{
                           clientId: generateId(),
-
                           product: product._id.toString(),
-
                           countInStock: product.countInStock,
-
                           name: product.name,
-
                           slug: product.slug,
-
                           category: product.category,
-
                           price: round2(product.price),
-
                           quantity: 1,
-
                           image: product.images?.[0],
-
                           size: selectedSize,
-
                           color: selectedColor,
                         }}
                       />
@@ -469,7 +396,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                       <WishlistButton
                         productId={product._id.toString()}
                         //@ts-expect-error
-
                         initialWishlist={[]}
                       />
                     </div>
@@ -521,15 +447,13 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         </ReadMore>
       </section>
 
-      <div className="flex flex-col gap-2 my-2">
+      <div className="flex flex-col gap-2 my-2 mt-4">
         <h3 className="font-semibold">Share this product</h3>
-
         <ShareProduct slug={product.slug} name={product.name} />
       </div>
 
       <section className="mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
-
         <Suspense fallback={<ReviewsLoading />}>
           <ReviewList product={product} />
         </Suspense>
@@ -551,19 +475,14 @@ export default async function ProductDetails({ params, searchParams }: Props) {
 
 async function RelatedBoundary({
   relatedProductsPromise,
-
   category,
 }: {
   relatedProductsPromise: Promise<any>;
-
   category: string;
 }) {
   "use cache";
-
   cacheLife("days");
-
   const related = await relatedProductsPromise;
-
   return (
     <ProductSlider
       products={related?.data || []}

@@ -20,7 +20,11 @@ const CreateProductPage = async () => {
       </div>
 
       <div className="my-8">
-        <ProductForm type="Create" categories={categories} brands={brands} />
+        <ProductForm
+          type="Create"
+          categories={categories as any}
+          brands={brands as any}
+        />
       </div>
     </main>
   );

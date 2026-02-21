@@ -102,7 +102,7 @@ export async function updateOrderToPaid(orderId: string) {
     order.paidAt = new Date();
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order._id);
+      await updateProductStock(order.id);
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -563,7 +563,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
-    await updateProductStock(order._id);
+    await updateProductStock(order.id);
 
     // ----------------------------------------------------
     // 4. Email receipt

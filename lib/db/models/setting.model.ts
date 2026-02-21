@@ -2,7 +2,7 @@ import { ISettingInput } from "@/types";
 import { Document, Model, model, models, Schema } from "mongoose";
 
 export interface ISetting extends Document, ISettingInput {
-  _id: string;
+  id: string;
   createdAt: Date;
   updatedAt: Date;
 }

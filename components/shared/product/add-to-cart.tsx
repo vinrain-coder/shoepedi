@@ -124,7 +124,6 @@ export default function AddToCart({
   return (
     <div className="w-full space-y-2">
       <Select
-      
         value={quantity.toString()}
         onValueChange={(i) => setQuantity(Number(i))}
       >
@@ -150,7 +149,7 @@ export default function AddToCart({
         onClick={handleAddToCart}
         disabled={isLoading}
       >
-        {isLoading ? "Loading..." : "Add to Cart"}
+        {isLoading ? "Loading..." : "🛒 Add to Cart"}
       </Button>
 
       <Button
@@ -159,7 +158,7 @@ export default function AddToCart({
         disabled={isBuyNowLoading}
         className="w-full rounded-full cursor-pointer"
       >
-        {isBuyNowLoading ? "Loading..." : "Buy Now"}
+        {isBuyNowLoading ? "Loading..." : "🛍️ Buy Now"}
       </Button>
     </div>
   );

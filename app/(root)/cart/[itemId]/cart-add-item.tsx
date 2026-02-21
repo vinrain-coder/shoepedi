@@ -43,7 +43,7 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
             <div>
               <h3 className="text-xl font-bold flex gap-2 my-2">
                 <CheckCircle2Icon className="h-6 w-6 text-green-700" />
-                Added to cart🛒
+                Added to cart
               </h3>
               <p className="text-sm">
                 <span className="font-bold"> Color: </span> {item.color ?? "-"}
