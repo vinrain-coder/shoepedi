@@ -14,6 +14,12 @@ import { OrderItem } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  ShoppingCart,
+  Loader2,
+  CreditCard,
+  ArrowRight,
+} from "lucide-react";
 
 export default function AddToCart({
   item,
@@ -22,11 +28,10 @@ export default function AddToCart({
 }: {
   item: OrderItem;
   minimal?: boolean;
-  children?: React.ReactNode; // 👈 new
+  children?: React.ReactNode;
 }) {
   const router = useRouter();
   const { addItem } = useCartStore();
-
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
@@ -46,7 +51,7 @@ export default function AddToCart({
   const handleBuyNow = async () => {
     setIsBuyNowLoading(true);
     try {
-      addItem(item, quantity);
+      await addItem(item, quantity);
       router.push(`/checkout`);
     } catch (error: any) {
       toast.error(`ERROR! ${error.message}`);
@@ -62,14 +67,11 @@ export default function AddToCart({
         onClick={async () => {
           setIsLoading(true);
           try {
-            addItem(item, 1);
-            toast.success("Item added to cart🛒", {
+            await addItem(item, 1);
+            toast.success("Item added to cart 🛒", {
               action: (
-                <Button
-                  onClick={() => {
-                    router.push("/cart");
-                  }}
-                >
+                <Button onClick={() => router.push("/cart")}>
+                  <ArrowRight className="w-4 h-4 mr-2" />
                   Go to Cart
                 </Button>
               ),
@@ -80,29 +82,30 @@ export default function AddToCart({
             setIsLoading(false);
           }
         }}
-        className="cursor-pointer"
+        className="cursor-pointer inline-flex items-center"
       >
-        {children}
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          children
+        )}
       </span>
     );
   }
 
-  // 👉 minimal mode (default simple button)
+  // 👉 minimal mode
   if (minimal) {
     return (
       <Button
-        className="rounded-full w-auto cursor-pointer"
+        className="rounded-full w-auto cursor-pointer flex items-center gap-2"
         onClick={async () => {
           setIsLoading(true);
           try {
-            addItem(item, 1);
-            toast.success("Item added to cart🛒", {
+            await addItem(item, 1);
+            toast.success("Item added to cart 🛒", {
               action: (
-                <Button
-                  onClick={() => {
-                    router.push("/cart");
-                  }}
-                >
+                <Button onClick={() => router.push("/cart")}>
+                  <ArrowRight className="w-4 h-4 mr-2" />
                   Go to Cart
                 </Button>
               ),
@@ -115,12 +118,22 @@ export default function AddToCart({
         }}
         disabled={isLoading}
       >
-        {isLoading ? "Loading..." : "Add to Cart"}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading...
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-4 h-4" />
+            Add to Cart
+          </>
+        )}
       </Button>
     );
   }
 
-  // 👉 full mode (quantity + add + buy now)
+  // 👉 full mode
   return (
     <div className="w-full space-y-2">
       <Select
@@ -143,23 +156,45 @@ export default function AddToCart({
         </SelectContent>
       </Select>
 
+      {/* Add to Cart */}
       <Button
-        className="rounded-full w-full cursor-pointer"
+        className="rounded-full w-full cursor-pointer flex items-center justify-center gap-2"
         type="button"
         onClick={handleAddToCart}
         disabled={isLoading}
       >
-        {isLoading ? "Loading..." : "🛒 Add to Cart"}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading...
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-4 h-4" />
+            Add to Cart
+          </>
+        )}
       </Button>
 
+      {/* Buy Now */}
       <Button
         variant="secondary"
         onClick={handleBuyNow}
         disabled={isBuyNowLoading}
-        className="w-full rounded-full cursor-pointer"
+        className="w-full rounded-full cursor-pointer flex items-center justify-center gap-2"
       >
-        {isBuyNowLoading ? "Loading..." : "🛍️ Buy Now"}
+        {isBuyNowLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading...
+          </>
+        ) : (
+          <>
+            <CreditCard className="w-4 h-4" />
+            Buy Now
+          </>
+        )}
       </Button>
     </div>
   );
-}
+  }
