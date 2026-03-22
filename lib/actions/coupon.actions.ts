@@ -126,7 +126,7 @@ export async function getAllCoupons({
 }
 
 // VALIDATE COUPON DURING CHECKOUT
-export async function validateCoupon(code: string, orderTotal: number) {
+export async function validateCoupon(code: string, itemsTotal: number) {
   await connectToDatabase();
 
   const normalizedCode = normalizeCouponCode(code);
@@ -141,18 +141,18 @@ export async function validateCoupon(code: string, orderTotal: number) {
   if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
     throw new Error("Coupon usage limit reached.");
   }
-  if (coupon.minPurchase && orderTotal < coupon.minPurchase) {
+  if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
     throw new Error(`Minimum purchase amount required: ${coupon.minPurchase}`);
   }
 
   let discount = 0;
   if (coupon.discountType === "percentage") {
-    discount = (coupon.discountValue / 100) * orderTotal;
+    discount = (coupon.discountValue / 100) * itemsTotal;
   } else {
     discount = coupon.discountValue;
   }
 
-  const normalizedDiscount = Math.min(Number(discount.toFixed(2)), orderTotal);
+  const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
 
   return {
     coupon: {
@@ -163,7 +163,7 @@ export async function validateCoupon(code: string, orderTotal: number) {
       discountAmount: normalizedDiscount,
     },
     discount: normalizedDiscount,
-    newTotal: Math.max(Number((orderTotal - normalizedDiscount).toFixed(2)), 0),
+    newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
   };
 }
 

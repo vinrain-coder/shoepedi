@@ -170,10 +170,7 @@ export default function OrderDetailsForm({
               <span>Order Total:</span>
               <span>
                 <ProductPrice
-                  price={Math.max(
-                    0,
-                    totalPrice - (order.coupon?.discountAmount || 0),
-                  )}
+                  price={totalPrice}
                   plain
                 />
               </span>

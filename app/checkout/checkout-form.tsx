@@ -96,7 +96,7 @@ const CheckoutForm = () => {
   const handleApplyCoupon = async () => {
     try {
       setIsApplyingCoupon(true);
-      const result = await validateCoupon(couponCode, totalPrice);
+      const result = await validateCoupon(couponCode, itemsPrice);
       setCouponCode(result.coupon.code);
       setAppliedCoupon({
         _id: result.coupon._id,
@@ -172,7 +172,7 @@ const CheckoutForm = () => {
   useEffect(() => {
     if (!appliedCouponCode) return;
 
-    validateCoupon(appliedCouponCode, totalPrice)
+    validateCoupon(appliedCouponCode, itemsPrice)
       .then((result) => {
         setAppliedCoupon((currentCoupon) =>
           currentCoupon
@@ -189,7 +189,7 @@ const CheckoutForm = () => {
       .catch(() => {
         resetCoupon("Your coupon is no longer valid for this order.");
       });
-  }, [appliedCouponCode, totalPrice]);
+  }, [appliedCouponCode, itemsPrice]);
 
   const [isAddressSelected, setIsAddressSelected] = useState<boolean>(false);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] =
@@ -255,7 +255,7 @@ const CheckoutForm = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
   const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
-  const CheckoutSummary = ({
+  const renderCheckoutSummary = ({
     createdOrder,
     paymentMethod,
     handlePlaceOrder,
@@ -309,19 +309,29 @@ const CheckoutForm = () => {
                 onChange={(e) => setCouponCode(e.target.value)}
                 placeholder="Enter coupon code"
               />
-              <Button type="button" onClick={handleApplyCoupon} disabled={isApplyingCoupon}>
+              <Button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={isApplyingCoupon}
+              >
                 {isApplyingCoupon ? "Applying..." : "Apply"}
               </Button>
             </div>
             {appliedCoupon && discountAmount > 0 && (
               <div className="mt-2 flex items-center justify-between gap-2 text-sm">
                 <p>
-                  Coupon <span className="font-medium">{appliedCoupon.code}</span> applied — you saved{" "}
+                  Coupon <span className="font-medium">{appliedCoupon.code}</span>{" "}
+                  applied — you saved{" "}
                   <span className="text-green-600">
                     <ProductPrice price={discountAmount} plain />
                   </span>
                 </p>
-                <Button type="button" variant="ghost" size="sm" onClick={() => resetCoupon()}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => resetCoupon()}
+                >
                   Remove
                 </Button>
               </div>
@@ -373,10 +383,7 @@ const CheckoutForm = () => {
             <div className="flex justify-between  pt-4 font-bold text-lg">
               <span> Order Total:</span>
               <span>
-                <ProductPrice
-                  price={finalTotal}
-                  plain
-                />
+                <ProductPrice price={finalTotal} plain />
               </span>
             </div>
           </div>
@@ -854,11 +861,11 @@ const CheckoutForm = () => {
             <div className="mt-6">
               {/* Mobile summary */}
               <div className="block md:hidden">
-                <CheckoutSummary
-                  createdOrder={createdOrder}
-                  paymentMethod={paymentMethod}
-                  handlePlaceOrder={handlePlaceOrder}
-                />
+                {renderCheckoutSummary({
+                  createdOrder,
+                  paymentMethod,
+                  handlePlaceOrder,
+                })}
                 {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
                   createdOrder && (
                     <PaystackInline
@@ -908,7 +915,7 @@ const CheckoutForm = () => {
 
                   <div className="flex-1">
                     <p className="font-bold text-lg">
-                      Order Total: <ProductPrice price={totalPrice} plain />
+                      Order Total: <ProductPrice price={finalTotal} plain />
                     </p>
                     <p className="text-xs">
                       {" "}
@@ -931,11 +938,11 @@ const CheckoutForm = () => {
           <CheckoutFooter />
         </div>
         <div className="hidden md:block">
-          <CheckoutSummary
-            createdOrder={createdOrder}
-            paymentMethod={paymentMethod}
-            handlePlaceOrder={handlePlaceOrder}
-          />
+          {renderCheckoutSummary({
+            createdOrder,
+            paymentMethod,
+            handlePlaceOrder,
+          })}
         </div>
       </div>
     </main>
