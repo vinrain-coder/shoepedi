@@ -14,11 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import { deleteReview, getAllReviews } from "@/lib/actions/review.actions";
 import { IReviewDetails } from "@/types";
 import { getServerSession } from "@/lib/get-session";
 import { formatDateTime, formatId } from "@/lib/utils";
+
 import ReviewReplyForm from "./review-reply-form";
 
 export const metadata: Metadata = {
@@ -26,8 +26,15 @@ export const metadata: Metadata = {
 };
 
 type AdminReviewRow = IReviewDetails & {
-  user?: { name?: string; email?: string };
-  product?: { name?: string; slug?: string; images?: string[] };
+  user?: {
+    name?: string;
+    email?: string;
+  };
+  product?: {
+    name?: string;
+    slug?: string;
+    images?: string[];
+  };
 };
 
 export default async function ReviewsPage(props: {
@@ -46,152 +53,108 @@ export default async function ReviewsPage(props: {
   });
 
   return (
-    <div className="space-y-5">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reviews</h1>
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <h1 className="h1-bold">Reviews</h1>
         <p className="text-sm text-muted-foreground">
-          Moderate customer feedback and respond professionally.
+          Moderate customer feedback, preview uploaded photos, and publish admin replies.
         </p>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-2xl border bg-muted/10">
-        <Table className="table-fixed">
+      <div className="overflow-x-auto rounded-3xl border bg-background shadow-sm">
+        <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40">
-              <TableHead className="w-[90px]">Id</TableHead>
-              <TableHead className="w-[120px]">Date</TableHead>
-              <TableHead className="w-[220px]">Product</TableHead>
-              <TableHead className="w-[180px]">Customer</TableHead>
-              <TableHead className="w-[80px]">Rating</TableHead>
+            <TableRow>
+              <TableHead>Id</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Rating</TableHead>
               <TableHead>Review</TableHead>
-              <TableHead className="w-[260px]">Reply</TableHead>
-              <TableHead className="w-[80px]">Action</TableHead>
+              <TableHead>Reply</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {(reviews.data as AdminReviewRow[]).map((review) => (
-              <TableRow
-                key={review._id}
-                className="align-top hover:bg-muted/30 transition"
-              >
-                {/* ID */}
-                <TableCell className="text-xs font-medium text-muted-foreground">
-                  {formatId(review._id)}
-                </TableCell>
-
-                {/* DATE */}
-                <TableCell className="text-xs">
-                  {formatDateTime(review.createdAt!).dateTime}
-                </TableCell>
-
-                {/* PRODUCT */}
+              <TableRow key={review._id} className="align-top">
+                <TableCell className="font-medium">{formatId(review._id)}</TableCell>
+                <TableCell>{formatDateTime(review.createdAt!).dateTime}</TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
-                    {review.product?.images?.[0] && (
+                  <div className="flex min-w-60 gap-3">
+                    {review.product?.images?.length > 0 ? (
                       <Image
                         src={review.product.images[0]}
-                        alt=""
-                        width={48}
-                        height={48}
-                        className="rounded-lg border object-cover"
+                        alt={review.product.name}
+                        width={64}
+                        height={64}
+                        className="size-16 rounded-2xl border object-cover"
                       />
-                    )}
+                    ) : null}
                     <div className="space-y-1">
                       {review.product ? (
                         <Link
                           href={`/product/${review.product.slug}`}
-                          className="text-sm font-medium hover:underline"
+                          className="font-medium text-primary hover:underline"
                         >
                           {review.product.name}
                         </Link>
                       ) : (
-                        <span className="text-sm text-muted-foreground">
-                          Deleted product
-                        </span>
+                        <span>Deleted product</span>
                       )}
-
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] px-2 py-0.5"
-                      >
-                        {review.isVerifiedPurchase
-                          ? "Verified"
-                          : "Feedback"}
-                      </Badge>
+                      <div>
+                        <Badge variant="outline" className="rounded-full">
+                          {review.isVerifiedPurchase ? "Verified purchase" : "Customer feedback"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </TableCell>
-
-                {/* CUSTOMER */}
                 <TableCell>
-                  <div className="text-sm">
-                    <div className="font-medium">
-                      {review.user?.name || "Deleted"}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {review.user?.email || "—"}
-                    </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="font-medium">{review.user?.name || "Deleted user"}</div>
+                    <div className="text-muted-foreground">{review.user?.email || "—"}</div>
                   </div>
                 </TableCell>
-
-                {/* RATING */}
                 <TableCell>
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    <Star className="size-3.5 fill-primary text-primary" />
+                  <div className="flex items-center gap-1 font-medium">
+                    <Star className="size-4 fill-primary text-primary" />
                     {review.rating}
                   </div>
                 </TableCell>
-
-                {/* REVIEW */}
                 <TableCell>
-                  <div className="space-y-2 rounded-lg bg-muted/20 p-3">
-                    <div className="text-sm font-medium">
-                      {review.title}
+                  <div className="min-w-80 space-y-3 rounded-2xl bg-muted/20 p-4">
+                    <div>
+                      <div className="font-medium">{review.title}</div>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        {review.comment}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-3">
-                      {review.comment}
-                    </p>
-
-                    {review.image && (
+                    {review.image ? (
                       <Image
                         src={review.image}
-                        alt=""
-                        width={120}
-                        height={120}
-                        className="rounded-md border object-cover"
+                        alt={`Review photo for ${review.product?.name || "product"}`}
+                        width={500}
+                        height={360}
+                        className="h-32 w-32 rounded-2xl border object-cover"
                       />
-                    )}
+                    ) : null}
                   </div>
                 </TableCell>
-
-                {/* REPLY */}
                 <TableCell>
-                  <div className="space-y-2">
-                    {review.adminReply?.message && (
-                      <div className="flex gap-2 rounded-lg bg-primary/5 p-2 border border-primary/10">
-                        <MessageSquareReply className="size-4 text-primary mt-1" />
-                        <div>
-                          <p className="text-xs font-medium text-primary">
-                            {review.adminReply.repliedBy || "Admin"}
-                          </p>
-                          <p className="text-xs text-muted-foreground line-clamp-3">
-                            {review.adminReply.message}
-                          </p>
+                  <div className="space-y-3">
+                    {review.adminReply?.message ? (
+                      <div className="rounded-2xl border border-primary/15 bg-primary/5 p-3 text-sm">
+                        <div className="mb-1 flex items-center gap-2 font-medium text-primary">
+                          <MessageSquareReply className="size-4" />
+                          {review.adminReply.repliedBy || "Admin"}
                         </div>
+                        <p className="leading-6 text-foreground/80">{review.adminReply.message}</p>
                       </div>
-                    )}
-
-                    <ReviewReplyForm
-                      reviewId={review._id}
-                      initialReply={review.adminReply}
-                    />
+                    ) : null}
+                    <ReviewReplyForm reviewId={review._id} initialReply={review.adminReply} />
                   </div>
                 </TableCell>
-
-                {/* ACTION */}
                 <TableCell>
                   <DeleteDialog id={review._id} action={deleteReview} />
                 </TableCell>
@@ -199,14 +162,8 @@ export default async function ReviewsPage(props: {
             ))}
           </TableBody>
         </Table>
-
-        {/* PAGINATION */}
-        {reviews.totalPages > 1 && (
-          <div className="p-4">
-            <Pagination page={page} totalPages={reviews.totalPages} />
-          </div>
-        )}
+        {reviews.totalPages > 1 ? <Pagination page={page} totalPages={reviews.totalPages} /> : null}
       </div>
     </div>
   );
-  }
+}
