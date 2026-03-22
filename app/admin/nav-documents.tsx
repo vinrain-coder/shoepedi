@@ -13,8 +13,10 @@ import {
 import Link from "next/link";
 
 export function NavDocuments({
+  title = "Documents",
   items,
 }: {
+  title?: string;
   items: {
     name: string;
     url: string;
@@ -25,7 +27,7 @@ export function NavDocuments({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>

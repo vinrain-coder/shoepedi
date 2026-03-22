@@ -13,9 +13,10 @@ import {
 import Link from "next/link";
 
 export function NavContent({
+  title = "Content",
   items,
-  ...props
 }: {
+  title?: string;
   items: {
     name: string;
     url: string;
@@ -26,7 +27,7 @@ export function NavContent({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Content</SidebarGroupLabel>
+      <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
