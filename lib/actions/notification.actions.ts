@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import { getServerSession } from "../get-session";
-import { formatError } from "../utils";
+import { formatCurrency, formatError } from "../utils";
 import Order from "../db/models/order.model";
 import Review from "../db/models/review.model";
 import StockSubscription from "../db/models/stock-subscription.model";
@@ -128,11 +128,7 @@ export async function getAdminNotificationFeed(
       id: `order-${asId(order._id)}`,
       type: "order" as const,
       title: "New order received",
-      description: `${order.user?.name || "Customer"} placed an order for ${new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(order.totalPrice || 0)}${order.items?.length ? ` with ${order.items.length} item${order.items.length > 1 ? "s" : ""}` : ""}.`,
+      description: `${order.user?.name || "Customer"} placed an order for ${formatCurrency(order.totalPrice || 0)}${order.items?.length ? ` with ${order.items.length} item${order.items.length > 1 ? "s" : ""}` : ""}.`,
       href: `/admin/orders/${asId(order._id)}`,
       createdAt: asDate(order.createdAt),
       isUnread: lastSeenAt ? new Date(order.createdAt) > lastSeenAt : true,
