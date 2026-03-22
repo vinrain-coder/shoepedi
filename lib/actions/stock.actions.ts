@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import StockSubscription from "../db/models/stock-subscription.model";
 import Product from "../db/models/product.model";
-import { sendStockSubscriptionNotification } from "@/emails";
+import {
+  sendAdminEventNotification,
+  sendStockSubscriptionNotification,
+} from "@/emails";
 import { getSetting } from "./setting.actions";
 import { cacheLife } from "next/cache";
 
@@ -35,11 +38,19 @@ export const subscribeToStock = async (data: {
         message: "You are already subscribed to this product.",
       };
 
-    await StockSubscription.create({
+    const subscription = await StockSubscription.create({
       email,
       product: productId,
       subscribedAt: new Date(),
       isNotified: false, // Reset notified status for new subscriptions
+    });
+
+    await sendAdminEventNotification({
+      title: "Restock request created",
+      description: `${email} asked to be notified when ${product.name || "a product"} is back in stock.`,
+      href: "/admin/stockSubs",
+      meta: "Waiting for restock",
+      createdAt: (subscription.subscribedAt || new Date()).toISOString(),
     });
 
     revalidatePath("/admin/stock-subscriptions");

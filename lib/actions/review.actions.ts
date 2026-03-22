@@ -5,6 +5,7 @@ import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
+import User from "../db/models/user.model";
 import Review, { IReview } from "../db/models/review.model";
 import { formatError } from "../utils";
 import { ReviewInputSchema } from "../validator";
@@ -12,6 +13,7 @@ import { IReviewDetails } from "@/types";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
+import { sendAdminEventNotification } from "@/emails";
 
 export async function submitReviewAction(
   values: z.infer<typeof ReviewInputSchema>,
@@ -39,7 +41,19 @@ export async function submitReviewAction(
       existing.rating = data.rating;
       await existing.save();
     } else {
-      await Review.create(data);
+      const createdReview = await Review.create(data);
+      const [reviewUser, reviewProduct] = await Promise.all([
+        User.findById(createdReview.user).select("name email").lean(),
+        Product.findById(createdReview.product).select("name").lean(),
+      ]);
+
+      await sendAdminEventNotification({
+        title: "New product review",
+        description: `${reviewUser?.name || "Customer"} rated ${reviewProduct?.name || "a product"} ${createdReview.rating}/5${createdReview.title ? ` — ${createdReview.title}` : ""}.`,
+        href: "/admin/reviews",
+        meta: createdReview.isVerifiedPurchase ? "Verified purchase" : "Customer feedback",
+        createdAt: createdReview.createdAt.toISOString(),
+      });
     }
 
     await updateProductReview(data.product);
@@ -115,7 +129,18 @@ export async function createUpdateReview({
         // data: JSON.parse(JSON.stringify(existReview)),
       };
     } else {
-      await Review.create(review);
+      const createdReview = await Review.create(review);
+      const [reviewUser, reviewProduct] = await Promise.all([
+        User.findById(createdReview.user).select("name email").lean(),
+        Product.findById(createdReview.product).select("name").lean(),
+      ]);
+      await sendAdminEventNotification({
+        title: "New product review",
+        description: `${reviewUser?.name || "Customer"} rated ${reviewProduct?.name || "a product"} ${createdReview.rating}/5${createdReview.title ? ` — ${createdReview.title}` : ""}.`,
+        href: "/admin/reviews",
+        meta: createdReview.isVerifiedPurchase ? "Verified purchase" : "Customer feedback",
+        createdAt: createdReview.createdAt.toISOString(),
+      });
       await updateProductReview(review.product);
       revalidatePath(path);
       return {

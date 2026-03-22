@@ -6,7 +6,11 @@ import { connectToDatabase } from "../db";
 import { OrderInputSchema } from "../validator";
 import Order, { IOrder } from "../db/models/order.model";
 import { revalidatePath } from "next/cache";
-import { sendAskReviewOrderItems, sendPurchaseReceipt } from "@/emails";
+import {
+  sendAdminEventNotification,
+  sendAskReviewOrderItems,
+  sendPurchaseReceipt,
+} from "@/emails";
 import { DateRange } from "react-day-picker";
 import Product from "../db/models/product.model";
 import User from "../db/models/user.model";
@@ -109,7 +113,18 @@ export const createOrderFromCart = async (
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: appliedCoupon,
   });
-  return await Order.create(order);
+  const createdOrder = await Order.create(order);
+  const orderUser = await User.findById(userId).select("name email").lean();
+
+  await sendAdminEventNotification({
+    title: "New order received",
+    description: `${orderUser?.name || "Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
+    href: `/admin/orders/${createdOrder._id.toString()}`,
+    meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
+    createdAt: createdOrder.createdAt.toISOString(),
+  });
+
+  return createdOrder;
 };
 
 export async function updateOrderToPaid(orderId: string) {
