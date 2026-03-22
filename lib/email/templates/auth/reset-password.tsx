@@ -1,38 +1,20 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Heading,
-  Text,
-  Button,
-  Preview,
-} from "@react-email/components";
+import AuthEmailLayout from "./auth-email-layout";
 
 type Props = {
   resetLink: string;
 };
 
-export default function ResetPasswordEmail({ resetLink }: Props) {
+export default async function ResetPasswordEmail({ resetLink }: Props) {
   return (
-    <Html>
-      <Preview>Reset your password</Preview>
-      <Head />
-      <Body className="bg-gray-100 font-sans">
-        <Container className="bg-white p-6 rounded-lg shadow">
-          <Heading>Password Reset</Heading>
-          <Text>We received a request to reset your password.</Text>
-          <Button
-            href={resetLink}
-            className="bg-black text-white px-4 py-2 rounded"
-          >
-            Reset Password
-          </Button>
-          <Text className="text-sm text-gray-500 mt-4">
-            This link expires soon. If you didn’t request it, ignore this email.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+    <AuthEmailLayout
+      ctaLabel="Reset password"
+      ctaUrl={resetLink}
+      greeting="Hi there,"
+      intro="We received a request to reset the password for your account. Use the secure link below to choose a new password."
+      note="If you did not request a password reset, no action is required. Your current password will remain unchanged until a new one is created."
+      outro="For best security, choose a unique password you do not use on any other website or app."
+      preview="Reset your password with this secure link"
+      title="Reset your password"
+    />
   );
 }

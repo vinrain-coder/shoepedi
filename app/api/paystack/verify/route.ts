@@ -1,5 +1,5 @@
-import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
 import { NextResponse } from "next/server";
+import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
 
 export async function POST(req: Request) {
   try {
@@ -11,12 +11,12 @@ export async function POST(req: Request) {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         },
-      }
+      },
     );
 
     const data = await response.json();
 
-    if (!data?.status || data.data?.status !== "success") {
+    if (!data?.status || data.data.status !== "success") {
       return NextResponse.json({
         status: false,
         message: "Payment not successful",
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const result = await markPaystackOrderAsPaid(orderId, {
-      id: transactionId,
+      id: transactionId.toString(),
       status: "success",
       email_address: customerEmail,
       pricePaid: amount.toString(),

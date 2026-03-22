@@ -1,5 +1,6 @@
 import {
   Body,
+  Button,
   Column,
   Container,
   Head,
@@ -32,6 +33,11 @@ PurchaseReceiptEmail.PreviewProps = {
     itemsPrice: 100,
     taxPrice: 0,
     shippingPrice: 0,
+    coupon: {
+      code: "SAVE10",
+      discountType: "fixed",
+      discountAmount: 10,
+    },
     user: {
       name: "John Doe",
       email: "john.doe@example.com",
@@ -69,139 +75,216 @@ export default async function PurchaseReceiptEmail({
   order,
 }: OrderInformationProps) {
   const { site } = await getSetting();
+  const orderUrl = `${site.url}/account/orders/${order._id.toString()}`;
+  const logoSrc = site.logo.startsWith("/")
+    ? `${site.url}${site.logo}`
+    : site.logo;
+
+  const pricingRows = [
+    { label: "Items subtotal", value: order.itemsPrice },
+    { label: "Shipping", value: order.shippingPrice },
+    { label: "Tax", value: order.taxPrice },
+    ...(order.coupon
+      ? [
+          {
+            label: `Coupon (${order.coupon.code})`,
+            value: -Math.abs(order.coupon.discountAmount),
+            isDiscount: true,
+          },
+        ]
+      : []),
+    { label: "Order total", value: order.totalPrice, isTotal: true },
+  ];
 
   return (
     <Html>
-      <Preview>Your Purchase Receipt</Preview>
+      <Preview>{`Receipt for order ${order._id.toString()}`}</Preview>
       <Tailwind>
         <Head />
-        <Body className="font-sans bg-gray-100 text-gray-800">
-          <Container className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
-            {/* Header */}
-            <Heading className="text-3xl font-bold text-center text-gray-900">
-              Purchase Receipt
-            </Heading>
+        <Body className="m-0 bg-slate-100 py-10 font-sans text-slate-900">
+          <Container className="mx-auto max-w-[640px] px-4">
+            <Section className="overflow-hidden rounded-[24px] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+              <Section className="bg-slate-950 px-8 py-6">
+                <Img
+                  alt={site.name}
+                  className="max-h-10 w-auto"
+                  src={logoSrc}
+                />
+                <Text className="m-0 mt-5 text-[12px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+                  Order confirmation
+                </Text>
+                <Heading className="m-0 mt-3 text-[30px] font-semibold leading-[38px] text-white">
+                  Thanks for your purchase,{" "}
+                  {(order.user as { name?: string })?.name ??
+                    order.shippingAddress.fullName}
+                  .
+                </Heading>
+                <Text className="mb-0 mt-3 text-[15px] leading-[24px] text-slate-300">
+                  We&apos;ve received your order and your payment has been
+                  recorded. You can review your items, delivery details, and
+                  payment summary anytime from your account.
+                </Text>
+                <Section className="pt-6">
+                  <Button
+                    className="rounded-xl bg-white px-5 py-3 text-[14px] font-semibold text-slate-950 no-underline"
+                    href={orderUrl}
+                  >
+                    View order details
+                  </Button>
+                </Section>
+              </Section>
 
-            {/* Order Info */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
-              <Row className="flex flex-wrap justify-between">
-                <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Order ID</Text>
-                  <Text className="font-semibold">{order._id.toString()}</Text>
-                </Column>
-                <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Purchased On</Text>
-                  <Text className="font-semibold">
-                    {dateFormatter.format(order.createdAt)}
-                  </Text>
-                </Column>
-                <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Price Paid</Text>
-                  <Text className="font-semibold">
-                    KES.{formatCurrency(order.totalPrice)}
-                  </Text>
-                </Column>
-              </Row>
-            </Section>
-
-            {/* Items List */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
-              {order.items.map((item) => (
-                <Row
-                  key={item.product}
-                  className="flex items-center justify-between py-2 border-b last:border-b-0"
-                >
-                  <Column className="w-20">
-                    <Link href={`${site.url}/product/${item.slug}`}>
-                      <Img
-                        width="80"
-                        alt={item.name}
-                        className="rounded-lg shadow-sm"
-                        src={
-                          item.image.startsWith("/")
-                            ? `${site.url}${item.image}`
-                            : item.image
-                        }
-                      />
-                    </Link>
-                  </Column>
-                  <Column className="flex-1 text-left px-4">
-                    <Link href={`${site.url}/product/${item.slug}`}>
-                      <Text className="font-semibold">{item.name}</Text>
-                    </Link>
-                    <Text className="text-sm text-gray-500">
-                      Quantity: {item.quantity}
-                    </Text>
-                  </Column>
-                  <Column align="right">
-                    <Text className="font-semibold">
-                      KES.{formatCurrency(item.price)}
-                    </Text>
-                  </Column>
-                </Row>
-              ))}
-
-              {/* Pricing Breakdown */}
-              <Section className="mt-4">
-                {[
-                  { name: "Items", price: order.itemsPrice },
-                  { name: "Tax", price: order.taxPrice },
-                  { name: "Shipping", price: order.shippingPrice },
-                  { name: "Total", price: order.totalPrice },
-                ].map(({ name, price }) => (
-                  <Row key={name} className="flex justify-between py-1">
-                    <Column className="font-semibold">{name}:</Column>
+              <Section className="px-8 py-8">
+                <Section className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
+                  <Row>
+                    <Column>
+                      <Text className="m-0 text-[12px] uppercase tracking-[0.12em] text-slate-500">
+                        Order number
+                      </Text>
+                      <Text className="m-0 mt-2 text-[15px] font-semibold text-slate-900">
+                        {order._id.toString()}
+                      </Text>
+                    </Column>
+                    <Column>
+                      <Text className="m-0 text-[12px] uppercase tracking-[0.12em] text-slate-500">
+                        Ordered on
+                      </Text>
+                      <Text className="m-0 mt-2 text-[15px] font-semibold text-slate-900">
+                        {dateFormatter.format(order.createdAt)}
+                      </Text>
+                    </Column>
                     <Column align="right">
-                      <Text className="m-0">KES.{formatCurrency(price)}</Text>
+                      <Text className="m-0 text-[12px] uppercase tracking-[0.12em] text-slate-500">
+                        Total paid
+                      </Text>
+                      <Text className="m-0 mt-2 text-[15px] font-semibold text-slate-900">
+                        {formatCurrency(order.totalPrice)}
+                      </Text>
                     </Column>
                   </Row>
-                ))}
+                </Section>
+
+                <Heading className="m-0 mt-8 text-[20px] font-semibold text-slate-950">
+                  Items in your order
+                </Heading>
+
+                <Section className="mt-5 rounded-2xl border border-slate-200 px-5 py-2">
+                  {order.items.map((item) => (
+                    <Row
+                      key={`${item.product}-${item.clientId}`}
+                      className="border-b border-slate-200 py-4 last:border-b-0"
+                    >
+                      <Column width={88} className="align-top">
+                        <Link href={`${site.url}/product/${item.slug}`}>
+                          <Img
+                            alt={item.name}
+                            className="rounded-xl border border-slate-200 object-cover"
+                            height="80"
+                            src={
+                              item.image.startsWith("/")
+                                ? `${site.url}${item.image}`
+                                : item.image
+                            }
+                            width="80"
+                          />
+                        </Link>
+                      </Column>
+                      <Column className="px-4 align-top">
+                        <Link
+                          className="text-[15px] font-semibold text-slate-900 no-underline"
+                          href={`${site.url}/product/${item.slug}`}
+                        >
+                          {item.name}
+                        </Link>
+                        <Text className="m-0 mt-2 text-[14px] leading-[22px] text-slate-600">
+                          Qty: {item.quantity}
+                          {item.size ? ` • Size: ${item.size}` : ""}
+                          {item.color ? ` • Color: ${item.color}` : ""}
+                        </Text>
+                      </Column>
+                      <Column align="right" className="align-top">
+                        <Text className="m-0 text-[15px] font-semibold text-slate-900">
+                          {formatCurrency(item.price * item.quantity)}
+                        </Text>
+                        <Text className="m-0 mt-2 text-[13px] text-slate-500">
+                          {formatCurrency(item.price)} each
+                        </Text>
+                      </Column>
+                    </Row>
+                  ))}
+                </Section>
+
+                <Row className="mt-8">
+                  <Column className="pr-3 align-top">
+                    <Section className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
+                      <Text className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Shipping address
+                      </Text>
+                      <Text className="m-0 mt-3 text-[14px] leading-[22px] text-slate-700">
+                        {order.shippingAddress.fullName}
+                        <br />
+                        {order.shippingAddress.street}
+                        <br />
+                        {order.shippingAddress.city},{" "}
+                        {order.shippingAddress.province}{" "}
+                        {order.shippingAddress.postalCode}
+                        <br />
+                        {order.shippingAddress.country}
+                        <br />
+                        {order.shippingAddress.phone}
+                      </Text>
+                    </Section>
+                  </Column>
+                  <Column className="pl-3 align-top">
+                    <Section className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
+                      <Text className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Payment summary
+                      </Text>
+                      <Text className="m-0 mt-3 text-[14px] leading-[22px] text-slate-700">
+                        Method: {order.paymentMethod}
+                      </Text>
+                      {pricingRows.map((row) => (
+                        <Row key={row.label} className="py-1.5">
+                          <Column>
+                            <Text
+                              className={`m-0 text-[14px] ${row.isTotal ? "font-semibold text-slate-950" : "text-slate-600"}`}
+                            >
+                              {row.label}
+                            </Text>
+                          </Column>
+                          <Column align="right">
+                            <Text
+                              className={`m-0 text-[14px] ${row.isDiscount ? "font-semibold text-emerald-600" : row.isTotal ? "font-semibold text-slate-950" : "text-slate-700"}`}
+                            >
+                              {row.value < 0
+                                ? `- ${formatCurrency(Math.abs(row.value))}`
+                                : formatCurrency(row.value)}
+                            </Text>
+                          </Column>
+                        </Row>
+                      ))}
+                    </Section>
+                  </Column>
+                </Row>
               </Section>
             </Section>
 
-            {/* Payment & Shipping Info */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
-              <Heading className="text-lg font-semibold">
-                Shipping Address
-              </Heading>
-              <Text className="text-gray-600">
-                {order.shippingAddress.fullName}
-              </Text>
-              <Text className="text-gray-600">
-                {order.shippingAddress.street}, {order.shippingAddress.city},{" "}
-                {order.shippingAddress.province},{" "}
-                {order.shippingAddress.country}
-              </Text>
-              <Text className="text-gray-600">
-                Phone: {order.shippingAddress.phone}
-              </Text>
-
-              <Heading className="text-lg font-semibold mt-4">
-                Payment Method
-              </Heading>
-              <Text className="text-gray-600">{order.paymentMethod}</Text>
-            </Section>
-
-            {/* Thank You & Footer */}
-            <Section className="text-center py-6 border-t">
-              <Text className="text-gray-700 font-medium">
-                Thank you for shopping with us!
-              </Text>
-              <Text className="text-gray-500 text-sm">
-                If you have any questions, feel free to{" "}
+            <Section className="px-4 pb-4 pt-6 text-center">
+              <Text className="m-0 text-[14px] leading-[22px] text-slate-600">
+                Need help with your order? Visit our{" "}
                 <Link
+                  className="text-blue-600 underline"
                   href={`${site.url}/page/contact-us`}
-                  className="text-blue-600"
                 >
-                  contact us
-                </Link>
-                .
+                  support page
+                </Link>{" "}
+                or reply to this email.
               </Text>
-              <Section className="text-center mt-4">
+              <Section className="pt-5 text-center">
                 <SocialLinks />
               </Section>
-              <Text className="text-gray-400 text-xs mt-4">
-                {site.name} . {site.copyright}
+              <Text className="m-0 mt-4 text-[12px] text-slate-400">
+                {site.name} • {site.copyright}
               </Text>
             </Section>
           </Container>
@@ -209,4 +292,4 @@ export default async function PurchaseReceiptEmail({
       </Tailwind>
     </Html>
   );
-  }
+}
