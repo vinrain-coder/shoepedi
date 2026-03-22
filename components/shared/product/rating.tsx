@@ -3,7 +3,7 @@ import { Star } from "lucide-react";
 
 export default function Rating({
   rating = 0,
-  size = 18, // ✅ better default (18px)
+  size = 6,
 }: {
   rating: number;
   size?: number;
@@ -12,44 +12,32 @@ export default function Rating({
   const partialStar = rating % 1;
   const emptyStars = 5 - Math.ceil(rating);
 
-  const starStyle = {
-    width: `${size}px`,
-    height: `${size}px`,
-  };
-
   return (
     <div
-      className="flex items-center gap-1"
+      className="flex items-center"
       aria-label={`Rating: ${rating} out of 5 stars`}
     >
-      {/* FULL STARS */}
       {[...Array(fullStars)].map((_, i) => (
         <Star
           key={`full-${i}`}
-          className="fill-primary text-primary"
-          style={starStyle}
+          className={`w-${size} h-${size} fill-primary text-primary`}
         />
       ))}
-
-      {/* PARTIAL STAR */}
       {partialStar > 0 && (
-        <div className="relative" style={starStyle}>
-          <Star className="text-primary/30" style={starStyle} />
+        <div className="relative">
+          <Star className={`w-${size} h-${size} text-primary`} />
           <div
-            className="absolute left-0 top-0 overflow-hidden"
-            style={{ width: `${partialStar * 100}%`, height: "100%" }}
+            className="absolute top-0 left-0 overflow-hidden"
+            style={{ width: `${partialStar * 100}%` }}
           >
-            <Star className="fill-primary text-primary" style={starStyle} />
+            <Star className="w-6 h-6 fill-primary text-primary" />
           </div>
         </div>
       )}
-
-      {/* EMPTY STARS */}
       {[...Array(emptyStars)].map((_, i) => (
         <Star
           key={`empty-${i}`}
-          className="text-primary/30"
-          style={starStyle}
+          className={`w-${size} h-${size}  text-primary`}
         />
       ))}
     </div>
