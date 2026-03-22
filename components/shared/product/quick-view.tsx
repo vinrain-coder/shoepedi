@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
@@ -27,30 +27,40 @@ export default function ProductQuickView({
 }: QuickViewProps) {
   const isMobile = useIsMobile();
 
+  const [selectedColor, setSelectedColor] = useState<string | undefined>();
+  const [selectedSize, setSelectedSize] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!product || !isOpen) return;
+
+    setSelectedColor(product.colors?.[0]);
+    setSelectedSize(product.sizes?.[0]);
+  }, [product, isOpen]);
+
   if (!product) return null;
 
-  const selectedColor = product.colors?.[0];
-  const selectedSize = product.sizes?.[0];
+  const primaryImage = product.images?.[0] ?? "/placeholder.png";
 
   const details = useMemo(() => {
     return (
-      <div className="flex flex-col gap-4">
-        {/* Product Name */}
+      <div className="flex flex-col gap-4 p-4 md:p-6">
         <h2 className="font-semibold text-2xl">{product.name}</h2>
 
-        {/* Price */}
         <ProductPrice price={product.price} listPrice={product.listPrice} />
 
-        {/* Variants */}
         <SelectVariant
           product={product}
           color={selectedColor}
           size={selectedSize}
+          syncUrl={false}
+          onVariantChange={({ color, size }) => {
+            setSelectedColor(color);
+            setSelectedSize(size);
+          }}
         />
 
-        {/* Description */}
         <Separator />
-        <section className="mt-10 max-w-5xl mx-auto">
+        <section className="max-w-5xl mx-auto">
           <h2 className="font-bold text-lg mb-2">Product Description</h2>
           <MarkdownRenderer
             content={product.description}
@@ -58,7 +68,6 @@ export default function ProductQuickView({
           />
         </section>
 
-        {/* Add to Cart */}
         <AddToCart
           item={{
             clientId: generateId(),
@@ -69,7 +78,7 @@ export default function ProductQuickView({
             category: product.category,
             price: round2(product.price),
             quantity: 1,
-            image: product.images[0],
+            image: primaryImage,
             size: selectedSize,
             color: selectedColor,
           }}
@@ -88,27 +97,29 @@ export default function ProductQuickView({
         )}
       </div>
     );
-  }, [product, selectedColor, selectedSize]);
+  }, [primaryImage, product, selectedColor, selectedSize]);
 
   return isMobile ? (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="p-0 max-h-[95vh] flex flex-col" forceMount>
         <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <ProductGallery images={product.images} />
-          {product.videoLink && (
-            <div className="mt-4">
-              <h3 className="font-semibold mb-2">Product Video</h3>
-              <a
-                href={product.videoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                Watch Here
-              </a>
-            </div>
-          )}
+        <div className="flex-1 overflow-y-auto space-y-4">
+          <div className="px-4 pt-4">
+            <ProductGallery images={product.images} />
+            {product.videoLink && (
+              <div className="mt-4">
+                <h3 className="font-semibold mb-2">Product Video</h3>
+                <a
+                  href={product.videoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Watch Here
+                </a>
+              </div>
+            )}
+          </div>
           {details}
         </div>
       </DrawerContent>
@@ -121,7 +132,6 @@ export default function ProductQuickView({
       >
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 
-        {/* Left: gallery */}
         <div className="p-6 overflow-y-auto">
           <ProductGallery images={product.images} />
           {product.videoLink && (
@@ -139,7 +149,6 @@ export default function ProductQuickView({
           )}
         </div>
 
-        {/* Right: details */}
         <div className="overflow-y-auto">{details}</div>
       </DialogContent>
     </Dialog>

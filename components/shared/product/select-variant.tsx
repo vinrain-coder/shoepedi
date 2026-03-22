@@ -1,48 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { IProduct } from "@/lib/db/models/product.model";
+
+type SelectVariantProps = {
+  product: IProduct;
+  color?: string;
+  size?: string;
+  syncUrl?: boolean;
+  onVariantChange?: (variant: { color?: string; size?: string }) => void;
+};
 
 export default function SelectVariant({
   product,
   color,
   size,
-}: {
-  product: IProduct;
-  color: string;
-  size: string;
-}) {
+  syncUrl = true,
+  onVariantChange,
+}: SelectVariantProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Local state for instant UI updates
-  const [selectedColor, setSelectedColor] = useState(
-    color || product.colors[0]
-  );
-  const [selectedSize, setSelectedSize] = useState(size || product.sizes[0]);
+  const defaultColor = color || product.colors?.[0];
+  const defaultSize = size || product.sizes?.[0];
 
-  // Sync local state with URL parameters when they change
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(defaultColor);
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(defaultSize);
+
   useEffect(() => {
-    setSelectedColor(color || product.colors[0]);
-    setSelectedSize(size || product.sizes[0]);
-  }, [color, size, product.colors, product.sizes]); // ✅ Updated dependencies
+    setSelectedColor(defaultColor);
+    setSelectedSize(defaultSize);
+  }, [defaultColor, defaultSize]);
 
-  // Function to update the variant instantly and then update the URL
-  const updateVariant = (newColor: string, newSize: string) => {
+  const updateVariant = (newColor?: string, newSize?: string) => {
     setSelectedColor(newColor);
     setSelectedSize(newSize);
+    onVariantChange?.({ color: newColor, size: newSize });
 
-    // Update the URL without reloading the page
+    if (!syncUrl || !pathname) return;
+
     const params = new URLSearchParams(searchParams.toString());
-    params.set("color", newColor);
-    params.set("size", newSize);
 
-    // Preserve current pathname
-    const pathname = window.location.pathname;
+    if (newColor) {
+      params.set("color", newColor);
+    } else {
+      params.delete("color");
+    }
 
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    if (newSize) {
+      params.set("size", newSize);
+    } else {
+      params.delete("size");
+    }
+
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
   };
 
   return (
@@ -50,22 +67,23 @@ export default function SelectVariant({
       {product.colors.length > 0 && (
         <div className="space-x-2 space-y-2">
           <div>Color:</div>
-          {product.colors.map((x) => (
+          {product.colors.map((variantColor) => (
             <Button
-              key={x}
+              key={variantColor}
+              type="button"
               variant="outline"
               className={
-                selectedColor === x
+                selectedColor === variantColor
                   ? "border-2 border-primary dark:border-primary"
                   : "border-2"
               }
-              onClick={() => updateVariant(x, selectedSize)}
+              onClick={() => updateVariant(variantColor, selectedSize)}
             >
               <div
-                style={{ backgroundColor: x }}
+                style={{ backgroundColor: variantColor }}
                 className="h-4 w-4 rounded-full border border-muted-foreground"
-              ></div>
-              {x}
+              />
+              {variantColor}
             </Button>
           ))}
         </div>
@@ -73,18 +91,19 @@ export default function SelectVariant({
       {product.sizes.length > 0 && (
         <div className="mt-2 space-x-2 space-y-2">
           <div>Size:</div>
-          {product.sizes.map((x) => (
+          {product.sizes.map((variantSize) => (
             <Button
-              key={x}
+              key={variantSize}
+              type="button"
               variant="outline"
               className={
-                selectedSize === x
+                selectedSize === variantSize
                   ? "border-2 border-primary dark:border-primary"
                   : "border-2"
               }
-              onClick={() => updateVariant(selectedColor, x)}
+              onClick={() => updateVariant(selectedColor, variantSize)}
             >
-              {x}
+              {variantSize}
             </Button>
           ))}
         </div>
