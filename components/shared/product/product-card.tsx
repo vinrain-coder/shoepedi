@@ -56,27 +56,6 @@ const ProductCard = ({
     }
   };
 
-  const discount =
-    product.listPrice && product.listPrice > product.price
-      ? Math.round(
-          ((product.listPrice - product.price) / product.listPrice) * 100
-        )
-      : null;
-
-  const cartItem = {
-    clientId: generateId(),
-    product: product._id?.toString(),
-    size: product.sizes?.[0] ?? null,
-    color: product.colors?.[0] ?? null,
-    countInStock: product.countInStock,
-    name: product.name,
-    slug: product.slug,
-    category: product.category,
-    price: round2(product.price),
-    quantity: 1,
-    image: product.images?.[0] ?? "/placeholder.png",
-  };
-
   const firstTag = product.tags && product.tags.length > 0 ? product.tags[0] : null;
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
@@ -164,20 +143,21 @@ const ProductCard = ({
     </div>
   );
 
-  return hideBorder ? (
-    <div className="flex flex-col relative">
-      <ProductImage withFloatingIcons />
-      {!hideDetails && (
-        <>
-          <div className="p-3 flex-1 text-center">
-            <ProductDetails />
-          </div>
-          {!hideAddToCart && <AddButton />}
-        </>
-      )}
-    </div>
-  ) : (
+  return (
     <>
+      {hideBorder ? (
+        <div className="flex flex-col relative">
+          <ProductImage withFloatingIcons />
+          {!hideDetails && (
+            <>
+              <div className="p-3 flex-1 text-center">
+                <ProductDetails />
+              </div>
+              {!hideAddToCart && <AddButton />}
+            </>
+          )}
+        </div>
+      ) : (
       <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
         <CardHeader className="p-0">
           <ProductImage withFloatingIcons />
@@ -203,6 +183,7 @@ const ProductCard = ({
           </>
         )}
       </Card>
+      )}
       <ProductQuickView
         product={product}
         isOpen={showQuickView}
