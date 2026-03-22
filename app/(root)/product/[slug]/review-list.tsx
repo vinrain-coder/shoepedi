@@ -62,6 +62,11 @@ import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { authClient } from "@/lib/auth-client";
 
+const ReviewFormSchema = ReviewInputSchema.omit({
+  product: true,
+  user: true,
+});
+
 const reviewFormDefaultValues = {
   title: "",
   comment: "",
@@ -93,7 +98,7 @@ export default function ReviewList({
       });
       setReviews([...res.data]);
       setTotalPages(res.totalPages);
-    } catch (err) {
+    } catch {
       toast.error("Error fetching reviews");
     }
   };
@@ -126,32 +131,31 @@ export default function ReviewList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView]);
 
-  type CustomerReview = z.infer<typeof ReviewInputSchema>;
+  type CustomerReview = z.infer<typeof ReviewFormSchema>;
   const form = useForm<CustomerReview>({
-    resolver: zodResolver(ReviewInputSchema),
+    resolver: zodResolver(ReviewFormSchema),
     defaultValues: reviewFormDefaultValues,
   });
 
-const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
-  const res = await submitReviewAction(
-    {
-      ...values,
-      product: product._id.toString(),
-    },
-    `/product/${product.slug}`
-  );
+  const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
+    const res = await submitReviewAction(
+      {
+        ...values,
+        product: product._id.toString(),
+      },
+      `/product/${product.slug}`
+    );
 
-  if (!res.success) {
-    toast.error(res.message);
-    return;
-  }
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
 
-  form.reset(reviewFormDefaultValues);
-  setOpen(false);
-  reload();
-  toast.success(res.message);
-};
-        
+    form.reset(reviewFormDefaultValues);
+    setOpen(false);
+    reload();
+    toast.success(res.message);
+  };
 
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
@@ -183,7 +187,7 @@ const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
             {userId ? (
               <>
                 {isMobile ? (
-                  <Drawer>
+                  <Drawer open={open} onOpenChange={setOpen}>
                     <DrawerTrigger asChild>
                       <Button
                         variant="outline"
@@ -249,11 +253,12 @@ const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
                                   <FormItem>
                                     <FormLabel>Rating</FormLabel>
                                     <Select
-  defaultValue="5"
-  onValueChange={(val) => field.onChange(Number(val))}
-  value={field.value.toString()}
->
-          
+                                      defaultValue="5"
+                                      onValueChange={(val) =>
+                                        field.onChange(Number(val))
+                                      }
+                                      value={field.value.toString()}
+                                    >
                                       <FormControl>
                                         <SelectTrigger>
                                           <SelectValue placeholder="Select a Rating" />
@@ -299,7 +304,7 @@ const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
                     </DrawerContent>
                   </Drawer>
                 ) : (
-                  <Dialog>
+                  <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="rounded-full w-full">
                         Write a review
