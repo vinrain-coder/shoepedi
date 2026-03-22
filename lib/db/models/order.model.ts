@@ -1,8 +1,8 @@
 import { IOrderInput } from "@/types";
-import { Document, Model, model, models, Schema } from "mongoose";
+import { Document, Model, Schema, Types, model, models } from "mongoose";
 
 export interface ICouponInfo {
-  id?: string; // optional if referencing a coupon document
+  id?: string;
   code: string;
   discountType: "percentage" | "fixed";
   discountAmount: number;
@@ -10,6 +10,7 @@ export interface ICouponInfo {
 
 export interface IOrder extends Document, IOrderInput {
   id: string;
+  user: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
@@ -18,7 +19,7 @@ export interface IOrder extends Document, IOrderInput {
 const orderSchema = new Schema<IOrder>(
   {
     user: {
-      type: Schema.Types.ObjectId as unknown as typeof String,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -75,6 +76,7 @@ const orderSchema = new Schema<IOrder>(
 );
 
 const Order =
-  (models.Order as Model<IOrder>) || model<IOrder>("Order", orderSchema);
+  (models.Order as Model<IOrder> | undefined) ||
+  model<IOrder>("Order", orderSchema);
 
 export default Order;

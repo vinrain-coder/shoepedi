@@ -1,7 +1,7 @@
-import { Schema, model, models, Document } from "mongoose";
+import { Document, Model, Schema, Types, model, models } from "mongoose";
 
 export interface IStockSubscription extends Document {
-  product: Schema.Types.ObjectId;
+  product: Types.ObjectId;
   email: string;
   subscribedAt: Date;
   isNotified: boolean;
@@ -33,7 +33,7 @@ const stockSubscriptionSchema = new Schema<IStockSubscription>(
 );
 
 const StockSubscription =
-  models.StockSubscription ||
+  (models.StockSubscription as Model<IStockSubscription> | undefined) ||
   model<IStockSubscription>("StockSubscription", stockSubscriptionSchema);
 
 export default StockSubscription;
