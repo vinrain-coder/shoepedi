@@ -2,20 +2,21 @@
 
 import * as React from "react";
 import {
-  IconCamera,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconHelp,
-  IconReport,
-  IconSearch,
-  IconSettings,
+  IconArticle,
+  IconBellRinging,
+  IconCategory,
+  IconChecklist,
+  IconClipboardList,
+  IconColorSwatch,
   IconDashboard,
-  IconListDetails,
-  IconChartBar,
-  IconUsers,
   IconFileText,
-  IconMessageCircle,
+  IconLayoutGrid,
+  IconPalette,
+  IconReceipt2,
+  IconTags,
+  IconSettings,
+  IconTicket,
+  IconUsers,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -45,12 +46,12 @@ const data = {
     {
       title: "Products",
       url: "/admin/products",
-      icon: IconListDetails,
+      icon: IconLayoutGrid,
     },
     {
       title: "Orders",
       url: "/admin/orders",
-      icon: IconChartBar,
+      icon: IconReceipt2,
     },
     {
       title: "Users",
@@ -67,56 +68,56 @@ const data = {
     {
       title: "Analytics",
       url: "#",
-      icon: IconHelp,
+      icon: IconClipboardList,
     },
     {
       title: "Coupons",
       url: "/admin/coupons",
-      icon: IconSearch,
+      icon: IconTicket,
     },
   ],
-  documents: [
+  storefront: [
     {
-      name: "Pages",
+      name: "Site Pages",
       url: "/admin/web-pages",
-      icon: IconDatabase,
-    },
-    {
-      name: "Blogs",
-      url: "/admin/blogs",
-      icon: IconReport,
-    },
-    {
-      name: "Stock Subscriptions",
-      url: "/admin/stockSubs",
       icon: IconFileText,
     },
     {
-      name: "Reviews",
+      name: "Blog Posts",
+      url: "/admin/blogs",
+      icon: IconArticle,
+    },
+    {
+      name: "Restock Alerts",
+      url: "/admin/stockSubs",
+      icon: IconBellRinging,
+    },
+    {
+      name: "Customer Reviews",
       url: "/admin/reviews",
-      icon: IconMessageCircle,
+      icon: IconChecklist,
     },
   ],
-  content: [
+  catalog: [
     {
       name: "Categories",
       url: "/admin/categories",
-      icon: IconDatabase,
+      icon: IconCategory,
     },
     {
       name: "Brands",
       url: "/admin/brands",
-      icon: IconReport,
+      icon: IconPalette,
     },
     {
       name: "Tags",
       url: "/admin/tags",
-      icon: IconFileText,
+      icon: IconTags,
     },
     {
       name: "Colors",
       url: "/admin/colors",
-      icon: IconMessageCircle,
+      icon: IconColorSwatch,
     },
   ],
 };
@@ -147,8 +148,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavContent items={data.content} />
+        <NavDocuments title="Storefront" items={data.storefront} />
+        <NavContent title="Catalog" items={data.catalog} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
