@@ -259,7 +259,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
           Your review may be shown publicly after moderation. Honest fit and quality notes help other shoppers.
         </div>
         {isMobile ? (
-          <DrawerFooter className="px-0 pb-0">
+          <DrawerFooter className="px-0 pb-0 overflow-auto">
             <Button
               type="submit"
               size="lg"
@@ -322,7 +322,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
                       <DrawerTrigger asChild>
                         <Button className="w-full rounded-full">Write a review</Button>
                       </DrawerTrigger>
-                      <DrawerContent className="overflow-y-scroll">
+                      <DrawerContent className="overflow-auto">
                         <DrawerHeader>
                           <DrawerTitle>Write a customer review</DrawerTitle>
                           <DrawerDescription>
