@@ -9,16 +9,18 @@ import { ICouponInput } from "@/types";
 import { z } from "zod";
 import mongoose from "mongoose";
 
+const normalizeCouponCode = (code: string) => code.trim().toUpperCase();
+
 // CREATE COUPON
 export async function createCoupon(data: ICouponInput) {
   try {
     const coupon = CouponInputSchema.parse(data);
     await connectToDatabase();
 
-    const existingCoupon = await Coupon.findOne({ code: coupon.code });
+    const existingCoupon = await Coupon.findOne({ code: normalizeCouponCode(coupon.code) });
     if (existingCoupon) throw new Error("Coupon code already exists.");
 
-    await Coupon.create(coupon);
+    await Coupon.create({ ...coupon, code: normalizeCouponCode(coupon.code) });
     revalidatePath("/admin/coupons");
     return { success: true, message: "Coupon created successfully" };
   } catch (error) {
@@ -32,7 +34,16 @@ export async function updateCoupon(data: z.infer<typeof CouponUpdateSchema>) {
     const coupon = CouponUpdateSchema.parse(data);
     await connectToDatabase();
 
-    const updatedCoupon = await Coupon.findByIdAndUpdate(coupon._id, coupon, {
+    const existingCoupon = await Coupon.findOne({
+      code: normalizeCouponCode(coupon.code),
+      _id: { $ne: coupon._id },
+    });
+    if (existingCoupon) throw new Error("Coupon code already exists.");
+
+    const updatedCoupon = await Coupon.findByIdAndUpdate(coupon._id, {
+      ...coupon,
+      code: normalizeCouponCode(coupon.code),
+    }, {
       new: true,
     });
     if (!updatedCoupon) throw new Error("Coupon not found.");
@@ -118,7 +129,10 @@ export async function getAllCoupons({
 export async function validateCoupon(code: string, orderTotal: number) {
   await connectToDatabase();
 
-  const coupon = await Coupon.findOne({ code, isActive: true });
+  const normalizedCode = normalizeCouponCode(code);
+  if (!normalizedCode) throw new Error("Enter a coupon code.");
+
+  const coupon = await Coupon.findOne({ code: normalizedCode, isActive: true });
   if (!coupon) throw new Error("Invalid or expired coupon.");
 
   if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
@@ -138,8 +152,37 @@ export async function validateCoupon(code: string, orderTotal: number) {
     discount = coupon.discountValue;
   }
 
+  const normalizedDiscount = Math.min(Number(discount.toFixed(2)), orderTotal);
+
   return {
-    discount,
-    newTotal: Math.max(orderTotal - discount, 0),
+    coupon: {
+      _id: coupon._id.toString(),
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      discountAmount: normalizedDiscount,
+    },
+    discount: normalizedDiscount,
+    newTotal: Math.max(Number((orderTotal - normalizedDiscount).toFixed(2)), 0),
   };
+}
+
+export async function incrementCouponUsage(couponId: string) {
+  await connectToDatabase();
+
+  if (!mongoose.Types.ObjectId.isValid(couponId)) {
+    throw new Error("Invalid coupon ID");
+  }
+
+  const updatedCoupon = await Coupon.findByIdAndUpdate(
+    couponId,
+    { $inc: { usageCount: 1 } },
+    { new: true }
+  );
+
+  if (!updatedCoupon) throw new Error("Coupon not found.");
+
+  revalidatePath("/admin/coupons");
+
+  return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
 }

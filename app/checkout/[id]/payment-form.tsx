@@ -11,7 +11,6 @@ import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useState } from "react";
 
 const PaystackInline = dynamic(
   () => import("../paystack-inline"),
@@ -29,8 +28,6 @@ export default function OrderDetailsForm({
   const { data: session } = authClient.useSession();
 
   const router = useRouter();
-  const [couponCode, setCouponCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
 
   const {
     shippingAddress,
@@ -100,11 +97,7 @@ export default function OrderDetailsForm({
               <span>Order Total:</span>
               <span>
                 <ProductPrice
-                  price={
-                    order.coupon
-                      ? Math.max(0, totalPrice - order.coupon.discountAmount)
-                      : totalPrice
-                  }
+                  price={totalPrice}
                   plain
                 />
               </span>

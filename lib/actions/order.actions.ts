@@ -14,9 +14,17 @@ import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
+import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 type SerializedOrder = IOrder & { _id: string; id: string };
+
+type OrderCouponInput = {
+  _id?: string;
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountAmount?: number;
+};
 
 const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
   if (!order) return null;
@@ -32,7 +40,7 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
 };
 
 // CREATE
-export const createOrder = async (clientSideCart: Cart) => {
+export const createOrder = async (clientSideCart: Cart & { coupon?: OrderCouponInput }) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -40,7 +48,8 @@ export const createOrder = async (clientSideCart: Cart) => {
 
     const createdOrder = await createOrderFromCart(
       clientSideCart,
-      session.user.id!
+      session.user.id!,
+      clientSideCart.coupon
     );
 
     return {
@@ -56,12 +65,7 @@ export const createOrder = async (clientSideCart: Cart) => {
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
-  coupon?: {
-    _id?: string;
-    code: string;
-    discountType: "percentage" | "fixed";
-    discountAmount: number;
-  }
+  coupon?: OrderCouponInput
 ) => {
   const cart = {
     ...clientSideCart,
@@ -72,15 +76,21 @@ export const createOrderFromCart = async (
     }),
   };
 
-  // Apply coupon if available
+  let appliedCoupon:
+    | { _id?: string; code: string; discountType: "percentage" | "fixed"; discountAmount: number }
+    | undefined;
+
   let totalPrice = cart.totalPrice;
-  if (coupon) {
-    if (coupon.discountType === "percentage") {
-      totalPrice -= (totalPrice * coupon.discountAmount) / 100;
-    } else if (coupon.discountType === "fixed") {
-      totalPrice -= coupon.discountAmount;
-    }
-    totalPrice = Math.max(0, parseFloat(totalPrice.toFixed(2))); // prevent negative totals
+  if (coupon?.code) {
+    const validatedCoupon = await validateCoupon(coupon.code, cart.totalPrice);
+
+    appliedCoupon = {
+      _id: validatedCoupon.coupon._id,
+      code: validatedCoupon.coupon.code,
+      discountType: validatedCoupon.coupon.discountType,
+      discountAmount: validatedCoupon.discount,
+    };
+    totalPrice = validatedCoupon.newTotal;
   }
 
   const order = OrderInputSchema.parse({
@@ -93,14 +103,7 @@ export const createOrderFromCart = async (
     taxPrice: cart.taxPrice,
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
-    coupon: coupon
-      ? {
-          _id: coupon._id,
-          code: coupon.code,
-          discountType: coupon.discountType,
-          discountAmount: coupon.discountAmount,
-        }
-      : undefined,
+    coupon: appliedCoupon,
   });
   return await Order.create(order);
 };
@@ -118,6 +121,7 @@ export async function updateOrderToPaid(orderId: string) {
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
       await updateProductStock(order.id);
+    if (order.coupon?._id) await incrementCouponUsage(order.coupon._id.toString());
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -554,7 +558,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 1. Load order with populated user
     // ----------------------------------------------------
-    let order = await Order.findById(orderId).populate<{
+    const order = await Order.findById(orderId).populate<{
       user: { email: string; name: string };
     }>("user", "name email");
 
