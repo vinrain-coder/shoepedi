@@ -29,7 +29,7 @@ import { ShippingAddressSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
@@ -49,6 +49,9 @@ const PaystackInline = dynamic(
   () => import("./paystack-inline"),
   { ssr: false } // <-- only render on the client
 );
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -74,14 +77,39 @@ const shippingAddressDefaultValues =
 const CheckoutForm = () => {
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<
+    | {
+        _id?: string;
+        code: string;
+        discountType: "percentage" | "fixed";
+        discountAmount: number;
+      }
+    | null
+  >(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const resetCoupon = (message?: string) => {
+    setAppliedCoupon(null);
+    if (message) toast.info(message);
+  };
+
   const handleApplyCoupon = async () => {
     try {
+      setIsApplyingCoupon(true);
       const result = await validateCoupon(couponCode, totalPrice);
-      setDiscountAmount(result.discount);
+      setCouponCode(result.coupon.code);
+      setAppliedCoupon({
+        _id: result.coupon._id,
+        code: result.coupon.code,
+        discountType: result.coupon.discountType,
+        discountAmount: result.discount,
+      });
       toast.success("Coupon applied successfully");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      setAppliedCoupon(null);
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -112,6 +140,13 @@ const CheckoutForm = () => {
     clearCart,
     setDeliveryDateIndex,
   } = useCartStore();
+  const appliedCouponCode = appliedCoupon?.code;
+  const discountAmount = appliedCoupon?.discountAmount ?? 0;
+  const finalTotal = useMemo(
+    () => Math.max(0, totalPrice - discountAmount),
+    [discountAmount, totalPrice]
+  );
+
   const isMounted = useIsMounted();
 
   const shippingAddressForm = useForm<ShippingAddress>({
@@ -134,6 +169,28 @@ const CheckoutForm = () => {
     shippingAddressForm.setValue("phone", shippingAddress.phone);
   }, [items, isMounted, router, shippingAddress, shippingAddressForm]);
 
+  useEffect(() => {
+    if (!appliedCouponCode) return;
+
+    validateCoupon(appliedCouponCode, totalPrice)
+      .then((result) => {
+        setAppliedCoupon((currentCoupon) =>
+          currentCoupon
+            ? {
+                ...currentCoupon,
+                code: result.coupon.code,
+                discountType: result.coupon.discountType,
+                discountAmount: result.discount,
+                _id: result.coupon._id,
+              }
+            : currentCoupon
+        );
+      })
+      .catch(() => {
+        resetCoupon("Your coupon is no longer valid for this order.");
+      });
+  }, [appliedCouponCode, totalPrice]);
+
   const [isAddressSelected, setIsAddressSelected] = useState<boolean>(false);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] =
     useState<boolean>(false);
@@ -155,15 +212,18 @@ const CheckoutForm = () => {
         shippingPrice,
         taxPrice,
         totalPrice,
+        coupon: appliedCoupon
+          ? {
+              _id: appliedCoupon._id,
+              code: appliedCoupon.code,
+              discountType: appliedCoupon.discountType,
+              discountAmount: appliedCoupon.discountAmount,
+            }
+          : undefined,
       });
 
       if (!res.success || !res.data) {
         toast.error(res.message || "Failed to create order");
-        return;
-      }
-
-      if (createdOrder) {
-        toast.error("This order is already created. Proceed to payment.");
         return;
       }
 
@@ -181,9 +241,9 @@ const CheckoutForm = () => {
       // For online payment (Paystack), store order to render Paystack button
       setCreatedOrder(order);
       toast.success("Proceed to payment.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error placing order:", error);
-      toast.error(error?.message || "Something went wrong");
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -194,7 +254,7 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const [createdOrder, setCreatedOrder] = useState<any>(null);
+  const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
   const CheckoutSummary = ({
     createdOrder,
     paymentMethod,
@@ -249,15 +309,22 @@ const CheckoutForm = () => {
                 onChange={(e) => setCouponCode(e.target.value)}
                 placeholder="Enter coupon code"
               />
-              <Button onClick={handleApplyCoupon}>Apply</Button>
+              <Button type="button" onClick={handleApplyCoupon} disabled={isApplyingCoupon}>
+                {isApplyingCoupon ? "Applying..." : "Apply"}
+              </Button>
             </div>
-            {discountAmount > 0 && (
-              <p className="mt-1">
-                Coupon applied — you saved{" "}
-                <span className="text-green-600">
-                  <ProductPrice price={discountAmount} plain />
-                </span>
-              </p>
+            {appliedCoupon && discountAmount > 0 && (
+              <div className="mt-2 flex items-center justify-between gap-2 text-sm">
+                <p>
+                  Coupon <span className="font-medium">{appliedCoupon.code}</span> applied — you saved{" "}
+                  <span className="text-green-600">
+                    <ProductPrice price={discountAmount} plain />
+                  </span>
+                </p>
+                <Button type="button" variant="ghost" size="sm" onClick={() => resetCoupon()}>
+                  Remove
+                </Button>
+              </div>
             )}
             <div className="text-lg font-bold">Order Summary</div>
             <div className="space-y-2">
@@ -307,7 +374,7 @@ const CheckoutForm = () => {
               <span> Order Total:</span>
               <span>
                 <ProductPrice
-                  price={Math.max(0, totalPrice - discountAmount)}
+                  price={finalTotal}
                   plain
                 />
               </span>
@@ -796,7 +863,7 @@ const CheckoutForm = () => {
                   createdOrder && (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round((totalPrice - discountAmount) * 100)}
+                      amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
                       onSuccess={() =>
@@ -815,7 +882,7 @@ const CheckoutForm = () => {
                   createdOrder ? (
                     <PaystackInline
                       email={session?.user.email as string}
-                      amount={Math.round((totalPrice - discountAmount) * 100)}
+                      amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
                       onSuccess={() =>

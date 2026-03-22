@@ -138,7 +138,12 @@ const CouponForm = ({
                   <Input
                     type="number"
                     placeholder="Enter discount value"
-                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : Number(e.target.value)
+                      )
+                    }
                     className="w-full"
                   />
                 </FormControl>
@@ -158,7 +163,12 @@ const CouponForm = ({
                   <Input
                     type="number"
                     placeholder="Enter minimum purchase"
-                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : Number(e.target.value)
+                      )
+                    }
                     className="w-full"
                   />
                 </FormControl>
