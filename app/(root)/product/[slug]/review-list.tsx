@@ -51,11 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createUpdateReview,
-  getReviewByProductId,
-  getReviews,
-} from "@/lib/actions/review.actions";
+import { getReviews, submitReviewAction } from "@/lib/actions/review.actions";
 import { ReviewInputSchema } from "@/lib/validator";
 import RatingSummary from "@/components/shared/product/rating-summary";
 import { IProduct } from "@/lib/db/models/product.model";
@@ -65,13 +61,12 @@ import { toast } from "sonner";
 import { AutoResizeTextarea } from "@/components/shared/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { authClient } from "@/lib/auth-client";
-import { submitReviewAction } from "@/lib/actions/review.actions";
-  
 
 const reviewFormDefaultValues = {
   title: "",
   comment: "",
   rating: 5,
+  isVerifiedPurchase: false,
 };
 
 export default function ReviewList({

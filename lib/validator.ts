@@ -18,7 +18,7 @@ const Price = (field: string) =>
 export const ReviewInputSchema = z.object({
   product: z.string().min(1, "Product ID is required"),
   user: z.string().min(1, "User ID is required"), // ✅ FIX
-  isVerifiedPurchase: z.boolean(),
+  isVerifiedPurchase: z.boolean().default(false),
   title: z.string().min(1, "Title is required"),
   comment: z.string().min(1, "Comment is required"),
   rating: z.coerce
