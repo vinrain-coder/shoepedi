@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -47,6 +46,21 @@ const iconMap = {
   customer: UserPlus,
 } as const;
 
+const getRelativeTimestamp = (date: Date, now: number) => {
+  const diffInMinutes = Math.max(0, Math.floor((now - date.getTime()) / 60000));
+
+  if (diffInMinutes < 1) return "Just now";
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+
+  return formatDateTime(date).dateOnly;
+};
+
 export default function NotificationBellClient({
   initialFeed,
 }: {
@@ -56,6 +70,17 @@ export default function NotificationBellClient({
   const isMobile = useIsMobile();
   const [feed, setFeed] = useState(initialFeed);
   const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    setFeed(initialFeed);
+  }, [initialFeed]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const unreadCount = feed.unreadCount;
   const hasUnread = unreadCount > 0;
@@ -66,22 +91,61 @@ export default function NotificationBellClient({
     return `${unreadCount} unread alerts`;
   }, [unreadCount]);
 
+  const markAllAsReadOptimistically = () => {
+    setFeed((current) => ({
+      ...current,
+      unreadCount: 0,
+      items: current.items.map((item) => ({ ...item, isUnread: false })),
+    }));
+  };
+
   const handleMarkAllRead = () => {
     if (!hasUnread) return;
+
+    const previousFeed = feed;
+    markAllAsReadOptimistically();
 
     startTransition(async () => {
       const result = await markAdminNotificationsRead();
       if (!result.success) {
+        setFeed(previousFeed);
         toast.error(result.message);
         return;
       }
 
-      setFeed((current) => ({
-        ...current,
-        unreadCount: 0,
-        items: current.items.map((item) => ({ ...item, isUnread: false })),
-      }));
       toast.success(result.message);
+      router.refresh();
+    });
+  };
+
+  const handleNotificationSelect = (selectedItem: AdminNotificationItem) => {
+    const previousFeed = feed;
+
+    setIsOpen(false);
+    setFeed((current) => {
+      if (!current.items.some((item) => item.id === selectedItem.id && item.isUnread)) {
+        return current;
+      }
+
+      return {
+        ...current,
+        unreadCount: Math.max(0, current.unreadCount - 1),
+        items: current.items.map((item) =>
+          item.id === selectedItem.id ? { ...item, isUnread: false } : item
+        ),
+      };
+    });
+
+    router.push(selectedItem.href);
+
+    startTransition(async () => {
+      const result = await markAdminNotificationsRead();
+      if (!result.success) {
+        setFeed(previousFeed);
+        toast.error(result.message);
+        return;
+      }
+
       router.refresh();
     });
   };
@@ -108,13 +172,15 @@ export default function NotificationBellClient({
       groupedLabel={groupedLabel}
       hasUnread={hasUnread}
       isPending={isPending}
+      now={now}
       onMarkAllRead={handleMarkAllRead}
+      onNotificationSelect={handleNotificationSelect}
     />
   );
 
   if (isMobile) {
     return (
-      <Drawer>
+      <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="max-h-[85vh] p-0">
           <DrawerHeader className="border-b px-4 pb-4 pt-3 text-left">
@@ -128,7 +194,7 @@ export default function NotificationBellClient({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -146,13 +212,17 @@ function NotificationFeedPanel({
   groupedLabel,
   hasUnread,
   isPending,
+  now,
   onMarkAllRead,
+  onNotificationSelect,
 }: {
   feed: AdminNotificationFeed;
   groupedLabel: string;
   hasUnread: boolean;
   isPending: boolean;
+  now: number;
   onMarkAllRead: () => void;
+  onNotificationSelect: (item: AdminNotificationItem) => void;
 }) {
   return (
     <div className="flex flex-col">
@@ -177,11 +247,16 @@ function NotificationFeedPanel({
         </Button>
       </div>
       <DropdownMenuSeparator className="m-0" />
-      <div className="max-h-[min(70vh,28rem)] overflow-y-auto p-2 sm:p-3">
+      <div className="max-h-[min(70vh,28rem)] overflow-y-auto px-2 pb-4 pt-2 sm:px-3 sm:pb-6 sm:pt-3">
         {feed.items.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-2 pb-2 sm:pb-3">
             {feed.items.map((item) => (
-              <NotificationRow key={item.id} item={item} />
+              <NotificationRow
+                key={item.id}
+                item={item}
+                now={now}
+                onSelect={onNotificationSelect}
+              />
             ))}
           </div>
         ) : (
@@ -194,22 +269,33 @@ function NotificationFeedPanel({
   );
 }
 
-function NotificationRow({ item }: { item: AdminNotificationItem }) {
+function NotificationRow({
+  item,
+  now,
+  onSelect,
+}: {
+  item: AdminNotificationItem;
+  now: number;
+  onSelect: (item: AdminNotificationItem) => void;
+}) {
   const Icon = iconMap[item.type];
-  const timestamp = formatDateTime(new Date(item.createdAt));
+  const createdAt = new Date(item.createdAt);
+  const timestamp = formatDateTime(createdAt);
+  const relativeTimestamp = getRelativeTimestamp(createdAt, now);
 
   return (
-    <Link
-      href={item.href}
+    <button
+      type="button"
+      onClick={() => onSelect(item)}
       className={cn(
-        "group block rounded-2xl border p-3 shadow-sm transition hover:border-primary/40 hover:bg-accent/40 hover:shadow-md sm:p-4",
+        "group block w-full rounded-2xl border p-3 text-left shadow-sm transition hover:border-primary/40 hover:bg-accent/40 hover:shadow-md sm:p-4",
         item.isUnread ? "border-primary/40 bg-primary/5" : "border-border bg-background"
       )}
     >
       <div className="flex items-start gap-3">
         <div
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-2xl border",
+            "flex size-10 shrink-0 items-center justify-center rounded-2xl border transition-colors",
             item.isUnread
               ? "border-primary/20 bg-primary text-primary-foreground"
               : "border-border bg-muted text-muted-foreground"
@@ -232,12 +318,16 @@ function NotificationRow({ item }: { item: AdminNotificationItem }) {
           </div>
           <div className="text-muted-foreground flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <span className="font-medium">{item.meta}</span>
-            <span>
-              {timestamp.dateOnly} · {timestamp.timeOnly}
-            </span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:justify-end">
+              <span className="font-medium">{relativeTimestamp}</span>
+              <span className="hidden sm:inline">·</span>
+              <span>
+                {timestamp.dateOnly} · {timestamp.timeOnly}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </Link>
+    </button>
   );
 }
