@@ -1,38 +1,21 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Heading,
-  Text,
-  Button,
-  Preview,
-} from "@react-email/components";
+import AuthEmailLayout from "./auth-email-layout";
 
 type Props = {
   newEmail: string;
   url: string;
 };
 
-export default function ChangeEmailEmail({ newEmail, url }: Props) {
+export default async function ChangeEmailEmail({ newEmail, url }: Props) {
   return (
-    <Html>
-      <Preview>Approve email change</Preview>
-      <Head />
-      <Body className="bg-gray-100 font-sans">
-        <Container className="bg-white p-6 rounded-lg shadow">
-          <Heading>Email Change Request</Heading>
-          <Text>
-            You requested to change your email to <b>{newEmail}</b>.
-          </Text>
-          <Button href={url} className="bg-black text-white px-4 py-2 rounded">
-            Approve Change
-          </Button>
-          <Text className="text-sm text-gray-500 mt-4">
-            If this wasn’t you, secure your account immediately.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+    <AuthEmailLayout
+      ctaLabel="Approve email change"
+      ctaUrl={url}
+      greeting="Hi there,"
+      intro={`We received a request to change the email on your account to ${newEmail}. Confirm this change to continue.`}
+      note="If you did not request this update, do not approve it. We recommend reviewing your account security and changing your password immediately."
+      outro="Approving this request will update the email address used to sign in and receive account notifications."
+      preview="Confirm the new email address for your account"
+      title="Confirm your new email address"
+    />
   );
 }
