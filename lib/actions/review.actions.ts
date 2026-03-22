@@ -39,6 +39,7 @@ export async function submitReviewAction(
       existing.title = data.title;
       existing.comment = data.comment;
       existing.rating = data.rating;
+      existing.image = data.image || "";
       await existing.save();
     } else {
       const createdReview = await Review.create(data);
@@ -120,6 +121,7 @@ export async function createUpdateReview({
       existReview.comment = review.comment;
       existReview.rating = review.rating;
       existReview.title = review.title;
+      existReview.image = review.image || "";
       await existReview.save();
       await updateProductReview(review.product);
       revalidatePath(path);
@@ -232,6 +234,61 @@ export async function getAllReviews({
     total,
     totalPages: Math.ceil(total / limit),
   };
+}
+
+export async function replyToReview({
+  id,
+  message,
+}: {
+  id: string;
+  message: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session || session.user.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) {
+      throw new Error("Reply message is required");
+    }
+
+    await connectToDatabase();
+    const existingReview = await Review.findById(id).select("product").lean();
+    const review = await Review.findByIdAndUpdate(
+      id,
+      {
+        adminReply: {
+          message: trimmedMessage,
+          repliedAt: new Date(),
+          repliedBy: session.user.name || session.user.email,
+        },
+      },
+      { new: true }
+    );
+
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    const product = existingReview?.product
+      ? await Product.findById(existingReview.product).select("slug").lean()
+      : null;
+
+    updateTag("reviews");
+    revalidatePath("/admin/reviews");
+    if (product?.slug) {
+      revalidatePath(`/product/${product.slug}`);
+    }
+
+    return { success: true, message: "Reply saved successfully" };
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+    };
+  }
 }
 
 export async function deleteReview(id: string) {

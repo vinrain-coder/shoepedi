@@ -121,6 +121,24 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, fileUrl: file.url };
     }),
 
+  
+
+  // reviews
+  reviews: f({
+    image: {
+      maxFileSize: "2MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await getServerSession();
+      if (!session) throw new UploadThingError("Unauthorized");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, fileUrl: file.url };
+    }),
+
   // pages
   pages: f({
     image: {
