@@ -2,14 +2,14 @@ import { IOrderInput } from "@/types";
 import { Document, Model, Schema, Types, model, models } from "mongoose";
 
 export interface ICouponInfo {
-  id?: string;
+  _id?: Types.ObjectId;
   code: string;
   discountType: "percentage" | "fixed";
   discountAmount: number;
 }
 
 export interface IOrder extends Document, IOrderInput {
-  id: string;
+  _id: Types.ObjectId;
   user: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -72,7 +72,7 @@ const orderSchema = new Schema<IOrder>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Order =

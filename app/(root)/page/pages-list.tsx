@@ -22,7 +22,11 @@ export default async function WebPagesList() {
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {pages.map((page: IWebPage) => (
-        <Link key={page.id} href={`/page/${page.slug}`} className="group">
+        <Link
+          key={page._id.toString()}
+          href={`/page/${page.slug}`}
+          className="group"
+        >
           <Card className="h-full overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-secondary/20 p-0">
             {/* 1. Image Thumbnail Section */}
             {/* <div className="relative aspect-video w-full overflow-hidden bg-muted">

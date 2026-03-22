@@ -18,7 +18,6 @@ import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
-import { useState } from "react";
 
 export default function OrderDetailsForm({
   order,
@@ -27,7 +26,7 @@ export default function OrderDetailsForm({
   order: IOrder;
   isAdmin: boolean;
 }) {
-  const orderId = order._id?.toString() ?? order.id;
+  const orderId = order._id.toString();
 
   const {
     shippingAddress,
@@ -170,7 +169,7 @@ export default function OrderDetailsForm({
                 <ProductPrice
                   price={Math.max(
                     0,
-                    totalPrice - (order.coupon?.discountAmount || 0)
+                    totalPrice - (order.coupon?.discountAmount || 0),
                   )}
                   plain
                 />

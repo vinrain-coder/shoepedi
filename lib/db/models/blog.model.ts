@@ -1,8 +1,8 @@
 import { IBlogInput } from "@/types";
-import { Document, Model, model, models, Schema } from "mongoose";
+import { Document, Model, Types, model, models, Schema } from "mongoose";
 
 export interface IBlog extends Document, IBlogInput {
-  id: string;
+  _id: Types.ObjectId;
   title: string;
   slug: string;
   image: string;
@@ -26,7 +26,7 @@ const blogSchema = new Schema<IBlog>(
       lowercase: true,
       minlength: 3,
     },
-    image: String,      
+    image: String,
     content: { type: String, required: true, minlength: 10 },
     category: { type: String, required: true, minlength: 3 },
     views: { type: Number },
@@ -36,7 +36,7 @@ const blogSchema = new Schema<IBlog>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Blog: Model<IBlog> = models.Blog || model<IBlog>("Blog", blogSchema);

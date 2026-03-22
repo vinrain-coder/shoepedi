@@ -17,7 +17,7 @@ import { cacheLife } from "next/cache";
 import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
-type SerializedOrder = IOrder & { _id: string; id: string };
+type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
 
 type OrderCouponInput = {
   _id?: string;
@@ -30,17 +30,16 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
   if (!order) return null;
 
   const serializedOrder = JSON.parse(JSON.stringify(order)) as SerializedOrder;
-  const normalizedId = serializedOrder._id?.toString() ?? serializedOrder.id?.toString();
-
   return {
     ...serializedOrder,
-    _id: normalizedId,
-    id: normalizedId,
+    _id: serializedOrder._id.toString(),
   };
 };
 
 // CREATE
-export const createOrder = async (clientSideCart: Cart & { coupon?: OrderCouponInput }) => {
+export const createOrder = async (
+  clientSideCart: Cart & { coupon?: OrderCouponInput },
+) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -49,7 +48,7 @@ export const createOrder = async (clientSideCart: Cart & { coupon?: OrderCouponI
     const createdOrder = await createOrderFromCart(
       clientSideCart,
       session.user.id!,
-      clientSideCart.coupon
+      clientSideCart.coupon,
     );
 
     return {
@@ -65,7 +64,7 @@ export const createOrder = async (clientSideCart: Cart & { coupon?: OrderCouponI
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string,
-  coupon?: OrderCouponInput
+  coupon?: OrderCouponInput,
 ) => {
   const cart = {
     ...clientSideCart,
@@ -77,7 +76,12 @@ export const createOrderFromCart = async (
   };
 
   let appliedCoupon:
-    | { _id?: string; code: string; discountType: "percentage" | "fixed"; discountAmount: number }
+    | {
+        _id?: string;
+        code: string;
+        discountType: "percentage" | "fixed";
+        discountAmount: number;
+      }
     | undefined;
 
   let totalPrice = cart.totalPrice;
@@ -120,8 +124,9 @@ export async function updateOrderToPaid(orderId: string) {
     order.paidAt = new Date();
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order.id);
-    if (order.coupon?._id) await incrementCouponUsage(order.coupon._id.toString());
+      await updateProductStock(order._id.toString());
+    if (order.coupon?._id)
+      await incrementCouponUsage(order.coupon._id.toString());
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -151,7 +156,7 @@ const updateProductStock = async (orderId: string) => {
       await Product.updateOne(
         { _id: product._id },
         { countInStock: product.countInStock },
-        opts
+        opts,
       );
     }
 
@@ -261,7 +266,7 @@ export async function getMyOrders({
   };
 }
 export async function getOrderById(
-  orderId: string
+  orderId: string,
 ): Promise<SerializedOrder | null> {
   "use cache: private";
   cacheLife("hours");
@@ -281,7 +286,7 @@ export const calcDeliveryDateAndPrice = async ({
 }) => {
   const { availableDeliveryDates } = await getSetting();
   const itemsPrice = round2(
-    items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );
 
   const deliveryDate =
@@ -294,15 +299,15 @@ export const calcDeliveryDateAndPrice = async ({
     !shippingAddress || !deliveryDate
       ? undefined
       : deliveryDate.freeShippingMinPrice > 0 &&
-        itemsPrice >= deliveryDate.freeShippingMinPrice
-      ? 0
-      : deliveryDate.shippingPrice;
+          itemsPrice >= deliveryDate.freeShippingMinPrice
+        ? 0
+        : deliveryDate.shippingPrice;
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
   const totalPrice = round2(
     itemsPrice +
       (shippingPrice ? round2(shippingPrice) : 0) +
-      (taxPrice ? round2(taxPrice) : 0)
+      (taxPrice ? round2(taxPrice) : 0),
   );
   return {
     availableDeliveryDates,
@@ -365,7 +370,7 @@ export async function getOrderSummary(date: DateRange) {
   const sixMonthEarlierDate = new Date(
     today.getFullYear(),
     today.getMonth() - 5,
-    1
+    1,
   );
   const monthlySales = await Order.aggregate([
     {
@@ -550,7 +555,7 @@ export async function markPaystackOrderAsPaid(
     pricePaid: string;
     paymentMethod?: string;
     paymentReference?: string;
-  }
+  },
 ) {
   try {
     await connectToDatabase();
@@ -584,7 +589,7 @@ export async function markPaystackOrderAsPaid(
     // ----------------------------------------------------
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
-    await updateProductStock(order.id);
+    await updateProductStock(order._id.toString());
 
     // ----------------------------------------------------
     // 4. Email receipt

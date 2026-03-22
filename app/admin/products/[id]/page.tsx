@@ -6,6 +6,8 @@ import ProductForm from "../product-form";
 import { Metadata } from "next";
 import { getAllCategoriesForAdminProductInput } from "@/lib/actions/category.actions";
 import { getAllBrandsForAdminProductInput } from "@/lib/actions/brand.actions";
+import { ICategory } from "@/lib/db/models/category.model";
+import { IBrand } from "@/lib/db/models/brand.model";
 
 export const metadata: Metadata = {
   title: "Edit Product",
@@ -42,9 +44,9 @@ const UpdateProduct = async (props: UpdateProductProps) => {
         <ProductForm
           type="Update"
           product={product}
-          productId={product.id}
-          categories={categories as any}
-          brands={brands as any}
+          productId={product._id.toString()}
+          categories={categories as ICategory[]}
+          brands={brands as IBrand[]}
         />
       </div>
     </main>

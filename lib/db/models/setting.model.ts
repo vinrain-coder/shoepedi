@@ -1,8 +1,8 @@
 import { ISettingInput } from "@/types";
-import { Document, Model, model, models, Schema } from "mongoose";
+import { Document, Model, Types, model, models, Schema } from "mongoose";
 
 export interface ISetting extends Document, ISettingInput {
-  id: string;
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,7 +97,7 @@ const settingSchema = new Schema<ISetting>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Setting =
