@@ -1,10 +1,19 @@
-import mongoose from "mongoose";
+import { Document, Model, Schema, Types, model, models } from "mongoose";
 
-const passwordResetTokenSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+export interface IPasswordResetToken extends Document {
+  user: Types.ObjectId;
+  token: string;
+  expiresAt: Date;
+}
+
+const passwordResetTokenSchema = new Schema<IPasswordResetToken>({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   token: { type: String, required: true, unique: true },
-  expiresAt: { type: Date, required: true, expires: 900 }, // TTL index (15 minutes)
+  expiresAt: { type: Date, required: true, expires: 900 },
 });
 
-export default mongoose.models.PasswordResetToken ||
-  mongoose.model("PasswordResetToken", passwordResetTokenSchema);
+const PasswordResetToken =
+  (models.PasswordResetToken as Model<IPasswordResetToken> | undefined) ||
+  model<IPasswordResetToken>("PasswordResetToken", passwordResetTokenSchema);
+
+export default PasswordResetToken;

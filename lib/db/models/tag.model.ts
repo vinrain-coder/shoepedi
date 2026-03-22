@@ -1,5 +1,4 @@
-import { Schema, model, models, Document, Types, Model } from "mongoose";
-import { StrictMode } from "react";
+import { Document, Model, Schema, model, models } from "mongoose";
 
 export interface ITag extends Document {
   name: string;
@@ -35,5 +34,7 @@ const tagSchema = new Schema<ITag>(
   { timestamps: true }
 );
 
-const Tag: Model<ITag> = models.Tag || model<ITag>("Tag", tagSchema);
+const Tag =
+  (models.Tag as Model<ITag> | undefined) || model<ITag>("Tag", tagSchema);
+
 export default Tag;
