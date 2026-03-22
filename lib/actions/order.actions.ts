@@ -86,7 +86,7 @@ export const createOrderFromCart = async (
 
   let totalPrice = cart.totalPrice;
   if (coupon?.code) {
-    const validatedCoupon = await validateCoupon(coupon.code, cart.totalPrice);
+    const validatedCoupon = await validateCoupon(coupon.code, cart.itemsPrice);
 
     appliedCoupon = {
       _id: validatedCoupon.coupon._id,
@@ -94,7 +94,7 @@ export const createOrderFromCart = async (
       discountType: validatedCoupon.coupon.discountType,
       discountAmount: validatedCoupon.discount,
     };
-    totalPrice = validatedCoupon.newTotal;
+    totalPrice = round2(cart.totalPrice - validatedCoupon.discount);
   }
 
   const order = OrderInputSchema.parse({
