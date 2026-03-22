@@ -388,13 +388,13 @@ export default function ReviewList({ product }: { product: IProduct }) {
                     <div className="flex flex-wrap items-center gap-2">
                       <CardTitle className="text-lg">{review.title}</CardTitle>
                       {review.isVerifiedPurchase ? (
-                        <Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+                        <Badge className="rounded-full px-3 py-1">
                           <ShieldCheck className="size-3.5" />
                           Verified purchase
                         </Badge>
                       ) : null}
                     </div>
-                    <Rating rating={review.rating} size={16} />
+                    <Rating rating={review.rating} size={4} />
                     <CardDescription className="max-w-3xl text-sm leading-6 text-foreground/80">
                       {review.comment}
                     </CardDescription>
@@ -429,8 +429,8 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 ) : null}
 
                 {review.adminReply?.message ? (
-                  <div className="rounded-3xl border border-primary/15 bg-primary/5 p-5">
-                    <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-primary ml-3">
+                  <div className="rounded-3xl border border-primary/15 bg-primary/5 p-3 ml-3">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
                       <CheckCircle2 className="size-4" />
                       Admin reply
                       {review.adminReply.repliedBy ? (
