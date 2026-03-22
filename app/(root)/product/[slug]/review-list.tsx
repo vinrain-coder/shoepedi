@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   StarIcon,
   User,
+  CornerDownRight,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -64,6 +65,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import RatingSummary from "@/components/shared/product/rating-summary";
 import { authClient } from "@/lib/auth-client";
 import { getReviews, submitReviewAction } from "@/lib/actions/review.actions";
@@ -72,6 +74,8 @@ import { ReviewInputSchema } from "@/lib/validator";
 import { IReviewDetails } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+
+/* ---------------- FORM ---------------- */
 
 const ReviewFormSchema = ReviewInputSchema.omit({
   product: true,
@@ -90,97 +94,80 @@ type CustomerReview = z.infer<typeof ReviewFormSchema>;
 
 function ReviewFormFields({ form }: { form: UseFormReturn<CustomerReview> }) {
   return (
-    <div className="space-y-5">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem className="sm:col-span-2">
-              <FormLabel>Title</FormLabel>
+    <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="title"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Title</FormLabel>
+            <FormControl>
+              <Input placeholder="Summarize your experience" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="rating"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Rating</FormLabel>
+            <Select
+              onValueChange={(val) => field.onChange(Number(val))}
+              value={field.value.toString()}
+            >
               <FormControl>
-                <Input placeholder="Summarize your experience" {...field} />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select rating" />
+                </SelectTrigger>
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <SelectContent>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <SelectItem key={i} value={(i + 1).toString()}>
+                    <div className="flex items-center gap-1">
+                      {i + 1}
+                      <StarIcon className="size-3 fill-primary text-primary" />
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
 
-        <FormField
-          control={form.control}
-          name="rating"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rating</FormLabel>
-              <Select
-                onValueChange={(val) => field.onChange(Number(val))}
-                value={field.value.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a rating" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <SelectItem key={index} value={(index + 1).toString()}>
-                      <div className="flex items-center gap-2">
-                        <span>{index + 1}</span>
-                        <StarIcon className="size-4 fill-primary text-primary" />
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <FormField
+        control={form.control}
+        name="comment"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Comment</FormLabel>
+            <FormControl>
+              <AutoResizeTextarea
+                className="min-h-24"
+                placeholder="Share your experience..."
+                {...field}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
 
-        <div className="rounded-2xl border bg-muted/30 p-4">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <ImageIcon className="size-4 text-primary" />
-            Optional image
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Add a photo to show fit, color, or packaging details.
-          </p>
-        </div>
-
-        <FormField
-          control={form.control}
-          name="comment"
-          render={({ field }) => (
-            <FormItem className="sm:col-span-2">
-              <FormLabel>Comment</FormLabel>
-              <FormControl>
-                <AutoResizeTextarea
-                  placeholder="What did you like? How was the fit, comfort, and finish?"
-                  className="min-h-28 rounded-xl"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem className="sm:col-span-2">
-              <FormControl>
-                <ReviewImageUploader value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="image"
+        render={({ field }) => (
+          <ReviewImageUploader value={field.value} onChange={field.onChange} />
+        )}
+      />
     </div>
   );
 }
+
+/* ---------------- MAIN ---------------- */
 
 export default function ReviewList({ product }: { product: IProduct }) {
   const isMobile = useIsMobile();
@@ -191,45 +178,20 @@ export default function ReviewList({ product }: { product: IProduct }) {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const reload = async () => {
-    try {
-      const res = await getReviews({ productId: product._id.toString(), page: 1 });
-      setReviews([...res.data]);
-      setTotalPages(res.totalPages);
-      setPage(2);
-    } catch {
-      toast.error("Error fetching reviews");
-    }
-  };
-
-  const loadMoreReviews = async () => {
-    if (loadingReviews || (totalPages !== 0 && page > totalPages)) return;
-    setLoadingReviews(true);
-    const res = await getReviews({ productId: product._id.toString(), page });
-    setLoadingReviews(false);
-    setReviews((current) => [...current, ...res.data]);
-    setTotalPages(res.totalPages);
-    setPage((current) => current + 1);
-  };
-
-  useEffect(() => {
-    const loadReviews = async () => {
-      setLoadingReviews(true);
-      const res = await getReviews({ productId: product._id.toString(), page: 1 });
-      setReviews([...res.data]);
-      setTotalPages(res.totalPages);
-      setLoadingReviews(false);
-    };
-
-    if (inView) {
-      loadReviews();
-    }
-  }, [inView, product._id]);
-
   const form = useForm<CustomerReview>({
     resolver: zodResolver(ReviewFormSchema),
     defaultValues: reviewFormDefaultValues,
   });
+
+  const reload = async () => {
+    const res = await getReviews({
+      productId: product._id.toString(),
+      page: 1,
+    });
+    setReviews(res.data);
+    setTotalPages(res.totalPages);
+    setPage(2);
+  };
 
   const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
     const res = await submitReviewAction(
@@ -237,10 +199,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
       `/product/${product.slug}`
     );
 
-    if (!res.success) {
-      toast.error(res.message);
-      return;
-    }
+    if (!res.success) return toast.error(res.message);
 
     form.reset(reviewFormDefaultValues);
     setOpen(false);
@@ -248,213 +207,137 @@ export default function ReviewList({ product }: { product: IProduct }) {
     toast.success(res.message);
   };
 
-  const { data: session } = authClient.useSession();
-  const userId = session?.user.id;
-
   const reviewForm = (
     <Form {...form}>
-      <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <ReviewFormFields form={form} />
-        <div className="rounded-2xl bg-muted/30 p-4 text-sm text-muted-foreground">
-          Your review may be shown publicly after moderation. Honest fit and quality notes help other shoppers.
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col h-full"
+      >
+        {/* SCROLLABLE AREA */}
+        <div className="flex-1 overflow-y-auto px-4 space-y-4">
+          <ReviewFormFields form={form} />
         </div>
-        {isMobile ? (
-          <DrawerFooter className="px-0 pb-0">
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full rounded-full"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? "Submitting..." : "Submit review"}
-            </Button>
-          </DrawerFooter>
-        ) : (
-          <DialogFooter>
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full rounded-full"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? "Submitting..." : "Submit review"}
-            </Button>
-          </DialogFooter>
-        )}
+
+        {/* FIXED FOOTER */}
+        <div className="border-t p-4">
+          <Button type="submit" className="w-full rounded-full">
+            Submit review
+          </Button>
+        </div>
       </form>
     </Form>
   );
 
+  const { data: session } = authClient.useSession();
+  const userId = session?.user.id;
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-8 lg:grid-cols-4">
-        <div className="space-y-5 lg:col-span-1">
-          <Card className="border-none bg-gradient-to-br from-primary/5 via-background to-background shadow-sm">
-            <CardContent className="space-y-5 p-6">
-              {reviews.length !== 0 ? (
-                <RatingSummary
-                  avgRating={product.avgRating}
-                  numReviews={product.numReviews}
-                  ratingDistribution={product.ratingDistribution}
-                />
+    <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* LEFT PANEL */}
+        <div className="lg:col-span-1">
+          <Card className="p-4 space-y-4">
+            <RatingSummary
+              avgRating={product.avgRating}
+              numReviews={product.numReviews}
+              ratingDistribution={product.ratingDistribution}
+            />
+
+            {userId ? (
+              isMobile ? (
+                <Drawer open={open} onOpenChange={setOpen}>
+                  <DrawerTrigger asChild>
+                    <Button className="w-full">Write review</Button>
+                  </DrawerTrigger>
+
+                  <DrawerContent className="h-[90vh] flex flex-col">
+                    <DrawerHeader>
+                      <DrawerTitle>Write review</DrawerTitle>
+                      <DrawerDescription>
+                        Share your experience
+                      </DrawerDescription>
+                    </DrawerHeader>
+
+                    {reviewForm}
+                  </DrawerContent>
+                </Drawer>
               ) : (
-                <div className="space-y-3">
-                  <Badge variant="outline" className="rounded-full px-3 py-1">
-                    New product feedback
-                  </Badge>
-                  <h3 className="text-xl font-semibold">Be the first to review</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Share what stood out about comfort, fit, support, and style.
-                  </p>
-                </div>
-              )}
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full">Write review</Button>
+                  </DialogTrigger>
 
-              <Separator />
-
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Review this product</h3>
-                <p className="text-sm text-muted-foreground">
-                  Tell other shoppers what you noticed after unboxing and wearing it.
-                </p>
-                {userId ? (
-                  isMobile ? (
-                    <Drawer open={open} onOpenChange={setOpen}>
-                      <DrawerTrigger asChild>
-                        <Button className="w-full rounded-full">Write a review</Button>
-                      </DrawerTrigger>
-                      <DrawerContent>
-                        <DrawerHeader>
-                          <DrawerTitle>Write a customer review</DrawerTitle>
-                          <DrawerDescription>
-                            Share details about fit, comfort, and finish.
-                          </DrawerDescription>
-                        </DrawerHeader>
-                        <div className="px-4 pb-4">{reviewForm}</div>
-                      </DrawerContent>
-                    </Drawer>
-                  ) : (
-                    <Dialog open={open} onOpenChange={setOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full rounded-full">Write a review</Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl rounded-3xl">
-                        <DialogHeader>
-                          <DialogTitle>Write a customer review</DialogTitle>
-                          <DialogDescription>
-                            Share details about fit, comfort, and finish.
-                          </DialogDescription>
-                        </DialogHeader>
-                        {reviewForm}
-                      </DialogContent>
-                    </Dialog>
-                  )
-                ) : (
-                  <div className="rounded-2xl border bg-muted/30 p-4 text-sm text-muted-foreground">
-                    Please{" "}
-                    <Link
-                      href={`/sign-in?callbackUrl=/product/${product.slug}`}
-                      className="font-medium text-primary underline underline-offset-4"
-                    >
-                      sign in
-                    </Link>{" "}
-                    to write a review.
-                  </div>
-                )}
-              </div>
-            </CardContent>
+                  <DialogContent>{reviewForm}</DialogContent>
+                </Dialog>
+              )
+            ) : (
+              <Link href="/sign-in">
+                <Button variant="outline" className="w-full">
+                  Sign in to review
+                </Button>
+              </Link>
+            )}
           </Card>
         </div>
 
-        <div className="space-y-4 lg:col-span-3">
-          {reviews.length === 0 && !loadingReviews ? (
-            <Card className="border-dashed bg-muted/20">
-              <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-                <MessageSquareQuote className="size-10 text-primary/70" />
-                <div>
-                  <h3 className="text-lg font-semibold">No reviews yet</h3>
+        {/* REVIEWS */}
+        <div className="space-y-3 lg:col-span-3">
+          {reviews.map((review) => (
+            <Card key={review._id} className="p-4 space-y-3">
+              <div className="flex justify-between gap-3">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">{review.title}</h3>
+                  <Rating rating={review.rating} size={14} />
                   <p className="text-sm text-muted-foreground">
-                    Customer feedback will appear here once shoppers start sharing their experience.
+                    {review.comment}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          ) : null}
 
-          {reviews.map((review) => (
-            <Card key={review._id} className="overflow-hidden border-primary/10 shadow-sm">
-              <CardHeader className="gap-4 bg-gradient-to-r from-primary/[0.04] via-background to-background">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="text-lg">{review.title}</CardTitle>
-                      {review.isVerifiedPurchase ? (
-                        <Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-                          <ShieldCheck className="size-3.5" />
-                          Verified purchase
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <Rating rating={review.rating} size={16} />
-                    <CardDescription className="max-w-3xl text-sm leading-6 text-foreground/80">
-                      {review.comment}
-                    </CardDescription>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center gap-1">
+                    <User className="size-3" />
+                    {review.user?.name}
                   </div>
-                  <div className="grid gap-2 rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <User className="size-4" />
-                      <span>{review.user ? review.user.name : "Deleted user"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="size-4" />
-                      <span>
-                        {review.createdAt
-                          ? new Date(review.createdAt).toISOString().substring(0, 10)
-                          : "N/A"}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="size-3" />
+                    {new Date(review.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                {review.image ? (
-                  <div className="overflow-hidden rounded-3xl border bg-muted/20 shadow-sm">
-                    <Image
-                      src={review.image}
-                      alt={`Review photo for ${product.name}`}
-                      width={1200}
-                      height={900}
-                      className="max-h-[420px] w-full object-cover"
-                    />
-                  </div>
-                ) : null}
+              </div>
 
-                {review.adminReply?.message ? (
-                  <div className="rounded-3xl border border-primary/15 bg-primary/5 p-5">
-                    <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
-                      <CheckCircle2 className="size-4" />
+              {/* IMAGE */}
+              {review.image && (
+                <div className="rounded-lg overflow-hidden border">
+                  <Image
+                    src={review.image}
+                    alt=""
+                    width={800}
+                    height={600}
+                    className="h-[220px] w-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* ADMIN REPLY */}
+              {review.adminReply?.message && (
+                <div className="flex gap-2 bg-muted/40 p-3 rounded-lg border">
+                  <CornerDownRight className="size-4 mt-1 text-primary" />
+                  <div>
+                    <p className="text-xs font-semibold text-primary">
                       Admin reply
-                      {review.adminReply.repliedBy ? (
-                        <span className="text-muted-foreground">• {review.adminReply.repliedBy}</span>
-                      ) : null}
-                    </div>
-                    <p className="text-sm leading-6 text-foreground/85">
+                    </p>
+                    <p className="text-sm text-muted-foreground">
                       {review.adminReply.message}
                     </p>
                   </div>
-                ) : null}
-              </CardContent>
+                </div>
+              )}
             </Card>
           ))}
 
-          <div ref={ref} className="text-center">
-            {page <= totalPages ? (
-              <Button variant="outline" onClick={loadMoreReviews} disabled={loadingReviews}>
-                {loadingReviews ? "Loading..." : "See more reviews"}
-              </Button>
-            ) : null}
-          </div>
+          <div ref={ref} />
         </div>
       </div>
     </div>
   );
-}
+  }
