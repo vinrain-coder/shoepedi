@@ -322,7 +322,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
                       <DrawerTrigger asChild>
                         <Button className="w-full rounded-full">Write a review</Button>
                       </DrawerTrigger>
-                      <DrawerContent>
+                      <DrawerContent className="overflow-y-scroll">
                         <DrawerHeader>
                           <DrawerTitle>Write a customer review</DrawerTitle>
                           <DrawerDescription>
@@ -415,14 +415,14 @@ export default function ReviewList({ product }: { product: IProduct }) {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 p-6">
+              <CardContent className="space-y-2 p-4">
                 {review.image ? (
                   <div className="overflow-hidden rounded-3xl border bg-muted/20 shadow-sm">
                     <Image
                       src={review.image}
                       alt={`Review photo for ${product.name}`}
-                      width={1200}
-                      height={900}
+                      width={600}
+                      height={450}
                       className="max-h-[420px] w-full object-cover"
                     />
                   </div>
@@ -430,7 +430,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
                 {review.adminReply?.message ? (
                   <div className="rounded-3xl border border-primary/15 bg-primary/5 p-5">
-                    <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-primary ml-3">
                       <CheckCircle2 className="size-4" />
                       Admin reply
                       {review.adminReply.repliedBy ? (
