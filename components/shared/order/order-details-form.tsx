@@ -27,6 +27,8 @@ export default function OrderDetailsForm({
   order: IOrder;
   isAdmin: boolean;
 }) {
+  const orderId = order._id?.toString() ?? order.id;
+
   const {
     shippingAddress,
     items,
@@ -178,13 +180,13 @@ export default function OrderDetailsForm({
             {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
               <ActionButton
                 caption="Mark as paid"
-                action={() => updateOrderToPaid(order.id)}
+                action={() => updateOrderToPaid(orderId)}
               />
             )}
             {isAdmin && isPaid && !isDelivered && (
               <ActionButton
                 caption="Mark as delivered"
-                action={() => deliverOrder(order.id)}
+                action={() => deliverOrder(orderId)}
               />
             )}
           </CardContent>

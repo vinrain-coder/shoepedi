@@ -16,6 +16,21 @@ import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
+type SerializedOrder = IOrder & { _id: string; id: string };
+
+const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
+  if (!order) return null;
+
+  const serializedOrder = JSON.parse(JSON.stringify(order)) as SerializedOrder;
+  const normalizedId = serializedOrder._id?.toString() ?? serializedOrder.id?.toString();
+
+  return {
+    ...serializedOrder,
+    _id: normalizedId,
+    id: normalizedId,
+  };
+};
+
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
   try {
@@ -31,7 +46,7 @@ export const createOrder = async (clientSideCart: Cart) => {
     return {
       success: true,
       message: "Order placed successfully",
-      data: createdOrder, // <-- return full order
+      data: serializeOrder(createdOrder),
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -241,12 +256,14 @@ export async function getMyOrders({
     totalPages: Math.ceil(ordersCount / limit),
   };
 }
-export async function getOrderById(orderId: string): Promise<IOrder> {
-  "use cache";
+export async function getOrderById(
+  orderId: string
+): Promise<SerializedOrder | null> {
+  "use cache: private";
   cacheLife("hours");
   await connectToDatabase();
   const order = await Order.findById(orderId);
-  return JSON.parse(JSON.stringify(order));
+  return serializeOrder(order);
 }
 
 export const calcDeliveryDateAndPrice = async ({
