@@ -322,14 +322,16 @@ export default function ReviewList({ product }: { product: IProduct }) {
                       <DrawerTrigger asChild>
                         <Button className="w-full rounded-full">Write a review</Button>
                       </DrawerTrigger>
-                      <DrawerContent className="overflow-auto">
+                      <DrawerContent className="flex flex-col h-full">
                         <DrawerHeader>
                           <DrawerTitle>Write a customer review</DrawerTitle>
                           <DrawerDescription>
                             Share details about fit, comfort, and finish.
                           </DrawerDescription>
                         </DrawerHeader>
-                        <div className="px-4 pb-4">{reviewForm}</div>
+                        <div className="flex-1 overflow-auto px-4 pb-4">
+                              {reviewForm}
+                        </div>
                       </DrawerContent>
                     </Drawer>
                   ) : (
