@@ -2,7 +2,6 @@ import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
-import { sendEmail } from "./email";
 import { passwordSchema } from "./validator";
 import { getDb } from "./db/client";
 
@@ -11,6 +10,7 @@ import {
   sendResetPasswordEmail,
   sendVerifyEmail,
 } from "./email/auth-emails";
+import { sendAdminEventNotification } from "@/emails";
 
 const db = await getDb();
 
@@ -132,6 +132,17 @@ export const auth = betterAuth({
               wishlist,
             },
           };
+        },
+        after: async (user) => {
+          if (user.role === "ADMIN") return;
+
+          await sendAdminEventNotification({
+            title: "New customer account",
+            description: `${user.name || user.email} created an account${user.email ? ` with ${user.email}` : ""}.`,
+            href: "/admin/users",
+            meta: user.emailVerified ? "Email verified" : "Needs verification",
+            createdAt: new Date().toISOString(),
+          });
         },
       },
     },
