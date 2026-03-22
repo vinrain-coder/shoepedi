@@ -13,20 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IOrder } from "@/lib/db/models/order.model";
+import {
+  deliverOrder,
+  SerializedOrder,
+  updateOrderToPaid,
+} from "@/lib/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
-import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
 
 export default function OrderDetailsForm({
   order,
   isAdmin,
 }: {
-  order: IOrder;
+  order: SerializedOrder;
   isAdmin: boolean;
 }) {
-  const orderId = order._id.toString();
+  const orderId = order._id;
 
   const {
     shippingAddress,

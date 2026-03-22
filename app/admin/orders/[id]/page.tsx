@@ -24,6 +24,10 @@ const AdminOrderDetailsPage = async (props: {
 
   const session = await getServerSession();
 
+  if (session?.user?.role !== "ADMIN") {
+    throw new Error("Admin permission required");
+  }
+
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex mb-4">

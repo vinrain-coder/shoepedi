@@ -17,7 +17,7 @@ import { cacheLife } from "next/cache";
 import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
-type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
+export type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
 
 type OrderCouponInput = {
   _id?: string;
@@ -129,6 +129,7 @@ export async function updateOrderToPaid(orderId: string) {
       await incrementCouponUsage(order.coupon._id.toString());
     if (order.user.email) await sendPurchaseReceipt({ order });
     revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };
@@ -183,6 +184,7 @@ export async function deliverOrder(orderId: string) {
     await order.save();
     if (order.user.email) await sendAskReviewOrderItems({ order });
     revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
     return { success: true, message: "Order delivered successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };
@@ -271,7 +273,21 @@ export async function getOrderById(
   "use cache: private";
   cacheLife("hours");
   await connectToDatabase();
-  const order = await Order.findById(orderId);
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return null;
+  }
+
+  const session = await getServerSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const query =
+    session.user.role === "ADMIN"
+      ? { _id: orderId }
+      : { _id: orderId, user: session.user.id };
+
+  const order = await Order.findOne(query);
   return serializeOrder(order);
 }
 
@@ -609,6 +625,7 @@ export async function markPaystackOrderAsPaid(
     // 5. Revalidate cache & return
     // ----------------------------------------------------
     revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
 
     return { success: true, message: "Order paid successfully" };
   } catch (err) {

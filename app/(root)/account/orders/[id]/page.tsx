@@ -4,18 +4,24 @@ import OrderDetailsForm from "@/components/shared/order/order-details-form";
 import { formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
   return {
-    title: `Order ${formatId(params.id)}`,
+    title: `Order ${formatId(id)}`,
   };
 }
 
 export default async function OrderDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   const order = await getOrderById(id);
 
