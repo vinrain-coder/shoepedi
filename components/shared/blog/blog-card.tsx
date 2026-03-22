@@ -7,13 +7,24 @@ import Link from "next/link";
 
 import {
   Card,
-  CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart, MessageCircle } from "lucide-react";
 
-export default function BlogCard({ blog }: { blog: any }) {
+type BlogCardProps = {
+  _id: string;
+  slug: string;
+  title: string;
+  image?: string;
+  content: string;
+  createdAt: string;
+  category: string;
+  likesCount?: number;
+  commentsCount?: number;
+};
+
+export default function BlogCard({ blog }: { blog: BlogCardProps }) {
   const [formattedDate, setFormattedDate] = useState("");
 
   useEffect(() => {
@@ -35,43 +46,44 @@ export default function BlogCard({ blog }: { blog: any }) {
       : null;
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg p-0">
-      {/* Image */}
-      <Link href={`/blogs/${blog.slug}`} className="group block">
-        <div className="relative h-40 w-full overflow-hidden">
+    <Card className="group overflow-hidden border-border/60 p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <Link href={`/blogs/${blog.slug}`} className="block">
+        <div className="relative h-52 w-full overflow-hidden bg-muted">
           {imageSrc ? (
             <Image
               src={imageSrc}
               alt={blog.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
               No Image
             </div>
           )}
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-4 py-3 text-xs text-white">
+            <span>{formattedDate}</span>
+            <span className="rounded-full bg-white/15 px-2 py-1 backdrop-blur">{blog.category}</span>
+          </div>
         </div>
       </Link>
 
-      {/* Content */}
-      <CardHeader className="px-2 py-0">
+      <CardHeader className="space-y-3 px-4 pt-4 pb-2">
         <Link href={`/blogs/${blog.slug}`}>
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2 hover:text-primary transition-colors">
+          <h3 className="line-clamp-2 text-lg font-semibold leading-snug transition-colors group-hover:text-primary">
             {blog.title}
           </h3>
         </Link>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><Heart className="size-4 text-rose-500" /> {blog.likesCount || 0}</span>
+          <span className="inline-flex items-center gap-1"><MessageCircle className="size-4 text-sky-500" /> {blog.commentsCount || 0}</span>
+        </div>
       </CardHeader>
 
-      <CardContent className="px-2 py-0 hidden">
-        <p className="text-xs text-muted-foreground">{formattedDate}</p>
-      </CardContent>
-
-      {/* Footer */}
-      <CardFooter className="px-2 mb-2 py-0 flex flex-col gap-1 items-center justify-center">
+      <CardFooter className="px-4 pb-4 pt-0">
         <Link
           href={`/blogs/${blog.slug}`}
-          className="text-sm font-medium text-primary hover:underline flex gap-1"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           Read more <ArrowRight size={16} />
         </Link>

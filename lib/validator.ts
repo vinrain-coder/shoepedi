@@ -341,6 +341,22 @@ export const BlogUpdateSchema = BlogInputSchema.extend({
   _id: MongoId,
 });
 
+export const BlogLikeInputSchema = z
+  .object({
+    blogId: MongoId,
+    userId: z.string().optional(),
+    guestId: z.string().optional(),
+  })
+  .refine((value) => Boolean(value.userId || value.guestId), {
+    message: "A user or guest identifier is required",
+  });
+
+export const BlogCommentInputSchema = z.object({
+  blogId: MongoId,
+  parentCommentId: z.string().optional(),
+  content: z.string().trim().min(1, "Comment is required").max(2000, "Comment is too long"),
+});
+
 // Stock subscription
 export const StockSubscriptionSchema = z.object({
   product: MongoId,
