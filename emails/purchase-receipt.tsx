@@ -32,6 +32,11 @@ PurchaseReceiptEmail.PreviewProps = {
     itemsPrice: 100,
     taxPrice: 0,
     shippingPrice: 0,
+    coupon: {
+      code: "SAVE10",
+      discountType: "fixed",
+      discountAmount: 10,
+    },
     user: {
       name: "John Doe",
       email: "john.doe@example.com",
@@ -65,10 +70,19 @@ PurchaseReceiptEmail.PreviewProps = {
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
+const getCouponDescription = (order: IOrder) => {
+  if (!order.coupon) return null;
+
+  return order.coupon.discountType === "percentage"
+    ? "Percentage discount applied to your items subtotal"
+    : `${formatCurrency(order.coupon.discountAmount)} saved on this order`;
+};
+
 export default async function PurchaseReceiptEmail({
   order,
 }: OrderInformationProps) {
   const { site } = await getSetting();
+  const couponDescription = getCouponDescription(order);
 
   return (
     <Html>
@@ -142,17 +156,41 @@ export default async function PurchaseReceiptEmail({
               ))}
 
               {/* Pricing Breakdown */}
+              {order.coupon && (
+                <Section className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                  <Text className="m-0 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                    Coupon applied
+                  </Text>
+                  <Text className="m-0 mt-2 text-lg font-bold text-emerald-900">
+                    {order.coupon.code}
+                  </Text>
+                  <Text className="m-0 mt-1 text-sm text-emerald-800">
+                    {couponDescription}
+                  </Text>
+                  <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
+                    Discount: -KES.{formatCurrency(Math.abs(order.coupon.discountAmount))}
+                  </Text>
+                </Section>
+              )}
+
               <Section className="mt-4">
                 {[
                   { name: "Items", price: order.itemsPrice },
                   { name: "Tax", price: order.taxPrice },
                   { name: "Shipping", price: order.shippingPrice },
+                  ...(order.coupon
+                    ? [{ name: `Coupon (${order.coupon.code})`, price: -Math.abs(order.coupon.discountAmount) }]
+                    : []),
                   { name: "Total", price: order.totalPrice },
                 ].map(({ name, price }) => (
                   <Row key={name} className="flex justify-between py-1">
                     <Column className="font-semibold">{name}:</Column>
                     <Column align="right">
-                      <Text className="m-0">KES.{formatCurrency(price)}</Text>
+                      <Text className="m-0">
+                        {price < 0
+                          ? `-KES.${formatCurrency(Math.abs(price))}`
+                          : `KES.${formatCurrency(price)}`}
+                      </Text>
                     </Column>
                   </Row>
                 ))}

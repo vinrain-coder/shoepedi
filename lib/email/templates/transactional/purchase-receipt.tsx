@@ -71,6 +71,20 @@ PurchaseReceiptEmail.PreviewProps = {
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
+const getCouponDescription = (order: IOrder) => {
+  if (!order.coupon) return null;
+
+  if (order.coupon.discountType === "percentage") {
+    const percentage = order.itemsPrice
+      ? Math.round((order.coupon.discountAmount / order.itemsPrice) * 100)
+      : 0;
+
+    return `${percentage}% off your items subtotal`;
+  }
+
+  return `${formatCurrency(order.coupon.discountAmount)} saved on this order`;
+};
+
 export default async function PurchaseReceiptEmail({
   order,
 }: OrderInformationProps) {
@@ -79,6 +93,7 @@ export default async function PurchaseReceiptEmail({
   const logoSrc = site.logo.startsWith("/")
     ? `${site.url}${site.logo}`
     : site.logo;
+  const couponDescription = getCouponDescription(order);
 
   const pricingRows = [
     { label: "Items subtotal", value: order.itemsPrice },
@@ -213,6 +228,23 @@ export default async function PurchaseReceiptEmail({
                     </Row>
                   ))}
                 </Section>
+
+                {order.coupon && (
+                  <Section className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-5">
+                    <Text className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                      Coupon applied
+                    </Text>
+                    <Text className="m-0 mt-3 text-[24px] font-semibold text-emerald-950">
+                      {order.coupon.code}
+                    </Text>
+                    <Text className="m-0 mt-2 text-[14px] leading-[22px] text-emerald-800">
+                      {couponDescription}
+                    </Text>
+                    <Text className="m-0 mt-3 text-[14px] font-semibold text-emerald-950">
+                      Discount saved: - {formatCurrency(Math.abs(order.coupon.discountAmount))}
+                    </Text>
+                  </Section>
+                )}
 
                 <Row className="mt-8">
                   <Column className="pr-3 align-top">
