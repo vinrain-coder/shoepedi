@@ -21,6 +21,7 @@ export const ReviewInputSchema = z.object({
   isVerifiedPurchase: z.boolean().default(false),
   title: z.string().min(1, "Title is required"),
   comment: z.string().min(1, "Comment is required"),
+  image: z.string().url("Review image must be a valid URL").optional().or(z.literal("")),
   rating: z.coerce
     .number()
     .int()

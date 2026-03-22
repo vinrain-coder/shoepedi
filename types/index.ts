@@ -31,6 +31,11 @@ export type IReviewDetails = IReviewInput & {
   user: {
     name: string;
   };
+  adminReply?: {
+    message: string;
+    repliedAt: string;
+    repliedBy?: string;
+  };
 };
 export type IProductInput = z.infer<typeof ProductInputSchema>;
 

@@ -8,6 +8,12 @@ export interface IReview extends Document, IReviewInput {
   rating: number;
   comment: string;
   title: string;
+  image?: string;
+  adminReply?: {
+    message: string;
+    repliedAt: Date;
+    repliedBy?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +46,21 @@ const reviewSchema = new Schema<IReview>(
     comment: {
       type: String,
       required: true,
+    },
+    image: {
+      type: String,
+      default: "",
+    },
+    adminReply: {
+      message: {
+        type: String,
+      },
+      repliedAt: {
+        type: Date,
+      },
+      repliedBy: {
+        type: String,
+      },
     },
   },
   {
