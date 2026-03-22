@@ -2,7 +2,7 @@ import { IReviewInput } from "@/types";
 import { Document, Model, Schema, Types, model, models } from "mongoose";
 
 export interface IReview extends Document, IReviewInput {
-  id: string;
+  _id: Types.ObjectId;
   user: Types.ObjectId;
   product: Types.ObjectId;
   rating: number;
@@ -44,7 +44,7 @@ const reviewSchema = new Schema<IReview>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Review =

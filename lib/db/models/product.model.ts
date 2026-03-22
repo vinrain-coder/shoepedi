@@ -1,12 +1,12 @@
-import { Document, Model, model, models, Schema } from "mongoose";
+import { Document, Model, Types, model, models, Schema } from "mongoose";
 import { IProductInput } from "@/types";
 
 export interface IProduct extends Document, IProductInput {
+  _id: Types.ObjectId;
   numReviews: number;
   avgRating: number;
   ratingDistribution: { rating: number; count: number }[];
   slug: string;
-  id: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,7 +102,7 @@ const productSchema = new Schema<IProduct>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Product =
