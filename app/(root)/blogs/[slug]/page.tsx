@@ -90,7 +90,7 @@ export default async function BlogPage({
   return (
     <div className="mx-auto max-w-4xl px-1 sm:px-2 md:px-4">
       <Breadcrumb />
-      <div className="rounded-3xl border border-border/70 bg-gradient-to-br from-primary/8 via-background to-background p-5 shadow-sm sm:p-8">
+      <div className="rounded-3xl border border-border/70 bg-gradient-to-br from-primary/8 via-background to-background p-3 shadow-sm sm:p-8 mt-2">
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2 text-sm">
             <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{blog.category}</span>
@@ -111,7 +111,7 @@ export default async function BlogPage({
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-border/70 bg-background p-4 shadow-sm sm:p-8">
+      <div className="mt-6 rounded-3xl border border-border/70 bg-background p-2 shadow-sm sm:p-8">
         <MarkdownRenderer content={blog.content} className="mt-2" />
 
         <div className="mt-8 flex flex-wrap gap-4 text-sm text-muted-foreground justify-between">
