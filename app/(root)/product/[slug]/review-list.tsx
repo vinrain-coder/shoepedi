@@ -105,14 +105,14 @@ function ReviewFormFields({ form }: { form: UseFormReturn<CustomerReview> }) {
         control={form.control}
         name="rating"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="w-full">
             <FormLabel>Rating</FormLabel>
             <Select
               onValueChange={(val) => field.onChange(Number(val))}
               value={field.value.toString()}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select rating" />
                 </SelectTrigger>
               </FormControl>
