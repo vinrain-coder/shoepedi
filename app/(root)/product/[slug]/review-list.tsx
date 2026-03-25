@@ -222,13 +222,13 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
         {isMobile ? (
           <DrawerFooter className="px-0">
-            <Button className="w-full" type="submit">
+            <Button className="w-full rounded-full" type="submit">
               Submit review
             </Button>
           </DrawerFooter>
         ) : (
           <DialogFooter>
-            <Button className="w-full" type="submit">
+            <Button className="w-full rounded-full" type="submit">
               Submit review
             </Button>
           </DialogFooter>
@@ -256,7 +256,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 isMobile ? (
                   <Drawer open={open} onOpenChange={setOpen}>
                     <DrawerTrigger asChild>
-                      <Button className="w-full">Write review</Button>
+                      <Button className="w-full rounded-full">Write review</Button>
                     </DrawerTrigger>
                     <DrawerContent>
                       <DrawerHeader>
@@ -268,14 +268,14 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 ) : (
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full">Write review</Button>
+                      <Button className="w-full rounded-full">Write review</Button>
                     </DialogTrigger>
                     <DialogContent>{reviewForm}</DialogContent>
                   </Dialog>
                 )
               ) : (
                 <Link href={`/sign-in`}>
-                  <Button className="w-full">Sign in to review</Button>
+                  <Button className="w-full rounded-full">Sign in to review</Button>
                 </Link>
               )}
             </CardContent>
