@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { MessageSquareReply, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
 import ReviewReplyForm from "./review-reply-form";
@@ -49,33 +49,33 @@ export default async function ReviewsPage(props: {
       <div>
         <h1 className="text-xl font-semibold">Reviews</h1>
         <p className="text-xs text-muted-foreground">
-          Manage customer feedback and replies
+          Manage feedback & replies
         </p>
       </div>
 
       {/* TABLE */}
       <div className="border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <Table className="min-w-[1000px] text-sm">
+          <Table className="min-w-[900px] text-sm">
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Review</TableHead>
-                <TableHead>Reply</TableHead>
-                <TableHead />
+                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead className="w-[120px]">Date</TableHead>
+                <TableHead className="w-[200px]">Product</TableHead>
+                <TableHead className="w-[160px]">Customer</TableHead>
+                <TableHead className="w-[80px]">Rating</TableHead>
+                <TableHead className="w-[260px]">Review</TableHead>
+                <TableHead className="w-[240px]">Reply</TableHead>
+                <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {(reviews.data as AdminReviewRow[]).map((review) => (
                 <TableRow key={review._id} className="align-top">
-                  
+
                   {/* ID */}
-                  <TableCell className="text-xs text-muted-foreground font-mono">
+                  <TableCell className="text-xs font-mono text-muted-foreground">
                     {formatId(review._id)}
                   </TableCell>
 
@@ -86,24 +86,29 @@ export default async function ReviewsPage(props: {
 
                   {/* PRODUCT */}
                   <TableCell>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-start">
                       {review.product?.images?.[0] && (
                         <Image
                           src={review.product.images[0]}
                           alt=""
-                          width={40}
-                          height={40}
-                          className="rounded-md border object-cover"
+                          width={36}
+                          height={36}
+                          className="rounded border object-cover shrink-0"
                         />
                       )}
-                      <div className="space-y-0.5">
+
+                      <div className="min-w-0">
                         <Link
                           href={`/product/${review.product?.slug}`}
                           className="text-sm font-medium hover:underline line-clamp-1"
                         >
                           {review.product?.name || "Deleted"}
                         </Link>
-                        <Badge variant="outline" className="text-[10px] px-1 py-0">
+
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-1 py-0 mt-1"
+                        >
                           {review.isVerifiedPurchase ? "Verified" : "Feedback"}
                         </Badge>
                       </div>
@@ -116,7 +121,7 @@ export default async function ReviewsPage(props: {
                       <div className="font-medium">
                         {review.user?.name || "Deleted"}
                       </div>
-                      <div className="text-muted-foreground truncate max-w-[140px]">
+                      <div className="text-muted-foreground truncate">
                         {review.user?.email || "—"}
                       </div>
                     </div>
@@ -132,10 +137,11 @@ export default async function ReviewsPage(props: {
 
                   {/* REVIEW */}
                   <TableCell>
-                    <div className="space-y-1 max-w-[300px]">
+                    <div className="space-y-1">
                       <div className="font-medium text-sm line-clamp-1">
                         {review.title}
                       </div>
+
                       <p className="text-xs text-muted-foreground line-clamp-2">
                         {review.comment}
                       </p>
@@ -144,9 +150,9 @@ export default async function ReviewsPage(props: {
                         <Image
                           src={review.image}
                           alt=""
-                          width={80}
-                          height={80}
-                          className="rounded-md border mt-1"
+                          width={70}
+                          height={70}
+                          className="rounded border mt-1"
                         />
                       )}
                     </div>
@@ -154,14 +160,14 @@ export default async function ReviewsPage(props: {
 
                   {/* REPLY */}
                   <TableCell>
-                    <div className="space-y-2 min-w-[220px]">
+                    <div className="space-y-2">
                       {review.adminReply?.message && (
-                        <div className="text-xs border-l-2 pl-2 text-muted-foreground">
+                        <p className="text-xs text-muted-foreground line-clamp-2">
                           <span className="font-medium text-primary">
                             {review.adminReply.repliedBy || "Admin"}:
                           </span>{" "}
                           {review.adminReply.message}
-                        </div>
+                        </p>
                       )}
 
                       <ReviewReplyForm
