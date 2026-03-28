@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MessageCircle, Heart, Reply, Loader2 } from "lucide-react";
+import { MessageCircle, Heart, Reply, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -38,10 +38,22 @@ function getGuestId() {
 }
 
 function formatRelativeDate(date: string) {
+  const now = new Date();
+  const then = new Date(date);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
   return new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
+    year: new Date(date).getFullYear() !== now.getFullYear() ? "numeric" : undefined,
   });
 }
 
@@ -54,9 +66,9 @@ function UserAvatar({ name, image }: { name: string; image?: string }) {
     .toUpperCase();
 
   return (
-    <Avatar className="size-9">
+    <Avatar className="size-8">
       <AvatarImage src={image} alt={name} />
-      <AvatarFallback>{initials}</AvatarFallback>
+      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
     </Avatar>
   );
 }
@@ -102,14 +114,14 @@ function CommentLikeButton({
     <button
       onClick={handleLike}
       disabled={isPending}
-      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      className="group flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors"
     >
       {isPending ? (
-        <Loader2 className="size-3 animate-spin" />
+        <Loader2 className="size-3.5 animate-spin" />
       ) : (
-        <Heart className="size-3" />
+        <Heart className="size-3.5 group-hover:fill-current transition-all" />
       )}
-      {likesCount}
+      <span className="font-medium">{likesCount}</span>
     </button>
   );
 }
@@ -199,94 +211,99 @@ export default function BlogSocial({
   };
 
   return (
-    <div className="mt-10 max-w-3xl mx-auto space-y-6">
-      {/* Post Social */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-4 text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Heart className="size-4" />
-            {likesCount}
-          </span>
+    <div className="mt-12 max-w-2xl mx-auto space-y-8">
+      {/* Post Social Stats */}
+      <div className="flex items-center justify-between py-3 border-y">
+        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <button
+            onClick={handlePostLike}
+            disabled={isLikingPost}
+            className="group flex items-center gap-2 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          >
+            {isLikingPost ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Heart className="size-4 group-hover:fill-current transition-all" />
+            )}
+            <span className="font-medium">{likesCount}</span>
+          </button>
 
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-2">
             <MessageCircle className="size-4" />
-            {commentCount}
+            <span className="font-medium">{commentCount}</span>
           </span>
         </div>
-
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handlePostLike}
-          disabled={isLikingPost}
-        >
-          {isLikingPost ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Heart className="size-4" />
-          )}
-          Like
-        </Button>
       </div>
 
       {/* Comment Input */}
       <div className="space-y-3">
-        <Textarea
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          placeholder={
-            session?.user.id
-              ? "Write a comment..."
-              : "Sign in to join the discussion"
-          }
-          disabled={!session?.user.id || isSubmitting}
-          className="min-h-24"
-        />
+        <div className="flex gap-3 items-start">
+          {session?.user && (
+            <UserAvatar 
+              name={session.user.name || "User"} 
+              image={session.user.image} 
+            />
+          )}
+          <div className="flex-1 space-y-3">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder={
+                session?.user.id
+                  ? "Share your thoughts..."
+                  : "Sign in to join the discussion"
+              }
+              disabled={!session?.user.id || isSubmitting}
+              className="min-h-20 resize-none border-muted-foreground/20 focus-visible:ring-1"
+            />
 
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            onClick={() => submitComment(commentText)}
-            disabled={!commentText.trim() || !session?.user.id || isSubmitting}
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <MessageCircle className="size-4" />
+            {session?.user.id && commentText.trim() && (
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={() => submitComment(commentText)}
+                  disabled={!commentText.trim() || isSubmitting}
+                  className="gap-2"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                  Post
+                </Button>
+              </div>
             )}
-            Comment
-          </Button>
+          </div>
         </div>
       </div>
-
-      <Separator />
 
       {/* Comments */}
       <div className="space-y-6">
         {comments.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No comments yet. Start the conversation.
+          <p className="text-center py-12 text-sm text-muted-foreground">
+            No comments yet. Be the first to share your thoughts.
           </p>
         )}
 
         {comments.map((comment) => (
-          <div key={comment._id} className="space-y-3">
+          <div key={comment._id} className="space-y-4">
             <div className="flex gap-3">
               <UserAvatar name={comment.userName} image={comment.userImage} />
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">{comment.userName}</span>
+              <div className="flex-1 space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium">{comment.userName}</span>
                   <span className="text-xs text-muted-foreground">
                     {formatRelativeDate(comment.createdAt)}
                   </span>
                 </div>
 
-                <p className="text-sm mt-1 whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
                   {comment.content}
                 </p>
 
-                <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-4 pt-1">
                   <CommentLikeButton
                     blogId={blogId}
                     commentId={comment._id}
@@ -303,15 +320,15 @@ export default function BlogSocial({
                   />
 
                   <button
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() =>
                       setActiveReplyId(
                         activeReplyId === comment._id ? null : comment._id
                       )
                     }
                   >
-                    <Reply className="size-3" />
-                    Reply
+                    <Reply className="size-3.5" />
+                    <span className="font-medium">Reply</span>
                   </button>
                 </div>
               </div>
@@ -319,7 +336,7 @@ export default function BlogSocial({
 
             {/* Replies */}
             {comment.replies.length > 0 && (
-              <div className="ml-12 space-y-3">
+              <div className="ml-11 space-y-4 border-l-2 border-muted pl-4">
                 {comment.replies.map((reply) => (
                   <div key={reply._id} className="flex gap-3">
                     <UserAvatar
@@ -327,40 +344,42 @@ export default function BlogSocial({
                       image={reply.userImage}
                     />
 
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">{reply.userName}</span>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-medium">{reply.userName}</span>
                         <span className="text-xs text-muted-foreground">
                           {formatRelativeDate(reply.createdAt)}
                         </span>
                       </div>
 
-                      <p className="text-sm mt-1 whitespace-pre-wrap">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
                         {reply.content}
                       </p>
 
-                      <CommentLikeButton
-                        blogId={blogId}
-                        commentId={comment._id}
-                        replyId={reply._id}
-                        likesCount={reply.likesCount}
-                        onUpdate={(likes) =>
-                          setComments((prev) =>
-                            prev.map((c) =>
-                              c._id !== comment._id
-                                ? c
-                                : {
-                                    ...c,
-                                    replies: c.replies.map((r) =>
-                                      r._id === reply._id
-                                        ? { ...r, likesCount: likes }
-                                        : r
-                                    ),
-                                  }
+                      <div className="pt-1">
+                        <CommentLikeButton
+                          blogId={blogId}
+                          commentId={comment._id}
+                          replyId={reply._id}
+                          likesCount={reply.likesCount}
+                          onUpdate={(likes) =>
+                            setComments((prev) =>
+                              prev.map((c) =>
+                                c._id !== comment._id
+                                  ? c
+                                  : {
+                                      ...c,
+                                      replies: c.replies.map((r) =>
+                                        r._id === reply._id
+                                          ? { ...r, likesCount: likes }
+                                          : r
+                                      ),
+                                    }
+                              )
                             )
-                          )
-                        }
-                      />
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -369,7 +388,7 @@ export default function BlogSocial({
 
             {/* Reply Box */}
             {activeReplyId === comment._id && (
-              <div className="ml-12 space-y-2">
+              <div className="ml-11 space-y-2 border-l-2 border-muted pl-4">
                 <Textarea
                   value={replyDrafts[comment._id] || ""}
                   onChange={(e) =>
@@ -378,14 +397,23 @@ export default function BlogSocial({
                       [comment._id]: e.target.value,
                     }))
                   }
-                  placeholder={`Reply to ${comment.userName}`}
+                  placeholder={`Reply to ${comment.userName}...`}
+                  className="min-h-16 resize-none text-sm border-muted-foreground/20 focus-visible:ring-1"
+                  autoFocus
                 />
 
                 <div className="flex gap-2 justify-end">
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => setActiveReplyId(null)}
+                    variant="ghost"
+                    onClick={() => {
+                      setActiveReplyId(null);
+                      setReplyDrafts((prev) => {
+                        const updated = { ...prev };
+                        delete updated[comment._id];
+                        return updated;
+                      });
+                    }}
                   >
                     Cancel
                   </Button>
@@ -401,11 +429,12 @@ export default function BlogSocial({
                     disabled={
                       !(replyDrafts[comment._id] || "").trim() || isSubmitting
                     }
+                    className="gap-2"
                   >
                     {isSubmitting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
-                      <Reply className="size-4" />
+                      <Send className="size-4" />
                     )}
                     Reply
                   </Button>
@@ -413,10 +442,12 @@ export default function BlogSocial({
               </div>
             )}
 
-            <Separator />
+            {comment !== comments[comments.length - 1] && (
+              <Separator className="!mt-6" />
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-  }
+}
