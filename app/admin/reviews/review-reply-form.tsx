@@ -34,12 +34,12 @@ export default function ReviewReplyForm({
   };
 
   return (
-    <div className="flex gap-2 items-start">
+    <div className="flex gap-2 items-center">
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Reply..."
-        className="min-h-[40px] text-xs resize-none"
+        className="h-9 min-h-0 text-xs resize-none"
       />
 
       <Button
@@ -51,4 +51,4 @@ export default function ReviewReplyForm({
       </Button>
     </div>
   );
-  }
+    }
