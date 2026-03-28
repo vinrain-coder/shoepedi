@@ -61,11 +61,11 @@ export default async function ReviewsPage(props: {
               <TableRow>
                 <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead className="w-[120px]">Date</TableHead>
-                <TableHead className="w-[200px]">Product</TableHead>
+                <TableHead className="w-60">Product</TableHead>
                 <TableHead className="w-[160px]">Customer</TableHead>
                 <TableHead className="w-[80px]">Rating</TableHead>
-                <TableHead className="w-[260px]">Review</TableHead>
-                <TableHead className="w-[240px]">Reply</TableHead>
+                <TableHead className="w-60">Review</TableHead>
+                <TableHead className="w-60">Reply</TableHead>
                 <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
