@@ -97,7 +97,7 @@ export default async function ReviewsPage(props: {
                         />
                       )}
 
-                      <div className="min-w-0">
+                      <div className="min-w-0 truncate">
                         <Link
                           href={`/product/${review.product?.slug}`}
                           className="text-sm font-medium hover:underline line-clamp-1"
@@ -138,11 +138,11 @@ export default async function ReviewsPage(props: {
                   {/* REVIEW */}
                   <TableCell className="truncate">
                     <div className="space-y-1">
-                      <div className="font-medium text-sm line-clamp-1">
+                      <div className="font-medium text-sm truncate">
                         {review.title}
                       </div>
 
-                      <p className="text-xs text-muted-foreground line-clamp-2 truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {review.comment}
                       </p>
 
@@ -162,7 +162,7 @@ export default async function ReviewsPage(props: {
                   <TableCell className="truncate">
                     <div className="space-y-2">
                       {review.adminReply?.message && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           <span className="font-medium text-primary">
                             {review.adminReply.repliedBy || "Admin"}:
                           </span>{" "}
