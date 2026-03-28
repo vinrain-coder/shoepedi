@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
-import { AutoResizeTextarea } from "@/components/shared/textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { replyToReview } from "@/lib/actions/review.actions";
 
@@ -35,11 +35,11 @@ export default function ReviewReplyForm({
 
   return (
     <div className="flex gap-2 items-start">
-      <AutoResizeTextarea
+      <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Reply..."
-        className="min-h-[36px] text-xs"
+        className="min-h-[40px] text-xs resize-none"
       />
 
       <Button
