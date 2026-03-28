@@ -39,7 +39,7 @@ export default function ReviewReplyForm({
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Reply..."
-        className="h-9 min-h-0 text-xs resize-none"
+        className="h-14 min-h-0 text-xs resize-none"
       />
 
       <Button
