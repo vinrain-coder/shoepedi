@@ -46,48 +46,63 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
       : null;
 
   return (
-    <Card className="group overflow-hidden border-border/60 p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <Card className="group overflow-hidden border-border/40 p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-border">
       <Link href={`/blogs/${blog.slug}`} className="block">
-        <div className="relative h-52 w-full overflow-hidden bg-muted">
+        <div className="relative h-48 w-full overflow-hidden bg-muted">
           {imageSrc ? (
             <Image
               src={imageSrc}
               alt={blog.title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
-              No Image
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+              <div className="text-center space-y-1">
+                <div className="text-4xl opacity-20">馃摑</div>
+                <p className="text-xs text-muted-foreground/60">No Image</p>
+              </div>
             </div>
           )}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-4 py-3 text-xs text-white">
-            <span>{formattedDate}</span>
-            <span className="rounded-full bg-white/15 px-2 py-1 backdrop-blur">{blog.category}</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-70 transition-opacity" />
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3 text-xs text-white/90">
+            <span className="font-medium">{formattedDate}</span>
+            <span className="rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 font-medium border border-white/10">
+              {blog.category}
+            </span>
           </div>
         </div>
       </Link>
 
-      <CardHeader className="space-y-3 px-4 pt-4 pb-2">
-        <Link href={`/blogs/${blog.slug}`}>
-          <h3 className="line-clamp-2 text-lg font-semibold leading-snug transition-colors group-hover:text-primary">
+      <div className="p-4 space-y-3">
+        <Link href={`/blogs/${blog.slug}`} className="block">
+          <h3 className="line-clamp-2 text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
             {blog.title}
           </h3>
         </Link>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><Heart className="size-4 text-rose-500" /> {blog.likesCount || 0}</span>
-          <span className="inline-flex items-center gap-1"><MessageCircle className="size-4 text-sky-500" /> {blog.commentsCount || 0}</span>
-        </div>
-      </CardHeader>
 
-      <CardFooter className="px-4 pb-4 pt-0">
-        <Link
-          href={`/blogs/${blog.slug}`}
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-        >
-          Read more <ArrowRight size={16} />
-        </Link>
-      </CardFooter>
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-rose-500">
+              <Heart className="size-3.5 text-rose-500 fill-rose-500/20" />
+              <span className="font-medium">{blog.likesCount || 0}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-sky-500">
+              <MessageCircle className="size-3.5 text-sky-500 fill-sky-500/20" />
+              <span className="font-medium">{blog.commentsCount || 0}</span>
+            </span>
+          </div>
+
+          <Link
+            href={`/blogs/${blog.slug}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:gap-2 transition-all"
+          >
+            Read
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
     </Card>
   );
-}
+  }
+  
