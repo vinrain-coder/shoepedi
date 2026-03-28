@@ -85,7 +85,7 @@ export default async function ReviewsPage(props: {
                   </TableCell>
 
                   {/* PRODUCT */}
-                  <TableCell>
+                  <TableCell className="truncate">
                     <div className="flex gap-2 items-start">
                       {review.product?.images?.[0] && (
                         <Image
@@ -136,13 +136,13 @@ export default async function ReviewsPage(props: {
                   </TableCell>
 
                   {/* REVIEW */}
-                  <TableCell>
+                  <TableCell className="truncate">
                     <div className="space-y-1">
                       <div className="font-medium text-sm line-clamp-1">
                         {review.title}
                       </div>
 
-                      <p className="text-xs text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2 truncate">
                         {review.comment}
                       </p>
 
@@ -159,10 +159,10 @@ export default async function ReviewsPage(props: {
                   </TableCell>
 
                   {/* REPLY */}
-                  <TableCell>
+                  <TableCell className="truncate">
                     <div className="space-y-2">
                       {review.adminReply?.message && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2 truncate">
                           <span className="font-medium text-primary">
                             {review.adminReply.repliedBy || "Admin"}:
                           </span>{" "}
