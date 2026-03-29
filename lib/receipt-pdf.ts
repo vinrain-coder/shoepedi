@@ -4,39 +4,18 @@ const escapePdfText = (value: string) =>
   value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 
 export const generateReceiptPdf = (order: SerializedOrder) => {
-  const money = (amount: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "KES",
-      minimumFractionDigits: 2,
-    }).format(amount);
-
-  const divider = "------------------------------------------------------------";
   const lines = [
-    "SHOEPEDI - PURCHASE RECEIPT",
-    divider,
-    `Order ID: ${order._id}`,
-    `Date: ${new Date(order.createdAt).toLocaleString()}`,
+    `Receipt - Order ${order._id}`,
     `Payment status: ${order.paymentStatus ?? (order.isPaid ? "paid" : "pending")}`,
     `Payment reference: ${order.paymentReference ?? "N/A"}`,
     `Payment channel: ${order.paymentChannel ?? "N/A"}`,
-    `Paid at: ${order.paidAt ? new Date(order.paidAt).toLocaleString() : "N/A"}`,
+    `Paid at: ${order.paidAt ?? "N/A"}`,
+    `Total: ${order.totalPrice}`,
     "",
-    "ITEMS",
-    divider,
+    "Items:",
     ...order.items.map(
-      (item) => `${item.name} (x${item.quantity})  ${money(item.price * item.quantity)}`,
+      (item) => `${item.name} x${item.quantity} - ${item.price * item.quantity}`,
     ),
-    divider,
-    `Items subtotal: ${money(order.itemsPrice)}`,
-    `Shipping: ${money(order.shippingPrice)}`,
-    `Tax: ${money(order.taxPrice)}`,
-    ...(order.coupon
-      ? [
-          `Coupon (${order.coupon.code}): -${money(Math.abs(order.coupon.discountAmount))}`,
-        ]
-      : []),
-    `TOTAL: ${money(order.totalPrice)}`,
   ];
 
   const textCommands = lines

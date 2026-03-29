@@ -870,18 +870,44 @@ const CheckoutForm = () => {
                   handlePlaceOrder,
                 })}
                 {isPaystackMethod(paymentMethod) && createdOrder && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Opening secure Paystack checkout...
-                  </p>
-                )}
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(finalTotal * 100)}
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder._id}
+                      autoStart={shouldAutoStartPayment}
+                      onSuccess={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onFailure={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onClose={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                    />
+                  )}
               </div>
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
                   {isPaystackMethod(paymentMethod) && createdOrder ? (
-                    <p className="text-sm text-muted-foreground">
-                      Opening secure Paystack checkout...
-                    </p>
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(finalTotal * 100)}
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder._id}
+                      autoStart={shouldAutoStartPayment}
+                      onSuccess={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onFailure={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onClose={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                    />
                   ) : (
                     <Button
                       onClick={handlePlaceOrder}
