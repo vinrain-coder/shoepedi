@@ -89,6 +89,7 @@ const CheckoutForm = () => {
     | null
   >(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -201,6 +202,7 @@ const CheckoutForm = () => {
 
   const handlePlaceOrder = async () => {
     try {
+      setIsPlacingOrder(true);
       // Create the order on the server
       const res = await createOrder({
         items,
@@ -245,6 +247,8 @@ const CheckoutForm = () => {
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -395,12 +399,13 @@ const CheckoutForm = () => {
           <Button
             onClick={handlePlaceOrder}
             className="rounded-full w-full cursor-pointer"
+            disabled={isPlacingOrder}
             hidden={
               paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
               !!createdOrder
             }
           >
-            Place Your Order
+            {isPlacingOrder ? "Placing order..." : "Place Your Order"}
           </Button>
           <p className="text-xs text-center py-2">
             By placing your order, you agree to {site.name}&apos;s{" "}
@@ -910,13 +915,14 @@ const CheckoutForm = () => {
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer"
+                      disabled={isPlacingOrder}
                       hidden={
                         paymentMethod ===
                           "Mobile Money (M-Pesa / Airtel) & Card" &&
                         !!createdOrder
                       }
                     >
-                      Place Your Order
+                      {isPlacingOrder ? "Placing order..." : "Place Your Order"}
                     </Button>
                   )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -111,7 +112,24 @@ export default function PaystackInline({
     payWithPaystack();
   }, [autoStart, isScriptLoaded, payWithPaystack]);
 
-  if (hideButton) return null;
+  if (hideButton) {
+    return (
+      <div className="w-full rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+        <p className="inline-flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Launching secure Paystack checkout...
+        </p>
+        <Button
+          onClick={payWithPaystack}
+          disabled={!isScriptLoaded}
+          variant="outline"
+          className="mt-3 w-full"
+        >
+          Open payment window manually
+        </Button>
+      </div>
+    );
+  }
   return (
     <Button
       onClick={payWithPaystack}

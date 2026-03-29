@@ -17,39 +17,43 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     ? formatDateTime(order.deliveredAt).dateTime
     : "Not delivered";
 
+  const money = (value: number) => formatCurrency(value).padStart(14, " ");
+
   const lines: string[] = [
-    `Order Receipt - ${order._id}`,
+    "===================== SHOE PEDI RECEIPT =====================",
+    `Order ID: ${order._id}`,
     `Created: ${createdAt}`,
     `Payment method: ${order.paymentMethod}`,
     `Paid: ${paidAt}`,
     `Delivered: ${deliveredAt}`,
-    "",
-    "Customer",
+    "-------------------------------------------------------------",
+    "CUSTOMER",
     `${order.shippingAddress.fullName} (${order.shippingAddress.phone})`,
     `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`,
     `${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`,
-    "",
-    "Items",
+    "-------------------------------------------------------------",
+    "ITEMS",
     ...order.items.map(
       (item) =>
         `- ${item.name} ${item.size ? `[${item.size}]` : ""} ${item.color ? `[${item.color}]` : ""} x${item.quantity} = ${formatCurrency(item.price * item.quantity)}`,
     ),
-    "",
-    `Items subtotal: ${formatCurrency(order.itemsPrice)}`,
-    `Shipping: ${formatCurrency(order.shippingPrice)}`,
-    `Tax: ${formatCurrency(order.taxPrice)}`,
+    "-------------------------------------------------------------",
+    `Items subtotal:${money(order.itemsPrice)}`,
+    `Shipping:${money(order.shippingPrice)}`,
+    `Tax:${money(order.taxPrice)}`,
     ...(order.coupon
       ? [
-          `Coupon (${order.coupon.code}): -${formatCurrency(order.coupon.discountAmount)}`,
+          `Coupon (${order.coupon.code}):${money(-Math.abs(order.coupon.discountAmount))}`,
         ]
       : []),
-    `Total: ${formatCurrency(order.totalPrice)}`,
+    `TOTAL:${money(order.totalPrice)}`,
   ];
 
   if (order.paymentResult) {
     lines.push(
       "",
-      "Payment details",
+      "-------------------------------------------------------------",
+      "PAYMENT DETAILS",
       `Gateway: ${order.paymentResult.gateway ?? "Paystack"}`,
       `Status: ${order.paymentResult.status ?? "-"}`,
       `Reference: ${order.paymentResult.paymentReference ?? "-"}`,

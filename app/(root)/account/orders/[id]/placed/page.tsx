@@ -1,24 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
-export default function OrderPlacedPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function OrderPlacedPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const orderId = params?.id;
 
   useEffect(() => {
+    if (!orderId) return;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     timeout = setTimeout(() => {
-      router.replace(`/account/orders/${params.id}`);
+      router.replace(`/account/orders/${orderId}`);
     }, 2200);
 
     return () => timeout && clearTimeout(timeout);
-  }, [params.id, router]);
+  }, [orderId, router]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -29,6 +28,10 @@ export default function OrderPlacedPage({
         <h1 className="text-3xl font-bold">Order placed successfully 🎉</h1>
         <p className="text-muted-foreground mt-3">
           We are preparing your order details. Redirecting now...
+        </p>
+        <p className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          One moment please
         </p>
       </div>
     </div>
