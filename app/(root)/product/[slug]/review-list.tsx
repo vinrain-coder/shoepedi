@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar,
   CornerDownRight,
-  Trash2,
   StarIcon,
   User,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import { z } from "zod";
 
 import RatingSummary from "@/components/shared/product/rating-summary";
 import ReviewImageUploader from "@/components/shared/review-image-uploader";
+import DeleteDialog from "@/components/shared/delete-dialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -159,7 +159,6 @@ export default function ReviewList({ product }: { product: IProduct }) {
   const [page, setPage] = useState(2);
   const [totalPages, setTotalPages] = useState(0);
   const [loadingReviews, setLoadingReviews] = useState(false);
-  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   const { ref, inView } = useInView({ triggerOnce: true });
@@ -212,19 +211,6 @@ export default function ReviewList({ product }: { product: IProduct }) {
     form.reset(reviewFormDefaultValues);
     setOpen(false);
     loadInitial();
-  };
-
-  const onDeleteReview = async (reviewId: string) => {
-    setDeletingReviewId(reviewId);
-    const res = await deleteReview(reviewId);
-    if (!res.success) {
-      toast.error(res.message);
-      setDeletingReviewId(null);
-      return;
-    }
-    toast.success(res.message);
-    await loadInitial();
-    setDeletingReviewId(null);
   };
 
   const reviewForm = (
@@ -345,15 +331,15 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
                 {/* image */}
                 {reviewImages.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {reviewImages.map((imageUrl, index) => (
                       <Image
                         key={`${review._id}-${index}`}
                         src={imageUrl}
                         alt="review"
-                        width={200}
-                        height={200}
-                        className="rounded-lg border object-cover max-h-40"
+                        width={140}
+                        height={140}
+                        className="rounded-lg border object-cover h-28 w-28 sm:h-32 sm:w-32"
                       />
                     ))}
                   </div>
@@ -374,15 +360,13 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
                 {userId && review.user?._id === userId && (
                   <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={() => onDeleteReview(review._id)}
-                      disabled={deletingReviewId === review._id}
-                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" />
-                      {deletingReviewId === review._id ? "Deleting..." : "Delete"}
-                    </button>
+                    <DeleteDialog
+                      id={review._id}
+                      action={deleteReview}
+                      callbackAction={loadInitial}
+                      title="Delete your review?"
+                      description="This will permanently remove your review and images."
+                    />
                   </div>
                 )}
               </div>

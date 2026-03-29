@@ -18,11 +18,19 @@ import { Trash2, AlertTriangle, Loader2 } from "lucide-react";
 export default function DeleteDialog({
   id,
   action,
+  onDelete,
   callbackAction,
+  triggerLabel = "Delete",
+  title = "Delete this item?",
+  description = "This action cannot be undone. This will permanently delete the item from the system.",
 }: {
   id: string;
-  action: (id: string) => Promise<{ success: boolean; message: string }>;
+  action?: (id: string) => Promise<{ success: boolean; message: string }>;
+  onDelete?: () => Promise<{ success: boolean; message: string }>;
   callbackAction?: () => void;
+  triggerLabel?: string;
+  title?: string;
+  description?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -33,10 +41,11 @@ export default function DeleteDialog({
         <Button
           size="sm"
           variant="outline"
-          title="Delete"
+          title={triggerLabel}
           className="group hover:border-red-200 hover:bg-red-50 dark:hover:border-red-900 dark:hover:bg-red-950/20 transition-all"
         >
           <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+          <span className="sr-only">{triggerLabel}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
@@ -45,13 +54,10 @@ export default function DeleteDialog({
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
               <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
-            <AlertDialogTitle className="text-xl">
-              Delete this item?
-            </AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">{title}</AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-base leading-relaxed pt-2">
-            This action cannot be undone. This will permanently delete the item
-            from the system.
+            {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2 sm:gap-2">
@@ -68,7 +74,11 @@ export default function DeleteDialog({
             className="sm:flex-1 gap-2"
             onClick={() =>
               startTransition(async () => {
-                const res = await action(id);
+                const res = onDelete ? await onDelete() : await action?.(id);
+                if (!res) {
+                  toast.error("Delete action is not configured.");
+                  return;
+                }
                 if (res.success) {
                   setOpen(false);
                   toast.success(res.message);

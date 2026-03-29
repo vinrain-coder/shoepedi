@@ -21,11 +21,14 @@ import Youtube from "@/public/icons/youtube.svg";
 import Facebook from "@/public/icons/facebook.svg";
 import Instagram from "@/public/icons/instagram.svg";
 import NewsletterSubscribe from "@/components/shared/newsletter-subscribe";
+import { authClient } from "@/lib/auth-client";
 
 export default function Footer() {
   const {
     setting: { site },
   } = useSettingStore();
+  const { data: session } = authClient.useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
   const message = encodeURIComponent("Hello, ShoePedi!");
@@ -52,7 +55,7 @@ export default function Footer() {
         { label: "Featured products", href: "/search?tag=best-seller" },
       ],
     },
-        {
+    {
       title: "My Account",
       links: [
         {
@@ -62,6 +65,7 @@ export default function Footer() {
         { label: "Orders", href: "/account/orders" },
         { label: "Wishlist", href: "/wishlist" },
         { label: "Cart", href: "/cart" },
+        ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin/overview" }] : []),
       ],
     },
     {

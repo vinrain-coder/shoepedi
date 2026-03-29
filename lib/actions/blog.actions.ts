@@ -335,7 +335,18 @@ export async function createBlogComment(input: z.infer<typeof BlogCommentInputSc
 
 export async function toggleBlogCommentLike(input: z.infer<typeof BlogLikeInputSchema> & { commentId: string; replyId?: string }) {
   try {
-    const data = BlogLikeInputSchema.extend({ commentId: z.string().min(1), replyId: z.string().optional() }).parse(input);
+    const data = z
+      .object({
+        blogId: z.string().regex(/^[0-9a-fA-F]{24}$/),
+        userId: z.string().optional(),
+        guestId: z.string().optional(),
+        commentId: z.string().min(1),
+        replyId: z.string().optional(),
+      })
+      .refine((value) => Boolean(value.userId || value.guestId), {
+        message: "A user or guest identifier is required",
+      })
+      .parse(input);
     await connectToDatabase();
 
     const { key, actorId } = getActorSets(data);
