@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { CalendarDays, Eye, Heart, MessageCircle, Tag } from "lucide-react";
+import Image from "next/image";
 import { getBlogBySlug, incrementBlogViews } from "@/lib/actions/blog.actions";
 import { IBlog } from "@/lib/db/models/blog.model";
 import { Separator } from "@/components/ui/separator";
@@ -88,9 +89,9 @@ export default async function BlogPage({
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-1 sm:px-2 md:px-4">
+    <div className="mx-auto max-w-4xl px-3 sm:px-4">
       <Breadcrumb />
-      <div className="rounded-3xl border border-border/70 bg-gradient-to-br from-primary/8 via-background to-background p-3 shadow-sm sm:p-8 mt-2">
+      <div className="mt-2 rounded-2xl border border-border/60 bg-background p-4 sm:p-6">
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2 text-sm">
             <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{blog.category}</span>
@@ -111,7 +112,18 @@ export default async function BlogPage({
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-border/70 bg-background p-2 shadow-sm sm:p-8">
+      <div className="mt-4 rounded-2xl border border-border/60 bg-background p-3 sm:p-6">
+        {(blog.image || firstImageUrl) && (
+          <div className="relative mb-5 h-56 w-full overflow-hidden rounded-xl sm:h-72">
+            <Image
+              src={blog.image || firstImageUrl || ""}
+              alt={blog.title}
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
+        )}
         <MarkdownRenderer content={blog.content} className="mt-2" />
 
         <div className="mt-8 flex flex-wrap gap-4 text-sm text-muted-foreground justify-between">
