@@ -142,7 +142,8 @@ export async function updateOrderToPaid(orderId: string) {
       await updateProductStock(order._id.toString());
     if (order.coupon?._id)
       await incrementCouponUsage(order.coupon._id.toString());
-    if (order.user.email) await sendPurchaseReceipt({ order });
+    if (order.user.email)
+      await sendPurchaseReceipt({ order: order as unknown as IOrder });
     revalidatePath(`/account/orders/${orderId}`);
     revalidatePath(`/admin/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -197,7 +198,8 @@ export async function deliverOrder(orderId: string) {
     order.isDelivered = true;
     order.deliveredAt = new Date();
     await order.save();
-    if (order.user.email) await sendAskReviewOrderItems({ order });
+    if (order.user.email)
+      await sendAskReviewOrderItems({ order: order as unknown as IOrder });
     revalidatePath(`/account/orders/${orderId}`);
     revalidatePath(`/admin/orders/${orderId}`);
     return { success: true, message: "Order delivered successfully" };
@@ -586,6 +588,18 @@ export async function markPaystackOrderAsPaid(
     pricePaid: string;
     paymentMethod?: string;
     paymentReference?: string;
+    gateway?: string;
+    currency?: string;
+    paidAtGateway?: Date;
+    channel?: string;
+    authorization?: {
+      card_type?: string;
+      bank?: string;
+      brand?: string;
+      last4?: string;
+      exp_month?: string;
+      exp_year?: string;
+    };
   },
 ) {
   try {
@@ -621,6 +635,9 @@ export async function markPaystackOrderAsPaid(
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
     await updateProductStock(order._id.toString());
+    if (order.coupon?._id) {
+      await incrementCouponUsage(order.coupon._id.toString());
+    }
 
     // ----------------------------------------------------
     // 4. Email receipt
@@ -633,7 +650,7 @@ export async function markPaystackOrderAsPaid(
     }
 
     if (order.user?.email) {
-      await sendPurchaseReceipt({ order });
+      await sendPurchaseReceipt({ order: order as unknown as IOrder });
     }
 
     // ----------------------------------------------------

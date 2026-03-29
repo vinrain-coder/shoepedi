@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -21,6 +22,13 @@ import {
 import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
+import dynamic from "next/dynamic";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+
+const PaystackInline = dynamic(() => import("@/app/checkout/paystack-inline"), {
+  ssr: false,
+});
 
 export default function OrderDetailsForm({
   order,
@@ -30,6 +38,8 @@ export default function OrderDetailsForm({
   isAdmin: boolean;
 }) {
   const orderId = order._id;
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
 
   const {
     shippingAddress,
@@ -44,6 +54,7 @@ export default function OrderDetailsForm({
     isDelivered,
     deliveredAt,
     expectedDeliveryDate,
+    paymentResult,
   } = order;
 
   return (
@@ -85,6 +96,30 @@ export default function OrderDetailsForm({
               <Badge>Paid at {formatDateTime(paidAt!).dateTime}</Badge>
             ) : (
               <Badge variant="destructive">Not paid</Badge>
+            )}
+            {paymentResult && (
+              <div className="mt-3 space-y-1 text-sm">
+                <p>
+                  <span className="font-semibold">Gateway:</span>{" "}
+                  {paymentResult.gateway ?? "paystack"}
+                </p>
+                <p>
+                  <span className="font-semibold">Reference:</span>{" "}
+                  {paymentResult.paymentReference ?? "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Transaction ID:</span>{" "}
+                  {paymentResult.id ?? "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Channel:</span>{" "}
+                  {paymentResult.channel ?? "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Currency:</span>{" "}
+                  {paymentResult.currency ?? "-"}
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -175,6 +210,24 @@ export default function OrderDetailsForm({
                 />
               </span>
             </div>
+            <Button asChild variant="outline" className="w-full">
+              <a href={`/api/orders/${orderId}/receipt`} download>
+                Download order receipt (PDF)
+              </a>
+            </Button>
+            {!isPaid &&
+              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && (
+                <PaystackInline
+                  email={session?.user.email as string}
+                  amount={Math.round(totalPrice * 100)}
+                  publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                  orderId={orderId}
+                  buttonLabel="Pay for this order"
+                  className="w-full rounded-full"
+                  onSuccess={() => router.refresh()}
+                  onFailure={() => router.refresh()}
+                />
+              )}
 
             {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
               <ActionButton
