@@ -31,6 +31,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { sanitizeRedirectPath, toSignUpPath } from "@/lib/redirects";
 
 const signInSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -50,8 +51,9 @@ export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirect =
-    searchParams.get("redirect") || searchParams.get("callbackUrl") || "/";
+  const redirect = sanitizeRedirectPath(
+    searchParams.get("redirect") || searchParams.get("callbackUrl")
+  );
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -78,8 +80,7 @@ export function SignInForm() {
       setError(error.message || "Something went wrong");
     } else {
       toast.success("Signed in successfully");
-      //@ts-expect-error
-      router.push(redirect);
+      router.replace(redirect);
     }
   }
 
@@ -221,10 +222,7 @@ export function SignInForm() {
         <p className="text-sm text-muted-foreground">
           Don’t have an account?{" "}
           <Link
-            //@ts-expect-error
-            href={`/sign-up${
-              redirect && redirect !== "/" ? `?redirect=${redirect}` : ""
-            }`}
+            href={toSignUpPath(redirect)}
             className="font-medium underline"
           >
             Sign up

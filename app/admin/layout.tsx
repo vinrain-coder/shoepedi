@@ -1,5 +1,8 @@
 import { AppSidebar } from "@/app/admin/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { getServerSession } from "@/lib/get-session";
+import { toSignInPath } from "@/lib/redirects";
+import { redirect } from "next/navigation";
 import { SiteHeader } from "./site-header";
 
 export default async function AdminLayout({
@@ -7,6 +10,16 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession();
+
+  if (!session?.user) {
+    redirect(toSignInPath("/admin"));
+  }
+
+  if (session.user.role !== "ADMIN") {
+    redirect("/forbidden");
+  }
+
   return (
     <SidebarProvider
       style={

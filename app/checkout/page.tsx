@@ -3,6 +3,7 @@ import CheckoutForm from "./checkout-form";
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/get-session";
 import { getUserAddresses } from "@/lib/actions/address.actions";
+import { toSignInPath } from "@/lib/redirects";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -15,7 +16,7 @@ export default async function CheckoutPage({
 }) {
   const session = await getServerSession();
   if (!session?.user) {
-    redirect("/sign-in?callbackUrl=/checkout");
+    redirect(toSignInPath("/checkout"));
   }
   const { selectedAddressId } = await searchParams;
   const addressesResult = await getUserAddresses();

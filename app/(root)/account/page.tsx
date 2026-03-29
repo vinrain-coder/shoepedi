@@ -1,21 +1,15 @@
 import Breadcrumb from "@/components/shared/breadcrumb";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Card, CardContent } from "@/components/ui/card";
-import { getServerSession } from "@/lib/get-session";
 import { Home, PackageCheckIcon, User } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 const PAGE_TITLE = "Your Account";
 export const metadata: Metadata = {
   title: PAGE_TITLE,
 };
 export default async function AccountPage() {
- // const session = await getServerSession();
- // if (!session) {
-   // redirect("/sign-in?callbackUrl=/account");
-  //}
 
   return (
     <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,8 @@ import { generateId, round2 } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SubscribeButton from "./stock-subscription-button";
 import MarkdownRenderer from "../markdown-renderer";
+import ReadMore from "../read-more";
+import { Badge } from "@/components/ui/badge";
 
 interface QuickViewProps {
   product: IProduct | null;
@@ -41,9 +43,8 @@ export default function ProductQuickView({
 
   const primaryImage = product.images?.[0] ?? "/placeholder.png";
 
-  const details = useMemo(() => {
-    return (
-      <div className="flex flex-col gap-4 p-4 md:p-6">
+  const details = (
+    <div className="flex flex-col gap-4 p-4 md:p-6">
         <h2 className="font-semibold text-2xl">{product.name}</h2>
 
         <ProductPrice price={product.price} listPrice={product.listPrice} />
@@ -62,27 +63,42 @@ export default function ProductQuickView({
         <Separator />
         <section className="max-w-5xl mx-auto">
           <h2 className="font-bold text-lg mb-2">Product Description</h2>
-          <MarkdownRenderer
-            content={product.description}
-            className="prose prose-lg max-w-none"
-          />
+          <ReadMore maxHeight={180}>
+            <MarkdownRenderer
+              content={product.description}
+              className="prose prose-lg max-w-none"
+            />
+          </ReadMore>
         </section>
 
-        <AddToCart
-          item={{
-            clientId: generateId(),
-            product: product._id.toString(),
-            countInStock: product.countInStock,
-            name: product.name,
-            slug: product.slug,
-            category: product.category,
-            price: round2(product.price),
-            quantity: 1,
-            image: primaryImage,
-            size: selectedSize,
-            color: selectedColor,
-          }}
-        />
+        {product.countInStock === 0 ? (
+          <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+            <Badge variant="destructive" className="w-fit">
+              Out of stock
+            </Badge>
+            <p className="text-sm text-muted-foreground">
+              This item is currently unavailable. Subscribe to get notified as
+              soon as it is back in stock.
+            </p>
+            <SubscribeButton productId={product._id.toString()} />
+          </div>
+        ) : (
+          <AddToCart
+            item={{
+              clientId: generateId(),
+              product: product._id.toString(),
+              countInStock: product.countInStock,
+              name: product.name,
+              slug: product.slug,
+              category: product.category,
+              price: round2(product.price),
+              quantity: 1,
+              image: primaryImage,
+              size: selectedSize,
+              color: selectedColor,
+            }}
+          />
+        )}
 
         {product.countInStock > 0 && product.countInStock <= 3 && (
           <div className="text-destructive font-bold">
@@ -90,14 +106,8 @@ export default function ProductQuickView({
           </div>
         )}
 
-        {product.countInStock === 0 && (
-          <div className="flex justify-center items-center mt-4">
-            <SubscribeButton productId={product._id.toString()} />
-          </div>
-        )}
-      </div>
-    );
-  }, [primaryImage, product, selectedColor, selectedSize]);
+    </div>
+  );
 
   return isMobile ? (
     <Drawer open={isOpen} onOpenChange={onClose}>
