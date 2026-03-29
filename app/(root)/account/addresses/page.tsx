@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import AddressBook from "./address-book";
 import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 
 async function page({
   searchParams,
@@ -15,7 +16,7 @@ async function page({
 
   if (!result.success || !result.data) {
     if (result.message?.toLowerCase().includes("signed in")) {
-      redirect(`/sign-in?callbackUrl=/account/addresses`);
+      redirect(toSignInPath(`/account/addresses${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`));
     }
     return (
       <>

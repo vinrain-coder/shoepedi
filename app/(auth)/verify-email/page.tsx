@@ -11,8 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { sanitizeRedirectPath, toSignInPath } from "@/lib/redirects";
 
 export default function VerifyEmailPage() {
+  const searchParams = useSearchParams();
+  const redirect = sanitizeRedirectPath(searchParams.get("redirect"));
+
   return (
     <div className="flex min-h-[80vh] items-center justify-center p-4">
       <Card className="w-full max-w-md text-center shadow-lg rounded-2xl">
@@ -31,7 +36,7 @@ export default function VerifyEmailPage() {
         <CardContent />
         <CardFooter className="flex flex-col gap-2">
           <Button asChild className="w-full font-semibold">
-            <Link href="/sign-in">Back to Sign In</Link>
+            <Link href={toSignInPath(redirect)}>Back to Sign In</Link>
           </Button>
           <p className="text-xs text-muted-foreground">
             Didn’t receive the email? Check your spam folder or request a new

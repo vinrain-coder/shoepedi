@@ -45,7 +45,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, XCircle } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,6 +98,7 @@ const CheckoutForm = ({
     | null
   >(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [addressBook, setAddressBook] = useState<AddressBookEntry[]>(savedAddresses);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
@@ -109,6 +110,7 @@ const CheckoutForm = ({
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
+    setCouponError(null);
     if (message) toast.info(message);
   };
 
@@ -117,6 +119,7 @@ const CheckoutForm = ({
       setIsApplyingCoupon(true);
       const result = await validateCoupon(couponCode, itemsPrice);
       setCouponCode(result.coupon.code);
+      setCouponError(null);
       setAppliedCoupon({
         _id: result.coupon._id,
         code: result.coupon.code,
@@ -126,7 +129,9 @@ const CheckoutForm = ({
       toast.success("Coupon applied successfully");
     } catch (error: unknown) {
       setAppliedCoupon(null);
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      setCouponError(message);
+      toast.error(message);
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -250,6 +255,7 @@ const CheckoutForm = ({
       })
       .catch(() => {
         resetCoupon("Your coupon is no longer valid for this order.");
+        setCouponError("Your coupon is no longer valid for this order.");
       });
   }, [appliedCouponCode, itemsPrice]);
 
@@ -383,6 +389,16 @@ const CheckoutForm = ({
                 {isApplyingCoupon ? "Applying..." : "Apply"}
               </Button>
             </div>
+            {couponError && (
+              <div
+                className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive"
+                role="alert"
+                aria-live="polite"
+              >
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{couponError}</span>
+              </div>
+            )}
             {appliedCoupon && discountAmount > 0 && (
               <div className="mt-2 flex items-center justify-between gap-2 text-sm">
                 <p>

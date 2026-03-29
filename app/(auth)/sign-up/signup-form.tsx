@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 
 import { authClient } from "@/lib/auth-client";
 import { passwordSchema } from "@/lib/validator";
+import { sanitizeRedirectPath, toSignInPath } from "@/lib/redirects";
 
 const signUpSchema = z
   .object({
@@ -51,7 +52,7 @@ export function SignUpForm() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
+  const redirect = sanitizeRedirectPath(searchParams.get("redirect"));
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -71,7 +72,7 @@ export function SignUpForm() {
       password,
       name,
       wishlist: [] as unknown as never, // cast to satisfy TS
-      callbackURL: "/verify-email",
+      callbackURL: `/verify-email?redirect=${encodeURIComponent(redirect)}`,
     });
 
     if (error) {
@@ -80,7 +81,7 @@ export function SignUpForm() {
       toast.success(
         "Signed up successfully. Please check your email to verify."
       );
-      router.push("/verify-email");
+      router.push(`/verify-email?redirect=${encodeURIComponent(redirect)}`);
     }
   }
 
@@ -189,7 +190,7 @@ export function SignUpForm() {
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href={`/sign-in${redirect ? `?redirect=${redirect}` : ""}`} //b06db44
+            href={toSignInPath(redirect)}
             className="font-medium underline"
           >
             Sign in

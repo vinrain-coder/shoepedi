@@ -2,10 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 
 export default function UnauthorizedPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const currentPath = query ? `${pathname}?${query}` : pathname;
 
   return (
     <main className="flex grow items-center justify-center px-4 text-center">
@@ -16,7 +20,7 @@ export default function UnauthorizedPage() {
         </div>
         <div>
           <Button asChild>
-            <Link href={`/sign-in?redirect=${pathname}`}>Sign in</Link>
+            <Link href={toSignInPath(currentPath)}>Sign in</Link>
           </Button>
         </div>
       </div>

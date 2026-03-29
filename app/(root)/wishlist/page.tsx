@@ -5,19 +5,19 @@ import { getWishlistProducts } from "@/lib/actions/wishlist.actions";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { getServerSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 
 export const metadata: Metadata = {
   title: "Your Wishlist",
 };
 
 export default async function Wishlist() {
-  //const session = await getServerSession();
-  //if (!session?.user) {
-    //redirect("/sign-in?callbackUrl=/wishlist");
- // }
-  const products = await getWishlistProducts();
+  const session = await getServerSession();
+  if (!session?.user) {
+    redirect(toSignInPath("/wishlist"));
+  }
 
-  // Convert to JSON-safe plain objects
+  const products = await getWishlistProducts();
   const plainProducts = JSON.parse(JSON.stringify(products));
 
   return (
