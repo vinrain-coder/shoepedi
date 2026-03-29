@@ -41,8 +41,9 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { IOrder } from "@/lib/db/models/order.model";
+import { SerializedOrder } from "@/lib/actions/order.actions";
 import { AlertCircle } from "lucide-react";
+import { isPaystackMethod } from "@/lib/payments";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 
 const PaystackInline = dynamic(
@@ -87,6 +88,7 @@ const CheckoutForm = () => {
     | null
   >(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -198,7 +200,9 @@ const CheckoutForm = () => {
     useState<boolean>(false);
 
   const handlePlaceOrder = async () => {
+    if (isPlacingOrder) return;
     try {
+      setIsPlacingOrder(true);
       // Create the order on the server
       const res = await createOrder({
         items,
@@ -227,23 +231,23 @@ const CheckoutForm = () => {
         return;
       }
 
-      const order = res.data as IOrder; // Ensure this is the full order object
+      const order = res.data as SerializedOrder;
       toast.success("Order created!");
 
       clearCart();
 
-      if (paymentMethod === "Cash On Delivery") {
-        // Redirect immediately for COD
-        router.push(`/account/orders/${order._id}`);
+      if (!isPaystackMethod(paymentMethod)) {
+        router.push(`/checkout/success?orderId=${order._id}`);
         return;
       }
 
-      // For online payment (Paystack), store order to render Paystack button
       setCreatedOrder(order);
-      toast.success("Proceed to payment.");
+      setShouldAutoStartPayment(true);
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -254,13 +258,14 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(null);
+  const [shouldAutoStartPayment, setShouldAutoStartPayment] = useState(false);
   const renderCheckoutSummary = ({
     createdOrder,
     paymentMethod,
     handlePlaceOrder,
   }: {
-    createdOrder: IOrder | null;
+    createdOrder: SerializedOrder | null;
     paymentMethod: string;
     handlePlaceOrder: () => void;
   }) => (
@@ -392,12 +397,10 @@ const CheckoutForm = () => {
           <Button
             onClick={handlePlaceOrder}
             className="rounded-full w-full cursor-pointer"
-            hidden={
-              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
-              !!createdOrder
-            }
+            disabled={isPlacingOrder}
+            hidden={isPaystackMethod(paymentMethod) && !!createdOrder}
           >
-            Place Your Order
+            {isPlacingOrder ? "Placing order..." : "Place Your Order"}
           </Button>
           <p className="text-xs text-center py-2">
             By placing your order, you agree to {site.name}&apos;s{" "}
@@ -866,50 +869,27 @@ const CheckoutForm = () => {
                   paymentMethod,
                   handlePlaceOrder,
                 })}
-                {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
-                  createdOrder && (
-                    <PaystackInline
-                      email={session?.user.email as string}
-                      amount={Math.round(finalTotal * 100)}
-                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={createdOrder._id}
-                      onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
-                      }
-                      onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
-                      }
-                    />
-                  )}
+                {isPaystackMethod(paymentMethod) && createdOrder && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Opening secure Paystack checkout...
+                  </p>
+                )}
               </div>
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
-                  createdOrder ? (
-                    <PaystackInline
-                      email={session?.user.email as string}
-                      amount={Math.round(finalTotal * 100)}
-                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={createdOrder._id}
-                      onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
-                      }
-                      onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
-                      }
-                    />
+                  {isPaystackMethod(paymentMethod) && createdOrder ? (
+                    <p className="text-sm text-muted-foreground">
+                      Opening secure Paystack checkout...
+                    </p>
                   ) : (
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer"
-                      hidden={
-                        paymentMethod ===
-                          "Mobile Money (M-Pesa / Airtel) & Card" &&
-                        !!createdOrder
-                      }
+                      hidden={isPaystackMethod(paymentMethod) && !!createdOrder}
+                      disabled={isPlacingOrder}
                     >
-                      Place Your Order
+                      {isPlacingOrder ? "Placing order..." : "Place Your Order"}
                     </Button>
                   )}
 
@@ -944,6 +924,27 @@ const CheckoutForm = () => {
             handlePlaceOrder,
           })}
         </div>
+
+        {createdOrder && isPaystackMethod(paymentMethod) && session?.user?.email && (
+          <div className="hidden">
+            <PaystackInline
+              email={session.user.email}
+              amount={Math.round(finalTotal * 100)}
+              publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+              orderId={createdOrder._id}
+              autoStart={shouldAutoStartPayment}
+              onSuccess={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+              onFailure={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+              onClose={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+            />
+          </div>
+        )}
       </div>
     </main>
   );

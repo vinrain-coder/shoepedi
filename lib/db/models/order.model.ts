@@ -16,6 +16,8 @@ export interface IOrder extends Document, IOrderInput {
   coupon?: ICouponInfo;
 }
 
+export type PaymentStatus = "pending" | "paid" | "failed";
+
 const orderSchema = new Schema<IOrder>(
   {
     user: {
@@ -53,6 +55,17 @@ const orderSchema = new Schema<IOrder>(
     },
     expectedDeliveryDate: { type: Date, required: true },
     paymentMethod: { type: String, required: true },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
+      required: true,
+    },
+    paymentReference: { type: String },
+    paymentDetails: { type: Schema.Types.Mixed },
+    paymentChannel: { type: String },
+    paymentAuthorization: { type: Schema.Types.Mixed },
+    paymentFees: { type: Number },
     paymentResult: { id: String, status: String, email_address: String },
     itemsPrice: { type: Number, required: true },
     shippingPrice: { type: Number, required: true },

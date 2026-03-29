@@ -4,6 +4,7 @@ import React from "react";
 import { getOrderById } from "@/lib/actions/order.actions";
 import PaymentForm from "./payment-form";
 import { getServerSession } from "@/lib/get-session";
+import { isPaystackMethod } from "@/lib/payments";
 
 export const metadata = {
   title: "Payment",
@@ -24,7 +25,7 @@ const CheckoutPaymentPage = async (props: {
   const session = await getServerSession();
 
   let paystackPublicKey = null;
-  if (order.paymentMethod === "Paystack" && !order.isPaid) {
+  if (isPaystackMethod(order.paymentMethod) && !order.isPaid) {
     paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
   }
 
