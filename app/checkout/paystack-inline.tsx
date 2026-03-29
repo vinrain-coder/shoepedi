@@ -100,6 +100,26 @@ export default function PaystackInline({
 
     if (!window.PaystackPop) return;
 
+    const existingScript = document.getElementById("paystack-script");
+    if (existingScript) {
+      existingScript.addEventListener("load", () => setIsScriptLoaded(true));
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "paystack-script";
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    script.onload = () => setIsScriptLoaded(true);
+    script.onerror = () => toast.error("Failed to load Paystack script");
+    document.body.appendChild(script);
+  }, []);
+
+  const payWithPaystack = async () => {
+    if (!isScriptLoaded || !window.PaystackPop || isInitializing) {
+      return;
+    }
+
     setIsInitializing(true);
     const reference = `${buildOrderPaymentReference(orderId)}-${Date.now()}`;
 
@@ -185,6 +205,10 @@ export default function PaystackInline({
         : isScriptLoaded
           ? "Pay Now"
           : "Preparing secure checkout..."}
+      disabled={!isScriptLoaded || isInitializing}
+      className="w-full rounded-full mt-2"
+    >
+      {isInitializing ? "Initializing payment..." : "Pay Now"}
     </Button>
   );
 }

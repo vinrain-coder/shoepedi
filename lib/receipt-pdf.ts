@@ -37,6 +37,18 @@ export const generateReceiptPdf = (order: SerializedOrder) => {
         ]
       : []),
     `TOTAL: ${money(order.totalPrice)}`,
+  const lines = [
+    `Receipt - Order ${order._id}`,
+    `Payment status: ${order.paymentStatus ?? (order.isPaid ? "paid" : "pending")}`,
+    `Payment reference: ${order.paymentReference ?? "N/A"}`,
+    `Payment channel: ${order.paymentChannel ?? "N/A"}`,
+    `Paid at: ${order.paidAt ?? "N/A"}`,
+    `Total: ${order.totalPrice}`,
+    "",
+    "Items:",
+    ...order.items.map(
+      (item) => `${item.name} x${item.quantity} - ${item.price * item.quantity}`,
+    ),
   ];
 
   const textCommands = lines

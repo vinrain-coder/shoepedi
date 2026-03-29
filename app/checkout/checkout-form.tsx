@@ -918,6 +918,22 @@ const CheckoutForm = () => {
                         }
                       />
                     </div>
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(finalTotal * 100)}
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder._id}
+                      autoStart={shouldAutoStartPayment}
+                      onSuccess={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onFailure={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                      onClose={() =>
+                        router.push(`/checkout/success?orderId=${createdOrder._id}`)
+                      }
+                    />
                   ) : (
                     <Button
                       onClick={handlePlaceOrder}
@@ -960,6 +976,27 @@ const CheckoutForm = () => {
             handlePlaceOrder,
           })}
         </div>
+
+        {createdOrder && isPaystackMethod(paymentMethod) && session?.user?.email && (
+          <div className="hidden">
+            <PaystackInline
+              email={session.user.email}
+              amount={Math.round(finalTotal * 100)}
+              publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+              orderId={createdOrder._id}
+              autoStart={shouldAutoStartPayment}
+              onSuccess={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+              onFailure={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+              onClose={() =>
+                router.push(`/checkout/success?orderId=${createdOrder._id}`)
+              }
+            />
+          </div>
+        )}
       </div>
     </main>
   );
