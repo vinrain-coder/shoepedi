@@ -298,6 +298,28 @@ export default async function PurchaseReceiptEmail({
                     </Section>
                   </Column>
                 </Row>
+
+                {order.paymentResult && (
+                  <Section className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
+                    <Text className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      Payment details
+                    </Text>
+                    <Text className="m-0 mt-2 text-[14px] leading-[22px] text-slate-700">
+                      Gateway: {order.paymentResult.gateway ?? "paystack"}
+                      <br />
+                      Reference: {order.paymentResult.paymentReference ?? "-"}
+                      <br />
+                      Transaction ID: {order.paymentResult.id ?? "-"}
+                      <br />
+                      Channel: {order.paymentResult.channel ?? "-"}
+                      <br />
+                      Currency: {order.paymentResult.currency ?? "-"}
+                    </Text>
+                    <Text className="m-0 mt-2 text-[13px] text-slate-500">
+                      Your order receipt PDF is attached to this email.
+                    </Text>
+                  </Section>
+                )}
               </Section>
             </Section>
 

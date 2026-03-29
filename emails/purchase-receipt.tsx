@@ -65,7 +65,7 @@ PurchaseReceiptEmail.PreviewProps = {
     ],
     expectedDeliveryDate: new Date(),
     isDelivered: true,
-  } as IOrder,
+  } as unknown as IOrder,
 } satisfies OrderInformationProps;
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
@@ -86,44 +86,47 @@ export default async function PurchaseReceiptEmail({
 
   return (
     <Html>
-      <Preview>Your Purchase Receipt</Preview>
+      <Preview>{`Receipt for order ${order._id.toString()}`}</Preview>
       <Tailwind>
         <Head />
-        <Body className="font-sans bg-gray-100 text-gray-800">
-          <Container className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <Body className="font-sans bg-slate-100 text-slate-800 py-8">
+          <Container className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-7">
             {/* Header */}
-            <Heading className="text-3xl font-bold text-center text-gray-900">
-              Purchase Receipt
-            </Heading>
+            <Section className="rounded-2xl bg-slate-950 p-6 text-center">
+              <Heading className="m-0 text-3xl font-bold text-white">
+                Purchase Receipt
+              </Heading>
+              <Text className="m-0 mt-2 text-slate-300">
+                Thank you for shopping with us.
+              </Text>
+            </Section>
 
             {/* Order Info */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
+            <Section className="border border-slate-200 rounded-xl p-4 my-6 bg-slate-50">
               <Row className="flex flex-wrap justify-between">
                 <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Order ID</Text>
+                  <Text className="text-slate-500">Order ID</Text>
                   <Text className="font-semibold">{order._id.toString()}</Text>
                 </Column>
                 <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Purchased On</Text>
+                  <Text className="text-slate-500">Purchased On</Text>
                   <Text className="font-semibold">
                     {dateFormatter.format(order.createdAt)}
                   </Text>
                 </Column>
                 <Column className="w-full sm:w-1/3 mb-4">
-                  <Text className="text-gray-500">Price Paid</Text>
-                  <Text className="font-semibold">
-                    KES.{formatCurrency(order.totalPrice)}
-                  </Text>
+                  <Text className="text-slate-500">Price Paid</Text>
+                  <Text className="font-semibold">{formatCurrency(order.totalPrice)}</Text>
                 </Column>
               </Row>
             </Section>
 
             {/* Items List */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
+            <Section className="border border-slate-200 rounded-xl p-4 my-6 bg-slate-50">
               {order.items.map((item) => (
                 <Row
                   key={item.product}
-                  className="flex items-center justify-between py-2 border-b last:border-b-0"
+                  className="flex items-center justify-between py-3 border-b border-slate-200 last:border-b-0"
                 >
                   <Column className="w-20">
                     <Link href={`${site.url}/product/${item.slug}`}>
@@ -149,7 +152,7 @@ export default async function PurchaseReceiptEmail({
                   </Column>
                   <Column align="right">
                     <Text className="font-semibold">
-                      KES.{formatCurrency(item.price)}
+                      {formatCurrency(item.price)}
                     </Text>
                   </Column>
                 </Row>
@@ -168,7 +171,7 @@ export default async function PurchaseReceiptEmail({
                     {couponDescription}
                   </Text>
                   <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
-                    Discount: -KES.{formatCurrency(Math.abs(order.coupon.discountAmount))}
+                    Discount: -{formatCurrency(Math.abs(order.coupon.discountAmount))}
                   </Text>
                 </Section>
               )}
@@ -188,8 +191,8 @@ export default async function PurchaseReceiptEmail({
                     <Column align="right">
                       <Text className="m-0">
                         {price < 0
-                          ? `-KES.${formatCurrency(Math.abs(price))}`
-                          : `KES.${formatCurrency(price)}`}
+                          ? `-${formatCurrency(Math.abs(price))}`
+                          : formatCurrency(price)}
                       </Text>
                     </Column>
                   </Row>
@@ -198,7 +201,7 @@ export default async function PurchaseReceiptEmail({
             </Section>
 
             {/* Payment & Shipping Info */}
-            <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
+            <Section className="border border-slate-200 rounded-xl p-4 my-6 bg-slate-50">
               <Heading className="text-lg font-semibold">
                 Shipping Address
               </Heading>
@@ -217,19 +220,35 @@ export default async function PurchaseReceiptEmail({
               <Heading className="text-lg font-semibold mt-4">
                 Payment Method
               </Heading>
-              <Text className="text-gray-600">{order.paymentMethod}</Text>
+              <Text className="text-slate-600">{order.paymentMethod}</Text>
+              {order.paymentResult && (
+                <Text className="text-slate-600">
+                  Gateway: {order.paymentResult.gateway ?? "paystack"}
+                  <br />
+                  Reference: {order.paymentResult.paymentReference ?? "-"}
+                  <br />
+                  Transaction ID: {order.paymentResult.id ?? "-"}
+                  <br />
+                  Channel: {order.paymentResult.channel ?? "-"}
+                  <br />
+                  Currency: {order.paymentResult.currency ?? "-"}
+                </Text>
+              )}
+              <Text className="text-slate-500 text-sm mt-2">
+                A PDF receipt is attached to this email.
+              </Text>
             </Section>
 
             {/* Thank You & Footer */}
             <Section className="text-center py-6 border-t">
-              <Text className="text-gray-700 font-medium">
+              <Text className="text-slate-700 font-medium">
                 Thank you for shopping with us!
               </Text>
-              <Text className="text-gray-500 text-sm">
+              <Text className="text-slate-500 text-sm">
                 If you have any questions, feel free to{" "}
                 <Link
                   href={`${site.url}/page/contact-us`}
-                  className="text-blue-600"
+                  className="text-indigo-600"
                 >
                   contact us
                 </Link>
@@ -238,8 +257,8 @@ export default async function PurchaseReceiptEmail({
               <Section className="text-center mt-4">
                 <SocialLinks />
               </Section>
-              <Text className="text-gray-400 text-xs mt-4">
-                {site.name} . {site.copyright}
+              <Text className="text-slate-400 text-xs mt-4">
+                {site.name} • {site.copyright}
               </Text>
             </Section>
           </Container>

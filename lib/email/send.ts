@@ -6,6 +6,10 @@ type SendEmailProps = {
   subject: string;
   react: React.ReactElement;
   scheduledAt?: string;
+  attachments?: {
+    filename: string;
+    content: string | Buffer;
+  }[];
 };
 
 export async function sendEmail({
@@ -13,6 +17,7 @@ export async function sendEmail({
   subject,
   react,
   scheduledAt,
+  attachments,
 }: SendEmailProps) {
   await resend.emails.send({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
@@ -20,5 +25,6 @@ export async function sendEmail({
     subject,
     react,
     scheduledAt,
+    attachments,
   });
 }
