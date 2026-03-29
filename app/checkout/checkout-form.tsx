@@ -36,6 +36,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
+import { AddressBookEntry } from "@/types";
 import useIsMounted from "@/hooks/use-is-mounted";
 import Link from "next/link";
 import useCartStore from "@/hooks/use-cart-store";
@@ -46,6 +47,8 @@ import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
 import { AlertCircle } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
+import { upsertUserAddress } from "@/lib/actions/address.actions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -76,7 +79,13 @@ const shippingAddressDefaultValues =
         country: "",
       };
 
-const CheckoutForm = () => {
+const CheckoutForm = ({
+  savedAddresses,
+  selectedAddressId,
+}: {
+  savedAddresses: AddressBookEntry[];
+  selectedAddressId?: string;
+}) => {
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<
@@ -90,6 +99,13 @@ const CheckoutForm = () => {
   >(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [addressBook, setAddressBook] = useState<AddressBookEntry[]>(savedAddresses);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
+    selectedAddressId ||
+      savedAddresses.find((address) => address.isDefault)?.id ||
+      ""
+  );
+  const [saveAddressToAccount, setSaveAddressToAccount] = useState(false);
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -157,9 +173,52 @@ const CheckoutForm = () => {
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = (values) => {
-    setShippingAddress(values);
-    setIsAddressSelected(true);
+    const submitAddress = async () => {
+      await setShippingAddress(values);
+      setIsAddressSelected(true);
+
+      if (!saveAddressToAccount) return;
+
+      const result = await upsertUserAddress({
+        ...values,
+        label: `Address ${addressBook.length + 1}`,
+        saveAsDefault: addressBook.length === 0,
+      });
+
+      if (result.success && result.data) {
+        setAddressBook(result.data);
+        const selected = result.data.find(
+          (address) =>
+            address.street === values.street && address.postalCode === values.postalCode
+        );
+        if (selected) setSelectedSavedAddressId(selected.id);
+      }
+    };
+
+    void submitAddress();
   };
+
+  useEffect(() => {
+    if (!selectedSavedAddressId) return;
+    const selectedAddress = addressBook.find(
+      (address) => address.id === selectedSavedAddressId
+    );
+    if (!selectedAddress) return;
+
+    const mappedAddress: ShippingAddress = {
+      fullName: selectedAddress.fullName,
+      street: selectedAddress.street,
+      city: selectedAddress.city,
+      province: selectedAddress.province,
+      phone: selectedAddress.phone,
+      postalCode: selectedAddress.postalCode,
+      country: selectedAddress.country,
+    };
+
+    shippingAddressForm.reset(mappedAddress);
+    void setShippingAddress(mappedAddress);
+    setIsAddressSelected(true);
+  }, [addressBook, selectedSavedAddressId, setShippingAddress, shippingAddressForm]);
 
   useEffect(() => {
     if (!isMounted || !shippingAddress) return;
@@ -456,6 +515,55 @@ const CheckoutForm = () => {
                   <span className="w-8">1 </span>
                   <span>Enter shipping address</span>
                 </div>
+                {addressBook.length > 0 && (
+                  <Card className="md:ml-8 my-4">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="text-sm font-medium">
+                        Select a saved address
+                      </div>
+                      <RadioGroup
+                        value={selectedSavedAddressId}
+                        onValueChange={setSelectedSavedAddressId}
+                      >
+                        {addressBook.map((address) => (
+                          <div
+                            key={address.id}
+                            className="flex items-start gap-2 border rounded-md p-2"
+                          >
+                            <RadioGroupItem
+                              value={address.id}
+                              id={`saved-address-${address.id}`}
+                            />
+                            <Label
+                              htmlFor={`saved-address-${address.id}`}
+                              className="cursor-pointer text-sm"
+                            >
+                              <span className="font-medium">{address.label}</span>
+                              <br />
+                              {address.street}, {address.city}, {address.province},{" "}
+                              {address.postalCode}, {address.country}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                      <div className="flex flex-wrap gap-2">
+                        <Link href="/account/addresses?returnTo=/checkout">
+                          <Button type="button" variant="outline" size="sm">
+                            Manage/Add addresses
+                          </Button>
+                        </Link>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedSavedAddressId("")}
+                        >
+                          Enter a new address
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 <Form {...shippingAddressForm}>
                   <form
                     method="post"
@@ -468,6 +576,18 @@ const CheckoutForm = () => {
                       <CardContent className="p-4 space-y-2">
                         <div className="text-lg font-bold mb-2">
                           Your address
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="saveAddressToAccount"
+                            checked={saveAddressToAccount}
+                            onCheckedChange={(value) =>
+                              setSaveAddressToAccount(Boolean(value))
+                            }
+                          />
+                          <Label htmlFor="saveAddressToAccount">
+                            Save this address to my account
+                          </Label>
                         </div>
 
                         <div className="flex flex-col gap-5 md:flex-row">

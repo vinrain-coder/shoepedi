@@ -108,6 +108,27 @@ export const ShippingAddressSchema = z.object({
   country: z.string().min(1, "Country is required"),
 });
 
+export const AddressBookEntrySchema = ShippingAddressSchema.extend({
+  id: z.string().min(1, "Address id is required"),
+  label: z
+    .string()
+    .trim()
+    .min(1, "Address label is required")
+    .max(60, "Address label must be at most 60 characters"),
+  isDefault: z.boolean().default(false),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export const AddressBookInputSchema = ShippingAddressSchema.extend({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Address label is required")
+    .max(60, "Address label must be at most 60 characters"),
+  saveAsDefault: z.boolean().optional().default(false),
+});
+
 // Order
 export const OrderInputSchema = z.object({
   user: z.union([
