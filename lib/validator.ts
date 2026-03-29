@@ -394,6 +394,14 @@ export const BlogCommentInputSchema = z.object({
   content: z.string().trim().min(1, "Comment is required").max(2000, "Comment is too long"),
 });
 
+
+export const NewsletterSubscriptionSchema = z.object({
+  email: z.string().email("Invalid email address").transform((value) => value.trim().toLowerCase()),
+  source: z.enum(["footer", "checkout", "api", "manual"]).default("footer"),
+  tags: z.array(z.string().trim().min(1).max(50)).max(10).default([]),
+  botField: z.string().optional(),
+});
+
 // Stock subscription
 export const StockSubscriptionSchema = z.object({
   product: MongoId,
