@@ -90,9 +90,9 @@ export default async function PurchaseReceiptEmail({
       <Tailwind>
         <Head />
         <Body className="font-sans bg-gray-100 text-gray-800">
-          <Container className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+          <Container className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
             {/* Header */}
-            <Heading className="text-3xl font-bold text-center text-gray-900">
+            <Heading className="text-3xl font-bold text-center text-slate-900">
               Purchase Receipt
             </Heading>
 
@@ -112,7 +112,7 @@ export default async function PurchaseReceiptEmail({
                 <Column className="w-full sm:w-1/3 mb-4">
                   <Text className="text-gray-500">Price Paid</Text>
                   <Text className="font-semibold">
-                    KES.{formatCurrency(order.totalPrice)}
+                    {formatCurrency(order.totalPrice)}
                   </Text>
                 </Column>
               </Row>
@@ -149,7 +149,7 @@ export default async function PurchaseReceiptEmail({
                   </Column>
                   <Column align="right">
                     <Text className="font-semibold">
-                      KES.{formatCurrency(item.price)}
+                      {formatCurrency(item.price)}
                     </Text>
                   </Column>
                 </Row>
@@ -168,7 +168,7 @@ export default async function PurchaseReceiptEmail({
                     {couponDescription}
                   </Text>
                   <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
-                    Discount: -KES.{formatCurrency(Math.abs(order.coupon.discountAmount))}
+                    Discount: -{formatCurrency(Math.abs(order.coupon.discountAmount))}
                   </Text>
                 </Section>
               )}
@@ -188,8 +188,8 @@ export default async function PurchaseReceiptEmail({
                     <Column align="right">
                       <Text className="m-0">
                         {price < 0
-                          ? `-KES.${formatCurrency(Math.abs(price))}`
-                          : `KES.${formatCurrency(price)}`}
+                          ? `-${formatCurrency(Math.abs(price))}`
+                          : `${formatCurrency(price)}`}
                       </Text>
                     </Column>
                   </Row>
