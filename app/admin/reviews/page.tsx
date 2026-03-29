@@ -71,9 +71,15 @@ export default async function ReviewsPage(props: {
             </TableHeader>
 
             <TableBody>
-              {(reviews.data as AdminReviewRow[]).map((review) => (
+              {(reviews.data as AdminReviewRow[]).map((review) => {
+                const reviewImages =
+                  review.images && review.images.length > 0
+                    ? review.images
+                    : review.image
+                      ? [review.image]
+                      : [];
+                return (
                 <TableRow key={review._id} className="align-top">
-                  
                   {/* ID */}
                   <TableCell className="text-xs font-mono text-muted-foreground">
                     {formatId(review._id)}
@@ -142,14 +148,19 @@ export default async function ReviewsPage(props: {
                         {review.comment}
                       </p>
 
-                      {review.image && (
-                        <Image
-                          src={review.image}
-                          alt=""
-                          width={60}
-                          height={60}
-                          className="rounded border mt-1"
-                        />
+                      {reviewImages.length > 0 && (
+                        <div className="mt-1 flex gap-1.5">
+                          {reviewImages.slice(0, 2).map((imageUrl, index) => (
+                            <Image
+                              key={`${review._id}-${index}`}
+                              src={imageUrl}
+                              alt=""
+                              width={60}
+                              height={60}
+                              className="rounded border"
+                            />
+                          ))}
+                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -157,7 +168,7 @@ export default async function ReviewsPage(props: {
                   {/* REPLY */}
                   <TableCell>
                     <div className="w-full overflow-hidden space-y-1">
-                      {review.adminReply?.message && (
+                      {!!review.adminReply?.message?.trim() && (
                         <p className="text-xs truncate">
                           <span className="font-medium text-primary">
                             {review.adminReply.repliedBy || "Admin"}:
@@ -177,9 +188,9 @@ export default async function ReviewsPage(props: {
                   <TableCell className="text-right">
                     <DeleteDialog id={review._id} action={deleteReview} />
                   </TableCell>
-
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>

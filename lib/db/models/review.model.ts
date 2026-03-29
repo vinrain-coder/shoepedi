@@ -9,6 +9,7 @@ export interface IReview extends Document, IReviewInput {
   comment: string;
   title: string;
   image?: string;
+  images?: string[];
   adminReply?: {
     message: string;
     repliedAt: Date;
@@ -50,6 +51,10 @@ const reviewSchema = new Schema<IReview>(
     image: {
       type: String,
       default: "",
+    },
+    images: {
+      type: [String],
+      default: [],
     },
     adminReply: {
       message: {

@@ -31,6 +31,7 @@ export type IReviewDetails = IReviewInput & {
   _id: string;
   createdAt: string;
   user: {
+    _id?: string;
     name: string;
   };
   adminReply?: {
