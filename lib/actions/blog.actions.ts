@@ -22,6 +22,8 @@ function serializeReply(reply: IBlogReply) {
     userImage: reply.userImage || "",
     content: reply.content,
     likesCount: reply.likesCount ?? 0,
+    likedByUsers: reply.likedByUsers || [],
+    likedByGuests: reply.likedByGuests || [],
     createdAt: reply.createdAt.toISOString(),
     updatedAt: reply.updatedAt.toISOString(),
   };
@@ -35,6 +37,8 @@ function serializeComment(comment: IBlogComment) {
     userImage: comment.userImage || "",
     content: comment.content,
     likesCount: comment.likesCount ?? 0,
+    likedByUsers: comment.likedByUsers || [],
+    likedByGuests: comment.likedByGuests || [],
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
     replies: (comment.replies || []).map(serializeReply),
@@ -357,6 +361,98 @@ export async function toggleBlogCommentLike(input: z.infer<typeof BlogLikeInputS
     revalidatePath(`/blogs/${blog.slug}`);
 
     return { success: true, liked: !hasLiked, likesCount: target.likesCount };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function editBlogComment(input: {
+  blogId: string;
+  commentId: string;
+  replyId?: string;
+  content: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Please sign in to edit your comment");
+
+    const data = z
+      .object({
+        blogId: z.string().regex(/^[0-9a-fA-F]{24}$/),
+        commentId: z.string().min(1),
+        replyId: z.string().optional(),
+        content: z.string().trim().min(1).max(2000),
+      })
+      .parse(input);
+
+    await connectToDatabase();
+    const blog = await Blog.findById(data.blogId);
+    if (!blog) throw new Error("Blog not found");
+
+    const comment = blog.comments.id(data.commentId);
+    if (!comment) throw new Error("Comment not found");
+
+    if (data.replyId) {
+      const reply = comment.replies.id(data.replyId);
+      if (!reply) throw new Error("Reply not found");
+      if (reply.userId !== session.user.id) throw new Error("You can only edit your own replies");
+      reply.content = data.content;
+      reply.updatedAt = new Date();
+    } else {
+      if (comment.userId !== session.user.id) throw new Error("You can only edit your own comments");
+      comment.content = data.content;
+      comment.updatedAt = new Date();
+    }
+
+    await blog.save();
+    revalidateTag("blogs");
+    revalidatePath(BLOG_ADMIN_PATH);
+    revalidatePath(`/blogs/${blog.slug}`);
+    return { success: true, message: "Comment updated" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function deleteBlogComment(input: {
+  blogId: string;
+  commentId: string;
+  replyId?: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Please sign in to delete your comment");
+
+    const data = z
+      .object({
+        blogId: z.string().regex(/^[0-9a-fA-F]{24}$/),
+        commentId: z.string().min(1),
+        replyId: z.string().optional(),
+      })
+      .parse(input);
+
+    await connectToDatabase();
+    const blog = await Blog.findById(data.blogId);
+    if (!blog) throw new Error("Blog not found");
+
+    const comment = blog.comments.id(data.commentId);
+    if (!comment) throw new Error("Comment not found");
+
+    if (data.replyId) {
+      const reply = comment.replies.id(data.replyId);
+      if (!reply) throw new Error("Reply not found");
+      if (reply.userId !== session.user.id) throw new Error("You can only delete your own replies");
+      reply.deleteOne();
+    } else {
+      if (comment.userId !== session.user.id) throw new Error("You can only delete your own comments");
+      comment.deleteOne();
+    }
+
+    await blog.save();
+    revalidateTag("blogs");
+    revalidatePath(BLOG_ADMIN_PATH);
+    revalidatePath(`/blogs/${blog.slug}`);
+    return { success: true, message: "Comment deleted" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

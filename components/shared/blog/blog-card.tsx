@@ -4,12 +4,6 @@ import { useEffect, useState } from "react";
 import { formatDate } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
 import { ArrowRight, Heart, MessageCircle } from "lucide-react";
 
 type BlogCardProps = {
@@ -46,9 +40,9 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
       : null;
 
   return (
-    <Card className="group overflow-hidden border-border/40 p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-border">
+    <article className="group overflow-hidden rounded-2xl border border-border/50 bg-background p-0 transition-all hover:border-border">
       <Link href={`/blogs/${blog.slug}`} className="block">
-        <div className="relative h-48 w-full overflow-hidden bg-muted">
+        <div className="relative h-44 w-full overflow-hidden bg-muted sm:h-48">
           {imageSrc ? (
             <Image
               src={imageSrc}
@@ -59,7 +53,7 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/50">
               <div className="text-center space-y-1">
-                <div className="text-4xl opacity-20">馃摑</div>
+                <div className="text-4xl opacity-20">📰</div>
                 <p className="text-xs text-muted-foreground/60">No Image</p>
               </div>
             </div>
@@ -102,7 +96,7 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
           </Link>
         </div>
       </div>
-    </Card>
+    </article>
   );
-  }
+}
   
