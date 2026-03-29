@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { IOrder } from "@/lib/db/models/order.model";
+import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
 
 import CheckoutFooter from "../checkout-footer";
@@ -20,7 +20,7 @@ const PaystackInline = dynamic(
 export default function OrderDetailsForm({
   order,
 }: {
-  order: IOrder;
+  order: SerializedOrder;
   isAdmin: boolean;
   clientSecret: string | null;
   paystackPublicKey?: string | null;
