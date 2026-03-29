@@ -20,6 +20,7 @@ import WhatsApp from "@/public/icons/whatsapp.svg";
 import Youtube from "@/public/icons/youtube.svg";
 import Facebook from "@/public/icons/facebook.svg";
 import Instagram from "@/public/icons/instagram.svg";
+import NewsletterSubscribe from "@/components/shared/newsletter-subscribe";
 
 export default function Footer() {
   const {
@@ -117,6 +118,9 @@ export default function Footer() {
       </Button>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-10">
+          <NewsletterSubscribe />
+        </div>
         {/* MOBILE */}
         <div className="block md:hidden mb-8">
           <Accordion type="single" collapsible className="border-t border-gray-800">
@@ -253,5 +257,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-    }
-    
+}
