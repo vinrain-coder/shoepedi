@@ -15,8 +15,15 @@ import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 import { sendAdminEventNotification } from "@/emails";
 
+function normalizeReviewImages(input: { image?: string; images?: string[] }) {
+  const fromImages = (input.images || []).filter(Boolean).slice(0, 2);
+  const legacyImage = input.image?.trim();
+  if (fromImages.length > 0) return fromImages;
+  return legacyImage ? [legacyImage] : [];
+}
+
 export async function submitReviewAction(
-  values: z.infer<typeof ReviewInputSchema>,
+  values: Omit<z.infer<typeof ReviewInputSchema>, "user">,
   path: string
 ) {
   try {
@@ -39,10 +46,16 @@ export async function submitReviewAction(
       existing.title = data.title;
       existing.comment = data.comment;
       existing.rating = data.rating;
-      existing.image = data.image || "";
+      const normalizedImages = normalizeReviewImages(data);
+      existing.images = normalizedImages;
+      existing.image = normalizedImages[0] || "";
       await existing.save();
     } else {
+      const normalizedImages = normalizeReviewImages(data);
       const createdReview = await Review.create(data);
+      createdReview.images = normalizedImages;
+      createdReview.image = normalizedImages[0] || "";
+      await createdReview.save();
       const [reviewUser, reviewProduct] = await Promise.all([
         User.findById(createdReview.user).select("name email").lean(),
         Product.findById(createdReview.product).select("name").lean(),
@@ -121,7 +134,9 @@ export async function createUpdateReview({
       existReview.comment = review.comment;
       existReview.rating = review.rating;
       existReview.title = review.title;
-      existReview.image = review.image || "";
+      const normalizedImages = normalizeReviewImages(review);
+      existReview.images = normalizedImages;
+      existReview.image = normalizedImages[0] || "";
       await existReview.save();
       await updateProductReview(review.product);
       revalidatePath(path);
@@ -131,7 +146,11 @@ export async function createUpdateReview({
         // data: JSON.parse(JSON.stringify(existReview)),
       };
     } else {
+      const normalizedImages = normalizeReviewImages(review);
       const createdReview = await Review.create(review);
+      createdReview.images = normalizedImages;
+      createdReview.image = normalizedImages[0] || "";
+      await createdReview.save();
       const [reviewUser, reviewProduct] = await Promise.all([
         User.findById(createdReview.user).select("name email").lean(),
         Product.findById(createdReview.product).select("name").lean(),
@@ -293,8 +312,32 @@ export async function replyToReview({
 
 export async function deleteReview(id: string) {
   try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Not authenticated");
+
     await connectToDatabase();
+    const review = await Review.findById(id).select("product user").lean();
+    if (!review) throw new Error("Review not found");
+
+    const isAdmin = session.user.role === "ADMIN";
+    const isOwner =
+      review.user &&
+      review.user.toString() === session.user.id;
+
+    if (!isAdmin && !isOwner) {
+      throw new Error("Not authorized to delete this review");
+    }
+
     await Review.findByIdAndDelete(id);
+    await updateProductReview(review.product.toString());
+
+    const product = await Product.findById(review.product).select("slug").lean();
+
+    updateTag("reviews");
+    revalidatePath("/admin/reviews");
+    if (product?.slug) {
+      revalidatePath(`/product/${product.slug}`);
+    }
 
     return {
       success: true,
@@ -304,7 +347,7 @@ export async function deleteReview(id: string) {
     console.error("Failed to delete review:", error);
     return {
       success: false,
-      message: "Failed to delete review",
+      message: formatError(error),
     };
   }
 }

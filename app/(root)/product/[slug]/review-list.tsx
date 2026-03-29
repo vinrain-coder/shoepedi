@@ -3,23 +3,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar,
-  CheckCircle2,
   CornerDownRight,
-  MessageSquareQuote,
-  ShieldCheck,
+  Trash2,
   StarIcon,
   User,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SubmitHandler, UseFormReturn, useForm } from "react-hook-form";
 import { useInView } from "react-intersection-observer";
 import { z } from "zod";
 
 import RatingSummary from "@/components/shared/product/rating-summary";
 import ReviewImageUploader from "@/components/shared/review-image-uploader";
-import { AutoResizeTextarea } from "@/components/shared/textarea";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,8 +28,6 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -53,6 +48,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -62,8 +58,9 @@ import {
 } from "@/components/ui/select";
 
 import { authClient } from "@/lib/auth-client";
-import { getReviews, submitReviewAction } from "@/lib/actions/review.actions";
+import { deleteReview, getReviews, submitReviewAction } from "@/lib/actions/review.actions";
 import { IProduct } from "@/lib/db/models/product.model";
+import { toSignInPath } from "@/lib/redirects";
 import { ReviewInputSchema } from "@/lib/validator";
 import { IReviewDetails } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -77,7 +74,7 @@ const ReviewFormSchema = ReviewInputSchema.omit({
 const reviewFormDefaultValues = {
   title: "",
   comment: "",
-  image: "",
+  images: [],
   rating: 5,
   isVerifiedPurchase: false,
 };
@@ -138,7 +135,7 @@ function ReviewFormFields({ form }: { form: UseFormReturn<CustomerReview> }) {
           <FormItem>
             <FormLabel>Comment</FormLabel>
             <FormControl>
-              <AutoResizeTextarea {...field} />
+              <Textarea {...field} />
             </FormControl>
           </FormItem>
         )}
@@ -146,7 +143,7 @@ function ReviewFormFields({ form }: { form: UseFormReturn<CustomerReview> }) {
 
       <FormField
         control={form.control}
-        name="image"
+        name="images"
         render={({ field }) => (
           <ReviewImageUploader value={field.value} onChange={field.onChange} />
         )}
@@ -162,6 +159,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
   const [page, setPage] = useState(2);
   const [totalPages, setTotalPages] = useState(0);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   const { ref, inView } = useInView({ triggerOnce: true });
@@ -174,7 +172,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
 
-  const loadInitial = async () => {
+  const loadInitial = useCallback(async () => {
     setLoadingReviews(true);
     const res = await getReviews({
       productId: product._id.toString(),
@@ -182,12 +180,13 @@ export default function ReviewList({ product }: { product: IProduct }) {
     });
     setReviews(res.data);
     setTotalPages(res.totalPages);
+    setPage(2);
     setLoadingReviews(false);
-  };
+  }, [product._id]);
 
   useEffect(() => {
     if (inView) loadInitial();
-  }, [inView]);
+  }, [inView, loadInitial]);
 
   const loadMore = async () => {
     if (loadingReviews || page > totalPages) return;
@@ -213,6 +212,19 @@ export default function ReviewList({ product }: { product: IProduct }) {
     form.reset(reviewFormDefaultValues);
     setOpen(false);
     loadInitial();
+  };
+
+  const onDeleteReview = async (reviewId: string) => {
+    setDeletingReviewId(reviewId);
+    const res = await deleteReview(reviewId);
+    if (!res.success) {
+      toast.error(res.message);
+      setDeletingReviewId(null);
+      return;
+    }
+    toast.success(res.message);
+    await loadInitial();
+    setDeletingReviewId(null);
   };
 
   const reviewForm = (
@@ -274,7 +286,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
                   </Dialog>
                 )
               ) : (
-                <Link href={`/sign-in`}>
+                <Link href={toSignInPath(`/product/${product.slug}#reviews`)}>
                   <Button className="w-full rounded-full">Sign in to review</Button>
                 </Link>
               )}
@@ -290,7 +302,14 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
           {/* 🔥 UPDATED LIST UI */}
           <div className="divide-y">
-            {reviews.map((review) => (
+            {reviews.map((review) => {
+              const reviewImages =
+                review.images && review.images.length > 0
+                  ? review.images
+                  : review.image
+                    ? [review.image]
+                    : [];
+              return (
               <div key={review._id} className="py-5 space-y-2">
                 {/* stars + title */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -325,20 +344,23 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 <p className="whitespace-pre-line">{review.comment}</p>
 
                 {/* image */}
-                {review.image && (
-                  <div className="mt-2">
-                    <Image
-                      src={review.image}
-                      alt="review"
-                      width={200}
-                      height={200}
-                      className="rounded-lg border object-cover max-h-40"
-                    />
+                {reviewImages.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {reviewImages.map((imageUrl, index) => (
+                      <Image
+                        key={`${review._id}-${index}`}
+                        src={imageUrl}
+                        alt="review"
+                        width={200}
+                        height={200}
+                        className="rounded-lg border object-cover max-h-40"
+                      />
+                    ))}
                   </div>
                 )}
 
                 {/* admin reply */}
-                {review.adminReply?.message && (
+                {!!review.adminReply?.message?.trim() && (
                   <div className="ml-8 mt-3 border-t pt-3 space-y-1">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <CornerDownRight className="size-4" />
@@ -349,8 +371,23 @@ export default function ReviewList({ product }: { product: IProduct }) {
                     </p>
                   </div>
                 )}
+
+                {userId && review.user?._id === userId && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => onDeleteReview(review._id)}
+                      disabled={deletingReviewId === review._id}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                      {deletingReviewId === review._id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {page <= totalPages && (
