@@ -128,6 +128,22 @@ export const OrderInputSchema = z.object({
       status: z.string(),
       email_address: z.string(),
       pricePaid: z.string(),
+      paymentMethod: z.string().optional(),
+      paymentReference: z.string().optional(),
+      gateway: z.string().optional(),
+      currency: z.string().optional(),
+      paidAtGateway: z.date().optional(),
+      channel: z.string().optional(),
+      authorization: z
+        .object({
+          card_type: z.string().optional(),
+          bank: z.string().optional(),
+          brand: z.string().optional(),
+          last4: z.string().optional(),
+          exp_month: z.string().optional(),
+          exp_year: z.string().optional(),
+        })
+        .optional(),
     })
     .optional(),
   itemsPrice: Price("Items price"),

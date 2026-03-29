@@ -218,6 +218,22 @@ export default async function PurchaseReceiptEmail({
                 Payment Method
               </Heading>
               <Text className="text-gray-600">{order.paymentMethod}</Text>
+              {order.paymentResult && (
+                <Text className="text-gray-600">
+                  Gateway: {order.paymentResult.gateway ?? "paystack"}
+                  <br />
+                  Reference: {order.paymentResult.paymentReference ?? "-"}
+                  <br />
+                  Transaction ID: {order.paymentResult.id ?? "-"}
+                  <br />
+                  Channel: {order.paymentResult.channel ?? "-"}
+                  <br />
+                  Currency: {order.paymentResult.currency ?? "-"}
+                </Text>
+              )}
+              <Text className="text-gray-500 text-sm mt-2">
+                A PDF receipt is attached to this email.
+              </Text>
             </Section>
 
             {/* Thank You & Footer */}

@@ -19,7 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createOrder } from "@/lib/actions/order.actions";
+import {
+  createOrder,
+  SerializedOrder,
+} from "@/lib/actions/order.actions";
 import {
   calculateFutureDate,
   formatDateTime,
@@ -41,7 +44,6 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { IOrder } from "@/lib/db/models/order.model";
 import { AlertCircle } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 
@@ -227,20 +229,19 @@ const CheckoutForm = () => {
         return;
       }
 
-      const order = res.data as IOrder; // Ensure this is the full order object
+      const order = res.data as SerializedOrder;
       toast.success("Order created!");
 
       clearCart();
 
       if (paymentMethod === "Cash On Delivery") {
-        // Redirect immediately for COD
-        router.push(`/account/orders/${order._id}`);
+        router.push(`/account/orders/${order._id}/placed`);
         return;
       }
 
-      // For online payment (Paystack), store order to render Paystack button
+      // For Paystack payment, render component and auto-open popup instantly
       setCreatedOrder(order);
-      toast.success("Proceed to payment.");
+      toast.success("Opening payment...");
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));
@@ -254,13 +255,15 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const [createdOrder, setCreatedOrder] = useState<IOrder | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(
+    null,
+  );
   const renderCheckoutSummary = ({
     createdOrder,
     paymentMethod,
     handlePlaceOrder,
   }: {
-    createdOrder: IOrder | null;
+    createdOrder: SerializedOrder | null;
     paymentMethod: string;
     handlePlaceOrder: () => void;
   }) => (
@@ -873,11 +876,13 @@ const CheckoutForm = () => {
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
+                      autoStart
+                      hideButton
                       onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
+                        router.push(`/account/orders/${createdOrder._id}/placed`)
                       }
                       onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
+                        router.push(`/account/orders/${createdOrder._id}/placed`)
                       }
                     />
                   )}
@@ -892,11 +897,13 @@ const CheckoutForm = () => {
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
+                      autoStart
+                      hideButton
                       onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
+                        router.push(`/account/orders/${createdOrder._id}/placed`)
                       }
                       onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}`)
+                        router.push(`/account/orders/${createdOrder._id}/placed`)
                       }
                     />
                   ) : (

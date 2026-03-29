@@ -5,25 +5,32 @@ import { IOrder } from "@/lib/db/models/order.model";
 import { IProduct } from "@/lib/db/models/product.model";
 import { getSetting } from "@/lib/actions/setting.actions";
 import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
+import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
+import type { SerializedOrder } from "@/lib/actions/order.actions";
 
 export const sendPurchaseReceipt = async (order: IOrder) => {
+  const serializedOrder = JSON.parse(
+    JSON.stringify(order),
+  ) as unknown as SerializedOrder;
+  const pdf = buildOrderReceiptPdf(serializedOrder);
   await sendEmail({
     to: (order.user as { email: string }).email,
-    subject: "Order Confirmation",
+    subject: "Purchase Receipt",
     react: <PurchaseReceiptEmail order={order} />,
+    attachments: [
+      {
+        filename: `order-${order._id.toString()}.pdf`,
+        content: pdf,
+      },
+    ],
   });
 };
 
 export const sendAskReviewOrderItems = async (order: IOrder) => {
-  const oneDayFromNow = new Date(
-    Date.now() + 1000 * 60 * 60 * 24
-  ).toISOString();
-
   await sendEmail({
     to: (order.user as { email: string }).email,
     subject: "Review your order items",
     react: <AskReviewOrderItemsEmail order={order} />,
-    scheduledAt: oneDayFromNow,
   });
 };
 

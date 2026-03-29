@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface PaystackInlineProps {
@@ -12,6 +12,10 @@ interface PaystackInlineProps {
   onSuccess?: (reference: any) => void;
   onClose?: () => void;
   onFailure?: (error?: any) => void; // <-- new
+  autoStart?: boolean;
+  hideButton?: boolean;
+  buttonLabel?: string;
+  className?: string;
 }
 
 declare global {
@@ -28,8 +32,13 @@ export default function PaystackInline({
   onSuccess,
   onClose,
   onFailure, // <-- new
+  autoStart = false,
+  hideButton = false,
+  buttonLabel = "Complete Payment",
+  className,
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const hasAutoStarted = useRef(false);
 
   useEffect(() => {
     if (window.PaystackPop) {
@@ -50,7 +59,7 @@ export default function PaystackInline({
     };
   }, []);
 
-  const payWithPaystack = () => {
+  const payWithPaystack = useCallback(() => {
     if (!isScriptLoaded || !window.PaystackPop) {
       toast.error("Payment system not ready. Please try again.");
       return;
@@ -94,15 +103,25 @@ export default function PaystackInline({
     });
 
     handler.openIframe();
-  };
+  }, [amount, email, onClose, onFailure, onSuccess, orderId, publicKey, isScriptLoaded]);
 
+  useEffect(() => {
+    if (!autoStart || !isScriptLoaded || hasAutoStarted.current) return;
+    hasAutoStarted.current = true;
+    payWithPaystack();
+  }, [autoStart, isScriptLoaded, payWithPaystack]);
+
+  if (hideButton) return null;
   return (
-    <button
+    <Button
       onClick={payWithPaystack}
       disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full mt-2 px-8 py-3 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+      className={
+        className ??
+        "w-1/3 rounded-full mt-2 px-8 py-3 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+      }
     >
-      Complete Payment
-    </button>
+      {buttonLabel}
+    </Button>
   );
 }
