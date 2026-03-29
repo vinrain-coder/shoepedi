@@ -19,7 +19,6 @@ import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
-import { buildOrderPaymentReference } from "@/lib/payments";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 export type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
@@ -107,7 +106,6 @@ export const createOrderFromCart = async (
     items: cart.items,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
-    paymentStatus: "pending",
     itemsPrice: cart.itemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
@@ -116,8 +114,6 @@ export const createOrderFromCart = async (
     coupon: appliedCoupon,
   });
   const createdOrder = await Order.create(order);
-  createdOrder.paymentReference = buildOrderPaymentReference(createdOrder._id.toString());
-  await createdOrder.save();
   const orderUser = await User.findById(userId).select("name email").lean();
 
   await sendAdminEventNotification({
@@ -589,12 +585,7 @@ export async function markPaystackOrderAsPaid(
     email_address: string;
     pricePaid: string;
     paymentMethod?: string;
-    paymentReference: string;
-    paymentDetails?: Record<string, unknown>;
-    paymentChannel?: string;
-    paymentAuthorization?: Record<string, unknown>;
-    paymentFees?: number;
-    paidAt?: Date;
+    paymentReference?: string;
   },
 ) {
   try {
@@ -608,33 +599,21 @@ export async function markPaystackOrderAsPaid(
     }>("user", "name email");
 
     if (!order) throw new Error("Order not found");
-
-    if (order.paymentReference === paymentInfo.paymentReference && order.isPaid) {
-      return { success: true, message: "Payment already processed" };
-    }
-
     if (order.isPaid) throw new Error("Order is already paid");
 
     if (
       !paymentInfo.id ||
       !paymentInfo.email_address ||
-      !paymentInfo.pricePaid ||
-      !paymentInfo.paymentReference
+      !paymentInfo.pricePaid
     ) {
       throw new Error("Missing required payment information");
     }
 
     // ----------------------------------------------------
-    // 2. Update payment result
+    // 2. Update payment result (BUT DO NOT update stock here)
     // ----------------------------------------------------
     order.isPaid = true;
-    order.paymentStatus = "paid";
-    order.paidAt = paymentInfo.paidAt || new Date();
-    order.paymentReference = paymentInfo.paymentReference;
-    order.paymentDetails = paymentInfo.paymentDetails || {};
-    order.paymentChannel = paymentInfo.paymentChannel;
-    order.paymentAuthorization = paymentInfo.paymentAuthorization;
-    order.paymentFees = paymentInfo.paymentFees;
+    order.paidAt = new Date();
     order.paymentResult = paymentInfo;
     await order.save();
 
@@ -664,29 +643,6 @@ export async function markPaystackOrderAsPaid(
     revalidatePath(`/admin/orders/${orderId}`);
 
     return { success: true, message: "Order paid successfully" };
-  } catch (err) {
-    return { success: false, message: formatError(err) };
-  }
-}
-
-
-export async function markOrderPaymentAsFailed(orderId: string, paymentReference?: string) {
-  try {
-    await connectToDatabase();
-    const order = await Order.findById(orderId);
-    if (!order) throw new Error("Order not found");
-    if (order.isPaid) {
-      return { success: true, message: "Order already paid" };
-    }
-
-    order.paymentStatus = "pending";
-    if (paymentReference) {
-      order.paymentReference = paymentReference;
-    }
-    await order.save();
-    revalidatePath(`/account/orders/${orderId}`);
-    revalidatePath(`/admin/orders/${orderId}`);
-    return { success: true, message: "Order kept pending for payment retry" };
   } catch (err) {
     return { success: false, message: formatError(err) };
   }

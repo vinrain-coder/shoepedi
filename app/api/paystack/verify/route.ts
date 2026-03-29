@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import {
-  markOrderPaymentAsFailed,
-  markPaystackOrderAsPaid,
-} from "@/lib/actions/order.actions";
+import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
 
 export async function POST(req: Request) {
   try {
-    const { reference, orderId, cancelled } = await req.json();
-
-    if (cancelled) {
-      await markOrderPaymentAsFailed(orderId, reference);
-      return NextResponse.json({ status: false, message: "Payment cancelled" });
-    }
+    const { reference, orderId } = await req.json();
 
     const response = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,
@@ -34,7 +26,6 @@ export async function POST(req: Request) {
     const customerEmail = data.data.customer?.email;
     const transactionId = data.data.id;
     const amount = data.data.amount;
-    const paidAt = data.data.paid_at;
 
     if (!customerEmail || !transactionId || amount == null) {
       return NextResponse.json({
@@ -48,12 +39,8 @@ export async function POST(req: Request) {
       status: "success",
       email_address: customerEmail,
       pricePaid: amount.toString(),
+      paymentMethod: "Mobile Money (M-Pesa / Airtel) & Card",
       paymentReference: reference,
-      paymentDetails: data.data,
-      paymentChannel: data.data.channel,
-      paymentAuthorization: data.data.authorization,
-      paymentFees: data.data.fees,
-      paidAt: paidAt ? new Date(paidAt) : undefined,
     });
 
     if (!result.success) {

@@ -21,15 +21,6 @@ import {
 import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
-import dynamic from "next/dynamic";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { isPaystackMethod } from "@/lib/payments";
-import { Button } from "@/components/ui/button";
-
-const PaystackInline = dynamic(() => import("@/app/checkout/paystack-inline"), {
-  ssr: false,
-});
 
 export default function OrderDetailsForm({
   order,
@@ -38,8 +29,6 @@ export default function OrderDetailsForm({
   order: SerializedOrder;
   isAdmin: boolean;
 }) {
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
   const orderId = order._id;
 
   const {
@@ -55,10 +44,6 @@ export default function OrderDetailsForm({
     isDelivered,
     deliveredAt,
     expectedDeliveryDate,
-    paymentStatus,
-    paymentReference,
-    paymentChannel,
-    paymentFees,
   } = order;
 
   return (
@@ -96,22 +81,6 @@ export default function OrderDetailsForm({
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Payment Method</h2>
             <p>{paymentMethod}</p>
-            <p className="text-sm text-muted-foreground">
-              Status: {paymentStatus ?? (isPaid ? "paid" : "pending")}
-            </p>
-            {paymentReference && (
-              <p className="text-sm text-muted-foreground">
-                Reference: {paymentReference}
-              </p>
-            )}
-            {paymentChannel && (
-              <p className="text-sm text-muted-foreground">
-                Channel: {paymentChannel}
-              </p>
-            )}
-            {typeof paymentFees === "number" && (
-              <p className="text-sm text-muted-foreground">Fees: {paymentFees}</p>
-            )}
             {isPaid ? (
               <Badge>Paid at {formatDateTime(paidAt!).dateTime}</Badge>
             ) : (
@@ -207,25 +176,7 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            {!isPaid && session?.user?.email && (
-              <PaystackInline
-                email={session.user.email}
-                amount={Math.round(totalPrice * 100)}
-                publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                orderId={orderId}
-                onSuccess={() => router.refresh()}
-                onFailure={() => router.refresh()}
-                onClose={() => router.refresh()}
-              />
-            )}
-
-            <Button asChild variant="outline" className="w-full">
-              <Link href={`/api/orders/${orderId}/receipt`} target="_blank">
-                Download Receipt
-              </Link>
-            </Button>
-
-            {isAdmin && !isPaid && !isPaystackMethod(paymentMethod) && (
+            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
               <ActionButton
                 caption="Mark as paid"
                 action={() => updateOrderToPaid(orderId)}

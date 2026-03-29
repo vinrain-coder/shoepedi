@@ -218,15 +218,6 @@ export default async function PurchaseReceiptEmail({
                 Payment Method
               </Heading>
               <Text className="text-gray-600">{order.paymentMethod}</Text>
-              <Text className="text-gray-600">
-                Payment status: {order.paymentStatus ?? (order.isPaid ? "paid" : "pending")}
-              </Text>
-              {order.paymentReference && (
-                <Text className="text-gray-600">Reference: {order.paymentReference}</Text>
-              )}
-              {order.paymentChannel && (
-                <Text className="text-gray-600">Channel: {order.paymentChannel}</Text>
-              )}
             </Section>
 
             {/* Thank You & Footer */}

@@ -8,7 +8,6 @@ import { SENDER_EMAIL, SENDER_NAME } from "@/lib/constants";
 import { getSetting } from "@/lib/actions/setting.actions";
 import PasswordResetEmail from "./reset-password";
 import AdminEventNotificationEmail from "./admin-event-notification";
-import { generateReceiptPdf } from "@/lib/receipt-pdf";
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
@@ -63,21 +62,11 @@ export const sendAdminEventNotification = async ({
 };
 
 export const sendPurchaseReceipt = async ({ order }: { order: IOrder }) => {
-  const pdfBuffer = generateReceiptPdf(
-    JSON.parse(JSON.stringify(order)) as Parameters<typeof generateReceiptPdf>[0],
-  );
-
   await resend.emails.send({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
     to: (order.user as { email: string }).email,
     subject: "Order Confirmation",
     react: <PurchaseReceiptEmail order={order} />,
-    attachments: [
-      {
-        filename: `receipt-${order._id.toString()}.pdf`,
-        content: pdfBuffer,
-      },
-    ],
   });
 };
 
