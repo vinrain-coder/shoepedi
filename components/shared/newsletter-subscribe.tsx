@@ -48,13 +48,11 @@ export default function NewsletterSubscribe() {
   };
 
   return (
-    <div className="rounded-lg border border-gray-700 bg-[#0f1620] p-4 md:p-5">
-      <h3 className="text-base font-semibold">Get insider deals in your inbox</h3>
-      <p className="mt-1 text-sm text-gray-300">
-        Early access to launches, exclusive coupons, and style drops.
-      </p>
+    <div className="rounded-xl border border-white/15 bg-transparent p-4 md:p-5">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">Newsletter</h3>
+      <p className="mt-1 text-sm text-gray-400">Get updates and offers.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start">
         <label htmlFor="newsletter-email" className="sr-only">
           Email address
         </label>
@@ -62,7 +60,7 @@ export default function NewsletterSubscribe() {
           id="newsletter-email"
           type="email"
           placeholder="you@example.com"
-          className="border-gray-600 bg-black/40 text-white placeholder:text-gray-400"
+          className="border-white/20 bg-transparent text-white placeholder:text-gray-500 sm:flex-1"
           {...register("email")}
         />
         <input
@@ -73,14 +71,13 @@ export default function NewsletterSubscribe() {
           {...register("botField")}
         />
 
-        {errors.email && (
-          <p className="text-xs text-red-400">{errors.email.message}</p>
-        )}
-
-        <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
           {isSubmitting ? "Subscribing..." : "Subscribe"}
         </Button>
       </form>
+      {errors.email && (
+        <p className="mt-2 text-xs text-red-400">{errors.email.message}</p>
+      )}
       <p className="mt-2 text-xs text-gray-400">
         You can unsubscribe at any time using the link in our emails.
       </p>

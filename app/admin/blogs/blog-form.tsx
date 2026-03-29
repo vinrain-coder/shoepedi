@@ -213,8 +213,8 @@ const BlogForm = ({
         <div className="bg-slate-50 p-4 rounded-lg border border-dashed">
           <MediaUploader
             form={form}
-            label="image"
-            name="Blog image"
+            label="Blog image"
+            name="image"
             uploadRoute="blogs"
           />
         </div>

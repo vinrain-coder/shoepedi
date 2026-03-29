@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Heart, Reply, Loader2, Send, ChevronDown, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Heart, Reply, Loader2, Send, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toSignInPath } from "@/lib/redirects";
+import DeleteDialog from "@/components/shared/delete-dialog";
 
 interface BlogReply {
   _id: string;
@@ -146,7 +147,6 @@ export default function BlogSocial({
   const [editingTarget, setEditingTarget] = useState<{ commentId: string; replyId?: string } | null>(null);
   const [editText, setEditText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [isDeletingKey, setIsDeletingKey] = useState<string | null>(null);
 
   const signInToCommentHref = toSignInPath(`/blogs/${slug}#comments`);
 
@@ -402,7 +402,6 @@ export default function BlogSocial({
   };
 
   const removeComment = async (commentId: string, replyId?: string) => {
-    const key = replyId ? `${commentId}:${replyId}` : commentId;
     const previous = comments;
 
     setComments((prev) =>
@@ -414,17 +413,14 @@ export default function BlogSocial({
         .filter((c) => !(c._id === commentId && !replyId))
     );
 
-    setIsDeletingKey(key);
     const response = await deleteBlogComment({ blogId, commentId, replyId });
-    setIsDeletingKey(null);
 
     if (!response.success) {
       setComments(previous);
-      toast.error(response.message || "Unable to delete comment");
-      return;
+      return { success: false, message: response.message || "Unable to delete comment" };
     }
 
-    toast.success(response.message);
+    return { success: true, message: response.message || "Comment deleted" };
   };
 
   return (
@@ -546,14 +542,13 @@ export default function BlogSocial({
                         >
                           <Pencil className="size-3" /> Edit
                         </button>
-                        <button
-                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
-                          onClick={() => removeComment(comment._id)}
-                          disabled={isDeletingKey === comment._id}
-                        >
-                          {isDeletingKey === comment._id ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
-                          Delete
-                        </button>
+                        <DeleteDialog
+                          id={comment._id}
+                          onDelete={() => removeComment(comment._id)}
+                          triggerLabel="Delete comment"
+                          title="Delete comment?"
+                          description="This will permanently remove your comment and all of its replies."
+                        />
                       </>
                     )}
 
@@ -619,14 +614,13 @@ export default function BlogSocial({
                                 >
                                   <Pencil className="size-3" /> Edit
                                 </button>
-                                <button
-                                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
-                                  onClick={() => removeComment(comment._id, reply._id)}
-                                  disabled={isDeletingKey === `${comment._id}:${reply._id}`}
-                                >
-                                  {isDeletingKey === `${comment._id}:${reply._id}` ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
-                                  Delete
-                                </button>
+                                <DeleteDialog
+                                  id={`${comment._id}:${reply._id}`}
+                                  onDelete={() => removeComment(comment._id, reply._id)}
+                                  triggerLabel="Delete reply"
+                                  title="Delete reply?"
+                                  description="This will permanently remove your reply."
+                                />
                               </>
                             )}
                           </div>
