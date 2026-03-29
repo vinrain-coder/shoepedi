@@ -86,6 +86,11 @@ export const auth = betterAuth({
         type: "json",
         defaultValue: [],
       },
+      addresses: {
+        type: "json",
+        input: false,
+        defaultValue: [],
+      },
     },
   },
 
@@ -115,6 +120,7 @@ export const auth = betterAuth({
           const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
           const wishlist = Array.isArray(user.wishlist) ? user.wishlist : [];
+          const addresses = Array.isArray(user.addresses) ? user.addresses : [];
 
           if (ADMIN_EMAILS.includes(user.email)) {
             return {
@@ -122,6 +128,7 @@ export const auth = betterAuth({
                 ...user,
                 role: "ADMIN",
                 wishlist,
+                addresses,
               },
             };
           }
@@ -130,6 +137,7 @@ export const auth = betterAuth({
             data: {
               ...user,
               wishlist,
+              addresses,
             },
           };
         },
