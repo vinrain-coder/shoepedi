@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import { CalendarDays, Eye, Heart, MessageCircle, Tag } from "lucide-react";
 import Image from "next/image";
 import { getBlogBySlug, incrementBlogViews } from "@/lib/actions/blog.actions";
-import { IBlog } from "@/lib/db/models/blog.model";
 import { Separator } from "@/components/ui/separator";
 import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
@@ -16,6 +15,16 @@ function extractFirstImageUrl(markdownContent: string) {
   if (!markdownContent) return null;
   const match = markdownContent.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
   return match ? match[1] : null;
+}
+
+function resolveBlogImage(image?: string, markdownContent?: string, siteUrl?: string) {
+  const uploadedImage = image?.trim();
+  if (uploadedImage) return uploadedImage;
+
+  const markdownImage = extractFirstImageUrl(markdownContent || "")?.trim();
+  if (!markdownImage) return "";
+  if (markdownImage.startsWith("http")) return markdownImage;
+  return `${siteUrl || ""}${markdownImage}`;
 }
 
 export async function generateMetadata({
@@ -32,11 +41,8 @@ export async function generateMetadata({
 
   if (!blog) return { title: "Blog Not Found" };
 
-  let firstImageUrl = extractFirstImageUrl(blog.content);
-  if (firstImageUrl && !firstImageUrl.startsWith("http"))
-    firstImageUrl = `${site.url}${firstImageUrl}`;
-
-  const ogImage = firstImageUrl || `${site.url}/default-image.jpg`;
+  const resolvedImage = resolveBlogImage(blog.image, blog.content, site.url);
+  const ogImage = resolvedImage || `${site.url}/default-image.jpg`;
 
   return {
     title: `${blog.title} | ShoePedi Blog`,
@@ -46,13 +52,13 @@ export async function generateMetadata({
       description: "Discover expert insights on footwear trends at ShoePedi!",
       url: `${site.url}/blogs/${blog.slug}`,
       type: "article",
-      images: [blog.image || ogImage],
+      images: [resolvedImage || ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: blog.title,
       description: blog.content.slice(0, 160),
-      images: [blog.image || ogImage],
+      images: [resolvedImage || ogImage],
     },
   };
 }
@@ -67,7 +73,7 @@ export default async function BlogPage({
   const p = await params;
   const { site } = await getSetting();
 
-  const blog: IBlog | null = await getBlogBySlug(p.slug);
+  const blog = await getBlogBySlug(p.slug);
   if (!blog) return notFound();
 
   void incrementBlogViews(p.slug);
@@ -79,17 +85,25 @@ export default async function BlogPage({
       day: "numeric",
     });
 
-  let firstImageUrl = extractFirstImageUrl(blog.content);
-  if (firstImageUrl && !firstImageUrl.startsWith("http"))
-    firstImageUrl = `${site.url}${firstImageUrl}`;
+  const resolvedImage = resolveBlogImage(blog.image, blog.content, site.url);
 
   const commentCount = (blog.comments || []).reduce(
     (total, comment) => total + 1 + (comment.replies?.length || 0),
     0
   );
+  const serializedComments = (blog.comments || []).map((comment) => ({
+    ...comment,
+    _id: comment._id.toString(),
+    createdAt: new Date(comment.createdAt).toISOString(),
+    replies: (comment.replies || []).map((reply) => ({
+      ...reply,
+      _id: reply._id.toString(),
+      createdAt: new Date(reply.createdAt).toISOString(),
+    })),
+  }));
 
   return (
-    <div className="mx-auto max-w-4xl px-3 sm:px-4">
+    <div className="mx-auto w-full max-w-4xl px-2 sm:px-3">
       <Breadcrumb />
       <div className="mt-2 rounded-2xl border border-border/60 bg-background p-4 sm:p-6">
         <div className="space-y-4">
@@ -112,11 +126,11 @@ export default async function BlogPage({
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-border/60 bg-background p-3 sm:p-6">
-        {(blog.image || firstImageUrl) && (
+      <div className="mt-4 rounded-2xl border border-border/60 bg-background p-3 sm:p-5">
+        {resolvedImage && (
           <div className="relative mb-5 h-56 w-full overflow-hidden rounded-xl sm:h-72">
             <Image
-              src={blog.image || firstImageUrl || ""}
+              src={resolvedImage}
               alt={blog.title}
               fill
               priority
@@ -142,7 +156,9 @@ export default async function BlogPage({
           blogId={blog._id.toString()}
           slug={blog.slug}
           initialLikesCount={blog.likesCount || 0}
-          initialComments={blog.comments || []}
+          initialComments={serializedComments}
+          initialLikedByUsers={blog.likedByUsers || []}
+          initialLikedByGuests={blog.likedByGuests || []}
         />
       </div>
     </div>

@@ -31,13 +31,8 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
     return match ? match[1] : null;
   }
 
-  const firstImageUrl = extractFirstImageUrl(blog.content);
-  const imageSrc =
-    blog.image && blog.image.trim() !== ""
-      ? blog.image
-      : firstImageUrl && firstImageUrl.trim() !== ""
-      ? firstImageUrl
-      : null;
+  const firstImageUrl = extractFirstImageUrl(blog.content)?.trim();
+  const imageSrc = blog.image?.trim() || firstImageUrl || null;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border/50 bg-background p-0 transition-all hover:border-border">

@@ -55,6 +55,8 @@ type SerializedBlog = {
   category: string;
   views: number;
   likesCount: number;
+  likedByUsers: string[];
+  likedByGuests: string[];
   commentsCount: number;
   tags: string[];
   createdAt: string;
@@ -72,6 +74,8 @@ function serializeBlog(blog: Record<string, unknown> & {
   category: string;
   views?: number;
   likesCount?: number;
+  likedByUsers?: string[];
+  likedByGuests?: string[];
   comments?: IBlogComment[];
   tags: string[];
   createdAt: Date;
@@ -88,6 +92,8 @@ function serializeBlog(blog: Record<string, unknown> & {
     category: blog.category,
     views: blog.views ?? 0,
     likesCount: blog.likesCount ?? 0,
+    likedByUsers: blog.likedByUsers || [],
+    likedByGuests: blog.likedByGuests || [],
     commentsCount: comments.reduce((total, comment) => total + 1 + (comment.replies?.length || 0), 0),
     tags: blog.tags,
     createdAt: blog.createdAt.toISOString(),
@@ -171,7 +177,7 @@ export async function getAllBlogs({
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit)
-    .select("_id title slug image content category views likesCount comments tags createdAt updatedAt isPublished")
+    .select("_id title slug image content category views likesCount likedByUsers likedByGuests comments tags createdAt updatedAt isPublished")
     .lean();
 
   return {

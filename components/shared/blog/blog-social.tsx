@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MessageCircle, Heart, Reply, Loader2, Send, ChevronDown, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -120,11 +120,15 @@ export default function BlogSocial({
   slug,
   initialLikesCount,
   initialComments,
+  initialLikedByUsers = [],
+  initialLikedByGuests = [],
 }: {
   blogId: string;
   slug: string;
   initialLikesCount: number;
   initialComments: BlogComment[];
+  initialLikedByUsers?: string[];
+  initialLikedByGuests?: string[];
 }) {
   const { data: session } = authClient.useSession();
 
@@ -137,6 +141,7 @@ export default function BlogSocial({
   const [isLikingPost, setIsLikingPost] = useState(false);
   const [likedPost, setLikedPost] = useState(false);
   const [likeAnimKey, setLikeAnimKey] = useState<string | null>(null);
+  const [pendingLikeKeys, setPendingLikeKeys] = useState<Record<string, boolean>>({});
   const [collapsedThreads, setCollapsedThreads] = useState<Record<string, boolean>>({});
   const [editingTarget, setEditingTarget] = useState<{ commentId: string; replyId?: string } | null>(null);
   const [editText, setEditText] = useState("");
@@ -151,6 +156,13 @@ export default function BlogSocial({
   );
 
   const actorId = session?.user.id ?? getGuestId();
+
+  const isPostLikedByActor = () => {
+    if (session?.user.id) {
+      return initialLikedByUsers.includes(session.user.id);
+    }
+    return initialLikedByGuests.includes(actorId);
+  };
 
   const isLikedByActor = (item: { likedByUsers?: string[]; likedByGuests?: string[] }) => {
     if (session?.user.id) {
@@ -188,6 +200,11 @@ export default function BlogSocial({
     setLikesCount(response.likesCount ?? likesCount);
     setTimeout(() => setLikeAnimKey(null), 220);
   };
+
+  useEffect(() => {
+    setLikedPost(isPostLikedByActor());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id, actorId]);
 
   const submitComment = async (content: string, parentCommentId?: string) => {
     const trimmed = content.trim();
@@ -266,6 +283,7 @@ export default function BlogSocial({
 
   const toggleCommentLike = async ({ commentId, replyId }: { commentId: string; replyId?: string }) => {
     const key = replyId ? `${commentId}:${replyId}` : commentId;
+    if (pendingLikeKeys[key]) return;
     const findTarget = () => {
       const comment = comments.find((c) => c._id === commentId);
       if (!comment) return null;
@@ -315,6 +333,7 @@ export default function BlogSocial({
       })
     );
     setLikeAnimKey(key);
+    setPendingLikeKeys((prev) => ({ ...prev, [key]: true }));
 
     const response = await toggleBlogCommentLike({
       blogId,
@@ -328,9 +347,21 @@ export default function BlogSocial({
       toast.error(response.message || "Unable to update like");
       const refreshed = await fetch(`/api/blogs/${slug}`, { cache: "no-store" }).then((res) => res.json());
       setComments(refreshed.comments || []);
+      setPendingLikeKeys((prev) => ({ ...prev, [key]: false }));
       return;
     }
 
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c._id !== commentId) return c;
+        if (!replyId) return { ...c, likesCount: response.likesCount ?? c.likesCount };
+        return {
+          ...c,
+          replies: c.replies.map((r) => (r._id === replyId ? { ...r, likesCount: response.likesCount ?? r.likesCount } : r)),
+        };
+      })
+    );
+    setPendingLikeKeys((prev) => ({ ...prev, [key]: false }));
     setTimeout(() => setLikeAnimKey(null), 220);
   };
 
@@ -488,7 +519,7 @@ export default function BlogSocial({
                     <LikeButton
                       count={comment.likesCount}
                       liked={isLikedByActor(comment)}
-                      pending={false}
+                      pending={Boolean(pendingLikeKeys[commentLikeKey])}
                       animate={likeAnimKey === commentLikeKey}
                       onClick={() => toggleCommentLike({ commentId: comment._id })}
                     />
@@ -576,7 +607,7 @@ export default function BlogSocial({
                             <LikeButton
                               count={reply.likesCount}
                               liked={isLikedByActor(reply)}
-                              pending={false}
+                              pending={Boolean(pendingLikeKeys[replyLikeKey])}
                               animate={likeAnimKey === replyLikeKey}
                               onClick={() => toggleCommentLike({ commentId: comment._id, replyId: reply._id })}
                             />
