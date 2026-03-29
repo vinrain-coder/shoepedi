@@ -122,6 +122,12 @@ export const OrderInputSchema = z.object({
     .min(1, "Order must contain at least one item"),
   shippingAddress: ShippingAddressSchema,
   paymentMethod: z.string().min(1, "Payment method is required"),
+  paymentStatus: z.enum(["pending", "paid", "failed"]).default("pending"),
+  paymentReference: z.string().optional(),
+  paymentDetails: z.record(z.any()).optional(),
+  paymentChannel: z.string().optional(),
+  paymentAuthorization: z.record(z.any()).optional(),
+  paymentFees: z.number().optional(),
   paymentResult: z
     .object({
       id: z.string(),

@@ -1,22 +1,28 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { buildOrderPaymentReference } from "@/lib/payments";
 
 interface PaystackInlineProps {
   email: string;
-  amount: number; // in kobo (multiply KES by 100)
+  amount: number;
   publicKey: string;
   orderId: string;
-  onSuccess?: (reference: any) => void;
+  autoStart?: boolean;
+  onSuccess?: (reference: string) => void;
   onClose?: () => void;
-  onFailure?: (error?: any) => void; // <-- new
+  onFailure?: (error?: unknown) => void;
 }
+
+const autoStartedOrders = new Set<string>();
 
 declare global {
   interface Window {
-    PaystackPop?: any;
+    PaystackPop?: {
+      setup: (options: Record<string, unknown>) => { openIframe: () => void };
+    };
   }
 }
 
@@ -25,15 +31,24 @@ export default function PaystackInline({
   amount,
   publicKey,
   orderId,
+  autoStart,
   onSuccess,
   onClose,
-  onFailure, // <-- new
+  onFailure,
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const autoStartedRef = useRef(false);
 
   useEffect(() => {
     if (window.PaystackPop) {
       setIsScriptLoaded(true);
+      return;
+    }
+
+    const existingScript = document.getElementById("paystack-script");
+    if (existingScript) {
+      existingScript.addEventListener("load", () => setIsScriptLoaded(true));
       return;
     }
 
@@ -44,65 +59,94 @@ export default function PaystackInline({
     script.onload = () => setIsScriptLoaded(true);
     script.onerror = () => toast.error("Failed to load Paystack script");
     document.body.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
   }, []);
 
-  const payWithPaystack = () => {
-    if (!isScriptLoaded || !window.PaystackPop) {
-      toast.error("Payment system not ready. Please try again.");
+  const payWithPaystack = async () => {
+    if (!isScriptLoaded || !window.PaystackPop || isInitializing) {
       return;
     }
 
-    const handler = window.PaystackPop.setup({
-      key: publicKey,
-      email,
-      amount,
-      currency: "KES",
-      ref: `${orderId}-${Date.now()}`,
-      onClose: function () {
-        toast.error("Payment popup closed");
-        if (onClose) onClose();
-        if (onFailure) onFailure("popup_closed"); // <-- treat popup close as failure
-      },
-      callback: function (response: any) {
-        fetch("/api/paystack/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reference: response.reference,
-            orderId,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.status && data.data.status === "success") {
-              toast.success("Payment successful!");
-              if (onSuccess) onSuccess(response);
-            } else {
-              toast.error("Payment verification failed");
-              if (onFailure) onFailure("verification_failed");
-            }
-          })
-          .catch((err) => {
-            toast.error("Verification request failed");
-            if (onFailure) onFailure(err);
-          });
-      },
-    });
+    setIsInitializing(true);
+    const reference = `${buildOrderPaymentReference(orderId)}-${Date.now()}`;
 
-    handler.openIframe();
+    try {
+      const handler = window.PaystackPop.setup({
+        key: publicKey,
+        email,
+        amount,
+        currency: "KES",
+        ref: reference,
+        metadata: {
+          orderId,
+        },
+        onClose: async () => {
+          await fetch("/api/paystack/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reference,
+              orderId,
+              cancelled: true,
+            }),
+          });
+          setIsInitializing(false);
+          onClose?.();
+          onFailure?.("popup_closed");
+        },
+        callback: async (response: { reference: string }) => {
+          try {
+            const verifyRes = await fetch("/api/paystack/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                reference: response.reference,
+                orderId,
+              }),
+            });
+            const data = await verifyRes.json();
+            if (data.status && data.data?.status === "success") {
+              toast.success("Payment successful!");
+              onSuccess?.(response.reference);
+              return;
+            }
+            toast.error(data.message || "Payment verification failed");
+            onFailure?.(data);
+          } catch (error) {
+            toast.error("Verification request failed");
+            onFailure?.(error);
+          } finally {
+            setIsInitializing(false);
+          }
+        },
+      });
+
+      handler.openIframe();
+    } catch (error) {
+      setIsInitializing(false);
+      onFailure?.(error);
+    }
   };
 
+  useEffect(() => {
+    if (
+      autoStart &&
+      isScriptLoaded &&
+      !autoStartedRef.current &&
+      !autoStartedOrders.has(orderId)
+    ) {
+      autoStartedRef.current = true;
+      autoStartedOrders.add(orderId);
+      void payWithPaystack();
+    }
+  }, [autoStart, isScriptLoaded, orderId]);
+
   return (
-    <button
-      onClick={payWithPaystack}
-      disabled={!isScriptLoaded}
-      className="w-1/3 rounded-full mt-2 px-8 py-3 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+    <Button
+      onClick={() => void payWithPaystack()}
+      disabled={!isScriptLoaded || isInitializing}
+      className="w-full rounded-full mt-2"
     >
-      Complete Payment
-    </button>
+      {isInitializing ? "Initializing payment..." : "Pay Now"}
+    </Button>
   );
 }
