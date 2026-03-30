@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -36,8 +37,14 @@ const ProductCard = ({
   isInWishlist?: boolean;
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
+  const router = useRouter();
   const primaryImage = product.images?.[0] ?? "/placeholder.png";
   const hoverImage = product.images?.[1] ?? primaryImage;
+  const productPath = `/product/${product.slug}`;
+
+  const prefetchProductDetails = () => {
+    router.prefetch(productPath);
+  };
 
   // Helper to determine tag color and label
   const getTagStyles = (tag: string) => {
@@ -90,7 +97,11 @@ const ProductCard = ({
           </button>
         </div>
       )}
-      <Link href={`/product/${product.slug}`}>
+      <Link
+        href={productPath}
+        onMouseEnter={prefetchProductDetails}
+        onFocus={prefetchProductDetails}
+      >
         {product.images?.length > 1 ? (
           <ImageHover
             src={primaryImage}
@@ -114,8 +125,10 @@ const ProductCard = ({
   const ProductDetails = () => (
     <div className="space-y-0.5 text-center">
       <Link
-        href={`/product/${product.slug}`}
+        href={productPath}
         className="font-medium text-sm sm:text-base line-clamp-2 hover:text-primary transition"
+        onMouseEnter={prefetchProductDetails}
+        onFocus={prefetchProductDetails}
       >
         {product.name}
       </Link>
