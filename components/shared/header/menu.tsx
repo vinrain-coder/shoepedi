@@ -42,7 +42,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
             )}
           </SheetTrigger>
 
-          <SheetContent className="flex flex-col gap-4 overflow-y-auto">
+          <SheetContent className="flex flex-col gap-4 overflow-y-auto px-3">
             <SheetHeader className="w-full border-b pb-3 text-left">
               <SheetTitle className="ml-1 flex items-center gap-2">
                 <House className="h-4 w-4" /> Site Menu
@@ -53,6 +53,17 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
             </SheetHeader>
 
             <Accordion type="multiple" defaultValue={["navigation", "account", "appearance"]} className="w-full">
+              <AccordionItem value="appearance">
+                <AccordionTrigger className="py-3 text-sm">
+                  <span className="flex items-center gap-2 font-semibold">
+                    <MoonStar className="h-4 w-4" /> Theme toggle
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ThemeSwitcher className="ml-0 w-full justify-start" />
+                </AccordionContent>
+              </AccordionItem>
+              
               <AccordionItem value="navigation">
                 <AccordionTrigger className="py-3 text-sm">
                   <span className="flex items-center gap-2 font-semibold">
@@ -76,7 +87,6 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                           className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                         >
                           <span>{item.label}</span>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </Link>
                       ))}
                   </div>
@@ -106,7 +116,6 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                             className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                           >
                             <span>{item.label}</span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </Link>
                         ))}
                         <div className="pt-3">
@@ -134,17 +143,6 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                       </>
                     )}
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="appearance">
-                <AccordionTrigger className="py-3 text-sm">
-                  <span className="flex items-center gap-2 font-semibold">
-                    <MoonStar className="h-4 w-4" /> Theme toggle
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ThemeSwitcher className="ml-0 w-full justify-start" />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
