@@ -6,6 +6,7 @@ export interface IUser extends Document, IUserInput {
   createdAt: Date;
   updatedAt: Date;
   wishlist: Types.ObjectId[];
+  addresses: unknown[];
 }
 
 const userSchema = new Schema<IUser>(
@@ -17,6 +18,7 @@ const userSchema = new Schema<IUser>(
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    addresses: { type: [Schema.Types.Mixed], default: [] },
   },
   {
     timestamps: true,

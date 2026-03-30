@@ -21,7 +21,7 @@ const WishlistIcon: React.FC<WishlistIconProps> = ({
     <button
       onClick={toggleWishlist}
       disabled={pending}
-      className="p-1.5 rounded-full bg-white shadow shadow-lg hover:bg-gray-100 transition cursor-pointer"
+      className={`p-1.5 rounded-full shadow shadow-lg transition cursor-pointer ${inWishlist ? "bg-red-500/10 hover:bg-red-500/20" : "bg-white hover:bg-gray-100"}`}
       title="Add to Wishlist"
     >
       <Heart
