@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import useIsMounted from "@/hooks/use-is-mounted";
+import { cn } from "@/lib/utils";
 
-export default function ThemeSwitcher() {
+export default function ThemeSwitcher({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const isMounted = useIsMounted();
 
@@ -25,7 +26,7 @@ export default function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="header-button h-[41px] cursor-pointer ml-6 md:ml-0"
+        className={cn("header-button h-[41px] cursor-pointer ml-6 md:ml-0", className)}
         asChild
       >
         {theme === "dark" && isMounted ? (
