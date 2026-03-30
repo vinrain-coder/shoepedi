@@ -15,7 +15,9 @@ import {
   UserIcon,
   ShoppingCartIcon,
   HeartIcon,
+  MessageCircle,
   ShieldIcon,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
@@ -65,6 +67,19 @@ export default function UserButton() {
                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                   <HeartIcon className="h-4 w-4" />
                   Wishlist
+                </DropdownMenuItem>
+              </Link>
+
+              <Link href="/account/reviews" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <Star className="h-4 w-4" />
+                  My Reviews
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/account/comments" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <MessageCircle className="h-4 w-4" />
+                  My Comments
                 </DropdownMenuItem>
               </Link>
               {session.user.role === "ADMIN" && (

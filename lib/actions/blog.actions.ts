@@ -493,3 +493,58 @@ export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
   const blogs = await Blog.find({ isPublished: true }).sort({ createdAt: -1 }).limit(limit).lean();
   return blogs.map(serializeBlog);
 }
+
+
+export async function getMyBlogComments() {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Please sign in to view your comments");
+
+    await connectToDatabase();
+    const blogs = await Blog.find({
+      $or: [{ "comments.userId": session.user.id }, { "comments.replies.userId": session.user.id }],
+    })
+      .select("_id title slug comments")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    const comments = blogs.flatMap((blog) => {
+      const ownComments = (blog.comments || [])
+        .filter((comment) => comment.userId === session.user.id)
+        .map((comment) => ({
+          type: "comment" as const,
+          blogId: blog._id.toString(),
+          blogTitle: blog.title,
+          blogSlug: blog.slug,
+          commentId: comment._id.toString(),
+          content: comment.content,
+          createdAt: comment.createdAt.toISOString(),
+          likesCount: comment.likesCount || 0,
+        }));
+
+      const ownReplies = (blog.comments || []).flatMap((comment) =>
+        (comment.replies || [])
+          .filter((reply) => reply.userId === session.user.id)
+          .map((reply) => ({
+            type: "reply" as const,
+            blogId: blog._id.toString(),
+            blogTitle: blog.title,
+            blogSlug: blog.slug,
+            commentId: comment._id.toString(),
+            replyId: reply._id.toString(),
+            content: reply.content,
+            createdAt: reply.createdAt.toISOString(),
+            likesCount: reply.likesCount || 0,
+          }))
+      );
+
+      return [...ownComments, ...ownReplies];
+    });
+
+    comments.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+
+    return { success: true, data: comments };
+  } catch (error) {
+    return { success: false, message: formatError(error), data: [] };
+  }
+}

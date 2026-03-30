@@ -351,3 +351,33 @@ export async function deleteReview(id: string) {
     };
   }
 }
+
+
+export async function getMyReviews() {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("Not authenticated");
+
+    await connectToDatabase();
+
+    const reviews = await Review.find({ user: session.user.id })
+      .populate("product", "name slug images")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(reviews)) as Array<
+        IReviewDetails & {
+          product: { _id: string; name: string; slug: string; images?: string[] };
+        }
+      >,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+      data: [] as Array<IReviewDetails>,
+    };
+  }
+}
