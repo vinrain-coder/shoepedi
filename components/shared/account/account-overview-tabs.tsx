@@ -83,12 +83,12 @@ const tabGroups: {
 export function AccountOverviewTabs() {
   return (
     <Tabs defaultValue="account" className="w-full gap-4">
-      <TabsList className="h-auto w-full flex-wrap rounded-xl p-1">
+      <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-xl p-1 sm:grid-cols-3">
         {tabGroups.map((group) => (
           <TabsTrigger
             key={group.value}
             value={group.value}
-            className="min-h-10 flex-1 rounded-lg px-4"
+            className="min-h-10 w-full rounded-lg px-4"
           >
             {group.label}
           </TabsTrigger>
@@ -106,7 +106,7 @@ export function AccountOverviewTabs() {
                   href={link.href}
                   prefetch
                   className={cn(
-                    "group rounded-xl border bg-card p-4 transition-all",
+                    "group min-w-0 rounded-xl border bg-card p-4 transition-all",
                     "hover:-translate-y-0.5 hover:border-primary/60 hover:bg-accent/30 hover:shadow-sm",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   )}
