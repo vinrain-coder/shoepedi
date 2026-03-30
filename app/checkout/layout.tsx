@@ -11,7 +11,7 @@ export default function CheckoutLayout({
   return (
     <div className="p-4">
       <header className="bg-card mb-4 border-b">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-2 py-1 sm:px-4">
           <Link href="/">
             <Image
               src="/icons/logo.svg"
@@ -24,8 +24,8 @@ export default function CheckoutLayout({
               }}
             />
           </Link>
-          <div>
-            <h1 className="text-3xl">Checkout</h1>
+          <div className="min-w-0 flex-1 text-center">
+            <h1 className="truncate text-xl sm:text-3xl">Checkout</h1>
           </div>
           <div>
             <Link href="/page/help">
