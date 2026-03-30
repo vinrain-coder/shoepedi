@@ -1,6 +1,6 @@
 "use client";
 
-import { House, MoonStar, Navigation, UserRoundCheck, UserRoundPlus } from "lucide-react";
+import { ChevronRight, House, MoonStar, Navigation, UserRoundCheck, UserRoundPlus } from "lucide-react";
 import { useState } from "react";
 import {
   Sheet,
@@ -60,7 +60,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid gap-2">
+                  <div className="space-y-1">
                     {[
                       { href: "/", label: "Home" },
                       { href: "/search", label: "Shop all products" },
@@ -68,16 +68,17 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                       { href: "/brands", label: "Brands" },
                       { href: "/blogs", label: "Blogs" },
                     ].map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        prefetch
-                        onClick={() => setOpen(false)}
-                        className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          prefetch
+                          onClick={() => setOpen(false)}
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
+                        >
+                          <span>{item.label}</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </Link>
+                      ))}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -87,7 +88,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                   <span className="font-semibold">Account links</span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid gap-2">
+                  <div className="space-y-1">
                     {session ? (
                       <>
                         {[
@@ -102,12 +103,13 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                             href={item.href}
                             prefetch
                             onClick={() => setOpen(false)}
-                            className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                            className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                           >
-                            {item.label}
+                            <span>{item.label}</span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </Link>
                         ))}
-                        <div className="pt-2">
+                        <div className="pt-3">
                           <SignOutButton />
                         </div>
                       </>
@@ -116,16 +118,18 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                         <Link
                           href="/sign-in"
                           onClick={() => setOpen(false)}
-                          className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                         >
-                          Sign in
+                          <span>Sign in</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </Link>
                         <Link
                           href="/sign-up"
                           onClick={() => setOpen(false)}
-                          className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                         >
-                          Create account
+                          <span>Create account</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </Link>
                       </>
                     )}
