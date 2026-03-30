@@ -1,5 +1,6 @@
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
+import CriticalRoutesPrefetch from "@/components/shared/navigation/critical-routes-prefetch";
 
 export default function RootLayout({
   children,
@@ -8,6 +9,7 @@ export default function RootLayout({
 }) {
   return (
     <div className="flex flex-col min-h-screen">
+      <CriticalRoutesPrefetch />
       <Header />
       <main className="flex-1 flex flex-col py-4 px-3">{children}</main>
       <Footer />
