@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, MapPin, PlusCircle } from "lucide-react";
 
 const emptyAddress: AddressBookInput = {
   label: "",
@@ -38,6 +39,19 @@ const emptyAddress: AddressBookInput = {
   country: "",
   phone: "",
   saveAsDefault: false,
+};
+
+const fieldLabels: Record<
+  "fullName" | "street" | "city" | "province" | "postalCode" | "country" | "phone",
+  string
+> = {
+  fullName: "Full name",
+  street: "Street address",
+  city: "City",
+  province: "Province / State",
+  postalCode: "Postal code",
+  country: "Country",
+  phone: "Phone number",
 };
 
 export default function AddressBook({
@@ -116,15 +130,33 @@ export default function AddressBook({
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-4">
+        <Card className="border-dashed">
+          <CardContent className="p-4 text-sm text-muted-foreground">
+            <p className="inline-flex items-center gap-2 font-medium text-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              Saved addresses: {addresses.length}
+            </p>
+            <p className="mt-1">
+              Set a default address to speed up checkout and reduce typing every time.
+            </p>
+          </CardContent>
+        </Card>
         {addresses.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-sm text-muted-foreground">
-              You have no saved addresses yet.
+              <p className="inline-flex items-center gap-2 text-foreground">
+                <PlusCircle className="h-4 w-4 text-primary" />
+                You have no saved addresses yet.
+              </p>
+              <p className="mt-1">Add your first address using the form to the right.</p>
             </CardContent>
           </Card>
         ) : (
           addresses.map((address) => (
-            <Card key={address.id}>
+            <Card
+              key={address.id}
+              className={address.isDefault ? "border-primary/40 bg-primary/5" : ""}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   {address.label}
@@ -143,6 +175,12 @@ export default function AddressBook({
                   <br />
                   {address.phone}
                 </p>
+                {address.isDefault && (
+                  <p className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-xs text-emerald-700">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    This address is automatically preselected at checkout.
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(address)}>
                     Edit
@@ -233,9 +271,12 @@ export default function AddressBook({
                   name={fieldName}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{fieldName}</FormLabel>
+                      <FormLabel>{fieldLabels[fieldName]}</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          placeholder={`Enter ${fieldLabels[fieldName].toLowerCase()}`}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -45,11 +45,10 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { AlertCircle, Loader, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, MapPin, XCircle } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -328,6 +327,10 @@ const CheckoutForm = ({
   const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(
     null,
   );
+  const selectedSavedAddress = useMemo(
+    () => addressBook.find((address) => address.id === selectedSavedAddressId),
+    [addressBook, selectedSavedAddressId]
+  );
   const renderCheckoutSummary = ({
     createdOrder,
     paymentMethod,
@@ -496,6 +499,7 @@ const CheckoutForm = ({
   const { data: session } = authClient.useSession();
   const isMobileMoneyPayment =
     paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card";
+  const paystackLaunchingState = isMobileMoneyPayment && isPlacingOrder;
 
   useEffect(() => {
     if (!session) return;
@@ -504,21 +508,6 @@ const CheckoutForm = ({
 
   return (
     <main className="max-w-6xl mx-auto highlight-link">
-      <Dialog open={isPlacingOrder && isMobileMoneyPayment}>
-        <DialogContent
-          className="max-w-sm [&>button]:hidden"
-          onInteractOutside={(event) => event.preventDefault()}
-        >
-          <div className="flex flex-col items-center gap-3 py-2">
-            <Loader className="h-7 w-7 animate-spin text-primary" />
-            <DialogTitle>Preparing payment...</DialogTitle>
-            <DialogDescription className="text-center">
-              Please wait while we connect to Paystack secure checkout.
-            </DialogDescription>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <div className="grid md:grid-cols-4 gap-6">
         <div className="md:col-span-3">
           {/* shipping address */}
@@ -558,34 +547,57 @@ const CheckoutForm = ({
                 {addressBook.length > 0 && (
                   <Card className="md:ml-8 my-4">
                     <CardContent className="p-4 space-y-3">
-                      <div className="text-sm font-medium">
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary" />
                         Select a saved address
                       </div>
                       <RadioGroup
                         value={selectedSavedAddressId}
                         onValueChange={setSelectedSavedAddressId}
+                        className="space-y-2"
                       >
                         {addressBook.map((address) => (
                           <div
                             key={address.id}
-                            className="flex items-start gap-2 border rounded-md p-2"
+                            className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
+                              selectedSavedAddressId === address.id
+                                ? "border-primary bg-primary/5"
+                                : "hover:border-primary/40"
+                            }`}
                           >
                             <RadioGroupItem
                               value={address.id}
                               id={`saved-address-${address.id}`}
+                              className="mt-1"
                             />
                             <Label
                               htmlFor={`saved-address-${address.id}`}
-                              className="cursor-pointer text-sm"
+                              className="cursor-pointer text-sm leading-relaxed w-full"
                             >
-                              <span className="font-medium">{address.label}</span>
-                              <br />
-                              {address.street}, {address.city}, {address.province},{" "}
-                              {address.postalCode}, {address.country}
+                              <span className="font-medium inline-flex items-center gap-2">
+                                {address.label}
+                                {address.isDefault && (
+                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                                    Default
+                                  </span>
+                                )}
+                              </span>
+                              <p>{address.fullName}</p>
+                              <p>
+                                {address.street}, {address.city}, {address.province},{" "}
+                                {address.postalCode}, {address.country}
+                              </p>
+                              <p className="text-muted-foreground">{address.phone}</p>
                             </Label>
                           </div>
                         ))}
                       </RadioGroup>
+                      {selectedSavedAddress && (
+                        <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+                          <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
+                          {selectedSavedAddress.label} is selected and will be used for delivery.
+                        </p>
+                      )}
                       <div className="flex flex-wrap gap-2">
                         <Link href="/account/addresses?returnTo=/checkout">
                           <Button type="button" variant="outline" size="sm">
@@ -1029,6 +1041,17 @@ const CheckoutForm = ({
             <div className="mt-6">
               {/* Mobile summary */}
               <div className="block md:hidden">
+                {paystackLaunchingState && (
+                  <div className="mb-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
+                    <p className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Launching secure Paystack checkout...
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Please wait while we open your payment popup. If it doesn&apos;t appear, use the manual button below.
+                    </p>
+                  </div>
+                )}
                 {renderCheckoutSummary({
                   createdOrder,
                   paymentMethod,
@@ -1055,6 +1078,17 @@ const CheckoutForm = ({
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
+                  {paystackLaunchingState && (
+                    <div className="w-full rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
+                      <p className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Launching secure Paystack checkout...
+                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Keep this tab open while we connect you to Paystack.
+                      </p>
+                    </div>
+                  )}
                   {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
                   createdOrder ? (
                     <PaystackInline

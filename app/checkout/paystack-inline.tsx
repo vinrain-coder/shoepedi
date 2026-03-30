@@ -10,9 +10,9 @@ interface PaystackInlineProps {
   amount: number; // in kobo (multiply KES by 100)
   publicKey: string;
   orderId: string;
-  onSuccess?: (reference: any) => void;
+  onSuccess?: (reference: { reference: string }) => void;
   onClose?: () => void;
-  onFailure?: (error?: any) => void; // <-- new
+  onFailure?: (error?: unknown) => void; // <-- new
   autoStart?: boolean;
   hideButton?: boolean;
   buttonLabel?: string;
@@ -21,7 +21,17 @@ interface PaystackInlineProps {
 
 declare global {
   interface Window {
-    PaystackPop?: any;
+    PaystackPop?: {
+      setup: (options: {
+        key: string;
+        email: string;
+        amount: number;
+        currency: string;
+        ref: string;
+        onClose: () => void;
+        callback: (response: { reference: string }) => void;
+      }) => { openIframe: () => void };
+    };
   }
 }
 
@@ -77,7 +87,7 @@ export default function PaystackInline({
         if (onClose) onClose();
         if (onFailure) onFailure("popup_closed"); // <-- treat popup close as failure
       },
-      callback: function (response: any) {
+      callback: function (response: { reference: string }) {
         fetch("/api/paystack/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -114,10 +124,13 @@ export default function PaystackInline({
 
   if (hideButton) {
     return (
-      <div className="w-full rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-        <p className="inline-flex items-center gap-2">
+      <div className="w-full rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 text-sm text-muted-foreground shadow-sm">
+        <p className="inline-flex items-center gap-2 font-medium text-primary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Launching secure Paystack checkout...
+        </p>
+        <p className="mt-2 text-xs">
+          Please keep this tab open. If your browser blocked the popup, use the button below.
         </p>
         <Button
           onClick={payWithPaystack}
