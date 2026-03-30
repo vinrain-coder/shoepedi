@@ -1,6 +1,6 @@
 "use client";
 
-import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
+import { IconDotsVertical } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,22 +14,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   HeartIcon,
+  MessageCircle,
   ShieldIcon,
   ShoppingCartIcon,
+  Star,
   UserIcon,
 } from "lucide-react";
 import { SignOutButton } from "../sign-out-button";
 
 export function UserSidebar() {
-  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending)
@@ -125,6 +124,24 @@ export function UserSidebar() {
                 >
                   <HeartIcon className="h-4 w-4" />
                   Wishlist
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild onSelect={handleSelect}>
+                <Link
+                  href="/account/reviews"
+                  className="flex items-center gap-2 w-full"
+                >
+                  <Star className="h-4 w-4" />
+                  My Reviews
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild onSelect={handleSelect}>
+                <Link
+                  href="/account/comments"
+                  className="flex items-center gap-2 w-full"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  My Comments
                 </Link>
               </DropdownMenuItem>
               {session?.user?.role === "ADMIN" && (
