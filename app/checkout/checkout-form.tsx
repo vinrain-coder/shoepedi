@@ -106,7 +106,7 @@ const CheckoutForm = ({
       savedAddresses.find((address) => address.isDefault)?.id ||
       ""
   );
-  const [saveAddressToAccount, setSaveAddressToAccount] = useState(Boolean(savedAddresses.length));
+  const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -559,7 +559,8 @@ const CheckoutForm = ({
                         {addressBook.map((address) => (
                           <div
                             key={address.id}
-                            className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
+                            onClick={() => setSelectedSavedAddressId(address.id)}
+                            className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
                               selectedSavedAddressId === address.id
                                 ? "border-primary bg-primary/5"
                                 : "hover:border-primary/40"
@@ -572,7 +573,7 @@ const CheckoutForm = ({
                             />
                             <Label
                               htmlFor={`saved-address-${address.id}`}
-                              className="cursor-pointer text-sm leading-relaxed w-full"
+                              className="w-full min-w-0 cursor-pointer text-sm leading-relaxed"
                             >
                               <span className="font-medium inline-flex items-center gap-2">
                                 {address.label}
@@ -582,12 +583,12 @@ const CheckoutForm = ({
                                   </span>
                                 )}
                               </span>
-                              <p>{address.fullName}</p>
-                              <p>
+                              <p className="break-words">{address.fullName}</p>
+                              <p className="break-words">
                                 {address.street}, {address.city}, {address.province},{" "}
                                 {address.postalCode}, {address.country}
                               </p>
-                              <p className="text-muted-foreground">{address.phone}</p>
+                              <p className="break-words text-muted-foreground">{address.phone}</p>
                             </Label>
                           </div>
                         ))}
@@ -608,7 +609,11 @@ const CheckoutForm = ({
                           type="button"
                           size="sm"
                           variant="outline"
-                          onClick={() => setSelectedSavedAddressId("")}
+                          onClick={() => {
+                            setSelectedSavedAddressId("");
+                            setIsAddressSelected(false);
+                            shippingAddressForm.reset(shippingAddressDefaultValues);
+                          }}
                         >
                           Enter a new address
                         </Button>
