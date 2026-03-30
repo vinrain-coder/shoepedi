@@ -100,9 +100,9 @@ export default function OrderPlacedPage() {
 
         {/* Emoji celebration */}
         <div className="flex items-center justify-center gap-2 mb-6 animate-slide-up-fade" style={{ animationDelay: "0.3s" }}>
-          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.1s" }}>馃帀</span>
-          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.2s" }}>鉁�</span>
-          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.3s" }}>馃帄</span>
+          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.1s" }}>🎉</span>
+          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.2s" }}>✨</span>
+          <span className="text-3xl animate-bounce" style={{ animationDelay: "0.3s" }}>🎊</span>
         </div>
 
         {/* Order ID badge */}
