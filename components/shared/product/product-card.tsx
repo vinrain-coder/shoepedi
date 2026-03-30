@@ -61,15 +61,20 @@ const ProductCard = ({
 
   const ProductImage = ({ withFloatingIcons = false }) => (
     <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
-    {tagStyle && (
-        <Badge 
-          className={cn(
-            "absolute top-0 left-0 z-10 rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-0.5 border-none text-white",
-            tagStyle.className
-          )}
+    {tagStyle && firstTag && (
+        <Link
+          href={`/tags/${encodeURIComponent(firstTag)}`}
+          className="absolute top-0 left-0 z-10"
         >
-          {tagStyle.label}
-        </Badge>
+          <Badge
+            className={cn(
+              "rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-0.5 border-none text-white cursor-pointer",
+              tagStyle.className
+            )}
+          >
+            {tagStyle.label}
+          </Badge>
+        </Link>
       )}
       {withFloatingIcons && (
         <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5">

@@ -13,14 +13,14 @@ import { getProductById } from "@/lib/actions/product.actions";
 
 export function useWishlistToggle(
   productId: string,
-  initialInWishlist: boolean
+  initialInWishlist = false
 ) {
   const { data: session } = useSession();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const { isInWishlist, addProduct, removeProduct } = useWishlistStore();
-  const inWishlist = isInWishlist(productId);
+  const inWishlist = isInWishlist(productId) || initialInWishlist;
 
   const toggleWishlist = () => {
     if (!session) {

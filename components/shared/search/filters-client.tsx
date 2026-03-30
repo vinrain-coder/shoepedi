@@ -92,7 +92,6 @@ export default function FiltersClient({
 
   const [open, setOpen] = useState(false);
 
-  const [local, setLocal] = useState<ParamsShape>({ ...current });
 
   const [categorySearch, setCategorySearch] = useState("");
   const [brandSearch, setBrandSearch] = useState("");
@@ -144,10 +143,6 @@ export default function FiltersClient({
     defaultAccordionValues
   );
 
-  // Update local state whenever URL changes
-  useEffect(() => {
-    setLocal({ ...current });
-  }, [searchParams.toString()]);
 
   // --- Helpers ---
   function buildSearchUrl(params: ParamsShape) {
@@ -193,27 +188,8 @@ export default function FiltersClient({
     updateParam(key, undefined);
   }
 
-  function applyLocalToUrl() {
-    const next: ParamsShape = { ...local, page: "1" };
-    startTransition(() => {
-      router.push(buildSearchUrl(next));
-    });
-  }
 
   function clearAllLocal() {
-    setLocal({
-      q: "all",
-      category: "all",
-      tag: "all",
-      brand: "all",
-      color: "all",
-      size: "all",
-      price: "all",
-      rating: "all",
-      sort: current.sort,
-      page: "1",
-    });
-
     startTransition(() => {
       router.push("/search");
     });
@@ -221,7 +197,6 @@ export default function FiltersClient({
 
   function applyPriceFromControl(value: string) {
     updateParam("price", value);
-    setLocal((s) => ({ ...s, price: value }));
   }
 
   function useDebounce<T>(value: T, delay = 300) {
@@ -237,7 +212,7 @@ export default function FiltersClient({
 
   // --- Filters content (desktop + mobile scroll) ---
 
-  function FiltersContent() {
+  const renderFiltersContent = () => {
     return (
       
         
@@ -450,7 +425,7 @@ export default function FiltersClient({
     
           
     );
-  }
+  };
 
   return (
     <>
@@ -504,7 +479,7 @@ export default function FiltersClient({
                 className="overflow-auto p-0"
                 style={{ maxHeight: "calc(100vh - 180px)" }}
               >
-                <FiltersContent />
+                {renderFiltersContent()}
               </div>
 
               {/* Footer buttons */}
@@ -518,9 +493,7 @@ export default function FiltersClient({
                 </Button>
 
                 <SheetClose asChild>
-                  <Button className="flex-1" onClick={applyLocalToUrl}>
-                    View Results
-                  </Button>
+                  <Button className="flex-1">View Results</Button>
                 </SheetClose>
               </div>
             </div>
@@ -537,7 +510,7 @@ export default function FiltersClient({
           <div className="mb-3">
             <SelectedFiltersPills params={current} onRemove={handleRemove} />
           </div>
-          <FiltersContent />
+          {renderFiltersContent()}
         </div>
       </aside>
     </>

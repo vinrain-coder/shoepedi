@@ -45,10 +45,11 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { AlertCircle, XCircle } from "lucide-react";
+import { AlertCircle, Loader, XCircle } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -106,7 +107,7 @@ const CheckoutForm = ({
       savedAddresses.find((address) => address.isDefault)?.id ||
       ""
   );
-  const [saveAddressToAccount, setSaveAddressToAccount] = useState(false);
+  const [saveAddressToAccount, setSaveAddressToAccount] = useState(Boolean(savedAddresses.length));
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -182,7 +183,7 @@ const CheckoutForm = ({
       await setShippingAddress(values);
       setIsAddressSelected(true);
 
-      if (!saveAddressToAccount) return;
+      if (!saveAddressToAccount || !session) return;
 
       const result = await upsertUserAddress({
         ...values,
@@ -493,8 +494,31 @@ const CheckoutForm = ({
   );
 
   const { data: session } = authClient.useSession();
+  const isMobileMoneyPayment =
+    paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card";
+
+  useEffect(() => {
+    if (!session) return;
+    setSaveAddressToAccount(true);
+  }, [session]);
+
   return (
     <main className="max-w-6xl mx-auto highlight-link">
+      <Dialog open={isPlacingOrder && isMobileMoneyPayment}>
+        <DialogContent
+          className="max-w-sm [&>button]:hidden"
+          onInteractOutside={(event) => event.preventDefault()}
+        >
+          <div className="flex flex-col items-center gap-3 py-2">
+            <Loader className="h-7 w-7 animate-spin text-primary" />
+            <DialogTitle>Preparing payment...</DialogTitle>
+            <DialogDescription className="text-center">
+              Please wait while we connect to Paystack secure checkout.
+            </DialogDescription>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid md:grid-cols-4 gap-6">
         <div className="md:col-span-3">
           {/* shipping address */}
