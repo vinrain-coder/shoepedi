@@ -399,6 +399,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                         //@ts-expect-error
                         initialWishlist={[]}
                       />
+
+                      <CompareButton product={product}/>
                     </div>
                   </div>
                 )}
@@ -407,8 +409,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     <SubscribeButton productId={product._id.toString()} />
                   </div>
                 )}
-
-                <CompareButton product={product} className="mt-1" />
 
                 <div className="rounded-xl border bg-primary/5 p-4">
                   <ul className="space-y-3 text-sm">
