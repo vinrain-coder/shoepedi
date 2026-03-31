@@ -313,6 +313,14 @@ export const DeliveryDateSchema = z.object({
     .min(0, "Free shipping min amount must be at least 0"),
 });
 
+
+const SmsNotificationSchema = z.object({
+  enabled: z.boolean().default(true),
+  sandboxMode: z.boolean().default(true),
+  username: z.string().min(1, "Africa's Talking username is required"),
+  senderId: z.string().default(""),
+  adminRecipients: z.string().default(""),
+});
 export const SettingInputSchema = z.object({
   // PROMPT: create fields
   // codeium, based on the mongoose schema for settings
@@ -347,6 +355,9 @@ export const SettingInputSchema = z.object({
     author: z.string().min(1, "Author is required"),
     copyright: z.string().min(1, "Copyright is required"),
     address: z.string().min(1, "Address is required"),
+  }),
+  notifications: z.object({
+    sms: SmsNotificationSchema,
   }),
   availableLanguages: z
     .array(SiteLanguageSchema)

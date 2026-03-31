@@ -9,6 +9,25 @@ import { cacheLife } from "next/cache";
 import { cacheTag } from "next/cache";
 import { updateTag } from "next/cache";
 
+
+const withSettingDefaults = (setting?: Partial<ISettingInput> | null): ISettingInput => {
+  const fallback = data.settings[0];
+  if (!setting) return fallback;
+
+  return {
+    ...fallback,
+    ...setting,
+    common: { ...fallback.common, ...(setting.common ?? {}) },
+    site: { ...fallback.site, ...(setting.site ?? {}) },
+    notifications: {
+      sms: {
+        ...fallback.notifications.sms,
+        ...(setting.notifications?.sms ?? {}),
+      },
+    },
+  } as ISettingInput;
+};
+
 /**
  * Fetch cached settings
  */
@@ -20,7 +39,7 @@ export async function getSetting(): Promise<ISettingInput> {
   await connectToDatabase();
   const setting = await Setting.findOne().lean();
 
-  return setting ? JSON.parse(JSON.stringify(setting)) : data.settings[0];
+  return withSettingDefaults(setting ? JSON.parse(JSON.stringify(setting)) : null);
 }
 
 /**
@@ -32,7 +51,7 @@ export async function getNoCachedSetting(): Promise<ISettingInput> {
   cacheTag("settings");
   await connectToDatabase();
   const setting = await Setting.findOne().lean();
-  return setting ? JSON.parse(JSON.stringify(setting)) : data.settings[0];
+  return withSettingDefaults(setting ? JSON.parse(JSON.stringify(setting)) : null);
 }
 
 /**
@@ -42,7 +61,7 @@ export async function updateSetting(newSetting: ISettingInput) {
   try {
     await connectToDatabase();
 
-    const updated = await Setting.findOneAndUpdate({}, newSetting, {
+    await Setting.findOneAndUpdate({}, newSetting, {
       upsert: true,
       new: true,
     }).lean();

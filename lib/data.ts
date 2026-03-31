@@ -1264,6 +1264,15 @@ We also provide helpful resources such as order tracking, product guides, and FA
         address: "123, Main Street, Anytown, CA, Zip 12345",
         phone: "+1 (123) 456-7890",
       },
+      notifications: {
+        sms: {
+          enabled: true,
+          sandboxMode: true,
+          username: "sandbox",
+          senderId: "",
+          adminRecipients: "",
+        },
+      },
       carousels: [
         {
           title: "Most Popular Shoes For Sale",
