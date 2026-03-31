@@ -28,6 +28,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { Factory, Layers, RotateCcw, Tag, Truck, Wallet } from "lucide-react";
+import CompareButton from "@/components/shared/product/compare-button";
 
 export async function generateMetadata({
   params,
@@ -406,6 +407,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     <SubscribeButton productId={product._id.toString()} />
                   </div>
                 )}
+
+                <CompareButton product={product} className="mt-1" />
 
                 <div className="rounded-xl border bg-primary/5 p-4">
                   <ul className="space-y-3 text-sm">
