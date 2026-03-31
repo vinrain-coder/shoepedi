@@ -65,7 +65,9 @@ export default function Footer() {
         { label: "Orders", href: "/account/orders" },
         { label: "Wishlist", href: "/wishlist" },
         { label: "Cart", href: "/cart" },
-        ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin/overview" }] : []),
+        ...(isAdmin
+          ? [{ label: "Admin Dashboard", href: "/admin/overview" }]
+          : []),
       ],
     },
     {
@@ -127,7 +129,11 @@ export default function Footer() {
         </div>
         {/* MOBILE */}
         <div className="block md:hidden mb-8">
-          <Accordion type="single" collapsible className="border-t border-gray-800">
+          <Accordion
+            type="single"
+            collapsible
+            className="border-t border-gray-800"
+          >
             {footerSections.map((section, idx) => (
               <AccordionItem
                 key={idx}
@@ -243,7 +249,7 @@ export default function Footer() {
       <div className="bg-[#131a22] border-t border-gray-800 py-10">
         <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Image src={site.logo} alt="Logo" width={40} height={40} />
+            <Image src={site.logo} alt="Logo" width={60} height={60} />
             <span className="text-xl font-bold">{site.name}</span>
           </Link>
 
@@ -254,7 +260,9 @@ export default function Footer() {
           </div>
 
           <div className="text-xs text-gray-500">
-            <p>{site.address} • {site.phone}</p>
+            <p>
+              {site.address} • {site.phone}
+            </p>
             <p>{site.copyright}</p>
           </div>
         </div>

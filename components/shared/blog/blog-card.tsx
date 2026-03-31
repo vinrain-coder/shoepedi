@@ -77,7 +77,7 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
               <span className="font-medium">{blog.likesCount || 0}</span>
             </span>
             <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-sky-500">
-              <MessageCircle className="size-3.5 text-sky-500 fill-sky-500/20" />
+              <MessageCircle className="size-3.5 text-sky-500 fill-sky-500" />
               <span className="font-medium">{blog.commentsCount || 0}</span>
             </span>
           </div>
@@ -94,4 +94,3 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
     </article>
   );
 }
-  

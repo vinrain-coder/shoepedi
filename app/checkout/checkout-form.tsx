@@ -19,10 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createOrder,
-  SerializedOrder,
-} from "@/lib/actions/order.actions";
+import { createOrder, SerializedOrder } from "@/lib/actions/order.actions";
 import {
   calculateFutureDate,
   formatDateTime,
@@ -45,7 +42,13 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import { AlertCircle, CheckCircle2, Loader2, MapPin, XCircle } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  MapPin,
+  XCircle,
+} from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -88,19 +91,17 @@ const CheckoutForm = ({
 }) => {
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<
-    | {
-        _id?: string;
-        code: string;
-        discountType: "percentage" | "fixed";
-        discountAmount: number;
-      }
-    | null
-  >(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    _id?: string;
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountAmount: number;
+  } | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [addressBook, setAddressBook] = useState<AddressBookEntry[]>(savedAddresses);
+  const [addressBook, setAddressBook] =
+    useState<AddressBookEntry[]>(savedAddresses);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
     selectedAddressId ||
       savedAddresses.find((address) => address.isDefault)?.id ||
@@ -194,7 +195,8 @@ const CheckoutForm = ({
         setAddressBook(result.data);
         const selected = result.data.find(
           (address) =>
-            address.street === values.street && address.postalCode === values.postalCode
+            address.street === values.street &&
+            address.postalCode === values.postalCode
         );
         if (selected) setSelectedSavedAddressId(selected.id);
       }
@@ -223,7 +225,12 @@ const CheckoutForm = ({
     shippingAddressForm.reset(mappedAddress);
     void setShippingAddress(mappedAddress);
     setIsAddressSelected(true);
-  }, [addressBook, selectedSavedAddressId, setShippingAddress, shippingAddressForm]);
+  }, [
+    addressBook,
+    selectedSavedAddressId,
+    setShippingAddress,
+    shippingAddressForm,
+  ]);
 
   useEffect(() => {
     if (!isMounted || !shippingAddress) return;
@@ -308,7 +315,7 @@ const CheckoutForm = ({
 
       // For Paystack payment, render component and auto-open popup instantly
       setCreatedOrder(order);
-      toast.success("Opening payment...");
+      toast.success("Opening payment... Please wait.");
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));
@@ -325,7 +332,7 @@ const CheckoutForm = ({
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
   const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(
-    null,
+    null
   );
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
@@ -406,7 +413,8 @@ const CheckoutForm = ({
             {appliedCoupon && discountAmount > 0 && (
               <div className="mt-2 flex items-center justify-between gap-2 text-sm">
                 <p>
-                  Coupon <span className="font-medium">{appliedCoupon.code}</span>{" "}
+                  Coupon{" "}
+                  <span className="font-medium">{appliedCoupon.code}</span>{" "}
                   applied — you saved{" "}
                   <span className="text-green-600">
                     <ProductPrice price={discountAmount} plain />
@@ -484,7 +492,13 @@ const CheckoutForm = ({
               !!createdOrder
             }
           >
-            {isPlacingOrder ? "Placing order..." : "Place Your Order"}
+            {isPlacingOrder ? (
+              <>
+                <Loader2 className="animate-spin" /> Placing order...
+              </>
+            ) : (
+              "Place Your Order"
+            )}
           </Button>
           <p className="text-xs text-center py-2">
             By placing your order, you agree to {site.name}&apos;s{" "}
@@ -559,7 +573,9 @@ const CheckoutForm = ({
                         {addressBook.map((address) => (
                           <div
                             key={address.id}
-                            onClick={() => setSelectedSavedAddressId(address.id)}
+                            onClick={() =>
+                              setSelectedSavedAddressId(address.id)
+                            }
                             className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
                               selectedSavedAddressId === address.id
                                 ? "border-primary bg-primary/5"
@@ -585,10 +601,13 @@ const CheckoutForm = ({
                               </span>
                               <p className="break-words">{address.fullName}</p>
                               <p className="break-words">
-                                {address.street}, {address.city}, {address.province},{" "}
-                                {address.postalCode}, {address.country}
+                                {address.street}, {address.city},{" "}
+                                {address.province}, {address.postalCode},{" "}
+                                {address.country}
                               </p>
-                              <p className="break-words text-muted-foreground">{address.phone}</p>
+                              <p className="break-words text-muted-foreground">
+                                {address.phone}
+                              </p>
                             </Label>
                           </div>
                         ))}
@@ -596,7 +615,8 @@ const CheckoutForm = ({
                       {selectedSavedAddress && (
                         <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
                           <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
-                          {selectedSavedAddress.label} is selected and will be used for delivery.
+                          {selectedSavedAddress.label} is selected and will be
+                          used for delivery.
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2">
@@ -612,7 +632,9 @@ const CheckoutForm = ({
                           onClick={() => {
                             setSelectedSavedAddressId("");
                             setIsAddressSelected(false);
-                            shippingAddressForm.reset(shippingAddressDefaultValues);
+                            shippingAddressForm.reset(
+                              shippingAddressDefaultValues
+                            );
                           }}
                         >
                           Enter a new address
@@ -1053,7 +1075,8 @@ const CheckoutForm = ({
                       Launching secure Paystack checkout...
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Please wait while we open your payment popup. If it doesn&apos;t appear, use the manual button below.
+                      Please wait while we open your payment popup. If it
+                      doesn&apos;t appear, use the manual button below.
                     </p>
                   </div>
                 )}
@@ -1072,10 +1095,14 @@ const CheckoutForm = ({
                       autoStart
                       hideButton
                       onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}/placed`)
+                        router.push(
+                          `/account/orders/${createdOrder._id}/placed`
+                        )
                       }
                       onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}/placed`)
+                        router.push(
+                          `/account/orders/${createdOrder._id}/placed`
+                        )
                       }
                     />
                   )}
@@ -1089,8 +1116,8 @@ const CheckoutForm = ({
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Launching secure Paystack checkout...
                       </p>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Keep this tab open while we connect you to Paystack.
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Please keep this tab open while connecting you to payment page.
                       </p>
                     </div>
                   )}
@@ -1104,16 +1131,20 @@ const CheckoutForm = ({
                       autoStart
                       hideButton
                       onSuccess={() =>
-                        router.push(`/account/orders/${createdOrder._id}/placed`)
+                        router.push(
+                          `/account/orders/${createdOrder._id}/placed`
+                        )
                       }
                       onFailure={() =>
-                        router.push(`/account/orders/${createdOrder._id}/placed`)
+                        router.push(
+                          `/account/orders/${createdOrder._id}/placed`
+                        )
                       }
                     />
                   ) : (
                     <Button
                       onClick={handlePlaceOrder}
-                      className="rounded-full cursor-pointer"
+                      className="rounded-full cursor-pointer flex items-center gap-2"
                       disabled={isPlacingOrder}
                       hidden={
                         paymentMethod ===
@@ -1121,7 +1152,14 @@ const CheckoutForm = ({
                         !!createdOrder
                       }
                     >
-                      {isPlacingOrder ? "Placing order..." : "Place Your Order"}
+                      {isPlacingOrder ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> Placing
+                          order...
+                        </>
+                      ) : (
+                        "Place Your Order"
+                      )}
                     </Button>
                   )}
 
