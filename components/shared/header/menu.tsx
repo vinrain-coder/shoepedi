@@ -77,6 +77,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                       { href: "/search", label: "Shop all products" },
                       { href: "/categories", label: "Categories" },
                       { href: "/brands", label: "Brands" },
+                      { href: "/compare", label: "Compare products" },
                       { href: "/blogs", label: "Blogs" },
                     ].map((item) => (
                         <Link
@@ -105,6 +106,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                           { href: "/account", label: "Your account" },
                           { href: "/account/orders", label: "Orders" },
                           { href: "/wishlist", label: "Wishlist" },
+                          { href: "/compare", label: "Compare" },
                           { href: "/account/reviews", label: "My reviews" },
                           { href: "/account/comments", label: "My comments" },
                         ].map((item) => (

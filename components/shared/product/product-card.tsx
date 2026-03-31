@@ -22,6 +22,7 @@ import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import ProductQuickView from "./quick-view";
+import CompareButton from "./compare-button";
 
 const ProductCard = ({
   product,
@@ -95,6 +96,7 @@ const ProductCard = ({
           >
             <Eye size={16} />
           </button>
+          <CompareButton product={product} variant="icon" />
         </div>
       )}
       <Link

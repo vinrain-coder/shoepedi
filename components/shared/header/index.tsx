@@ -7,6 +7,7 @@ import data from "@/lib/data";
 import Sidebar from "./sidebar";
 import { getSetting } from "@/lib/actions/setting.actions";
 import NavbarWishlist from "./nav-wishlist";
+import NavbarCompare from "./nav-compare";
 
 export default async function Header() {
   const categories = await getAllCategories();
@@ -41,7 +42,8 @@ export default async function Header() {
           <div className="hidden md:block flex-1 max-w-xl">
             <Search />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <NavbarCompare />
             <NavbarWishlist />
             <Menu />
           </div>
