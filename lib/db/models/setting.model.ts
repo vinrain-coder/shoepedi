@@ -29,6 +29,15 @@ const settingSchema = new Schema<ISetting>(
       copyright: { type: String, required: true },
       address: { type: String, required: true },
     },
+    notifications: {
+      sms: {
+        enabled: { type: Boolean, required: true, default: true },
+        sandboxMode: { type: Boolean, required: true, default: true },
+        username: { type: String, required: true, default: "sandbox" },
+        senderId: { type: String, required: true, default: "" },
+        adminRecipients: { type: String, required: true, default: "" },
+      },
+    },
     carousels: [
       {
         title: {
