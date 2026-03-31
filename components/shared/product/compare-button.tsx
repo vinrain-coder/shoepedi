@@ -66,11 +66,11 @@ export default function CompareButton({
     <Button
       type="button"
       variant={inCompare ? "default" : "outline"}
-      className={cn("w-full", className)}
+      className={cn("flex items-center gap-2 w-full rounded-full", className)}
       onClick={toggleCompare}
     >
       <Scale className="h-4 w-4" />
-      {inCompare ? "Added to Compare" : "Compare"}
+      {inCompare ? "Remove from Compare" : "Add to Compare"}
     </Button>
   );
 }
