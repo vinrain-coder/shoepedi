@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connection } from "@/lib/db/client"; // runtime-safe MongoDB connection
+import { connection } from "next/server";
 import { getServerSession } from "@/lib/get-session";
 import { getOrderById } from "@/lib/actions/order.actions";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
