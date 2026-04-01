@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getOrderByTrackingNumber } from "@/lib/actions/order.actions";
 import { hitTrackingLookupLimit } from "@/lib/tracking-rate-limit";
@@ -23,6 +24,7 @@ export async function GET(
     );
   }
 
+  await connection();
   const { trackingNumber } = await params;
   if (!/^TRK-[A-Z0-9-]{8,40}$/.test(trackingNumber)) {
     return NextResponse.json({ message: "Invalid tracking number." }, { status: 400 });
