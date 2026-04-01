@@ -12,7 +12,7 @@ export default function Loading() {
             <Skeleton className="w-1/2 h-6 rounded-md" />
           </div>
 
-          {/* CENTER — Product Info */}
+          {/* CENTR — Product Info */}
           <div className="col-span-2 flex flex-col gap-5 md:p-5">
             <div className="space-y-3">
               <Skeleton className="h-5 w-40" /> {/* brand */}
