@@ -7,6 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ trackingNumber: string }> },
 ) {
+  await connection();
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "anonymous";
@@ -24,7 +25,6 @@ export async function GET(
     );
   }
 
-  await connection();
   const { trackingNumber } = await params;
   if (!/^TRK-[A-Z0-9-]{8,40}$/.test(trackingNumber)) {
     return NextResponse.json({ message: "Invalid tracking number." }, { status: 400 });
