@@ -1,13 +1,14 @@
-import { connection } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
+import { connection } from "@/lib/db/client";
 import { getOrderByTrackingNumber } from "@/lib/actions/order.actions";
 import { hitTrackingLookupLimit } from "@/lib/tracking-rate-limit";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ trackingNumber: string }> },
+  { params }: { params: Promise<{ trackingNumber: string }> }
 ) {
   await connection();
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "anonymous";
@@ -21,7 +22,7 @@ export async function GET(
         headers: {
           "Retry-After": String(limit.retryAfterSeconds),
         },
-      },
+      }
     );
   }
 

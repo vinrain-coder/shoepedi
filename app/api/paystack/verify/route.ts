@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { connection } from "@/lib/db/client";
 import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
 
 export async function POST(req: Request) {
   try {
+    await connection();
+
     const { reference, orderId } = await req.json();
 
     const response = await fetch(
@@ -11,7 +14,7 @@ export async function POST(req: Request) {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         },
-      },
+      }
     );
 
     const data = await response.json();

@@ -1,34 +1,57 @@
-// lib/mongodb.ts
+import mongoose from "mongoose";
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI!;
-const dbName = process.env.MONGODB_DB!;
+type MongooseCache = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
 
-if (!uri) {
-  throw new Error("Please add your Mongo URI to .env");
+type MongoClientCache = {
+  client: MongoClient | null;
+  promise: Promise<MongoClient> | null;
+};
+
+declare global {
+  var mongooseCache: MongooseCache | undefined;
+  var mongoClientCache: MongoClientCache | undefined;
 }
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+const mongooseCache = global.mongooseCache ?? { conn: null, promise: null };
+const mongoClientCache = global.mongoClientCache ?? {
+  client: null,
+  promise: null,
+};
 
-if (process.env.NODE_ENV === "development") {
-  // In dev mode, reuse the same client across hot reloads
-  const globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
+global.mongooseCache = mongooseCache;
+global.mongoClientCache = mongoClientCache;
 
-  if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri);
-    globalWithMongo._mongoClientPromise = client.connect();
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  // In prod, always create a new client
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
+export async function connection() {
+  if (mongooseCache.conn) return mongooseCache.conn;
+
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("MONGODB_URI is missing");
+
+  mongooseCache.promise ??= mongoose.connect(uri, {
+    bufferCommands: false,
+  });
+
+  mongooseCache.conn = await mongooseCache.promise;
+  return mongooseCache.conn;
 }
 
 export async function getDb() {
-  const client = await clientPromise;
-  return client.db(dbName); // ✅ this is the Db Better Auth needs
+  const uri = process.env.MONGODB_URI;
+  const dbName = process.env.MONGODB_DB;
+
+  if (!uri) throw new Error("MONGODB_URI is missing");
+  if (!dbName) throw new Error("MONGODB_DB is missing");
+
+  if (mongoClientCache.client) {
+    return mongoClientCache.client.db(dbName);
+  }
+
+  mongoClientCache.promise ??= new MongoClient(uri).connect();
+  mongoClientCache.client = await mongoClientCache.promise;
+
+  return mongoClientCache.client.db(dbName);
 }
