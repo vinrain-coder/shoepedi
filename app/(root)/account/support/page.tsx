@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/get-session";
 import { getMySupportTickets } from "@/lib/actions/support.actions";
-import SupportForm from "./support-form";
+import SupportTicketForm from "@/components/shared/support/support-ticket-form";
 
 export default async function AccountSupportPage() {
   const session = await getServerSession();
@@ -14,7 +14,7 @@ export default async function AccountSupportPage() {
         <p className="text-sm text-muted-foreground">Submit complaints, queries, or recommendations and track replies.</p>
       </div>
 
-      <SupportForm initialName={session?.user?.name || ""} initialEmail={session?.user?.email || ""} />
+      <SupportTicketForm initialName={session?.user?.name || ""} initialEmail={session?.user?.email || ""} />
 
       <div className="rounded-lg border">
         <div className="border-b px-4 py-3 font-medium">Your requests</div>

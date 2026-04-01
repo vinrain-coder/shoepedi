@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
-import { ORDER_STATUS_LABELS, OrderTrackingStatus } from "@/lib/order-tracking";
+import { OrderTrackingStatus } from "@/lib/order-tracking";
+import { OrderStatusBadge } from "@/components/shared/order/order-status-badge";
+import OrderTimeline from "@/components/shared/order/order-timeline";
 import ProductPrice from "@/components/shared/product/product-price";
 
 type TrackingPayload = {
@@ -91,7 +92,7 @@ export default function TrackingClient({ trackingNumber }: { trackingNumber: str
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="font-semibold">Tracking #{data.trackingNumber}</p>
-              <Badge>{ORDER_STATUS_LABELS[data.status]}</Badge>
+              <OrderStatusBadge status={data.status} />
             </div>
             <p className="text-sm text-muted-foreground">
               Estimated delivery: {formatDateTime(new Date(data.shipment?.estimatedDeliveryDate || data.expectedDeliveryDate || new Date())).dateTime}
@@ -106,14 +107,7 @@ export default function TrackingClient({ trackingNumber }: { trackingNumber: str
         <Card>
           <CardContent className="p-4 space-y-3">
             <h2 className="text-lg font-semibold">Order timeline</h2>
-            {timeline.map((event, idx) => (
-              <div key={`${event.createdAt}-${idx}`} className="border-l pl-3 py-2">
-                <p className="font-medium">{ORDER_STATUS_LABELS[event.status]}</p>
-                <p className="text-sm">{event.message}</p>
-                {event.location && <p className="text-xs text-muted-foreground">{event.location}</p>}
-                <p className="text-xs text-muted-foreground">{formatDateTime(new Date(event.createdAt)).dateTime}</p>
-              </div>
-            ))}
+            <OrderTimeline events={timeline} />
           </CardContent>
         </Card>
       </div>

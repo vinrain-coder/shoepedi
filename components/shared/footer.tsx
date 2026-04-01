@@ -106,6 +106,8 @@ export default function Footer() {
         },
         { label: "Returns & Replacements", href: "/page/returns-policy" },
         { label: "Help", href: "/page/help" },
+        { label: "Track an order", href: "/track" },
+        { label: "Contact support", href: "/support" },
         { label: "Size Guide (Shoes)", href: "/page/shoe-size-guide" },
       ],
     },
