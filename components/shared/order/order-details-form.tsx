@@ -17,14 +17,17 @@ import {
 import {
   deliverOrder,
   SerializedOrder,
+  updateOrderStatus,
   updateOrderToPaid,
 } from "@/lib/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
+import { ORDER_STATUS_LABELS, ORDER_TRACKING_STATUSES } from "@/lib/order-tracking";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 const PaystackInline = dynamic(() => import("@/app/checkout/paystack-inline"), {
   ssr: false,
@@ -40,6 +43,12 @@ export default function OrderDetailsForm({
   const orderId = order._id;
   const { data: session } = authClient.useSession();
   const router = useRouter();
+  const [nextStatus, setNextStatus] = useState(order.status);
+
+  const timeline = useMemo(
+    () => [...(order.trackingHistory || [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+    [order.trackingHistory],
+  );
 
   const {
     shippingAddress,
@@ -56,6 +65,7 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
     paymentResult,
   } = order;
+  const paymentResultInfo = paymentResult as Record<string, string | undefined> | undefined;
 
   return (
     <div className="grid md:grid-cols-3 gap-2 md:gap-5">
@@ -63,6 +73,9 @@ export default function OrderDetailsForm({
         <Card>
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
+            <p className="text-sm">Tracking Number: {order.trackingNumber}</p>
+            <p className="text-sm">Current Status: <Badge>{ORDER_STATUS_LABELS[order.status]}</Badge></p>
+            <p className="text-sm"><Link className="underline" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
             <p>
               {shippingAddress.fullName} {shippingAddress.phone}
             </p>
@@ -97,27 +110,27 @@ export default function OrderDetailsForm({
             ) : (
               <Badge variant="destructive">Not paid</Badge>
             )}
-            {paymentResult && (
+            {paymentResultInfo && (
               <div className="mt-3 space-y-1 text-sm">
                 <p>
                   <span className="font-semibold">Gateway:</span>{" "}
-                  {paymentResult.gateway ?? "paystack"}
+                  {paymentResultInfo.gateway ?? "paystack"}
                 </p>
                 <p>
                   <span className="font-semibold">Reference:</span>{" "}
-                  {paymentResult.paymentReference ?? "-"}
+                  {paymentResultInfo.paymentReference ?? "-"}
                 </p>
                 <p>
                   <span className="font-semibold">Transaction ID:</span>{" "}
-                  {paymentResult.id ?? "-"}
+                  {paymentResultInfo.id ?? "-"}
                 </p>
                 <p>
                   <span className="font-semibold">Channel:</span>{" "}
-                  {paymentResult.channel ?? "-"}
+                  {paymentResultInfo.channel ?? "-"}
                 </p>
                 <p>
                   <span className="font-semibold">Currency:</span>{" "}
-                  {paymentResult.currency ?? "-"}
+                  {paymentResultInfo.currency ?? "-"}
                 </p>
               </div>
             )}
@@ -164,6 +177,21 @@ export default function OrderDetailsForm({
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 gap-4">
+            <h2 className="text-xl pb-4">Tracking Timeline</h2>
+            <div className="space-y-3">
+              {timeline.map((event, idx) => (
+                <div key={`${event.createdAt}-${idx}`} className="border-l pl-3">
+                  <p className="font-medium">{ORDER_STATUS_LABELS[event.status]}</p>
+                  <p className="text-sm">{event.message}</p>
+                  {event.location && <p className="text-xs text-muted-foreground">{event.location}</p>}
+                  <p className="text-xs text-muted-foreground">{formatDateTime(new Date(event.createdAt)).dateTime}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -235,9 +263,29 @@ export default function OrderDetailsForm({
                 action={() => updateOrderToPaid(orderId)}
               />
             )}
+            {isAdmin && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Update Order Status</label>
+                <select
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  value={nextStatus}
+                  onChange={(event) => setNextStatus(event.target.value as typeof order.status)}
+                >
+                  {ORDER_TRACKING_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {ORDER_STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </select>
+                <ActionButton
+                  caption="Apply status"
+                  action={() => updateOrderStatus({ orderId, status: nextStatus })}
+                />
+              </div>
+            )}
             {isAdmin && isPaid && !isDelivered && (
               <ActionButton
-                caption="Mark as delivered"
+                caption="Quick mark as delivered"
                 action={() => deliverOrder(orderId)}
               />
             )}

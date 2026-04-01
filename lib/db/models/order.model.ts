@@ -1,4 +1,7 @@
-import { IOrderInput } from "@/types";
+import {
+  OrderTrackingStatus,
+  generateTrackingNumber,
+} from "@/lib/order-tracking";
 import { Document, Model, Schema, Types, model, models } from "mongoose";
 
 export interface ICouponInfo {
@@ -8,12 +11,66 @@ export interface ICouponInfo {
   discountAmount: number;
 }
 
-export interface IOrder extends Document, IOrderInput {
+export interface IOrderTrackingHistoryEvent {
+  status: OrderTrackingStatus;
+  message: string;
+  location?: string;
+  source: "system" | "admin" | "courier" | "customer";
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+}
+
+export interface IOrderShipment {
+  courierName?: string;
+  courierTrackingReference?: string;
+  estimatedDeliveryDate?: Date;
+  dispatchedAt?: Date;
+  deliveredAt?: Date;
+}
+
+export interface IOrder extends Document {
   _id: Types.ObjectId;
-  user: Types.ObjectId;
+  user: Types.ObjectId | { email?: string; name?: string };
+  items: Array<{
+    product: Types.ObjectId;
+    clientId: string;
+    name: string;
+    slug: string;
+    image: string;
+    category: string;
+    price: number;
+    countInStock: number;
+    quantity: number;
+    size?: string;
+    color?: string;
+  }>;
+  shippingAddress: {
+    fullName: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    province: string;
+    phone: string;
+  };
+  expectedDeliveryDate: Date;
+  paymentMethod: string;
+  paymentResult?: Record<string, unknown>;
+  itemsPrice: number;
+  shippingPrice: number;
+  taxPrice: number;
+  totalPrice: number;
+  isPaid: boolean;
+  paidAt?: Date;
+  isDelivered: boolean;
+  deliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
+  status: OrderTrackingStatus;
+  trackingNumber: string;
+  shipment?: IOrderShipment;
+  trackingHistory: IOrderTrackingHistoryEvent[];
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -22,6 +79,66 @@ const orderSchema = new Schema<IOrder>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    trackingNumber: {
+      type: String,
+      unique: true,
+      index: true,
+      default: generateTrackingNumber,
+    },
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "confirmed",
+        "processing",
+        "packed",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+        "returned",
+        "delivery_exception",
+      ],
+      default: "pending",
+      index: true,
+    },
+    trackingHistory: [
+      {
+        status: {
+          type: String,
+          required: true,
+          enum: [
+            "pending",
+            "confirmed",
+            "processing",
+            "packed",
+            "shipped",
+            "out_for_delivery",
+            "delivered",
+            "cancelled",
+            "returned",
+            "delivery_exception",
+          ],
+        },
+        message: { type: String, required: true },
+        location: { type: String },
+        source: {
+          type: String,
+          enum: ["system", "admin", "courier", "customer"],
+          default: "system",
+        },
+        metadata: { type: Schema.Types.Mixed },
+        createdAt: { type: Date, required: true, default: Date.now },
+      },
+    ],
+    shipment: {
+      courierName: { type: String },
+      courierTrackingReference: { type: String },
+      estimatedDeliveryDate: { type: Date },
+      dispatchedAt: { type: Date },
+      deliveredAt: { type: Date },
     },
     items: [
       {
@@ -93,6 +210,10 @@ const orderSchema = new Schema<IOrder>(
     timestamps: true,
   },
 );
+
+orderSchema.index({ trackingNumber: 1 }, { unique: true });
+orderSchema.index({ status: 1, updatedAt: -1 });
+orderSchema.index({ user: 1, createdAt: -1 });
 
 const Order =
   (models.Order as Model<IOrder> | undefined) ||
