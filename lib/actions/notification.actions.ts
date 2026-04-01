@@ -9,10 +9,11 @@ import Review from "../db/models/review.model";
 import StockSubscription from "../db/models/stock-subscription.model";
 import User from "../db/models/user.model";
 import AdminNotificationState from "../db/models/admin-notification-state.model";
+import SupportTicket from "../db/models/support-ticket.model";
 
 export type AdminNotificationItem = {
   id: string;
-  type: "order" | "review" | "stock-subscription" | "customer";
+  type: "order" | "review" | "stock-subscription" | "customer" | "support";
   title: string;
   description: string;
   href: string;
@@ -72,6 +73,15 @@ type CustomerNotificationSource = {
   email?: string;
   emailVerified?: boolean;
 };
+type SupportNotificationSource = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  type: "complaint" | "query" | "recommendation";
+  subject: string;
+  email: string;
+  name: string;
+  status: "open" | "replied";
+};
 
 const asId = (value: { toString(): string } | string) => value.toString();
 const asDate = (value: Date | string) => new Date(value).toISOString();
@@ -95,7 +105,7 @@ export async function getAdminNotificationFeed(
 
   const lastSeenAt = state?.lastSeenAt ? new Date(state.lastSeenAt) : null;
 
-  const [orders, reviews, subscriptions, customers] = (await Promise.all([
+  const [orders, reviews, subscriptions, customers, supportTickets] = (await Promise.all([
     Order.find()
       .populate("user", "name email")
       .sort({ createdAt: -1 })
@@ -116,11 +126,16 @@ export async function getAdminNotificationFeed(
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean(),
+    SupportTicket.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean(),
   ])) as [
     OrderNotificationSource[],
     ReviewNotificationSource[],
     StockSubscriptionNotificationSource[],
     CustomerNotificationSource[],
+    SupportNotificationSource[],
   ];
 
   const items: AdminNotificationItem[] = [
@@ -169,6 +184,16 @@ export async function getAdminNotificationFeed(
       createdAt: asDate(customer.createdAt),
       isUnread: lastSeenAt ? new Date(customer.createdAt) > lastSeenAt : true,
       meta: customer.emailVerified ? "Email verified" : "Needs verification",
+    })),
+    ...supportTickets.map((ticket) => ({
+      id: `support-${asId(ticket._id)}`,
+      type: "support" as const,
+      title: `New support ${ticket.type}`,
+      description: `${ticket.name} (${ticket.email}) submitted: ${ticket.subject}`,
+      href: "/admin/support",
+      createdAt: asDate(ticket.createdAt),
+      isUnread: lastSeenAt ? new Date(ticket.createdAt) > lastSeenAt : true,
+      meta: ticket.status === "replied" ? "Already replied" : "Needs admin response",
     })),
   ]
     .sort(

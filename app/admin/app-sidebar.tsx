@@ -17,6 +17,7 @@ import {
   IconSettings,
   IconTicket,
   IconUsers,
+  IconMessageCircle,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -96,6 +97,11 @@ const data = {
       name: "Customer Reviews",
       url: "/admin/reviews",
       icon: IconChecklist,
+    },
+    {
+      name: "Support Inbox",
+      url: "/admin/support",
+      icon: IconMessageCircle,
     },
   ],
   catalog: [

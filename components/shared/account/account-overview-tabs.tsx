@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import Link from "next/link";
-import { ArrowRight, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
+import { ArrowRight, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +57,12 @@ const tabGroups: {
         title: "My Comments",
         description: "View blog comments and keep your conversations organized",
         icon: MessageCircle,
+      },
+      {
+        href: "/account/support",
+        title: "Support",
+        description: "Submit complaints, queries, or recommendations and track replies",
+        icon: Headset,
       },
     ],
   },
