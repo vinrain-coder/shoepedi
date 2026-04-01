@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { OrderStatusBadge } from "./order-status-badge";
+import OrderTimeline from "./order-timeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,7 +76,7 @@ export default function OrderDetailsForm({
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
             <p className="text-sm">Tracking Number: {order.trackingNumber}</p>
-            <p className="text-sm">Current Status: <Badge>{ORDER_STATUS_LABELS[order.status]}</Badge></p>
+            <p className="text-sm">Current Status: <OrderStatusBadge status={order.status} /></p>
             <p className="text-sm"><Link className="underline" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
             <p>
               {shippingAddress.fullName} {shippingAddress.phone}
@@ -182,16 +184,7 @@ export default function OrderDetailsForm({
         <Card>
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Tracking Timeline</h2>
-            <div className="space-y-3">
-              {timeline.map((event, idx) => (
-                <div key={`${event.createdAt}-${idx}`} className="border-l pl-3">
-                  <p className="font-medium">{ORDER_STATUS_LABELS[event.status]}</p>
-                  <p className="text-sm">{event.message}</p>
-                  {event.location && <p className="text-xs text-muted-foreground">{event.location}</p>}
-                  <p className="text-xs text-muted-foreground">{formatDateTime(new Date(event.createdAt)).dateTime}</p>
-                </div>
-              ))}
-            </div>
+            <OrderTimeline events={timeline} />
           </CardContent>
         </Card>
       </div>

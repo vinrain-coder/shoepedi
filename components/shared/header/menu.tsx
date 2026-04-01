@@ -79,6 +79,8 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                       { href: "/brands", label: "Brands" },
                       { href: "/compare", label: "Compare products" },
                       { href: "/blogs", label: "Blogs" },
+                      { href: "/track", label: "Track order" },
+                      { href: "/support", label: "Support" },
                     ].map((item) => (
                         <Link
                           key={item.href}

@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import TrackingClient from "./tracking-client";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Track Order",
+  description: "Live delivery updates for your order.",
+  alternates: { canonical: "/track" },
 };
 
 export default async function TrackOrderPage({
