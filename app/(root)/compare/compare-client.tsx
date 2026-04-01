@@ -198,5 +198,4 @@ export default function CompareClient() {
       </div>
     </div>
   );
-          }
-        
+}
