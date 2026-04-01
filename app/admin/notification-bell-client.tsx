@@ -11,6 +11,7 @@ import {
   Star,
   UserPlus,
   Warehouse,
+  MessageSquareMore,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ const iconMap = {
   review: Star,
   "stock-subscription": Warehouse,
   customer: UserPlus,
+  support: MessageSquareMore,
 } as const;
 
 const getRelativeTimestamp = (date: Date, now: number) => {

@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 import { connectToDatabase } from "../db";
 import Blog, { IBlog, IBlogComment, IBlogReply } from "../db/models/blog.model";
 import { BlogCommentInputSchema, BlogInputSchema, BlogLikeInputSchema, BlogUpdateSchema } from "../validator";
-import { getServerSession } from "../get-session";
 import { formatError } from "../utils";
 
 const BLOG_ADMIN_PATH = "/admin/blogs";
@@ -107,6 +106,11 @@ function getActorSets(input: z.infer<typeof BlogLikeInputSchema>) {
   return input.userId
     ? { key: "likedByUsers" as const, actorId: input.userId }
     : { key: "likedByGuests" as const, actorId: input.guestId! };
+}
+
+async function getServerSessionLazy() {
+  const { getServerSession } = await import("../get-session");
+  return getServerSession();
 }
 
 export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
@@ -291,7 +295,7 @@ export async function toggleBlogLike(input: z.infer<typeof BlogLikeInputSchema>)
 
 export async function createBlogComment(input: z.infer<typeof BlogCommentInputSchema>) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSessionLazy();
     if (!session) throw new Error("Please sign in to comment");
 
     const data = BlogCommentInputSchema.parse(input);
@@ -390,7 +394,7 @@ export async function editBlogComment(input: {
   content: string;
 }) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSessionLazy();
     if (!session) throw new Error("Please sign in to edit your comment");
 
     const data = z
@@ -437,7 +441,7 @@ export async function deleteBlogComment(input: {
   replyId?: string;
 }) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSessionLazy();
     if (!session) throw new Error("Please sign in to delete your comment");
 
     const data = z
@@ -497,7 +501,7 @@ export async function fetchLatestBlogs({ limit = 4 }: { limit?: number }) {
 
 export async function getMyBlogComments() {
   try {
-    const session = await getServerSession();
+    const session = await getServerSessionLazy();
     if (!session) throw new Error("Please sign in to view your comments");
 
     await connectToDatabase();
