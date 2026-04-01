@@ -109,7 +109,7 @@ export const sendPurchaseReceipt = async ({ order }: { order: IOrder }) => {
   const { site } = await getSetting();
   await resend.emails.send({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
-    to: (order.user as { email: string }).email,
+    to: (order.user as unknown as { email?: string }).email || "",
     subject: "Purchase Receipt",
     react: <PurchaseReceiptEmail order={order} />,
     attachments: [
@@ -136,7 +136,7 @@ export const sendAskReviewOrderItems = async ({ order }: { order: IOrder }) => {
   const { site } = await getSetting();
   await resend.emails.send({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
-    to: (order.user as { email: string }).email,
+    to: (order.user as unknown as { email?: string }).email || "",
     subject: "Review your order items",
     react: <AskReviewOrderItemsEmail order={order} />,
   });
@@ -151,6 +151,44 @@ export const sendAskReviewOrderItems = async ({ order }: { order: IOrder }) => {
       }),
     });
   }
+};
+
+
+export const sendOrderTrackingNotification = async ({
+  order,
+  statusLabel,
+  statusMessage,
+  trackingLink,
+}: {
+  order: IOrder;
+  statusLabel: string;
+  statusMessage: string;
+  trackingLink: string;
+}) => {
+  const { site } = await getSetting();
+  const email = (order.user as { email?: string })?.email;
+
+  if (email) {
+    await resend.emails.send({
+      from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+      to: email,
+      subject: `Order update: ${statusLabel}`,
+      html: `<p>Your order <strong>#${order._id.toString().slice(-8).toUpperCase()}</strong> is now <strong>${statusLabel}</strong>.</p><p>${statusMessage}</p><p>Track your order: <a href="${trackingLink}">${trackingLink}</a></p>`,
+    });
+  }
+
+  const phone = order.shippingAddress?.phone;
+  if (phone) {
+    await sendAfricasTalkingSms({
+      to: phone,
+      message: toUserSmsMessage({
+        siteName: site.name,
+        message: `Order #${order._id.toString().slice(-6).toUpperCase()} is ${statusLabel.toLowerCase()}. Track: ${trackingLink}` ,
+      }),
+    });
+  }
+
+  return { success: true };
 };
 
 export const sendStockSubscriptionNotification = async ({

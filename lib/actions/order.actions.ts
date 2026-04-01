@@ -2,6 +2,15 @@
 
 import { Cart, IOrderList, OrderItem, ShippingAddress } from "@/types";
 import { formatError, round2 } from "../utils";
+import {
+  canTransitionOrderStatus,
+  generateTrackingNumber,
+  normalizeOrderStatus,
+  ORDER_STATUS_LABELS,
+  OrderTrackingHistoryEventInput,
+  OrderTrackingStatus,
+  shouldSendStatusNotification,
+} from "../order-tracking";
 import { connectToDatabase } from "../db";
 import { OrderInputSchema } from "../validator";
 import Order, { IOrder } from "../db/models/order.model";
@@ -9,6 +18,7 @@ import { revalidatePath } from "next/cache";
 import {
   sendAdminEventNotification,
   sendAskReviewOrderItems,
+  sendOrderTrackingNotification,
   sendPurchaseReceipt,
 } from "@/emails";
 import { DateRange } from "react-day-picker";
@@ -39,6 +49,154 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
     _id: serializedOrder._id.toString(),
   };
 };
+
+const buildTrackingLink = (trackingNumber: string) =>
+  `/track/${encodeURIComponent(trackingNumber)}`;
+
+const ensureTrackingState = async (order: IOrder | (IOrder & { user?: { email?: string; name?: string } })) => {
+  let changed = false;
+
+  if (!order.trackingNumber) {
+    order.trackingNumber = generateTrackingNumber();
+    changed = true;
+  }
+
+  if (!order.status) {
+    order.status = order.isDelivered ? "delivered" : "confirmed";
+    changed = true;
+  }
+
+  if (!order.trackingHistory || order.trackingHistory.length === 0) {
+    appendTrackingHistory(order, {
+      status: order.status,
+      message: `Order currently ${ORDER_STATUS_LABELS[order.status].toLowerCase()}.`,
+      source: "system",
+    });
+    changed = true;
+  }
+
+  if (changed) {
+    await order.save();
+  }
+
+  return order;
+};
+
+const appendTrackingHistory = (
+  order: IOrder | (IOrder & { user?: { email?: string; name?: string } }),
+  event: OrderTrackingHistoryEventInput,
+) => {
+  const createdAt = event.createdAt ?? new Date();
+  const history = [...(order.trackingHistory || [])];
+  const lastEvent = history[history.length - 1];
+
+  if (
+    lastEvent &&
+    lastEvent.status === event.status &&
+    lastEvent.message === event.message
+  ) {
+    return false;
+  }
+
+  history.push({
+    status: event.status,
+    message: event.message,
+    location: event.location,
+    source: event.source ?? "system",
+    metadata: event.metadata,
+    createdAt,
+  });
+
+  history.sort((a, b) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+  order.trackingHistory = history;
+  return true;
+};
+
+const notifyCustomerOrderStatus = async (
+  order: IOrder | (IOrder & { user?: { email?: string; name?: string } }),
+  status: OrderTrackingStatus,
+  message: string,
+) => {
+  if (!shouldSendStatusNotification(status)) return;
+
+  const user = order.user as unknown as { email?: string };
+  if (!user?.email) return;
+
+  const { site } = await getSetting();
+  const trackingLink = `${site.url}${buildTrackingLink(order.trackingNumber)}`;
+
+  await sendOrderTrackingNotification({
+    order,
+    statusLabel: ORDER_STATUS_LABELS[status],
+    statusMessage: message,
+    trackingLink,
+  });
+};
+
+const runStatusTransition = async ({
+  order,
+  nextStatus,
+  message,
+  location,
+  source = "system",
+  metadata,
+  actor,
+}: {
+  order: IOrder | (IOrder & { user?: { email?: string; name?: string } });
+  nextStatus: OrderTrackingStatus;
+  message?: string;
+  location?: string;
+  source?: "system" | "admin" | "courier" | "customer";
+  metadata?: Record<string, unknown>;
+  actor?: string;
+}) => {
+  if (order.status === nextStatus) {
+    return order;
+  }
+
+  if (!canTransitionOrderStatus(order.status, nextStatus)) {
+    throw new Error(
+      `Invalid status transition from ${order.status} to ${nextStatus}.`,
+    );
+  }
+
+  order.status = nextStatus;
+
+  if (nextStatus === "delivered") {
+    order.isDelivered = true;
+    order.deliveredAt = new Date();
+    order.shipment = {
+      ...order.shipment,
+      deliveredAt: order.deliveredAt,
+    };
+  }
+
+  if (nextStatus === "cancelled") {
+    order.isDelivered = false;
+  }
+
+  appendTrackingHistory(order, {
+    status: nextStatus,
+    message:
+      message ||
+      `Order moved to ${ORDER_STATUS_LABELS[nextStatus].toLowerCase()}${actor ? ` by ${actor}` : ""}.`,
+    location,
+    source,
+    metadata,
+  });
+
+  await order.save();
+  await notifyCustomerOrderStatus(
+    order,
+    nextStatus,
+    message || ORDER_STATUS_LABELS[nextStatus],
+  );
+
+  return order;
+};
+
 
 // CREATE
 export const createOrder = async (
@@ -101,6 +259,7 @@ export const createOrderFromCart = async (
     totalPrice = round2(cart.totalPrice - validatedCoupon.discount);
   }
 
+  const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
     user: userId,
     items: cart.items,
@@ -112,8 +271,26 @@ export const createOrderFromCart = async (
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: appliedCoupon,
+    trackingNumber: initialTrackingNumber,
+    status: "pending",
+    shipment: {
+      estimatedDeliveryDate: cart.expectedDeliveryDate,
+    },
+    trackingHistory: [
+      {
+        status: "pending",
+        message: "Order created and awaiting confirmation.",
+        source: "system",
+      },
+    ],
   });
   const createdOrder = await Order.create(order);
+  await runStatusTransition({
+    order: createdOrder,
+    nextStatus: "confirmed",
+    message: "Order confirmed and queued for processing.",
+    source: "system",
+  });
   const orderUser = await User.findById(userId).select("name email").lean();
 
   await sendAdminEventNotification({
@@ -137,6 +314,11 @@ export async function updateOrderToPaid(orderId: string) {
     if (order.isPaid) throw new Error("Order is already paid");
     order.isPaid = true;
     order.paidAt = new Date();
+    appendTrackingHistory(order, {
+      status: order.status,
+      message: "Payment received successfully.",
+      source: "system",
+    });
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
       await updateProductStock(order._id.toString());
@@ -187,25 +369,91 @@ const updateProductStock = async (orderId: string) => {
   }
 };
 
-export async function deliverOrder(orderId: string) {
+export async function updateOrderStatus({
+  orderId,
+  status,
+  message,
+  location,
+  courierName,
+  courierTrackingReference,
+  estimatedDeliveryDate,
+}: {
+  orderId: string;
+  status: string;
+  message?: string;
+  location?: string;
+  courierName?: string;
+  courierTrackingReference?: string;
+  estimatedDeliveryDate?: Date;
+}) {
   try {
     await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
+    const normalizedStatus = normalizeOrderStatus(status);
+    if (!normalizedStatus) throw new Error("Invalid order status value.");
+
     const order = await Order.findById(orderId).populate<{
       user: { email: string; name: string };
     }>("user", "name email");
+
     if (!order) throw new Error("Order not found");
-    if (!order.isPaid) throw new Error("Order is not paid");
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-    await order.save();
-    if (order.user.email)
-      await sendAskReviewOrderItems({ order: order as unknown as IOrder });
+
+    if (courierName || courierTrackingReference || estimatedDeliveryDate) {
+      order.shipment = {
+        ...order.shipment,
+        ...(courierName ? { courierName } : {}),
+        ...(courierTrackingReference ? { courierTrackingReference } : {}),
+        ...(estimatedDeliveryDate ? { estimatedDeliveryDate } : {}),
+        ...(normalizedStatus === "shipped" ? { dispatchedAt: new Date() } : {}),
+      };
+    }
+
+    await runStatusTransition({
+      order,
+      nextStatus: normalizedStatus,
+      message,
+      location,
+      source: "admin",
+      actor: session.user.name,
+    });
+
+    if (normalizedStatus === "delivered") {
+      if ((order.user as { email?: string })?.email) {
+        await sendAskReviewOrderItems({ order: order as unknown as IOrder });
+      }
+    }
+
     revalidatePath(`/account/orders/${orderId}`);
     revalidatePath(`/admin/orders/${orderId}`);
-    return { success: true, message: "Order delivered successfully" };
+    revalidatePath(buildTrackingLink(order.trackingNumber));
+
+    return { success: true, message: "Order status updated successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
+}
+
+export async function deliverOrder(orderId: string) {
+  return updateOrderStatus({
+    orderId,
+    status: "delivered",
+    message: "Order marked as delivered.",
+  });
+}
+
+export async function getOrderByTrackingNumber(trackingNumber: string) {
+  await connectToDatabase();
+  const order = await Order.findOne({ trackingNumber }).select(
+    "_id trackingNumber status trackingHistory shipment expectedDeliveryDate shippingAddress items itemsPrice shippingPrice taxPrice totalPrice updatedAt",
+  );
+
+  if (!order) return null;
+  const hydrated = await ensureTrackingState(order as IOrder);
+  return serializeOrder(hydrated);
 }
 
 // DELETE
@@ -305,7 +553,9 @@ export async function getOrderById(
       : { _id: orderId, user: session.user.id };
 
   const order = await Order.findOne(query);
-  return serializeOrder(order);
+  if (!order) return null;
+  const hydrated = await ensureTrackingState(order);
+  return serializeOrder(hydrated);
 }
 
 export const calcDeliveryDateAndPrice = async ({
@@ -629,6 +879,11 @@ export async function markPaystackOrderAsPaid(
     order.isPaid = true;
     order.paidAt = new Date();
     order.paymentResult = paymentInfo;
+    appendTrackingHistory(order, {
+      status: order.status,
+      message: "Payment verified by gateway.",
+      source: "system",
+    });
     await order.save();
 
     // ----------------------------------------------------

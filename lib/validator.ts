@@ -139,6 +139,20 @@ export const AddressBookInputSchema = ShippingAddressSchema.extend({
 });
 
 // Order
+
+const OrderStatusSchema = z.enum([
+  "pending",
+  "confirmed",
+  "processing",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+  "returned",
+  "delivery_exception",
+]);
+
 export const OrderInputSchema = z.object({
   user: z.union([
     MongoId,
@@ -152,6 +166,25 @@ export const OrderInputSchema = z.object({
     .min(1, "Order must contain at least one item"),
   shippingAddress: ShippingAddressSchema,
   paymentMethod: z.string().min(1, "Payment method is required"),
+  trackingNumber: z.string().min(8).optional(),
+  status: OrderStatusSchema.default("pending"),
+  trackingHistory: z.array(
+    z.object({
+      status: OrderStatusSchema,
+      message: z.string().min(1),
+      location: z.string().optional(),
+      source: z.enum(["system", "admin", "courier", "customer"]).default("system"),
+      metadata: z.record(z.unknown()).optional(),
+      createdAt: z.date().optional(),
+    }),
+  ).default([]),
+  shipment: z.object({
+    courierName: z.string().optional(),
+    courierTrackingReference: z.string().optional(),
+    estimatedDeliveryDate: z.date().optional(),
+    dispatchedAt: z.date().optional(),
+    deliveredAt: z.date().optional(),
+  }).optional(),
   paymentResult: z
     .object({
       id: z.string(),
