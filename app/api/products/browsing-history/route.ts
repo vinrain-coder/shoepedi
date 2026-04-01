@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Product from "@/lib/db/models/product.model";
-import { connectToDatabase } from "@/lib/db";
+import { connection } from "@/lib/db/client";
 
 async function getBrowsingProducts(idsKey: string, categoriesKey: string) {
-  await connectToDatabase();
+  await connection();
 
   const productIds = idsKey.split(",");
   const categories = categoriesKey.split(",");
