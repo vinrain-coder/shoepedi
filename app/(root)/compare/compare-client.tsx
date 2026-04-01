@@ -80,11 +80,11 @@ export default function CompareClient() {
   ];
 
   return (
-    <div className="container mx-auto px-3 py-4 md:py-6 max-w-6xl">
+    <div className="container mx-auto py-4 md:py-6 max-w-6xl">
       <div className="flex items-center justify-between mb-4 gap-3">
         <div className="min-w-0">
-          <h1 className="text-lg md:text-xl font-semibold truncate">Compare</h1>
-          <p className="text-xs text-muted-foreground">{count}/{maxItems}</p>
+          <h1 className="text-lg md:text-xl font-semibold truncate">Compare Products</h1>
+          <p className="text-xs text-muted-foreground">{count}/{maxItems} products</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Link href="/search" className={buttonVariants({ variant: "outline", size: "sm", className: "text-xs" })}>Add More</Link>
