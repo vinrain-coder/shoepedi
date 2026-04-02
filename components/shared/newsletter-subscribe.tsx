@@ -8,6 +8,7 @@ import { NewsletterSubscriptionSchema } from "@/lib/validator";
 import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Loader2, Send } from "lucide-react";
 
 type NewsletterFormValues = {
   email: string;
@@ -49,10 +50,15 @@ export default function NewsletterSubscribe() {
 
   return (
     <div className="rounded-xl border border-white/15 bg-transparent p-4 md:p-5">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">Newsletter</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
+        Newsletter
+      </h3>
       <p className="mt-1 text-sm text-gray-400">Get updates and offers.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mt-3 flex flex-row gap-2 sm:flex-row sm:items-start"
+      >
         <label htmlFor="newsletter-email" className="sr-only">
           Email address
         </label>
@@ -71,8 +77,21 @@ export default function NewsletterSubscribe() {
           {...register("botField")}
         />
 
-        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-          {isSubmitting ? "Subscribing..." : "Subscribe"}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full sm:w-auto"
+          variant="outline"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+            </>
+          )}
         </Button>
       </form>
       {errors.email && (
