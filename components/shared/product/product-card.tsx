@@ -135,7 +135,7 @@ const ProductCard = ({
         {product.name}
       </Link>
       <div className="flex gap-1 justify-center text-xs text-gray-500">
-        <Rating rating={product.avgRating} size={8} />
+        <Rating rating={product.avgRating} size={4} />
         <span>({formatNumber(product.numReviews)})</span>
       </div>
       <ProductPrice price={product.price} listPrice={product.listPrice} />
