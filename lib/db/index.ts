@@ -19,7 +19,10 @@ export const connectToDatabase = async (
 
   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
 
-  cached.promise ??= mongoose.connect(MONGODB_URI);
+  cached.promise ??= mongoose.connect(MONGODB_URI, {
+    dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB
+  });
+
   cached.conn = await cached.promise;
 
   return cached.conn;
