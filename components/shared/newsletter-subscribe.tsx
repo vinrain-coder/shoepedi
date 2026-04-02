@@ -3,13 +3,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { NewsletterSubscriptionSchema } from "@/lib/validator";
 import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Check, Mail } from "lucide-react";
 
 type NewsletterFormValues = {
   email: string;
@@ -32,6 +32,8 @@ export default function NewsletterSubscribe() {
     },
   });
 
+  const [submitted, setSubmitted] = React.useState(false);
+
   const onSubmit = async (values: NewsletterFormValues) => {
     const response = await subscribeToNewsletter({
       email: values.email,
@@ -46,7 +48,10 @@ export default function NewsletterSubscribe() {
     }
 
     toast.success(response.message);
+    setSubmitted(true);
     reset();
+
+    setTimeout(() => setSubmitted(false), 3000);
   };
 
   return (
@@ -54,32 +59,30 @@ export default function NewsletterSubscribe() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-xl"
+      className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-xl"
     >
       <h3 className="text-lg font-semibold text-white">Stay Updated</h3>
       <p className="mt-1 text-sm text-gray-400">
-        Subscribe to get the latest updates, deals, and product drops.
+        Subscribe to get the latest updates and offers.
       </p>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center"
+        className="mt-5 flex items-center gap-3 relative"
       >
-        <div className="w-full">
+        {/* Input with icon */}
+        <div className="relative flex-1">
           <Input
             id="newsletter-email"
             type="email"
             placeholder="Enter your email"
-            className="h-11 rounded-xl border-white/20 bg-white/10 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-white/30"
+            className="h-12 w-full rounded-xl border-white/20 bg-white/10 pl-10 pr-4 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-white/30"
             {...register("email")}
           />
-          {errors.email && (
-            <p className="mt-1 text-xs text-red-400">
-              {errors.email.message}
-            </p>
-          )}
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
+        {/* Hidden bot field */}
         <input
           tabIndex={-1}
           autoComplete="off"
@@ -88,20 +91,29 @@ export default function NewsletterSubscribe() {
           {...register("botField")}
         />
 
+        {/* Button */}
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="h-11 rounded-xl px-4 flex items-center justify-center gap-2"
+          className="h-12 px-5 rounded-xl flex items-center justify-center gap-2 whitespace-nowrap"
         >
           {isSubmitting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : submitted ? (
+            <Check className="h-5 w-5 text-green-400" />
           ) : (
             <>
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
+              <span>Subscribe</span>
             </>
           )}
         </Button>
       </form>
+
+      {/* Error */}
+      {errors.email && (
+        <p className="mt-2 text-xs text-red-400">{errors.email.message}</p>
+      )}
 
       <p className="mt-3 text-xs text-gray-400">
         No spam. Unsubscribe anytime.
@@ -109,4 +121,4 @@ export default function NewsletterSubscribe() {
     </motion.div>
   );
     }
-    
+  
