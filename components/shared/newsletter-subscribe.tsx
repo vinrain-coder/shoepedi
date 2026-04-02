@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 import { NewsletterSubscriptionSchema } from "@/lib/validator";
 import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
@@ -49,26 +50,36 @@ export default function NewsletterSubscribe() {
   };
 
   return (
-    <div className="rounded-xl border border-white/15 bg-transparent p-4 md:p-5">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
-        Newsletter
-      </h3>
-      <p className="mt-1 text-sm text-gray-400">Get updates and offers.</p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-xl"
+    >
+      <h3 className="text-lg font-semibold text-white">Stay Updated</h3>
+      <p className="mt-1 text-sm text-gray-400">
+        Subscribe to get the latest updates, deals, and product drops.
+      </p>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-3 flex flex-row gap-2 sm:flex-row sm:items-start"
+        className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center"
       >
-        <label htmlFor="newsletter-email" className="sr-only">
-          Email address
-        </label>
-        <Input
-          id="newsletter-email"
-          type="email"
-          placeholder="you@example.com"
-          className="border-white/20 bg-transparent text-white placeholder:text-gray-500 sm:flex-1"
-          {...register("email")}
-        />
+        <div className="w-full">
+          <Input
+            id="newsletter-email"
+            type="email"
+            placeholder="Enter your email"
+            className="h-11 rounded-xl border-white/20 bg-white/10 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-white/30"
+            {...register("email")}
+          />
+          {errors.email && (
+            <p className="mt-1 text-xs text-red-400">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
         <input
           tabIndex={-1}
           autoComplete="off"
@@ -80,13 +91,10 @@ export default function NewsletterSubscribe() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full sm:w-auto"
-          variant="outline"
+          className="h-11 rounded-xl px-4 flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
               <Send className="h-4 w-4" />
@@ -94,12 +102,11 @@ export default function NewsletterSubscribe() {
           )}
         </Button>
       </form>
-      {errors.email && (
-        <p className="mt-2 text-xs text-red-400">{errors.email.message}</p>
-      )}
-      <p className="mt-2 text-xs text-gray-400">
-        You can unsubscribe at any time using the link in our emails.
+
+      <p className="mt-3 text-xs text-gray-400">
+        No spam. Unsubscribe anytime.
       </p>
-    </div>
+    </motion.div>
   );
-}
+    }
+    
