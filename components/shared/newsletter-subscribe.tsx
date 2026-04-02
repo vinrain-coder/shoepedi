@@ -10,6 +10,7 @@ import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, Check, Mail } from "lucide-react";
+import { useState } from "react"
 
 type NewsletterFormValues = {
   email: string;
@@ -32,7 +33,7 @@ export default function NewsletterSubscribe() {
     },
   });
 
-  const [submitted, setSubmitted] = React.useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const onSubmit = async (values: NewsletterFormValues) => {
     const response = await subscribeToNewsletter({
