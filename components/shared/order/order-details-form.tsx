@@ -76,8 +76,8 @@ export default function OrderDetailsForm({
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
             <p className="text-sm">Tracking Number: {order.trackingNumber}</p>
-            <p className="text-sm">Current Status: <OrderStatusBadge status={order.status} /></p>
-            <p className="text-sm"><Link className="underline" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
+            <p className="text-sm my-2 flex flex-col">Current Status: <OrderStatusBadge status={order.status} /></p>
+            <p className="text-sm"><Link className="underline text-blue-600 underline hover:text-blue-700" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
             <p>
               {shippingAddress.fullName} {shippingAddress.phone}
             </p>
