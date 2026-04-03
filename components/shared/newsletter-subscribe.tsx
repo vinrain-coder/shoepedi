@@ -10,7 +10,7 @@ import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, Check, Mail } from "lucide-react";
-import { useState } from "react"
+import { useState } from "react";
 
 type NewsletterFormValues = {
   email: string;
@@ -100,12 +100,12 @@ export default function NewsletterSubscribe() {
           className="h-12 w-12 px-6 rounded-full flex items-center justify-center gap-2 whitespace-nowrap bg-white/10"
         >
           {isSubmitting ? (
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           ) : submitted ? (
-            <Check className="h-5 w-5 text-green-400" />
+            <Check className="h-6 w-6 text-green-400" />
           ) : (
             <>
-              <Send className="h-5 w-5 text-primary" />
+              <Send className="h-6 w-6 text-primary" />
             </>
           )}
         </Button>
@@ -121,5 +121,4 @@ export default function NewsletterSubscribe() {
       </p>
     </motion.div>
   );
-    }
-  
+}

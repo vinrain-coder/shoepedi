@@ -2,17 +2,16 @@ import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
 const escapePdf = (value: string) =>
-  value
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
+  value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 
 const drawTextLine = (text: string, y: number, size = 11) =>
   `BT /F1 ${size} Tf 50 ${y} Td (${escapePdf(text)}) Tj ET`;
 
 export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
   const createdAt = formatDateTime(order.createdAt).dateTime;
-  const paidAt = order.paidAt ? formatDateTime(order.paidAt).dateTime : "Not paid";
+  const paidAt = order.paidAt
+    ? formatDateTime(order.paidAt).dateTime
+    : "Not paid";
   const deliveredAt = order.deliveredAt
     ? formatDateTime(order.deliveredAt).dateTime
     : "Not delivered";
@@ -26,6 +25,7 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     `Payment method: ${order.paymentMethod}`,
     `Paid: ${paidAt}`,
     `Delivered: ${deliveredAt}`,
+    `Tracking number: ${order.trackingNumber}`,
     "-------------------------------------------------------------",
     "CUSTOMER",
     `${order.shippingAddress.fullName} (${order.shippingAddress.phone})`,
@@ -35,7 +35,9 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     "ITEMS",
     ...order.items.map(
       (item) =>
-        `- ${item.name} ${item.size ? `[${item.size}]` : ""} ${item.color ? `[${item.color}]` : ""} x${item.quantity} = ${formatCurrency(item.price * item.quantity)}`,
+        `- ${item.name} ${item.size ? `[${item.size}]` : ""} ${
+          item.color ? `[${item.color}]` : ""
+        } x${item.quantity} = ${formatCurrency(item.price * item.quantity)}`
     ),
     "-------------------------------------------------------------",
     `Items subtotal:${money(order.itemsPrice)}`,
@@ -43,7 +45,9 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     `Tax:${money(order.taxPrice)}`,
     ...(order.coupon
       ? [
-          `Coupon (${order.coupon.code}):${money(-Math.abs(order.coupon.discountAmount))}`,
+          `Coupon (${order.coupon.code}):${money(
+            -Math.abs(order.coupon.discountAmount)
+          )}`,
         ]
       : []),
     `TOTAL:${money(order.totalPrice)}`,
@@ -60,12 +64,14 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
       `Transaction ID: ${order.paymentResult.id ?? "-"}`,
       `Channel: ${order.paymentResult.channel ?? "-"}`,
       `Amount paid: ${order.paymentResult.pricePaid ?? "-"}`,
-      `Currency: ${order.paymentResult.currency ?? "-"}`,
+      `Currency: ${order.paymentResult.currency ?? "-"}`
     );
 
     if (order.paymentResult.authorization?.last4) {
       lines.push(
-        `Card: **** ${order.paymentResult.authorization.last4} (${order.paymentResult.authorization.brand ?? ""})`.trim(),
+        `Card: **** ${order.paymentResult.authorization.last4} (${
+          order.paymentResult.authorization.brand ?? ""
+        })`.trim()
       );
     }
   }
@@ -77,7 +83,11 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
         y -= 10;
         return [];
       }
-      const cmd = drawTextLine(line, y, line.startsWith("Order Receipt") ? 14 : 11);
+      const cmd = drawTextLine(
+        line,
+        y,
+        line.startsWith("Order Receipt") ? 14 : 11
+      );
       y -= 16;
       return [cmd];
     })
@@ -109,7 +119,9 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     pdf += `${offsets[i].toString().padStart(10, "0")} 00000 n \n`;
   }
 
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  pdf += `trailer\n<< /Size ${
+    objects.length + 1
+  } /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
 
   return Buffer.from(pdf, "binary");
 }

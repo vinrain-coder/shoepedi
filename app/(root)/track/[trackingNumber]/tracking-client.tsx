@@ -32,6 +32,7 @@ type TrackingPayload = {
   itemsPrice: number;
   shippingPrice: number;
   taxPrice: number;
+  couponDiscount: number;
   totalPrice: number;
   trackingHistory: Array<{
     status: OrderTrackingStatus;
@@ -41,16 +42,23 @@ type TrackingPayload = {
   }>;
 };
 
-export default function TrackingClient({ trackingNumber }: { trackingNumber: string }) {
+export default function TrackingClient({
+  trackingNumber,
+}: {
+  trackingNumber: string;
+}) {
   const [data, setData] = useState<TrackingPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const fetchTracking = async () => {
-      const response = await fetch(`/api/tracking/${encodeURIComponent(trackingNumber)}`, {
-        cache: "no-store",
-      });
+      const response = await fetch(
+        `/api/tracking/${encodeURIComponent(trackingNumber)}`,
+        {
+          cache: "no-store",
+        }
+      );
       const payload = await response.json();
       if (!mounted) return;
 
@@ -73,16 +81,27 @@ export default function TrackingClient({ trackingNumber }: { trackingNumber: str
   }, [trackingNumber]);
 
   const timeline = useMemo(
-    () => [...(data?.trackingHistory || [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
-    [data],
+    () =>
+      [...(data?.trackingHistory || [])].sort(
+        (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
+      ),
+    [data]
   );
 
   if (error) {
-    return <Card><CardContent className="p-4 text-red-600">{error}</CardContent></Card>;
+    return (
+      <Card>
+        <CardContent className="p-4 text-red-600">{error}</CardContent>
+      </Card>
+    );
   }
 
   if (!data) {
-    return <Card><CardContent className="p-4">Loading tracking details…</CardContent></Card>;
+    return (
+      <Card>
+        <CardContent className="p-4">Loading tracking details…</CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -95,11 +114,22 @@ export default function TrackingClient({ trackingNumber }: { trackingNumber: str
               <OrderStatusBadge status={data.status} />
             </div>
             <p className="text-sm text-muted-foreground">
-              Estimated delivery: {formatDateTime(new Date(data.shipment?.estimatedDeliveryDate || data.expectedDeliveryDate || new Date())).dateTime}
+              Estimated delivery:{" "}
+              {
+                formatDateTime(
+                  new Date(
+                    data.shipment?.estimatedDeliveryDate ||
+                      data.expectedDeliveryDate ||
+                      new Date()
+                  )
+                ).dateTime
+              }
             </p>
             <p className="text-sm">
               Courier: {data.shipment?.courierName || "Pending assignment"}
-              {data.shipment?.courierTrackingReference ? ` • Ref: ${data.shipment.courierTrackingReference}` : ""}
+              {data.shipment?.courierTrackingReference
+                ? ` • Ref: ${data.shipment.courierTrackingReference}`
+                : ""}
             </p>
           </CardContent>
         </Card>
@@ -122,13 +152,26 @@ export default function TrackingClient({ trackingNumber }: { trackingNumber: str
               </p>
             ))}
             <div className="pt-2 text-sm space-y-1">
-              <p>Items: <ProductPrice price={data.itemsPrice} plain /></p>
-              <p>Shipping: <ProductPrice price={data.shippingPrice} plain /></p>
-              <p>Tax: <ProductPrice price={data.taxPrice} plain /></p>
-              <p className="font-semibold">Total: <ProductPrice price={data.totalPrice} plain /></p>
+              <p>
+                Items: <ProductPrice price={data.itemsPrice} plain />
+              </p>
+              <p>
+                Shipping: <ProductPrice price={data.shippingPrice} plain />
+              </p>
+              <p>
+                Tax: <ProductPrice price={data.taxPrice} plain />
+              </p>
+              <p>
+                Discount: <ProductPrice price={data.couponDiscount} plain />
+              </p>
+              <p className="font-semibold">
+                Total: <ProductPrice price={data.totalPrice} plain />
+              </p>
             </div>
             <p className="text-xs text-muted-foreground pt-2">
-              Deliver to {data.shippingAddress.fullName}, {data.shippingAddress.street}, {data.shippingAddress.city}, {data.shippingAddress.country}
+              Deliver to {data.shippingAddress.fullName},{" "}
+              {data.shippingAddress.street}, {data.shippingAddress.city},{" "}
+              {data.shippingAddress.country}
             </p>
           </CardContent>
         </Card>

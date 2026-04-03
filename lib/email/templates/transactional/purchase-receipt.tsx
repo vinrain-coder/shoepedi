@@ -66,7 +66,7 @@ PurchaseReceiptEmail.PreviewProps = {
     ],
     expectedDeliveryDate: new Date(),
     isDelivered: true,
-  } as IOrder,
+  } as unknown as IOrder,
 } satisfies OrderInformationProps;
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
@@ -240,9 +240,12 @@ export default async function PurchaseReceiptEmail({
                     <Text className="m-0 mt-2 text-[14px] leading-[22px] text-emerald-800">
                       {couponDescription}
                     </Text>
-                    <Text className="m-0 mt-3 text-[14px] font-semibold text-emerald-950">
-                      Discount saved: - {formatCurrency(Math.abs(order.coupon.discountAmount))}
-                    </Text>
+                    {order.coupon.discountAmount && (
+                      <Text className="m-0 mt-3 text-[14px] font-semibold text-emerald-950">
+                        Discount saved: -{" "}
+                        {formatCurrency(Math.abs(order.coupon.discountAmount))}
+                      </Text>
+                    )}
                   </Section>
                 )}
 
@@ -279,14 +282,24 @@ export default async function PurchaseReceiptEmail({
                         <Row key={row.label} className="py-1.5">
                           <Column>
                             <Text
-                              className={`m-0 text-[14px] ${row.isTotal ? "font-semibold text-slate-950" : "text-slate-600"}`}
+                              className={`m-0 text-[14px] ${
+                                row.isTotal
+                                  ? "font-semibold text-slate-950"
+                                  : "text-slate-600"
+                              }`}
                             >
                               {row.label}
                             </Text>
                           </Column>
                           <Column align="right">
                             <Text
-                              className={`m-0 text-[14px] ${row.isDiscount ? "font-semibold text-emerald-600" : row.isTotal ? "font-semibold text-slate-950" : "text-slate-700"}`}
+                              className={`m-0 text-[14px] ${
+                                row.isDiscount
+                                  ? "font-semibold text-emerald-600"
+                                  : row.isTotal
+                                  ? "font-semibold text-slate-950"
+                                  : "text-slate-700"
+                              }`}
                             >
                               {row.value < 0
                                 ? `- ${formatCurrency(Math.abs(row.value))}`
@@ -305,15 +318,15 @@ export default async function PurchaseReceiptEmail({
                       Payment details
                     </Text>
                     <Text className="m-0 mt-2 text-[14px] leading-[22px] text-slate-700">
-                      Gateway: {order.paymentResult.gateway ?? "paystack"}
+                      Gateway: {order.paymentResult?.gateway ?? "paystack"}
                       <br />
-                      Reference: {order.paymentResult.paymentReference ?? "-"}
+                      Reference: {order.paymentResult?.paymentReference ?? "-"}
                       <br />
-                      Transaction ID: {order.paymentResult.id ?? "-"}
+                      Transaction ID: {order.paymentResult?.id ?? "-"}
                       <br />
-                      Channel: {order.paymentResult.channel ?? "-"}
+                      Channel: {order.paymentResult?.channel ?? "-"}
                       <br />
-                      Currency: {order.paymentResult.currency ?? "-"}
+                      Currency: {order.paymentResult?.currency ?? "-"}
                     </Text>
                     <Text className="m-0 mt-2 text-[13px] text-slate-500">
                       Your order receipt PDF is attached to this email.
