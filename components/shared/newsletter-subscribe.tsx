@@ -77,7 +77,7 @@ export default function NewsletterSubscribe() {
             id="newsletter-email"
             type="email"
             placeholder="Enter your email"
-            className="h-12 w-full rounded-xl border-white/20 bg-white/10 pl-10 pr-4 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-white/30"
+            className="h-12 w-full rounded-full border-white/20 bg-white/10 pl-10 pr-4 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-white/30"
             {...register("email")}
           />
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -95,17 +95,17 @@ export default function NewsletterSubscribe() {
         {/* Button */}
         <Button
           type="submit"
+          variant="outline"
           disabled={isSubmitting}
-          className="h-12 px-5 rounded-xl flex items-center justify-center gap-2 whitespace-nowrap"
+          className="h-12 px-6 rounded-full flex items-center justify-center gap-2 whitespace-nowrap"
         >
           {isSubmitting ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : submitted ? (
             <Check className="h-5 w-5 text-green-400" />
           ) : (
             <>
-              <Send className="h-5 w-5" />
-              <span>Subscribe</span>
+              <Send className="h-5 w-5 text-primary" />
             </>
           )}
         </Button>
