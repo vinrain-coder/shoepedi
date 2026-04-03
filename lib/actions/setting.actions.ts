@@ -9,8 +9,9 @@ import { cacheLife } from "next/cache";
 import { cacheTag } from "next/cache";
 import { updateTag } from "next/cache";
 
-
-const withSettingDefaults = (setting?: Partial<ISettingInput> | null): ISettingInput => {
+const withSettingDefaults = (
+  setting?: Partial<ISettingInput> | null
+): ISettingInput => {
   const fallback = data.settings[0];
   if (!setting) return fallback;
 
@@ -39,7 +40,9 @@ export async function getSetting(): Promise<ISettingInput> {
   await connectToDatabase();
   const setting = await Setting.findOne().lean();
 
-  return withSettingDefaults(setting ? JSON.parse(JSON.stringify(setting)) : null);
+  return withSettingDefaults(
+    setting ? JSON.parse(JSON.stringify(setting)) : null
+  );
 }
 
 /**
@@ -51,7 +54,9 @@ export async function getNoCachedSetting(): Promise<ISettingInput> {
   cacheTag("settings");
   await connectToDatabase();
   const setting = await Setting.findOne().lean();
-  return withSettingDefaults(setting ? JSON.parse(JSON.stringify(setting)) : null);
+  return withSettingDefaults(
+    setting ? JSON.parse(JSON.stringify(setting)) : null
+  );
 }
 
 /**

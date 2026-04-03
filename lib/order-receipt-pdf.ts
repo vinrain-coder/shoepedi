@@ -1,15 +1,17 @@
 import PDFDocument from "pdfkit";
-import fs from "fs";
 import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { getSetting } from "./actions/setting.actions";
 
-export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
+
+export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buffer> {
+  const {site}= await getSetting()
   const doc = new PDFDocument({ size: "A4", margin: 50 });
   const buffers: Buffer[] = [];
   doc.on("data", buffers.push.bind(buffers));
 
   // --- HEADER WITH LOGO ---
-  const logoPath = "public/logo.png"; // Replace with your logo path
+  const logoPath = site.logo; 
   try {
     doc.image(logoPath, 50, 45, { width: 100 });
   } catch (err) {
@@ -19,12 +21,14 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
   doc
     .fillColor("#333333")
     .fontSize(20)
-    .text("SHOE PEDI RECEIPT", 0, 50, { align: "center" })
+    .text("SHOESTAR RECEIPT", 0, 50, { align: "center" })
     .moveDown(2);
 
   // --- ORDER INFO ---
   const createdAt = formatDateTime(order.createdAt).dateTime;
-  const paidAt = order.paidAt ? formatDateTime(order.paidAt).dateTime : "Not paid";
+  const paidAt = order.paidAt
+    ? formatDateTime(order.paidAt).dateTime
+    : "Not paid";
   const deliveredAt = order.deliveredAt
     ? formatDateTime(order.deliveredAt).dateTime
     : "Not delivered";
@@ -42,11 +46,15 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
 
   // --- CUSTOMER INFO ---
   doc.fontSize(12).fillColor("#333333").text("CUSTOMER", { underline: true });
-  doc.text(`${order.shippingAddress.fullName} (${order.shippingAddress.phone})`);
+  doc.text(
+    `${order.shippingAddress.fullName} (${order.shippingAddress.phone})`
+  );
   doc.text(
     `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`
   );
-  doc.text(`${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`);
+  doc.text(
+    `${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`
+  );
   doc.moveDown();
 
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
@@ -93,7 +101,11 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
   doc.text(`Shipping: ${money(order.shippingPrice)}`);
   doc.text(`Tax: ${money(order.taxPrice)}`);
   if (order.coupon) {
-    doc.text(`Coupon (${order.coupon.code}): ${money(-Math.abs(order.coupon.discountAmount))}`);
+    doc.text(
+      `Coupon (${order.coupon.code}): ${money(
+        -Math.abs(order.coupon.discountAmount)
+      )}`
+    );
   }
   doc.font("Helvetica-Bold").text(`TOTAL: ${money(order.totalPrice)}`);
   doc.font("Helvetica").moveDown();
@@ -103,7 +115,10 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     doc.moveDown();
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
     doc.moveDown();
-    doc.fontSize(12).fillColor("#333333").text("PAYMENT DETAILS", { underline: true });
+    doc
+      .fontSize(12)
+      .fillColor("#333333")
+      .text("PAYMENT DETAILS", { underline: true });
     doc.text(`Gateway: ${order.paymentResult.gateway ?? "Paystack"}`);
     doc.text(`Status: ${order.paymentResult.status ?? "-"}`);
     doc.text(`Reference: ${order.paymentResult.paymentReference ?? "-"}`);
@@ -113,11 +128,13 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     doc.text(`Currency: ${order.paymentResult.currency ?? "-"}`);
     if (order.paymentResult.authorization?.last4) {
       doc.text(
-        `Card: **** ${order.paymentResult.authorization.last4} (${order.paymentResult.authorization.brand ?? ""})`.trim()
+        `Card: **** ${order.paymentResult.authorization.last4} (${
+          order.paymentResult.authorization.brand ?? ""
+        })`.trim()
       );
     }
   }
 
   doc.end();
   return Buffer.concat(buffers);
-              }
+}
