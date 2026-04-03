@@ -97,7 +97,7 @@ export default function NewsletterSubscribe() {
           type="submit"
           variant="outline"
           disabled={isSubmitting}
-          className="h-12 px-6 rounded-full flex items-center justify-center gap-2 whitespace-nowrap"
+          className="h-12 w-12 px-6 rounded-full flex items-center justify-center gap-2 whitespace-nowrap bg-white/10"
         >
           {isSubmitting ? (
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
