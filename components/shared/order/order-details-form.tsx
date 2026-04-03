@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "./order-status-badge";
 import OrderTimeline from "./order-timeline";
@@ -34,6 +35,28 @@ import { useMemo, useState } from "react";
 const PaystackInline = dynamic(() => import("@/app/checkout/paystack-inline"), {
   ssr: false,
 });
+
+function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(trackingNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div
+      onClick={handleCopy}
+      className="inline-flex items-center gap-2 cursor-pointer select-none px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+      title={copied ? "Copied!" : "Click to copy"}
+    >
+      <span className="font-medium">{trackingNumber}</span>
+      <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+      {copied && <span className="text-xs text-green-600 dark:text-green-400">Copied!</span>}
+    </div>
+  );
+  }
 
 export default function OrderDetailsForm({
   order,
@@ -75,8 +98,10 @@ export default function OrderDetailsForm({
         <Card>
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
-            <p className="text-sm">Tracking Number: {order.trackingNumber}</p>
-            <p className="text-sm my-2 flex flex-col">Current Status: <OrderStatusBadge status={order.status} /></p>
+            <p className="text-sm flex items-center gap-2">
+              Tracking Number: <CopyTrackingNumber trackingNumber={order.trackingNumber} />
+            </p>
+            <p className="text-sm flex items-center gap-2">Current Status: <OrderStatusBadge status={order.status} /></p>
             <p className="text-sm"><Link className="underline text-blue-600 underline hover:text-blue-700" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
             <p>
               {shippingAddress.fullName} {shippingAddress.phone}
