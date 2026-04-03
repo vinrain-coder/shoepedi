@@ -4,7 +4,9 @@ import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { getSetting } from "./actions/setting.actions";
 
-export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buffer> {
+export async function buildOrderReceiptPdf(
+  order: SerializedOrder
+): Promise<Buffer> {
   const { site } = await getSetting();
   const doc = new PDFDocument({ size: "A4", margin: 50 });
 
@@ -37,8 +39,12 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
 
     // --- ORDER INFO ---
     const createdAt = formatDateTime(order.createdAt).dateTime;
-    const paidAt = order.paidAt ? formatDateTime(order.paidAt).dateTime : "Not paid";
-    const deliveredAt = order.deliveredAt ? formatDateTime(order.deliveredAt).dateTime : "Not delivered";
+    const paidAt = order.paidAt
+      ? formatDateTime(order.paidAt).dateTime
+      : "Not paid";
+    const deliveredAt = order.deliveredAt
+      ? formatDateTime(order.deliveredAt).dateTime
+      : "Not delivered";
 
     doc.fontSize(12).fillColor("#000000");
     doc.text(`Order ID: ${order._id}`);
@@ -53,9 +59,15 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
 
     // --- CUSTOMER INFO ---
     doc.fontSize(12).fillColor("#333333").text("CUSTOMER", { underline: true });
-    doc.text(`${order.shippingAddress.fullName} (${order.shippingAddress.phone})`);
-    doc.text(`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`);
-    doc.text(`${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`);
+    doc.text(
+      `${order.shippingAddress.fullName} (${order.shippingAddress.phone})`
+    );
+    doc.text(
+      `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`
+    );
+    doc.text(
+      `${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`
+    );
     doc.moveDown();
 
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
@@ -65,7 +77,14 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
     doc.fontSize(12).fillColor("#333333").text("ITEMS", { underline: true });
     doc.moveDown(0.5);
 
-    const tableX = { name: 50, size: 250, color: 300, qty: 360, price: 420, total: 480 };
+    const tableX = {
+      name: 50,
+      size: 250,
+      color: 300,
+      qty: 360,
+      price: 420,
+      total: 480,
+    };
 
     doc.font("Helvetica-Bold");
     doc.text("Name", tableX.name, doc.y);
@@ -97,7 +116,11 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
     doc.text(`Shipping: ${money(order.shippingPrice)}`);
     doc.text(`Tax: ${money(order.taxPrice)}`);
     if (order.coupon) {
-      doc.text(`Coupon (${order.coupon.code}): ${money(-Math.abs(order.coupon.discountAmount))}`);
+      doc.text(
+        `Coupon (${order.coupon.code}): ${money(
+          -Math.abs(order.coupon.discountAmount)
+        )}`
+      );
     }
     doc.font("Helvetica-Bold").text(`TOTAL: ${money(order.totalPrice)}`);
     doc.font("Helvetica").moveDown();
@@ -107,7 +130,10 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
       doc.moveDown();
       doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
       doc.moveDown();
-      doc.fontSize(12).fillColor("#333333").text("PAYMENT DETAILS", { underline: true });
+      doc
+        .fontSize(12)
+        .fillColor("#333333")
+        .text("PAYMENT DETAILS", { underline: true });
       doc.text(`Gateway: ${order.paymentResult.gateway ?? "Paystack"}`);
       doc.text(`Status: ${order.paymentResult.status ?? "-"}`);
       doc.text(`Reference: ${order.paymentResult.paymentReference ?? "-"}`);
@@ -117,7 +143,9 @@ export async function buildOrderReceiptPdf(order: SerializedOrder): Promise<Buff
       doc.text(`Currency: ${order.paymentResult.currency ?? "-"}`);
       if (order.paymentResult.authorization?.last4) {
         doc.text(
-          `Card: **** ${order.paymentResult.authorization.last4} (${order.paymentResult.authorization.brand ?? ""})`.trim()
+          `Card: **** ${order.paymentResult.authorization.last4} (${
+            order.paymentResult.authorization.brand ?? ""
+          })`.trim()
         );
       }
     }
