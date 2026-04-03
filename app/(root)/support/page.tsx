@@ -12,7 +12,7 @@ export default async function PublicSupportPage() {
   const session = await getServerSession();
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-4 p-4">
+    <main className="mx-auto w-full max-w-3xl space-y-4 py-4">
       <h1 className="text-3xl font-semibold">Customer support</h1>
       <p className="text-sm text-muted-foreground">
         Need help? Submit a support ticket and we&apos;ll reply by email.
