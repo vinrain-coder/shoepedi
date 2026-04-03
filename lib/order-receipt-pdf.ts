@@ -1,127 +1,123 @@
+import PDFDocument from "pdfkit";
+import fs from "fs";
 import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
-const escapePdf = (value: string) =>
-  value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-
-const drawTextLine = (text: string, y: number, size = 11) =>
-  `BT /F1 ${size} Tf 50 ${y} Td (${escapePdf(text)}) Tj ET`;
-
 export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
+  const doc = new PDFDocument({ size: "A4", margin: 50 });
+  const buffers: Buffer[] = [];
+  doc.on("data", buffers.push.bind(buffers));
+
+  // --- HEADER WITH LOGO ---
+  const logoPath = "public/logo.png"; // Replace with your logo path
+  try {
+    doc.image(logoPath, 50, 45, { width: 100 });
+  } catch (err) {
+    console.warn("Logo not found, skipping image");
+  }
+
+  doc
+    .fillColor("#333333")
+    .fontSize(20)
+    .text("SHOE PEDI RECEIPT", 0, 50, { align: "center" })
+    .moveDown(2);
+
+  // --- ORDER INFO ---
   const createdAt = formatDateTime(order.createdAt).dateTime;
-  const paidAt = order.paidAt
-    ? formatDateTime(order.paidAt).dateTime
-    : "Not paid";
+  const paidAt = order.paidAt ? formatDateTime(order.paidAt).dateTime : "Not paid";
   const deliveredAt = order.deliveredAt
     ? formatDateTime(order.deliveredAt).dateTime
     : "Not delivered";
 
+  doc.fontSize(12).fillColor("#000000");
+  doc.text(`Order ID: ${order._id}`);
+  doc.text(`Created: ${createdAt}`);
+  doc.text(`Payment method: ${order.paymentMethod}`);
+  doc.text(`Paid: ${paidAt}`);
+  doc.text(`Delivered: ${deliveredAt}`);
+  doc.moveDown();
+
+  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
+  doc.moveDown();
+
+  // --- CUSTOMER INFO ---
+  doc.fontSize(12).fillColor("#333333").text("CUSTOMER", { underline: true });
+  doc.text(`${order.shippingAddress.fullName} (${order.shippingAddress.phone})`);
+  doc.text(
+    `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`
+  );
+  doc.text(`${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`);
+  doc.moveDown();
+
+  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
+  doc.moveDown();
+
+  // --- ITEMS TABLE ---
+  doc.fontSize(12).fillColor("#333333").text("ITEMS", { underline: true });
+  const tableTop = doc.y + 5;
+
+  const itemX = {
+    name: 50,
+    size: 250,
+    color: 300,
+    qty: 360,
+    price: 420,
+    total: 480,
+  };
+
+  doc.font("Helvetica-Bold");
+  doc.text("Name", itemX.name, tableTop);
+  doc.text("Size", itemX.size, tableTop);
+  doc.text("Color", itemX.color, tableTop);
+  doc.text("Qty", itemX.qty, tableTop);
+  doc.text("Price", itemX.price, tableTop);
+  doc.text("Total", itemX.total, tableTop);
+  doc.moveDown();
+
+  doc.font("Helvetica");
+  order.items.forEach((item, i) => {
+    const y = tableTop + 20 + i * 20;
+    doc.text(item.name, itemX.name, y);
+    doc.text(item.size || "-", itemX.size, y);
+    doc.text(item.color || "-", itemX.color, y);
+    doc.text(item.quantity.toString(), itemX.qty, y);
+    doc.text(formatCurrency(item.price), itemX.price, y);
+    doc.text(formatCurrency(item.price * item.quantity), itemX.total, y);
+  });
+
+  doc.moveDown(2);
+
+  // --- TOTALS ---
   const money = (value: number) => formatCurrency(value).padStart(14, " ");
+  doc.text(`Items subtotal: ${money(order.itemsPrice)}`);
+  doc.text(`Shipping: ${money(order.shippingPrice)}`);
+  doc.text(`Tax: ${money(order.taxPrice)}`);
+  if (order.coupon) {
+    doc.text(`Coupon (${order.coupon.code}): ${money(-Math.abs(order.coupon.discountAmount))}`);
+  }
+  doc.font("Helvetica-Bold").text(`TOTAL: ${money(order.totalPrice)}`);
+  doc.font("Helvetica").moveDown();
 
-  const lines: string[] = [
-    "===================== SHOE PEDI RECEIPT =====================",
-    `Order ID: ${order._id}`,
-    `Created: ${createdAt}`,
-    `Payment method: ${order.paymentMethod}`,
-    `Paid: ${paidAt}`,
-    `Delivered: ${deliveredAt}`,
-    `Tracking number: ${order.trackingNumber}`,
-    "-------------------------------------------------------------",
-    "CUSTOMER",
-    `${order.shippingAddress.fullName} (${order.shippingAddress.phone})`,
-    `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.province}`,
-    `${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`,
-    "-------------------------------------------------------------",
-    "ITEMS",
-    ...order.items.map(
-      (item) =>
-        `- ${item.name} ${item.size ? `[${item.size}]` : ""} ${
-          item.color ? `[${item.color}]` : ""
-        } x${item.quantity} = ${formatCurrency(item.price * item.quantity)}`
-    ),
-    "-------------------------------------------------------------",
-    `Items subtotal:${money(order.itemsPrice)}`,
-    `Shipping:${money(order.shippingPrice)}`,
-    `Tax:${money(order.taxPrice)}`,
-    ...(order.coupon
-      ? [
-          `Coupon (${order.coupon.code}):${money(
-            -Math.abs(order.coupon.discountAmount)
-          )}`,
-        ]
-      : []),
-    `TOTAL:${money(order.totalPrice)}`,
-  ];
-
+  // --- PAYMENT DETAILS ---
   if (order.paymentResult) {
-    lines.push(
-      "",
-      "-------------------------------------------------------------",
-      "PAYMENT DETAILS",
-      `Gateway: ${order.paymentResult.gateway ?? "Paystack"}`,
-      `Status: ${order.paymentResult.status ?? "-"}`,
-      `Reference: ${order.paymentResult.paymentReference ?? "-"}`,
-      `Transaction ID: ${order.paymentResult.id ?? "-"}`,
-      `Channel: ${order.paymentResult.channel ?? "-"}`,
-      `Amount paid: ${order.paymentResult.pricePaid ?? "-"}`,
-      `Currency: ${order.paymentResult.currency ?? "-"}`
-    );
-
+    doc.moveDown();
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#aaaaaa").stroke();
+    doc.moveDown();
+    doc.fontSize(12).fillColor("#333333").text("PAYMENT DETAILS", { underline: true });
+    doc.text(`Gateway: ${order.paymentResult.gateway ?? "Paystack"}`);
+    doc.text(`Status: ${order.paymentResult.status ?? "-"}`);
+    doc.text(`Reference: ${order.paymentResult.paymentReference ?? "-"}`);
+    doc.text(`Transaction ID: ${order.paymentResult.id ?? "-"}`);
+    doc.text(`Channel: ${order.paymentResult.channel ?? "-"}`);
+    doc.text(`Amount paid: ${order.paymentResult.pricePaid ?? "-"}`);
+    doc.text(`Currency: ${order.paymentResult.currency ?? "-"}`);
     if (order.paymentResult.authorization?.last4) {
-      lines.push(
-        `Card: **** ${order.paymentResult.authorization.last4} (${
-          order.paymentResult.authorization.brand ?? ""
-        })`.trim()
+      doc.text(
+        `Card: **** ${order.paymentResult.authorization.last4} (${order.paymentResult.authorization.brand ?? ""})`.trim()
       );
     }
   }
 
-  let y = 790;
-  const content = lines
-    .flatMap((line) => {
-      if (line === "") {
-        y -= 10;
-        return [];
-      }
-      const cmd = drawTextLine(
-        line,
-        y,
-        line.startsWith("Order Receipt") ? 14 : 11
-      );
-      y -= 16;
-      return [cmd];
-    })
-    .join("\n");
-
-  const stream = `<< /Length ${content.length} >>\nstream\n${content}\nendstream`;
-
-  const objects = [
-    "<< /Type /Catalog /Pages 2 0 R >>",
-    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-    stream,
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-  ];
-
-  let pdf = "%PDF-1.4\n";
-  const offsets: number[] = [0];
-
-  objects.forEach((obj, index) => {
-    offsets.push(pdf.length);
-    pdf += `${index + 1} 0 obj\n${obj}\nendobj\n`;
-  });
-
-  const xrefOffset = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n`;
-  pdf += "0000000000 65535 f \n";
-
-  for (let i = 1; i <= objects.length; i += 1) {
-    pdf += `${offsets[i].toString().padStart(10, "0")} 00000 n \n`;
-  }
-
-  pdf += `trailer\n<< /Size ${
-    objects.length + 1
-  } /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-
-  return Buffer.from(pdf, "binary");
-}
+  doc.end();
+  return Buffer.concat(buffers);
+              }
