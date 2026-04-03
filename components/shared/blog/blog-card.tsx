@@ -73,7 +73,7 @@ export default function BlogCard({ blog }: { blog: BlogCardProps }) {
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-rose-500">
-              <Heart className="size-3.5 text-rose-500 fill-rose-500/20" />
+              <Heart className="size-3.5 text-rose-500 fill-rose-500" />
               <span className="font-medium">{blog.likesCount || 0}</span>
             </span>
             <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-sky-500">
