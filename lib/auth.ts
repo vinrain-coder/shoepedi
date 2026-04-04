@@ -91,6 +91,11 @@ export const auth = betterAuth({
         input: false,
         defaultValue: [],
       },
+      coins: {
+        type: "number",
+        input: false,
+        defaultValue: 0,
+      },
     },
   },
 

@@ -61,6 +61,9 @@ export interface IOrder extends Document {
   shippingPrice: number;
   taxPrice: number;
   totalPrice: number;
+  coinsEarned: number;
+  coinsRedeemed: number;
+  coinsCredited: boolean;
   isPaid: boolean;
   paidAt?: Date;
   isDelivered: boolean;
@@ -209,6 +212,9 @@ const orderSchema = new Schema<IOrder>(
       type: String,
     },
     totalPrice: { type: Number, required: true },
+    coinsEarned: { type: Number, default: 0 },
+    coinsRedeemed: { type: Number, default: 0 },
+    coinsCredited: { type: Boolean, default: false },
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },
     isDelivered: { type: Boolean, required: true, default: false },

@@ -7,6 +7,7 @@ export interface IUser extends Document, IUserInput {
   updatedAt: Date;
   wishlist: Types.ObjectId[];
   addresses: unknown[];
+  coins: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -19,6 +20,7 @@ const userSchema = new Schema<IUser>(
     emailVerified: { type: Boolean, default: false },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     addresses: { type: [Schema.Types.Mixed], default: [] },
+    coins: { type: Number, default: 0 },
   },
   {
     timestamps: true,
