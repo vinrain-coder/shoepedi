@@ -357,7 +357,7 @@ export const createOrderFromCart = async (
       if (createdOrder.coinsEarned > 0) {
         await Order.findByIdAndUpdate(createdOrder._id, { $set: { coinsCredited: true } });
         await User.findByIdAndUpdate(userId, {
-          $inc: { coins: createdOrder.coinsEarned },
+          $inc: { coins: round2(createdOrder.coinsEarned) },
         });
       }
     } catch (coinsError) {
@@ -416,7 +416,7 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
 
       if (updatedOrder) {
         await User.findByIdAndUpdate(order.user, {
-          $inc: { coins: order.coinsEarned },
+          $inc: { coins: round2(order.coinsEarned) },
         });
       }
     }

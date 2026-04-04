@@ -73,7 +73,7 @@ export default async function CoinsPage() {
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-yellow-600 dark:text-yellow-400">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-slate-900 dark:text-slate-100">{user?.coins || 0}</h2>
+            <h2 className="text-5xl font-extrabold text-slate-900 dark:text-slate-100">{(user?.coins || 0).toFixed(2)}</h2>
             <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
           </div>
         </CardContent>
@@ -103,7 +103,7 @@ export default async function CoinsPage() {
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-bold ${event.type === 'earned' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {event.type === 'earned' ? '+' : '-'}{event.amount}
+                      {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
                     </p>
                     <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>
                   </div>
