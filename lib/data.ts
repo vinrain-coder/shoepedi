@@ -447,6 +447,13 @@ Please note that certain items, such as socks and insoles, are not eligible for 
         { name: "Express", daysToDeliver: 1, shippingPrice: 600, freeShippingMinPrice: 10000 },
       ],
       defaultDeliveryDate: "Standard",
+      affiliate: {
+        enabled: true,
+        commissionRate: 10,
+        defaultDiscountRate: 5,
+        cookieExpiryDays: 30,
+        minWithdrawalAmount: 1000,
+      },
     },
   ],
 };

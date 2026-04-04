@@ -42,6 +42,7 @@ type OrderCouponInput = {
   code: string;
   discountType: "percentage" | "fixed";
   discountAmount?: number;
+  isAffiliate?: boolean;
 };
 
 const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
@@ -258,6 +259,7 @@ export const createOrderFromCart = async (
         code: string;
         discountType: "percentage" | "fixed";
         discountAmount: number;
+        isAffiliate?: boolean;
       }
     | undefined;
 
@@ -268,10 +270,16 @@ export const createOrderFromCart = async (
     appliedCoupon = {
       _id: validatedCoupon.coupon._id,
       code: validatedCoupon.coupon.code,
-      discountType: validatedCoupon.coupon.discountType,
+      discountType: validatedCoupon.coupon.discountType as "percentage" | "fixed",
       discountAmount: validatedCoupon.discount,
+      isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
     };
     totalPrice = round2(cart.totalPrice - validatedCoupon.discount);
+
+    if (appliedCoupon.isAffiliate) {
+      affiliateId = appliedCoupon._id;
+      affiliateCode = appliedCoupon.code;
+    }
   }
 
   const initialTrackingNumber = generateTrackingNumber();
@@ -339,36 +347,45 @@ export async function updateOrderToPaid(orderId: string) {
     await order.save();
     if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
       await updateProductStock(order._id.toString());
-    if (order.coupon?._id)
+    if (order.coupon?._id && !order.coupon.isAffiliate)
       await incrementCouponUsage(order.coupon._id.toString());
 
     // Calculate Affiliate Earnings
     if (order.affiliate) {
       const { affiliate: settings } = await getSetting();
       if (settings?.enabled) {
-        const commissionAmount = round2(
-          (order.itemsPrice * settings.commissionRate) / 100,
-        );
+        const affiliateDoc = await Affiliate.findById(order.affiliate);
 
-        const existingEarning = await AffiliateEarning.findOne({
-          order: order._id,
-        });
+        if (affiliateDoc && affiliateDoc.status === "approved") {
+          const commissionRate =
+            affiliateDoc.commissionRate !== undefined
+              ? affiliateDoc.commissionRate
+              : settings.commissionRate;
 
-        if (!existingEarning) {
-          await AffiliateEarning.create({
-            affiliate: order.affiliate,
+          const commissionAmount = round2(
+            (order.itemsPrice * commissionRate) / 100,
+          );
+
+          const existingEarning = await AffiliateEarning.findOne({
             order: order._id,
-            amount: commissionAmount,
-            commissionRate: settings.commissionRate,
-            status: "earned",
           });
 
-          await Affiliate.findByIdAndUpdate(order.affiliate, {
-            $inc: {
-              earningsBalance: commissionAmount,
-              totalEarnings: commissionAmount,
-            },
-          });
+          if (!existingEarning) {
+            await AffiliateEarning.create({
+              affiliate: order.affiliate,
+              order: order._id,
+              amount: commissionAmount,
+              commissionRate: commissionRate,
+              status: "earned",
+            });
+
+            await Affiliate.findByIdAndUpdate(order.affiliate, {
+              $inc: {
+                earningsBalance: commissionAmount,
+                totalEarnings: commissionAmount,
+              },
+            });
+          }
         }
       }
     }

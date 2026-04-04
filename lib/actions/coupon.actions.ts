@@ -5,6 +5,8 @@ import Coupon, { ICoupon } from "@/lib/db/models/coupon.model";
 import { revalidatePath } from "next/cache";
 import { formatError } from "../utils";
 import { CouponInputSchema, CouponUpdateSchema } from "../validator";
+import Affiliate from "../db/models/affiliate.model";
+import { getSetting } from "./setting.actions";
 import { ICouponInput } from "@/types";
 import { z } from "zod";
 import mongoose from "mongoose";
@@ -133,38 +135,75 @@ export async function validateCoupon(code: string, itemsTotal: number) {
   if (!normalizedCode) throw new Error("Enter a coupon code.");
 
   const coupon = await Coupon.findOne({ code: normalizedCode, isActive: true });
-  if (!coupon) throw new Error("Invalid or expired coupon.");
 
-  if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
-    throw new Error("Coupon has expired.");
-  }
-  if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-    throw new Error("Coupon usage limit reached.");
-  }
-  if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
-    throw new Error(`Minimum purchase amount required: ${coupon.minPurchase}`);
+  if (coupon) {
+    if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+      throw new Error("Coupon has expired.");
+    }
+    if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
+      throw new Error("Coupon usage limit reached.");
+    }
+    if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
+      throw new Error(`Minimum purchase amount required: ${coupon.minPurchase}`);
+    }
+
+    let discount = 0;
+    if (coupon.discountType === "percentage") {
+      discount = (coupon.discountValue / 100) * itemsTotal;
+    } else {
+      discount = coupon.discountValue;
+    }
+
+    const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
+
+    return {
+      coupon: {
+        _id: coupon._id.toString(),
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        discountAmount: normalizedDiscount,
+      },
+      discount: normalizedDiscount,
+      newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
+    };
   }
 
-  let discount = 0;
-  if (coupon.discountType === "percentage") {
-    discount = (coupon.discountValue / 100) * itemsTotal;
-  } else {
-    discount = coupon.discountValue;
+  // If not a regular coupon, check if it's an affiliate code
+  const affiliate = await Affiliate.findOne({
+    affiliateCode: normalizedCode,
+    status: "approved",
+  });
+
+  if (affiliate) {
+    const settings = await getSetting();
+    if (!settings.affiliate.enabled) {
+      throw new Error("Affiliate program is currently disabled.");
+    }
+
+    const discountRate =
+      affiliate.discountRate !== undefined
+        ? affiliate.discountRate
+        : settings.affiliate.defaultDiscountRate;
+
+    const discount = (discountRate / 100) * itemsTotal;
+    const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
+
+    return {
+      coupon: {
+        _id: affiliate._id.toString(),
+        code: affiliate.affiliateCode,
+        discountType: "percentage",
+        discountValue: discountRate,
+        discountAmount: normalizedDiscount,
+        isAffiliate: true,
+      },
+      discount: normalizedDiscount,
+      newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
+    };
   }
 
-  const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
-
-  return {
-    coupon: {
-      _id: coupon._id.toString(),
-      code: coupon.code,
-      discountType: coupon.discountType,
-      discountValue: coupon.discountValue,
-      discountAmount: normalizedDiscount,
-    },
-    discount: normalizedDiscount,
-    newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
-  };
+  throw new Error("Invalid or expired coupon.");
 }
 
 export async function incrementCouponUsage(couponId: string) {

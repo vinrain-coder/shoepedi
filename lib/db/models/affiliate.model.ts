@@ -6,6 +6,8 @@ export interface IAffiliate extends Document {
   status: "pending" | "approved" | "rejected";
   earningsBalance: number;
   totalEarnings: number;
+  commissionRate?: number;
+  discountRate?: number;
   paymentDetails: {
     bankName?: string;
     accountName?: string;
@@ -28,6 +30,8 @@ const affiliateSchema = new Schema<IAffiliate>(
     },
     earningsBalance: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    commissionRate: { type: Number },
+    discountRate: { type: Number },
     paymentDetails: {
       bankName: String,
       accountName: String,

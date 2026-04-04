@@ -18,13 +18,27 @@ import {
   MessageCircle,
   ShieldIcon,
   Star,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
 import { authClient } from "@/lib/auth-client";
+import { useEffect, useState } from "react";
+import { isApprovedAffiliate } from "@/lib/actions/affiliate.actions";
 
 export default function UserButton() {
   const { data: session } = authClient.useSession();
+  const [isAffiliate, setIsAffiliate] = useState(false);
+
+  useEffect(() => {
+    const checkAffiliate = async () => {
+      if (session?.user?.id) {
+        const approved = await isApprovedAffiliate();
+        setIsAffiliate(approved);
+      }
+    };
+    void checkAffiliate();
+  }, [session]);
 
   return (
     <div className="flex gap-2 items-center">
@@ -82,6 +96,14 @@ export default function UserButton() {
                   My Comments
                 </DropdownMenuItem>
               </Link>
+              {isAffiliate && (
+                <Link href="/affiliate/dashboard" className="w-full">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <Users className="h-4 w-4" />
+                    Affiliate Dashboard
+                  </DropdownMenuItem>
+                </Link>
+              )}
               {session.user.role === "ADMIN" && (
                 <Link href="/admin/overview" className="w-full">
                   <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
