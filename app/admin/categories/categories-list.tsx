@@ -112,7 +112,6 @@ const CategoryList = () => {
             <TableRow>
               <TableHead className="w-[80px]">ID</TableHead>
               <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead className="w-[150px]">Parent</TableHead>
               {/* Hide SEO on small screens, truncate heavily */}
               <TableHead className="hidden md:table-cell max-w-[150px]">SEO Title</TableHead>
               <TableHead className="hidden lg:table-cell max-w-[200px]">SEO Description</TableHead>
@@ -128,18 +127,6 @@ const CategoryList = () => {
                 </TableCell>
                 <TableCell className="font-medium">
                   {category.name}
-                  {/* Visual hint for subcategories */}
-                  {category.parent && (
-                    <span className="block text-xs text-muted-foreground">
-                       ↳ Child
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {/* Handle populated parent object */}
-                  {typeof category.parent === 'object' && category.parent?.name 
-                    ? category.parent.name 
-                    : "-"}
                 </TableCell>
                 <TableCell className="hidden md:table-cell truncate max-w-[150px]" title={category.seoTitle}>
                   {category.seoTitle || "-"}

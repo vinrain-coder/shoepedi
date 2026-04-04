@@ -18,6 +18,7 @@ import {
   SiteCurrencySchema,
   SiteLanguageSchema,
   StockSubscriptionSchema,
+  TagInputSchema,
   UserInputSchema,
   UserNameSchema,
   UserSignInSchema,
@@ -46,11 +47,18 @@ export type ICategoryInput = z.infer<typeof CategoryInputSchema>;
 
 export type IBrandInput = z.infer<typeof BrandInputSchema>;
 
+export type ITagInput = z.infer<typeof TagInputSchema>;
+
 export type Data = {
   settings: ISettingInput[];
   webPages: IWebPageInput[];
   users: IUserInput[];
   products: IProductInput[];
+  categories: ICategoryInput[];
+  brands: IBrandInput[];
+  tags: ITagInput[];
+  coupons: ICouponInput[];
+  blogs: IBlogInput[];
   reviews: {
     title: string;
     rating: number;
