@@ -7,12 +7,16 @@ import { Metadata } from "next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cacheLife } from "next/cache";
 import Breadcrumb from "@/components/shared/breadcrumb";
+import { getSetting } from "@/lib/actions/setting.actions";
 
-export const metadata: Metadata = {
-  title: "Blogs & Trends",
-  description:
-    "Explore our latest shoe-related blogs, trends, and styling tips. Stay updated with the newest footwear fashion at ShoePedi.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSetting();
+  return {
+    title: `Blogs & Trends | ${site.name}`,
+    description:
+      "Explore our latest shoe-related blogs, trends, and styling tips. Stay updated with the newest footwear fashion at ShoePedi.",
+  };
+}
 
 async function BlogList({ currentPage }: { currentPage: number }) {
   "use cache";

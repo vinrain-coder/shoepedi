@@ -17,6 +17,17 @@ import { cacheLife } from "next/cache";
 import { getAllCategoriesForStore } from "@/lib/actions/category.actions";
 import { getAllBrandsForStore } from "@/lib/actions/brand.actions";
 import { getAllTagsForStore } from "@/lib/actions/tag.actions";
+import { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const {
+    site: { name, description, slogan },
+  } = await getSetting();
+  return {
+    title: `${name} | ${slogan}`,
+    description,
+  };
+}
 
 // Async wrapper components for streaming
 const AsyncHomeCarousel = async () => {
@@ -134,9 +145,30 @@ const SkeletonBlogSlider = () => (
   <Skeleton className="h-64 w-full rounded-lg" />
 );
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { site } = await getSetting();
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.url,
+    description: site.description,
+    publisher: {
+      "@type": "Organization",
+      name: site.name,
+      logo: {
+        "@type": "ImageObject",
+        url: `${site.url}${site.logo}`,
+      },
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       {/* Home Carousel */}
       <Suspense fallback={<SkeletonCarousel />}>
         <AsyncHomeCarousel />
