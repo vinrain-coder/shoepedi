@@ -79,12 +79,6 @@ export async function deleteCategory(id: string) {
     const category = await Category.findById(id);
     if (!category) throw new Error("Category not found");
 
-    // Optional safety: prevent deleting category with children
-    const hasChildren = await Category.exists({ parent: id });
-    if (hasChildren) {
-      throw new Error("Cannot delete a category with child categories");
-    }
-
     await Category.findByIdAndDelete(id);
 
     revalidatePath("/admin/categories");
@@ -105,9 +99,7 @@ export async function getCategoryById(id: string) {
   try {
     await connectToDatabase();
 
-    const category = await Category.findById(id)
-      .populate("parent", "name")
-      .lean();
+    const category = await Category.findById(id).lean();
 
     return category || null;
   } catch (error) {
@@ -153,7 +145,6 @@ export async function getAllCategoriesForAdmin({
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("parent", "name")
       .lean();
 
     return {
@@ -185,9 +176,7 @@ export async function getAllCategoriesForAdminProductInput() {
   cacheTag("categories");
   await connectToDatabase();
 
-  const categories = await Category.find({ parent: null })
-    .sort({ name: 1 })
-    .lean();
+  const categories = await Category.find().sort({ name: 1 }).lean();
 
   return categories.map((cat) => ({
     _id: cat._id.toString(),
@@ -206,7 +195,7 @@ export async function getAllCategoriesForStore() {
   try {
     await connectToDatabase();
 
-    const categories = await Category.find({ parent: null })
+    const categories = await Category.find()
       .sort({ isFeatured: -1, name: 1 })
       .select("name slug image description isFeatured")
       .lean();
@@ -214,7 +203,6 @@ export async function getAllCategoriesForStore() {
     return categories.map((category: any) => ({
       ...category,
       _id: category._id.toString(),
-      parent: category.parent ? category.parent.toString() : null,
     }));
   } catch (error) {
     console.error("Error fetching store categories:", error);
