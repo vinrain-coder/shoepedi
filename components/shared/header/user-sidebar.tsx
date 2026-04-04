@@ -25,11 +25,25 @@ import {
   ShoppingCartIcon,
   Star,
   UserIcon,
+  Users,
 } from "lucide-react";
 import { SignOutButton } from "../sign-out-button";
+import { useEffect, useState } from "react";
+import { isApprovedAffiliate } from "@/lib/actions/affiliate.actions";
 
 export function UserSidebar() {
   const { data: session, isPending } = authClient.useSession();
+  const [isAffiliate, setIsAffiliate] = useState(false);
+
+  useEffect(() => {
+    const checkAffiliate = async () => {
+      if (session?.user?.id) {
+        const approved = await isApprovedAffiliate();
+        setIsAffiliate(approved);
+      }
+    };
+    void checkAffiliate();
+  }, [session]);
 
   if (isPending)
     return <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />; // placeholder
@@ -144,6 +158,17 @@ export function UserSidebar() {
                   My Comments
                 </Link>
               </DropdownMenuItem>
+              {isAffiliate && (
+                <DropdownMenuItem asChild onSelect={handleSelect}>
+                  <Link
+                    href="/affiliate/dashboard"
+                    className="flex items-center gap-2 w-full"
+                  >
+                    <Users className="h-4 w-4" />
+                    Affiliate Dashboard
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {session?.user?.role === "ADMIN" && (
                 <DropdownMenuItem asChild onSelect={handleSelect}>
                   <Link

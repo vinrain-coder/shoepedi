@@ -31,7 +31,7 @@ export async function registerAffiliate(data: any) {
 
     const affiliate = await Affiliate.create({
       user: session.user.id,
-      affiliateCode: validatedData.affiliateCode,
+      affiliateCode: validatedData.affiliateCode.trim().toUpperCase(),
       paymentDetails: validatedData.paymentDetails,
       status: "pending",
     });
@@ -77,6 +77,20 @@ export async function getAffiliateDashboardData() {
 export async function getAffiliateByCode(code: string) {
   await connectToDatabase();
   return await Affiliate.findOne({ affiliateCode: code, status: "approved" });
+}
+
+export async function isApprovedAffiliate() {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) return false;
+
+    const affiliate = await Affiliate.findOne({ user: session.user.id });
+    return affiliate?.status === "approved";
+  } catch (error) {
+    console.error("Error checking affiliate status:", error);
+    return false;
+  }
 }
 
 export async function createPayoutRequest(data: any) {

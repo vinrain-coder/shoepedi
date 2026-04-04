@@ -229,6 +229,7 @@ export const OrderInputSchema = z.object({
       code: z.string(),
       discountType: z.enum(["percentage", "fixed"]),
       discountAmount: Price("Discount amount"),
+      isAffiliate: z.boolean().optional(),
     })
     .optional(),
   affiliate: MongoId.optional(),
@@ -417,6 +418,7 @@ export const SettingInputSchema = z.object({
   affiliate: z.object({
     enabled: z.boolean().default(false),
     commissionRate: z.coerce.number().min(0).default(5),
+    defaultDiscountRate: z.coerce.number().min(0).default(5),
     cookieExpiryDays: z.coerce.number().min(1).default(30),
     minWithdrawalAmount: z.coerce.number().min(0).default(1000),
   }),
@@ -604,6 +606,8 @@ export const CouponUpdateSchema = CouponInputSchema.extend({
 // Affiliate
 export const AffiliateInputSchema = z.object({
   affiliateCode: z.string().min(3).max(20),
+  commissionRate: z.coerce.number().min(0).optional(),
+  discountRate: z.coerce.number().min(0).optional(),
   paymentDetails: z.object({
     bankName: z.string().optional(),
     accountName: z.string().optional(),

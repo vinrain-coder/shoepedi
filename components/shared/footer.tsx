@@ -90,7 +90,7 @@ export default function Footer() {
           label: `Sell products on ${site.name}`,
           href: "/page/sell-products",
         },
-        { label: "Become an Affiliate", href: "/page/become-affiliate" },
+        { label: "Become an Affiliate", href: "/affiliate/register" },
         {
           label: "Advertise Your Products",
           href: "/page/advertise-your-products",
