@@ -9,7 +9,11 @@ import { AffiliateInputSchema, AffiliatePayoutInputSchema } from "../validator";
 import { formatError } from "../utils";
 import { getServerSession } from "../get-session";
 import { getSetting } from "./setting.actions";
-import { sendAdminEventNotification } from "@/emails";
+import {
+  sendAdminEventNotification,
+  sendAffiliateApprovalNotification,
+  sendAffiliatePayoutNotification,
+} from "@/emails";
 import { formatCurrency } from "../utils";
 
 export async function registerAffiliate(data: any) {
@@ -184,7 +188,20 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
-    const affiliate = await Affiliate.findByIdAndUpdate(id, { status }, { new: true });
+    const affiliate = await Affiliate.findByIdAndUpdate(id, { status }, { new: true }).populate("user", "name email");
+    if (!affiliate) throw new Error("Affiliate not found");
+
+    if (status === "approved") {
+      const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
+      const phone = user.addresses?.[0]?.phone;
+      await sendAffiliateApprovalNotification({
+        email: user.email,
+        name: user.name,
+        affiliateCode: affiliate.affiliateCode,
+        phone,
+      });
+    }
+
     revalidatePath("/admin/affiliates");
     return { success: true, message: `Affiliate ${status}`, data: JSON.parse(JSON.stringify(affiliate)) };
   } catch (error) {
@@ -244,6 +261,26 @@ export async function updatePayoutStatus(id: string, status: "paid" | "rejected"
     payout.status = status;
     payout.adminNote = adminNote;
     await payout.save();
+
+    if (status === "paid") {
+      const populatedPayout = await AffiliatePayout.findById(payout._id).populate({
+        path: "affiliate",
+        populate: { path: "user", select: "name email" },
+      });
+
+      if (populatedPayout) {
+        const affiliate = populatedPayout.affiliate as any;
+        const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
+        const phone = user.addresses?.[0]?.phone;
+        await sendAffiliatePayoutNotification({
+          email: user.email,
+          name: user.name,
+          amount: populatedPayout.amount,
+          paymentMethod: populatedPayout.paymentMethod,
+          phone,
+        });
+      }
+    }
 
     revalidatePath("/admin/payouts");
     return { success: true, message: `Payout ${status}` };
