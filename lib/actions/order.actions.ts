@@ -390,8 +390,13 @@ export async function updateOrderToPaid(orderId: string) {
       }
     }
 
-    if (order.user.email)
-      await sendPurchaseReceipt({ order: order as unknown as IOrder });
+    if (order.user.email) {
+      try {
+        await sendPurchaseReceipt({ order: order as unknown as IOrder });
+      } catch (emailError) {
+        console.error("Failed to send purchase receipt email:", emailError);
+      }
+    }
     revalidatePath(`/account/orders/${orderId}`);
     revalidatePath(`/admin/orders/${orderId}`);
     return { success: true, message: "Order paid successfully" };
@@ -956,8 +961,48 @@ export async function markPaystackOrderAsPaid(
     // 3. ALWAYS update stock (also inside transactions)
     // ----------------------------------------------------
     await updateProductStock(order._id.toString());
-    if (order.coupon?._id) {
+    if (order.coupon?._id && !order.coupon.isAffiliate) {
       await incrementCouponUsage(order.coupon._id.toString());
+    }
+
+    // Calculate Affiliate Earnings
+    if (order.affiliate) {
+      const { affiliate: settings } = await getSetting();
+      if (settings?.enabled) {
+        const affiliateDoc = await Affiliate.findById(order.affiliate);
+
+        if (affiliateDoc && affiliateDoc.status === "approved") {
+          const commissionRate =
+            affiliateDoc.commissionRate !== undefined
+              ? affiliateDoc.commissionRate
+              : settings.commissionRate;
+
+          const commissionAmount = round2(
+            (order.itemsPrice * commissionRate) / 100,
+          );
+
+          const existingEarning = await AffiliateEarning.findOne({
+            order: order._id,
+          });
+
+          if (!existingEarning) {
+            await AffiliateEarning.create({
+              affiliate: order.affiliate,
+              order: order._id,
+              amount: commissionAmount,
+              commissionRate: commissionRate,
+              status: "earned",
+            });
+
+            await Affiliate.findByIdAndUpdate(order.affiliate, {
+              $inc: {
+                earningsBalance: commissionAmount,
+                totalEarnings: commissionAmount,
+              },
+            });
+          }
+        }
+      }
     }
 
     // ----------------------------------------------------
@@ -971,7 +1016,11 @@ export async function markPaystackOrderAsPaid(
     }
 
     if (order.user?.email) {
-      await sendPurchaseReceipt({ order: order as unknown as IOrder });
+      try {
+        await sendPurchaseReceipt({ order: order as unknown as IOrder });
+      } catch (emailError) {
+        console.error("Failed to send purchase receipt email:", emailError);
+      }
     }
 
     // ----------------------------------------------------
