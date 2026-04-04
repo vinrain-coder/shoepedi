@@ -1082,8 +1082,8 @@ const CheckoutForm = ({
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
-                      autoStart
-                      hideButton
+                      autoStart={true}
+                      hideButton={true}
                       onSuccess={() =>
                         router.push(
                           `/account/orders/${createdOrder._id}/placed`
@@ -1107,8 +1107,8 @@ const CheckoutForm = ({
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
-                      autoStart
-                      hideButton
+                      autoStart={true}
+                      hideButton={true}
                       onSuccess={() =>
                         router.push(
                           `/account/orders/${createdOrder._id}/placed`
