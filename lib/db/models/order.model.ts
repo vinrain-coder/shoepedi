@@ -67,6 +67,8 @@ export interface IOrder extends Document {
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
+  affiliate?: Types.ObjectId;
+  affiliateCode?: string;
   status: OrderTrackingStatus;
   trackingNumber: string;
   shipment?: IOrderShipment;
@@ -83,8 +85,6 @@ const orderSchema = new Schema<IOrder>(
     },
     trackingNumber: {
       type: String,
-      unique: true,
-      index: true,
       default: generateTrackingNumber,
     },
     status: {
@@ -198,6 +198,13 @@ const orderSchema = new Schema<IOrder>(
       code: { type: String },
       discountType: { type: String, enum: ["percentage", "fixed"] },
       discountAmount: { type: Number },
+    },
+    affiliate: {
+      type: Schema.Types.ObjectId,
+      ref: "Affiliate",
+    },
+    affiliateCode: {
+      type: String,
     },
     totalPrice: { type: Number, required: true },
     isPaid: { type: Boolean, required: true, default: false },

@@ -231,6 +231,8 @@ export const OrderInputSchema = z.object({
       discountAmount: Price("Discount amount"),
     })
     .optional(),
+  affiliate: MongoId.optional(),
+  affiliateCode: z.string().optional(),
 });
 // Cart
 
@@ -412,6 +414,12 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, "At least one delivery date is required"),
   defaultDeliveryDate: z.string().min(1, "Delivery date is required"),
+  affiliate: z.object({
+    enabled: z.boolean().default(false),
+    commissionRate: z.coerce.number().min(0).default(5),
+    cookieExpiryDays: z.coerce.number().min(1).default(30),
+    minWithdrawalAmount: z.coerce.number().min(0).default(1000),
+  }),
 });
 
 // Blog Validation
@@ -591,4 +599,22 @@ export const CouponInputSchema = z.object({
 // Coupon update schema (includes `_id`)
 export const CouponUpdateSchema = CouponInputSchema.extend({
   _id: MongoId,
+});
+
+// Affiliate
+export const AffiliateInputSchema = z.object({
+  affiliateCode: z.string().min(3).max(20),
+  paymentDetails: z.object({
+    bankName: z.string().optional(),
+    accountName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    payPalEmail: z.string().email().optional().or(z.literal("")),
+    mPesaNumber: z.string().optional(),
+  }),
+});
+
+export const AffiliatePayoutInputSchema = z.object({
+  amount: Price("Payout amount"),
+  paymentMethod: z.string().min(1),
+  paymentDetails: z.record(z.unknown()),
 });

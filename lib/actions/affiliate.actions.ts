@@ -1,0 +1,221 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { connectToDatabase } from "../db";
+import Affiliate, { IAffiliate } from "../db/models/affiliate.model";
+import AffiliateEarning from "../db/models/affiliate-earning.model";
+import AffiliatePayout from "../db/models/affiliate-payout.model";
+import { AffiliateInputSchema, AffiliatePayoutInputSchema } from "../validator";
+import { formatError } from "../utils";
+import { getServerSession } from "../get-session";
+import { getSetting } from "./setting.actions";
+
+export async function registerAffiliate(data: any) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const validatedData = AffiliateInputSchema.parse(data);
+
+    const existingAffiliate = await Affiliate.findOne({
+      $or: [{ user: session.user.id }, { affiliateCode: validatedData.affiliateCode }],
+    });
+
+    if (existingAffiliate) {
+      if (existingAffiliate.user.toString() === session.user.id) {
+        throw new Error("You are already registered as an affiliate");
+      }
+      throw new Error("Affiliate code is already taken");
+    }
+
+    const affiliate = await Affiliate.create({
+      user: session.user.id,
+      affiliateCode: validatedData.affiliateCode,
+      paymentDetails: validatedData.paymentDetails,
+      status: "pending",
+    });
+
+    revalidatePath("/affiliate/dashboard");
+    return { success: true, message: "Application submitted successfully", data: JSON.parse(JSON.stringify(affiliate)) };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getAffiliateDashboardData() {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const affiliate = await Affiliate.findOne({ user: session.user.id });
+    if (!affiliate) return { success: false, message: "Affiliate profile not found" };
+
+    const earnings = await AffiliateEarning.find({ affiliate: affiliate._id })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("order", "trackingNumber totalPrice status");
+
+    const payouts = await AffiliatePayout.find({ affiliate: affiliate._id })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    return {
+      success: true,
+      data: {
+        affiliate: JSON.parse(JSON.stringify(affiliate)),
+        recentEarnings: JSON.parse(JSON.stringify(earnings)),
+        recentPayouts: JSON.parse(JSON.stringify(payouts)),
+      },
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getAffiliateByCode(code: string) {
+  await connectToDatabase();
+  return await Affiliate.findOne({ affiliateCode: code, status: "approved" });
+}
+
+export async function createPayoutRequest(data: any) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const affiliate = await Affiliate.findOne({ user: session.user.id });
+    if (!affiliate || affiliate.status !== "approved") {
+      throw new Error("Only approved affiliates can request payouts");
+    }
+
+    const { affiliate: settings } = await getSetting();
+    const validatedData = AffiliatePayoutInputSchema.parse(data);
+
+    if (validatedData.amount < settings.minWithdrawalAmount) {
+      throw new Error(`Minimum withdrawal amount is ${settings.minWithdrawalAmount}`);
+    }
+
+    if (validatedData.amount > affiliate.earningsBalance) {
+      throw new Error("Insufficient balance");
+    }
+
+    const payout = await AffiliatePayout.create({
+      affiliate: affiliate._id,
+      amount: validatedData.amount,
+      paymentMethod: validatedData.paymentMethod,
+      paymentDetails: validatedData.paymentDetails,
+      status: "pending",
+    });
+
+    // Deduct from balance immediately to prevent double withdrawal
+    affiliate.earningsBalance -= validatedData.amount;
+    await affiliate.save();
+
+    revalidatePath("/affiliate/payouts");
+    return { success: true, message: "Payout request submitted", data: JSON.parse(JSON.stringify(payout)) };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Admin Actions
+export async function getAllAffiliates({ page = 1, limit = 20, status }: { page?: number, limit?: number, status?: string }) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const query = status ? { status } : {};
+    const affiliates = await Affiliate.find(query)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const count = await Affiliate.countDocuments(query);
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(affiliates)),
+      totalPages: Math.ceil(count / limit),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function updateAffiliateStatus(id: string, status: "approved" | "rejected") {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const affiliate = await Affiliate.findByIdAndUpdate(id, { status }, { new: true });
+    revalidatePath("/admin/affiliates");
+    return { success: true, message: `Affiliate ${status}`, data: JSON.parse(JSON.stringify(affiliate)) };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getAllPayouts({ page = 1, limit = 20, status }: { page?: number, limit?: number, status?: string }) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const query = status ? { status } : {};
+    const payouts = await AffiliatePayout.find(query)
+      .populate({
+        path: "affiliate",
+        populate: { path: "user", select: "name email" }
+      })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const count = await AffiliatePayout.countDocuments(query);
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(payouts)),
+      totalPages: Math.ceil(count / limit),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function updatePayoutStatus(id: string, status: "paid" | "rejected", adminNote?: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const payout = await AffiliatePayout.findById(id);
+    if (!payout) throw new Error("Payout not found");
+    if (payout.status !== "pending" && payout.status !== "processing") {
+      throw new Error("Payout already processed");
+    }
+
+    if (status === "rejected") {
+      // Refund affiliate balance
+      const affiliate = await Affiliate.findById(payout.affiliate);
+      if (affiliate) {
+        affiliate.earningsBalance += payout.amount;
+        await affiliate.save();
+      }
+    }
+
+    payout.status = status;
+    payout.adminNote = adminNote;
+    await payout.save();
+
+    revalidatePath("/admin/payouts");
+    return { success: true, message: `Payout ${status}` };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
