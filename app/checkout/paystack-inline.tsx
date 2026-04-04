@@ -1,14 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Loader2, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,7 +11,7 @@ interface PaystackInlineProps {
   orderId: string;
   onSuccess?: (reference: { reference: string }) => void;
   onClose?: () => void;
-  onFailure?: (error?: unknown) => void; // <-- new
+  onFailure?: (error?: unknown) => void;
   autoStart?: boolean;
   hideButton?: boolean;
   buttonLabel?: string;
@@ -49,14 +41,13 @@ export default function PaystackInline({
   orderId,
   onSuccess,
   onClose,
-  onFailure, // <-- new
+  onFailure,
   autoStart = false,
   hideButton = false,
   buttonLabel = "Complete Payment",
   className,
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [isPaystackLaunched, setIsPaystackLaunched] = useState(false);
   const hasAutoStarted = useRef(false);
 
   useEffect(() => {
@@ -92,9 +83,8 @@ export default function PaystackInline({
       ref: `${orderId}-${Date.now()}`,
       onClose: function () {
         toast.error("Payment popup closed");
-        setIsPaystackLaunched(false);
         if (onClose) onClose();
-        if (onFailure) onFailure("popup_closed"); // <-- treat popup close as failure
+        if (onFailure) onFailure("popup_closed");
       },
       callback: function (response: { reference: string }) {
         fetch("/api/paystack/verify", {
@@ -123,7 +113,6 @@ export default function PaystackInline({
     });
 
     handler.openIframe();
-    setIsPaystackLaunched(true);
   }, [amount, email, onClose, onFailure, onSuccess, orderId, publicKey, isScriptLoaded]);
 
   useEffect(() => {
@@ -133,45 +122,7 @@ export default function PaystackInline({
   }, [autoStart, isScriptLoaded, payWithPaystack]);
 
   if (hideButton) {
-    return (
-      <Dialog open={!isPaystackLaunched} modal={false}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader className="flex flex-col items-center justify-center space-y-4 py-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <ShieldCheck className="h-10 w-10 text-primary" />
-            </div>
-            <DialogTitle className="text-2xl font-bold">
-              Completing Your Order...
-            </DialogTitle>
-            <DialogDescription className="text-center text-base">
-              We&apos;re connecting you to Paystack&apos;s secure checkout.
-              Please keep this window open.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center space-y-6 pb-6">
-            <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              {orderId === "initializing"
-                ? "Creating your order..."
-                : "Initializing payment..."}
-            </div>
-            {orderId !== "initializing" && (
-              <Button
-                onClick={payWithPaystack}
-                disabled={!isScriptLoaded}
-                className="w-full rounded-full py-6 text-lg font-semibold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Launch Payment Window
-              </Button>
-            )}
-            <p className="text-xs text-muted-foreground">
-              If the payment window didn&apos;t open automatically, click the
-              button above.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
+    return null;
   }
   return (
     <Button

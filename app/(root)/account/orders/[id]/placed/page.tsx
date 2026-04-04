@@ -16,12 +16,12 @@ export default function OrderPlacedPage() {
     if (!orderId) return;
 
     const interval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 2, 100));
+      setProgress((prev) => Math.min(prev + 4, 100));
     }, 40);
 
     const timeout = setTimeout(() => {
       router.replace(`/account/orders/${orderId}`);
-    }, 2500);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
