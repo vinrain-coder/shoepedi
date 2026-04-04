@@ -178,31 +178,33 @@ const CheckoutForm = ({
     resolver: zodResolver(ShippingAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
-  const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = (values) => {
-    const submitAddress = async () => {
+  const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
+    values
+  ) => {
+    try {
       await setShippingAddress(values);
-      setIsAddressSelected(true);
 
-      if (!saveAddressToAccount || !session) return;
+      if (saveAddressToAccount && session) {
+        const result = await upsertUserAddress({
+          ...values,
+          label: `Address ${addressBook.length + 1}`,
+          saveAsDefault: addressBook.length === 0,
+        });
 
-      const result = await upsertUserAddress({
-        ...values,
-        label: `Address ${addressBook.length + 1}`,
-        saveAsDefault: addressBook.length === 0,
-      });
-
-      if (result.success && result.data) {
-        setAddressBook(result.data);
-        const selected = result.data.find(
-          (address) =>
-            address.street === values.street &&
-            address.postalCode === values.postalCode
-        );
-        if (selected) setSelectedSavedAddressId(selected.id);
+        if (result.success && result.data) {
+          setAddressBook(result.data);
+          const selected = result.data.find(
+            (address) =>
+              address.street === values.street &&
+              address.postalCode === values.postalCode
+          );
+          if (selected) setSelectedSavedAddressId(selected.id);
+        }
       }
-    };
-
-    void submitAddress();
+      setIsAddressSelected(true);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
   };
 
   useEffect(() => {
@@ -576,9 +578,9 @@ const CheckoutForm = ({
                             onClick={() =>
                               setSelectedSavedAddressId(address.id)
                             }
-                            className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                            className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
                               selectedSavedAddressId === address.id
-                                ? "border-primary bg-primary/5"
+                                ? "border-2 border-primary bg-primary/5 shadow-md"
                                 : "hover:border-primary/40"
                             }`}
                           >
@@ -1069,15 +1071,15 @@ const CheckoutForm = ({
               {/* Mobile summary */}
               <div className="block md:hidden">
                 {paystackLaunchingState && (
-                  <div className="mb-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
-                    <p className="inline-flex items-center gap-2 text-sm font-medium text-primary">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Launching secure Paystack checkout...
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Please wait while we open your payment popup. If it
-                      doesn&apos;t appear, use the manual button below.
-                    </p>
+                  <div className="mb-4">
+                    <PaystackInline
+                      email={session?.user.email as string}
+                      amount={Math.round(finalTotal * 100)}
+                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                      orderId={createdOrder?._id || "initializing"}
+                      hideButton
+                      autoStart={true}
+                    />
                   </div>
                 )}
                 {renderCheckoutSummary({
@@ -1111,14 +1113,15 @@ const CheckoutForm = ({
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
                   {paystackLaunchingState && (
-                    <div className="w-full rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
-                      <p className="inline-flex items-center gap-2 text-sm font-medium text-primary">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Launching secure Paystack checkout...
-                      </p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Please keep this tab open while connecting you to payment page.
-                      </p>
+                    <div className="w-full">
+                      <PaystackInline
+                        email={session?.user.email as string}
+                        amount={Math.round(finalTotal * 100)}
+                        publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                        orderId={createdOrder?._id || "initializing"}
+                        hideButton
+                        autoStart={true}
+                      />
                     </div>
                   )}
                   {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
