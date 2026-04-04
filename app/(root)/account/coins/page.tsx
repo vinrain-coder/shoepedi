@@ -26,32 +26,32 @@ export default async function CoinsPage() {
     user: session.user.id,
     $or: [{ coinsEarned: { $gt: 0 } }, { coinsRedeemed: { $gt: 0 } }],
     isPaid: true
-  }).sort({ createdAt: -1 });
+  }).sort({ createdAt: -1 }).lean();
 
-  const history = coinOrders.flatMap(order => {
+  const history = coinOrders.flatMap((order: any) => {
     const events = [];
     if (order.coinsEarned > 0 && order.coinsCredited) {
       events.push({
-        id: `${order._id}-earned`,
+        id: `${order._id.toString()}-earned`,
         type: 'earned',
         amount: order.coinsEarned,
-        date: order.paidAt || order.createdAt,
-        orderId: order._id,
-        description: `Earned from Order ${formatId(order._id)}`
+        date: (order.paidAt || order.createdAt || new Date()).toISOString(),
+        orderId: order._id.toString(),
+        description: `Earned from Order ${formatId(order._id.toString())}`
       });
     }
     if (order.coinsRedeemed > 0) {
       events.push({
-        id: `${order._id}-redeemed`,
+        id: `${order._id.toString()}-redeemed`,
         type: 'redeemed',
         amount: order.coinsRedeemed,
-        date: order.createdAt,
-        orderId: order._id,
-        description: `Redeemed for Order ${formatId(order._id)}`
+        date: (order.createdAt || new Date()).toISOString(),
+        orderId: order._id.toString(),
+        description: `Redeemed for Order ${formatId(order._id.toString())}`
       });
     }
     return events;
-  }).sort((a, b) => b.date.getTime() - a.date.getTime());
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-6">
@@ -98,7 +98,7 @@ export default async function CoinsPage() {
                     </div>
                     <div>
                       <p className="font-semibold">{event.description}</p>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(event.date).dateTime}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(new Date(event.date)).dateTime}</p>
                     </div>
                   </div>
                   <div className="text-right">
