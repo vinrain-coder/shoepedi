@@ -267,6 +267,28 @@ export const createOrderFromCart = async (
     | undefined;
 
   let totalPrice = cart.totalPrice;
+  const coinsEarned = round2(cart.itemsPrice * 0.04);
+  let coinsRedeemed = 0;
+  let isPaid = false;
+  let paidAt: Date | undefined;
+
+  if (cart.paymentMethod === "Coins") {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+    if (user.coins < cart.totalPrice) {
+      throw new Error("Insufficient coins balance");
+    }
+    if (coupon?.code) {
+      throw new Error("Coupons cannot be used with coin payments");
+    }
+    // Ignore affiliate code for coin payments
+    affiliateId = undefined;
+    affiliateCode = undefined;
+    coinsRedeemed = cart.totalPrice;
+    isPaid = true;
+    paidAt = new Date();
+  }
+
   if (coupon?.code) {
     const validatedCoupon = await validateCoupon(coupon.code, cart.itemsPrice);
 
@@ -297,6 +319,10 @@ export const createOrderFromCart = async (
     totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     coupon: appliedCoupon,
+    coinsEarned,
+    coinsRedeemed,
+    isPaid,
+    paidAt,
     trackingNumber: initialTrackingNumber,
     status: "pending",
     affiliate: affiliateId,
@@ -313,6 +339,32 @@ export const createOrderFromCart = async (
     ],
   });
   const createdOrder = await Order.create(order);
+
+  if (cart.paymentMethod === "Coins") {
+    const userUpdate = await User.findOneAndUpdate(
+      { _id: userId, coins: { $gte: cart.totalPrice } },
+      { $inc: { coins: -cart.totalPrice } },
+      { new: true }
+    );
+
+    if (!userUpdate) {
+      await Order.findByIdAndDelete(createdOrder._id);
+      throw new Error("Insufficient coins balance or payment failed");
+    }
+
+    // Credit reward coins for coin-paid orders
+    try {
+      if (createdOrder.coinsEarned > 0) {
+        await Order.findByIdAndUpdate(createdOrder._id, { $set: { coinsCredited: true } });
+        await User.findByIdAndUpdate(userId, {
+          $inc: { coins: createdOrder.coinsEarned },
+        });
+      }
+    } catch (coinsError) {
+      console.error("Non-critical: Failed to credit reward coins for coin payment:", coinsError);
+    }
+  }
+
   await runStatusTransition({
     order: createdOrder,
     nextStatus: "confirmed",
@@ -352,6 +404,25 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
   });
 
   await order.save();
+
+  // Credit earned coins to user
+  try {
+    if (order.coinsEarned > 0 && !order.coinsCredited) {
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: order._id, coinsCredited: { $ne: true } },
+        { $set: { coinsCredited: true } },
+        { new: true }
+      );
+
+      if (updatedOrder) {
+        await User.findByIdAndUpdate(order.user, {
+          $inc: { coins: order.coinsEarned },
+        });
+      }
+    }
+  } catch (coinsError) {
+    console.error("Non-critical: Failed to credit earned coins:", coinsError);
+  }
 
   try {
     await updateProductStock(order._id.toString());

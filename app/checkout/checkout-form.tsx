@@ -392,12 +392,17 @@ const CheckoutForm = ({
                 type="text"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                placeholder="Enter coupon code"
+                placeholder={
+                  paymentMethod === "Coins"
+                    ? "Coupons not allowed with Coins"
+                    : "Enter coupon code"
+                }
+                disabled={paymentMethod === "Coins"}
               />
               <Button
                 type="button"
                 onClick={handleApplyCoupon}
-                disabled={isApplyingCoupon}
+                disabled={isApplyingCoupon || paymentMethod === "Coins"}
               >
                 {isApplyingCoupon ? "Applying..." : "Apply"}
               </Button>
@@ -434,6 +439,10 @@ const CheckoutForm = ({
             )}
             <div className="text-lg font-bold">Order Summary</div>
             <div className="space-y-2">
+              <div className="flex justify-between text-orange-600 font-medium">
+                <span>Coins to earn:</span>
+                <span>{coinsToEarn} coins</span>
+              </div>
               <div className="flex justify-between">
                 <span>Items:</span>
                 <span>
@@ -513,6 +522,27 @@ const CheckoutForm = ({
   );
 
   const { data: session } = authClient.useSession();
+  const userCoins = (session?.user as any)?.coins || 0;
+  const coinsToEarn = Math.round(itemsPrice * 0.04 * 100) / 100;
+
+  const finalAvailablePaymentMethods = useMemo(() => {
+    const methods = [...availablePaymentMethods];
+    if (userCoins >= finalTotal) {
+      if (!methods.find((m) => m.name === "Coins")) {
+        methods.push({ name: "Coins", commission: 0 });
+      }
+    }
+    return methods;
+  }, [availablePaymentMethods, userCoins, finalTotal]);
+
+  useEffect(() => {
+    if (paymentMethod === "Coins") {
+      setCouponCode("");
+      setAppliedCoupon(null);
+      setCouponError(null);
+    }
+  }, [paymentMethod]);
+
   const isMobileMoneyPayment =
     paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card";
   const paystackLaunchingState = isMobileMoneyPayment && isPlacingOrder;
@@ -839,17 +869,22 @@ const CheckoutForm = ({
                       value={paymentMethod}
                       onValueChange={(value) => setPaymentMethod(value)}
                     >
-                      {availablePaymentMethods.map((pm) => (
+                      {finalAvailablePaymentMethods.map((pm) => (
                         <div key={pm.name} className="flex items-center py-1 ">
                           <RadioGroupItem
                             value={pm.name}
                             id={`payment-${pm.name}`}
                           />
                           <Label
-                            className="font-bold pl-2 cursor-pointer"
+                            className="font-bold pl-2 cursor-pointer flex items-center gap-2"
                             htmlFor={`payment-${pm.name}`}
                           >
                             {pm.name}
+                            {pm.name === "Coins" && (
+                              <span className="text-xs font-normal text-muted-foreground">
+                                (Balance: {userCoins} coins)
+                              </span>
+                            )}
                           </Label>
                         </div>
                       ))}
