@@ -103,6 +103,12 @@ const settingSchema = new Schema<ISetting>(
       },
     ],
     defaultDeliveryDate: { type: String, required: true },
+    affiliate: {
+      enabled: { type: Boolean, required: true, default: false },
+      commissionRate: { type: Number, required: true, default: 5 },
+      cookieExpiryDays: { type: Number, required: true, default: 30 },
+      minWithdrawalAmount: { type: Number, required: true, default: 1000 },
+    },
   },
   {
     timestamps: true,

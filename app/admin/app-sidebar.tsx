@@ -18,6 +18,8 @@ import {
   IconTicket,
   IconUsers,
   IconMessageCircle,
+  IconAffiliate,
+  IconCash,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -58,6 +60,16 @@ const data = {
       title: "Users",
       url: "/admin/users",
       icon: IconUsers,
+    },
+    {
+      title: "Affiliates",
+      url: "/admin/affiliates",
+      icon: IconAffiliate,
+    },
+    {
+      title: "Payouts",
+      url: "/admin/payouts",
+      icon: IconCash,
     },
   ],
   navSecondary: [

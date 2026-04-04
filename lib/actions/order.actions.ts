@@ -29,6 +29,10 @@ import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
 import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
+import { getAffiliateByCode } from "./affiliate.actions";
+import Affiliate from "../db/models/affiliate.model";
+import AffiliateEarning from "../db/models/affiliate-earning.model";
+import { cookies } from "next/headers";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 export type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
@@ -228,6 +232,17 @@ export const createOrderFromCart = async (
   userId: string,
   coupon?: OrderCouponInput,
 ) => {
+  const cookieStore = await cookies();
+  const affiliateCode = cookieStore.get("affiliate_code")?.value;
+  let affiliateId: string | undefined;
+
+  if (affiliateCode) {
+    const affiliate = await getAffiliateByCode(affiliateCode);
+    if (affiliate) {
+      affiliateId = affiliate._id.toString();
+    }
+  }
+
   const cart = {
     ...clientSideCart,
     ...calcDeliveryDateAndPrice({
@@ -273,6 +288,8 @@ export const createOrderFromCart = async (
     coupon: appliedCoupon,
     trackingNumber: initialTrackingNumber,
     status: "pending",
+    affiliate: affiliateId,
+    affiliateCode: affiliateCode,
     shipment: {
       estimatedDeliveryDate: cart.expectedDeliveryDate,
     },
@@ -324,6 +341,38 @@ export async function updateOrderToPaid(orderId: string) {
       await updateProductStock(order._id.toString());
     if (order.coupon?._id)
       await incrementCouponUsage(order.coupon._id.toString());
+
+    // Calculate Affiliate Earnings
+    if (order.affiliate) {
+      const { affiliate: settings } = await getSetting();
+      if (settings?.enabled) {
+        const commissionAmount = round2(
+          (order.itemsPrice * settings.commissionRate) / 100,
+        );
+
+        const existingEarning = await AffiliateEarning.findOne({
+          order: order._id,
+        });
+
+        if (!existingEarning) {
+          await AffiliateEarning.create({
+            affiliate: order.affiliate,
+            order: order._id,
+            amount: commissionAmount,
+            commissionRate: settings.commissionRate,
+            status: "earned",
+          });
+
+          await Affiliate.findByIdAndUpdate(order.affiliate, {
+            $inc: {
+              earningsBalance: commissionAmount,
+              totalEarnings: commissionAmount,
+            },
+          });
+        }
+      }
+    }
+
     if (order.user.email)
       await sendPurchaseReceipt({ order: order as unknown as IOrder });
     revalidatePath(`/account/orders/${orderId}`);
