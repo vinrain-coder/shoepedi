@@ -9,6 +9,8 @@ import { AffiliateInputSchema, AffiliatePayoutInputSchema } from "../validator";
 import { formatError } from "../utils";
 import { getServerSession } from "../get-session";
 import { getSetting } from "./setting.actions";
+import { sendAdminEventNotification } from "@/emails";
+import { formatCurrency } from "../utils";
 
 export async function registerAffiliate(data: any) {
   try {
@@ -34,6 +36,14 @@ export async function registerAffiliate(data: any) {
       affiliateCode: validatedData.affiliateCode.trim().toUpperCase(),
       paymentDetails: validatedData.paymentDetails,
       status: "pending",
+    });
+
+    await sendAdminEventNotification({
+      title: "New affiliate application",
+      description: `${session.user.name || "A user"} applied to be an affiliate (Code: ${affiliate.affiliateCode}).`,
+      href: "/admin/affiliates",
+      meta: "Application pending",
+      createdAt: affiliate.createdAt.toISOString(),
     });
 
     revalidatePath("/affiliate/dashboard");
@@ -126,6 +136,14 @@ export async function createPayoutRequest(data: any) {
     // Deduct from balance immediately to prevent double withdrawal
     affiliate.earningsBalance -= validatedData.amount;
     await affiliate.save();
+
+    await sendAdminEventNotification({
+      title: "New payout request",
+      description: `${session.user.name || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
+      href: "/admin/payouts",
+      meta: "Payout pending",
+      createdAt: payout.createdAt.toISOString(),
+    });
 
     revalidatePath("/affiliate/payouts");
     return { success: true, message: "Payout request submitted", data: JSON.parse(JSON.stringify(payout)) };
