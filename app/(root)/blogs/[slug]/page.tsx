@@ -102,8 +102,41 @@ export default async function BlogPage({
     })),
   }));
 
+  const ogImage = resolvedImage || `${site.url}/default-image.jpg`;
+
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: blog.title,
+    image: resolvedImage || ogImage,
+    datePublished: blog.createdAt,
+    dateModified: blog.updatedAt || blog.createdAt,
+    author: {
+      "@type": "Organization",
+      name: site.name,
+      url: site.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: site.name,
+      logo: {
+        "@type": "ImageObject",
+        url: `${site.url}${site.logo}`,
+      },
+    },
+    description: blog.content.slice(0, 160),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${site.url}/blogs/${blog.slug}`,
+    },
+  };
+
   return (
     <div className="mx-auto w-full max-w-4xl px-2 sm:px-3">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
       <Breadcrumb />
       <div className="mt-2 rounded-2xl border border-border/60 bg-background p-4 sm:p-6">
         <div className="space-y-4">
