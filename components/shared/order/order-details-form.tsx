@@ -246,8 +246,22 @@ export default function OrderDetailsForm({
                 </span>
               </div>
             )}
+            {order.coinsRedeemed > 0 && (
+              <div className="flex justify-between">
+                <span>Coins Redeemed:</span>
+                <span className="text-red-600">
+                  -{order.coinsRedeemed} coins
+                </span>
+              </div>
+            )}
+            {order.coinsEarned > 0 && (
+              <div className="flex justify-between text-orange-600">
+                <span>Coins to be earned:</span>
+                <span>+{order.coinsEarned} coins</span>
+              </div>
+            )}
 
-            <div className="flex justify-between pt-2 font-bold text-lg">
+            <div className="flex justify-between pt-2 font-bold text-lg border-t">
               <span>Order Total:</span>
               <span>
                 <ProductPrice

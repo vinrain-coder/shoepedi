@@ -40,6 +40,12 @@ const tabGroups: {
         description: "Update your profile details, email and password",
         icon: ShieldCheck,
       },
+      {
+        href: "/account/coins",
+        title: "My Coins",
+        description: "Check your balance and view coin transaction history",
+        icon: Coins,
+      },
     ],
   },
   {
