@@ -58,7 +58,7 @@ export default async function CoinsPage() {
       <Breadcrumb />
       <div className="flex flex-col gap-2">
         <h1 className="h1-bold text-3xl flex items-center gap-2">
-          <CoinsIcon className="h-8 w-8 text-yellow-500" />
+          <CoinsIcon className="h-8 w-8 text-primary" />
           My Coins
         </h1>
         <p className="text-muted-foreground">
@@ -66,14 +66,14 @@ export default async function CoinsPage() {
         </p>
       </div>
 
-      <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-900/50">
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 background border-primary/20">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-4 rounded-full bg-yellow-500/10">
-            <CoinsIcon className="h-12 w-12 text-yellow-500 animate-pulse" />
+          <div className="p-4 rounded-full bg-primary/10">
+            <CoinsIcon className="h-12 w-12 text-primary animate-pulse" />
           </div>
           <div>
-            <p className="text-sm font-medium uppercase tracking-wider text-yellow-600 dark:text-yellow-400">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-slate-900 dark:text-slate-100">{(user?.coins || 0).toFixed(2)}</h2>
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
+            <h2 className="text-5xl font-extrabold text-foreground">{(user?.coins || 0).toFixed(2)}</h2>
             <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
           </div>
         </CardContent>
@@ -90,10 +90,10 @@ export default async function CoinsPage() {
         ) : (
           <div className="space-y-3">
             {history.map((event) => (
-              <Card key={event.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-accent/30">
+              <Card key={event.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${event.type === 'earned' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                    <div className={`p-2 rounded-full ${event.type === 'earned' ? 'bg-green-100 text-green-600' : 'bg-destructive/10 text-red-600'}`}>
                       {event.type === 'earned' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
                     </div>
                     <div>
@@ -102,7 +102,7 @@ export default async function CoinsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold ${event.type === 'earned' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <p className={`text-lg font-bold ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                       {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
                     </p>
                     <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>
