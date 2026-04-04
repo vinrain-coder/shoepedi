@@ -329,113 +329,127 @@ export const createOrderFromCart = async (
   return createdOrder;
 };
 
-export async function updateOrderToPaid(orderId: string) {
-  try {
-    await connectToDatabase();
-    const order = await Order.findById(orderId).populate<{
-      user: { email: string; name: string };
-    }>("user", "name email");
-    if (!order) throw new Error("Order not found");
-    if (order.isPaid) throw new Error("Order is already paid");
-    order.isPaid = true;
-    order.paidAt = new Date();
-    appendTrackingHistory(order, {
-      status: order.status,
-      message: "Payment received successfully.",
-      source: "system",
-    });
-    await order.save();
-    if (!process.env.MONGODB_URI?.startsWith("mongodb://localhost"))
-      await updateProductStock(order._id.toString());
-    if (order.coupon?._id && !order.coupon.isAffiliate)
-      await incrementCouponUsage(order.coupon._id.toString());
+const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
+  await connectToDatabase();
+  const order = await Order.findById(orderId);
 
-    // Calculate Affiliate Earnings
+  if (!order) throw new Error("Order not found");
+  if (order.isPaid) return { success: true, message: "Order is already paid" };
+
+  order.isPaid = true;
+  order.paidAt = new Date();
+  if (paymentInfo) {
+    order.paymentResult = paymentInfo;
+  }
+
+  appendTrackingHistory(order, {
+    status: order.status,
+    message: paymentInfo ? "Payment verified by gateway." : "Payment received successfully.",
+    source: "system",
+  });
+
+  await order.save();
+
+  try {
+    await updateProductStock(order._id.toString());
+  } catch (stockError) {
+    console.error("Critical: Failed to update product stock:", stockError);
+  }
+
+  try {
+    if (order.coupon?._id && !order.coupon.isAffiliate) {
+      await incrementCouponUsage(order.coupon._id.toString());
+    }
+  } catch (couponError) {
+    console.error("Non-critical: Failed to increment coupon usage:", couponError);
+  }
+
+  // Handle Affiliate Earnings
+  try {
     if (order.affiliate) {
       const { affiliate: settings } = await getSetting();
       if (settings?.enabled) {
         const affiliateDoc = await Affiliate.findById(order.affiliate);
-
         if (affiliateDoc && affiliateDoc.status === "approved") {
           const commissionRate =
             affiliateDoc.commissionRate !== undefined
               ? affiliateDoc.commissionRate
               : settings.commissionRate;
 
-          const commissionAmount = round2(
-            (order.itemsPrice * commissionRate) / 100,
-          );
+          const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
 
-          const existingEarning = await AffiliateEarning.findOne({
-            order: order._id,
-          });
+          if (commissionAmount > 0) {
+            const existingEarning = await AffiliateEarning.findOne({ order: order._id });
+            if (!existingEarning) {
+              await AffiliateEarning.create({
+                affiliate: order.affiliate,
+                order: order._id,
+                amount: commissionAmount,
+                commissionRate: commissionRate,
+                status: "earned",
+              });
 
-          if (!existingEarning) {
-            await AffiliateEarning.create({
-              affiliate: order.affiliate,
-              order: order._id,
-              amount: commissionAmount,
-              commissionRate: commissionRate,
-              status: "earned",
-            });
-
-            await Affiliate.findByIdAndUpdate(order.affiliate, {
-              $inc: {
-                earningsBalance: commissionAmount,
-                totalEarnings: commissionAmount,
-              },
-            });
+              await Affiliate.findByIdAndUpdate(order.affiliate, {
+                $inc: {
+                  earningsBalance: commissionAmount,
+                  totalEarnings: commissionAmount,
+                },
+              });
+              revalidatePath("/affiliate/dashboard");
+            }
           }
         }
       }
     }
+  } catch (affiliateError) {
+    console.error("Non-critical: Failed to process affiliate earnings:", affiliateError);
+  }
 
-    if (order.user.email) {
-      try {
-        await sendPurchaseReceipt({ order: order as unknown as IOrder });
-      } catch (emailError) {
-        console.error("Failed to send purchase receipt email:", emailError);
-      }
+  // Send purchase receipt
+  try {
+    const populatedOrder = await Order.findById(orderId).populate("user", "name email");
+    const emailUser = populatedOrder?.user as unknown as { email?: string };
+
+    if (emailUser?.email) {
+      await sendPurchaseReceipt({ order: populatedOrder as unknown as IOrder });
     }
-    revalidatePath(`/account/orders/${orderId}`);
-    revalidatePath(`/admin/orders/${orderId}`);
-    return { success: true, message: "Order paid successfully" };
+  } catch (emailError) {
+    console.error("Non-critical: Failed to send purchase receipt email:", emailError);
+  }
+
+  revalidatePath(`/account/orders/${orderId}`);
+  revalidatePath(`/admin/orders/${orderId}`);
+
+  return { success: true, message: "Order paid successfully" };
+};
+
+export async function updateOrderToPaid(orderId: string) {
+  try {
+    return await processOrderPayment(orderId);
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
 }
 
 const updateProductStock = async (orderId: string) => {
-  const session = await mongoose.connection.startSession();
-
   try {
-    session.startTransaction();
-    const opts = { session };
-
-    // IMPORTANT: load the full order, not findOneAndUpdate
-    const order = await Order.findById(orderId).session(session);
+    const order = await Order.findById(orderId);
     if (!order) throw new Error("Order not found");
 
-    // update stock item-by-item
     for (const item of order.items) {
-      const product = await Product.findById(item.product).session(session);
-      if (!product) throw new Error("Product not found");
-
-      product.countInStock -= item.quantity;
-
       await Product.updateOne(
-        { _id: product._id },
-        { countInStock: product.countInStock },
-        opts,
+        { _id: item.product },
+        {
+          $inc: {
+            countInStock: -item.quantity,
+            numSales: item.quantity,
+          },
+        },
       );
     }
-
-    await session.commitTransaction();
-    session.endSession();
     return true;
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    console.error("Failed to update product stock:", error);
     throw error;
   }
 };
@@ -924,18 +938,6 @@ export async function markPaystackOrderAsPaid(
   },
 ) {
   try {
-    await connectToDatabase();
-
-    // ----------------------------------------------------
-    // 1. Load order with populated user
-    // ----------------------------------------------------
-    const order = await Order.findById(orderId).populate<{
-      user: { email: string; name: string };
-    }>("user", "name email");
-
-    if (!order) throw new Error("Order not found");
-    if (order.isPaid) throw new Error("Order is already paid");
-
     if (
       !paymentInfo.id ||
       !paymentInfo.email_address ||
@@ -944,92 +946,7 @@ export async function markPaystackOrderAsPaid(
       throw new Error("Missing required payment information");
     }
 
-    // ----------------------------------------------------
-    // 2. Update payment result (BUT DO NOT update stock here)
-    // ----------------------------------------------------
-    order.isPaid = true;
-    order.paidAt = new Date();
-    order.paymentResult = paymentInfo;
-    appendTrackingHistory(order, {
-      status: order.status,
-      message: "Payment verified by gateway.",
-      source: "system",
-    });
-    await order.save();
-
-    // ----------------------------------------------------
-    // 3. ALWAYS update stock (also inside transactions)
-    // ----------------------------------------------------
-    await updateProductStock(order._id.toString());
-    if (order.coupon?._id && !order.coupon.isAffiliate) {
-      await incrementCouponUsage(order.coupon._id.toString());
-    }
-
-    // Calculate Affiliate Earnings
-    if (order.affiliate) {
-      const { affiliate: settings } = await getSetting();
-      if (settings?.enabled) {
-        const affiliateDoc = await Affiliate.findById(order.affiliate);
-
-        if (affiliateDoc && affiliateDoc.status === "approved") {
-          const commissionRate =
-            affiliateDoc.commissionRate !== undefined
-              ? affiliateDoc.commissionRate
-              : settings.commissionRate;
-
-          const commissionAmount = round2(
-            (order.itemsPrice * commissionRate) / 100,
-          );
-
-          const existingEarning = await AffiliateEarning.findOne({
-            order: order._id,
-          });
-
-          if (!existingEarning) {
-            await AffiliateEarning.create({
-              affiliate: order.affiliate,
-              order: order._id,
-              amount: commissionAmount,
-              commissionRate: commissionRate,
-              status: "earned",
-            });
-
-            await Affiliate.findByIdAndUpdate(order.affiliate, {
-              $inc: {
-                earningsBalance: commissionAmount,
-                totalEarnings: commissionAmount,
-              },
-            });
-          }
-        }
-      }
-    }
-
-    // ----------------------------------------------------
-    // 4. Email receipt
-    // ----------------------------------------------------
-    if (!order.user || !order.user.email) {
-      const populatedUser = await User.findById(order.user);
-      if (populatedUser?.email) {
-        order.user = populatedUser;
-      }
-    }
-
-    if (order.user?.email) {
-      try {
-        await sendPurchaseReceipt({ order: order as unknown as IOrder });
-      } catch (emailError) {
-        console.error("Failed to send purchase receipt email:", emailError);
-      }
-    }
-
-    // ----------------------------------------------------
-    // 5. Revalidate cache & return
-    // ----------------------------------------------------
-    revalidatePath(`/account/orders/${orderId}`);
-    revalidatePath(`/admin/orders/${orderId}`);
-
-    return { success: true, message: "Order paid successfully" };
+    return await processOrderPayment(orderId, paymentInfo);
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
