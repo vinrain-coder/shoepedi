@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import Link from "next/link";
-import { ArrowRight, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
+import { ArrowRight, Coins, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
