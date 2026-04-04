@@ -1317,8 +1317,8 @@ We also provide helpful resources such as order tracking, product guides, and FA
           enabled: true,
           sandboxMode: true,
           username: "sandbox",
-          senderId: "",
-          adminRecipients: "",
+          senderId: "123",
+          adminRecipients: "123",
         },
       },
       carousels: [
@@ -1351,7 +1351,7 @@ We also provide helpful resources such as order tracking, product guides, and FA
       ],
       defaultLanguage: "en-US",
       availableCurrencies: [
-            {
+        {
           name: "Kenyan Shilling",
           code: "KES",
           symbol: "KES",
