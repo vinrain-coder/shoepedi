@@ -234,7 +234,7 @@ export const createOrderFromCart = async (
   coupon?: OrderCouponInput,
 ) => {
   const cookieStore = await cookies();
-  const affiliateCode = cookieStore.get("affiliate_code")?.value;
+  let affiliateCode = cookieStore.get("affiliate_code")?.value;
   let affiliateId: string | undefined;
 
   if (affiliateCode) {
