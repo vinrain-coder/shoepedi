@@ -56,6 +56,7 @@ export default function PaystackInline({
   className,
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isPaystackLaunched, setIsPaystackLaunched] = useState(false);
   const hasAutoStarted = useRef(false);
 
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function PaystackInline({
       ref: `${orderId}-${Date.now()}`,
       onClose: function () {
         toast.error("Payment popup closed");
+        setIsPaystackLaunched(false);
         if (onClose) onClose();
         if (onFailure) onFailure("popup_closed"); // <-- treat popup close as failure
       },
@@ -121,6 +123,7 @@ export default function PaystackInline({
     });
 
     handler.openIframe();
+    setIsPaystackLaunched(true);
   }, [amount, email, onClose, onFailure, onSuccess, orderId, publicKey, isScriptLoaded]);
 
   useEffect(() => {
@@ -131,7 +134,7 @@ export default function PaystackInline({
 
   if (hideButton) {
     return (
-      <Dialog open={true}>
+      <Dialog open={!isPaystackLaunched} modal={false}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader className="flex flex-col items-center justify-center space-y-4 py-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">

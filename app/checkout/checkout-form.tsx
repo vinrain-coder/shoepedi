@@ -1070,18 +1070,6 @@ const CheckoutForm = ({
             <div className="mt-6">
               {/* Mobile summary */}
               <div className="block md:hidden">
-                {paystackLaunchingState && (
-                  <div className="mb-4">
-                    <PaystackInline
-                      email={session?.user.email as string}
-                      amount={Math.round(finalTotal * 100)}
-                      publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                      orderId={createdOrder?._id || "initializing"}
-                      hideButton
-                      autoStart={true}
-                    />
-                  </div>
-                )}
                 {renderCheckoutSummary({
                   createdOrder,
                   paymentMethod,
@@ -1112,18 +1100,6 @@ const CheckoutForm = ({
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paystackLaunchingState && (
-                    <div className="w-full">
-                      <PaystackInline
-                        email={session?.user.email as string}
-                        amount={Math.round(finalTotal * 100)}
-                        publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                        orderId={createdOrder?._id || "initializing"}
-                        hideButton
-                        autoStart={true}
-                      />
-                    </div>
-                  )}
                   {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
                   createdOrder ? (
                     <PaystackInline
