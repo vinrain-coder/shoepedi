@@ -310,7 +310,7 @@ const CheckoutForm = ({
 
       clearCart();
 
-      if (paymentMethod === "Cash On Delivery") {
+      if (paymentMethod === "Cash On Delivery" || paymentMethod === "Coins") {
         router.push(`/account/orders/${order._id}/placed`);
         return;
       }
