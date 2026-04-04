@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "seed": "npx tsx lib/seed.ts",
     "seed:categories": "npx tsx ./lib/db/seedCategories.ts"
   },
   "dependencies": {
