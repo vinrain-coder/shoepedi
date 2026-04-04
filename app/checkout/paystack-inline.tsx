@@ -1,6 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -48,6 +56,7 @@ export default function PaystackInline({
   className,
 }: PaystackInlineProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isPaystackLaunched, setIsPaystackLaunched] = useState(false);
   const hasAutoStarted = useRef(false);
 
   useEffect(() => {
@@ -83,6 +92,7 @@ export default function PaystackInline({
       ref: `${orderId}-${Date.now()}`,
       onClose: function () {
         toast.error("Payment popup closed");
+        setIsPaystackLaunched(false);
         if (onClose) onClose();
         if (onFailure) onFailure("popup_closed");
       },
@@ -102,17 +112,20 @@ export default function PaystackInline({
               if (onSuccess) onSuccess(response);
             } else {
               toast.error("Payment verification failed");
+              setIsPaystackLaunched(false);
               if (onFailure) onFailure("verification_failed");
             }
           })
           .catch((err) => {
             toast.error("Verification request failed");
+            setIsPaystackLaunched(false);
             if (onFailure) onFailure(err);
           });
       },
     });
 
     handler.openIframe();
+    setIsPaystackLaunched(true);
   }, [amount, email, onClose, onFailure, onSuccess, orderId, publicKey, isScriptLoaded]);
 
   useEffect(() => {
@@ -122,7 +135,55 @@ export default function PaystackInline({
   }, [autoStart, isScriptLoaded, payWithPaystack]);
 
   if (hideButton) {
-    return null;
+    return (
+      <Dialog open={true} modal={false}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader className="flex flex-col items-center justify-center space-y-4 py-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <ShieldCheck className="h-10 w-10 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">
+              Completing Your Order...
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
+              We&apos;re connecting you to Paystack&apos;s secure checkout.
+              Please keep this window open.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-6 pb-6">
+            <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+              {isPaystackLaunched ? (
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <ShieldCheck className="h-5 w-5" />
+                  <span>Secure checkout window is open</span>
+                </div>
+              ) : (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  {orderId === "initializing"
+                    ? "Creating your order..."
+                    : "Initializing payment..."}
+                </>
+              )}
+            </div>
+            {orderId !== "initializing" && !isPaystackLaunched && (
+              <Button
+                onClick={payWithPaystack}
+                disabled={!isScriptLoaded}
+                className="w-full rounded-full py-6 text-lg font-semibold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Launch Payment Window
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {isPaystackLaunched
+                ? "Switch to the payment window to complete your transaction."
+                : "If the payment window didn't open automatically, click the button above."}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
   return (
     <Button
