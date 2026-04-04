@@ -1,6 +1,15 @@
 "use client";
 
-import { BadgeDollarSign, Barcode, CreditCard, Users } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Barcode,
+  CreditCard,
+  Users,
+  Star,
+  Mail,
+  LifeBuoy,
+  TrendingUp,
+} from "lucide-react";
 
 import Link from "next/link";
 import {
@@ -10,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -21,6 +31,7 @@ import {
 import { calculatePastDate, formatDateTime, formatNumber } from "@/lib/utils";
 
 import SalesCategoryPieChart from "./sales-category-pie-chart";
+import OrderStatusChart from "./order-status-chart";
 
 import { useEffect, useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
@@ -54,188 +65,370 @@ export default function OverviewReport() {
   if (!data)
     return (
       <div className="space-y-4">
-        {/* First Row */}
-        <div className="flex flex-col md:flex-row gap-4">
+        {/* Summary Row 1 */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, index) => (
-            <Skeleton key={index} className="h-36 w-full" />
+            <Skeleton key={index} className="h-32 w-full rounded-xl" />
+          ))}
+        </div>
+        {/* Summary Row 2 */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, index) => (
+            <Skeleton key={index} className="h-32 w-full rounded-xl" />
           ))}
         </div>
 
-        {/* Second Row */}
+        {/* Main Chart Row */}
         <div>
-          <Skeleton className="h-[30rem] w-full" />
+          <Skeleton className="h-[400px] w-full rounded-xl" />
         </div>
 
-        {/* Third Row */}
-        <div className="flex gap-4">
+        {/* Secondary Charts Row */}
+        <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-60 w-full" />
+            <Skeleton key={index} className="h-[350px] w-full rounded-xl" />
           ))}
         </div>
 
-        {/* Fourth Row */}
-        <div className="flex gap-4">
+        {/* Categories and Status Row */}
+        <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-60 w-full" />
+            <Skeleton key={index} className="h-[350px] w-full rounded-xl" />
           ))}
         </div>
       </div>
     );
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="h1-bold">Dashboard</h1>
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
+          <p className="text-muted-foreground">
+            Manage your store performance and see latest activity.
+          </p>
+        </div>
         <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
       </div>
-      <div className="space-y-4">
-        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-          <Card className="@container/card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <BadgeDollarSign />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">
-                <ProductPrice price={data.totalSales} plain />
-              </div>
-              <div>
-                <Link className="text-xs" href="/admin/orders">
-                  View revenue
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
-              <CreditCard />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">
-                {formatNumber(data.ordersCount)}
-              </div>
-              <div>
-                <Link className="text-xs" href="/admin/orders">
-                  View orders
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Customers</CardTitle>
-              <Users />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">{data.usersCount}</div>
-              <div>
-                <Link className="text-xs" href="/admin/users">
-                  View customers
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Products</CardTitle>
-              <Barcode />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">{data.productsCount}</div>
-              <div>
-                <Link className="text-xs" href="/admin/products">
-                  View products
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Sales Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SalesAreaChart data={data.salesChartData} />
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>How much you’re earning</CardTitle>
-              <CardDescription>Estimated · Last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TableChart data={data.monthlySales} labelType="month" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Performance</CardTitle>
-              <CardDescription>
-                {formatDateTime(date!.from!).dateOnly} to{" "}
-                {formatDateTime(date!.to!).dateOnly}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TableChart data={data.topSalesProducts} labelType="product" />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="relative overflow-hidden border-l-4 border-l-emerald-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <div className="rounded-full bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
+              <BadgeDollarSign className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              <ProductPrice price={data.totalSales} plain />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Gross sales in selected range
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <BadgeDollarSign className="size-12" />
+          </div>
+        </Card>
 
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Best-Selling Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 w-full overflow-hidden">
-              <SalesCategoryPieChart data={data.topSalesCategories} />
-            </CardContent>
-          </Card>
+        <Card className="relative overflow-hidden border-l-4 border-l-sky-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <div className="rounded-full bg-sky-100 p-2 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400">
+              <CreditCard className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatNumber(data.ordersCount)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Confirmed transactions
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <CreditCard className="size-12" />
+          </div>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table className="w-full min-w-max">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Buyer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.latestOrders.map((order: IOrderList) => (
-                    <TableRow key={order._id}>
-                      <TableCell>
-                        {order.user ? order.user.name : "Deleted User"}
-                      </TableCell>
-                      <TableCell>
-                        {formatDateTime(order.createdAt).dateOnly}
-                      </TableCell>
-                      <TableCell>
-                       <ProductPrice price={order.totalPrice} plain />
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/admin/orders/${order._id}`}>
-                          <span className="px-2">Details</span>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="relative overflow-hidden border-l-4 border-l-indigo-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Order</CardTitle>
+            <div className="rounded-full bg-indigo-100 p-2 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">
+              <TrendingUp className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              <ProductPrice price={data.avgOrderValue} plain />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Per order average revenue
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <TrendingUp className="size-12" />
+          </div>
+        </Card>
+
+        <Card className="relative overflow-hidden border-l-4 border-l-purple-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Customers</CardTitle>
+            <div className="rounded-full bg-purple-100 p-2 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
+              <Users className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(data.usersCount)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              New registrations in range
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <Users className="size-12" />
+          </div>
+        </Card>
+
+        <Card className="relative overflow-hidden border-l-4 border-l-amber-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Product Reviews</CardTitle>
+            <div className="rounded-full bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+              <Star className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(data.reviewsCount)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Customer feedback submitted
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <Star className="size-12" />
+          </div>
+        </Card>
+
+        <Card className="relative overflow-hidden border-l-4 border-l-rose-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
+            <div className="rounded-full bg-rose-100 p-2 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400">
+              <Mail className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(data.newslettersCount)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Active newsletter members
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <Mail className="size-12" />
+          </div>
+        </Card>
+
+        <Card className="relative overflow-hidden border-l-4 border-l-orange-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Support Inbox</CardTitle>
+            <div className="rounded-full bg-orange-100 p-2 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400">
+              <LifeBuoy className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(data.ticketsCount)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Open tickets requiring action
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <LifeBuoy className="size-12" />
+          </div>
+        </Card>
+
+        <Card className="relative overflow-hidden border-l-4 border-l-blue-500 shadow-sm transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <div className="rounded-full bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+              <Barcode className="size-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(data.productsCount)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Active inventory items
+            </p>
+          </CardContent>
+          <div className="absolute bottom-0 right-0 p-2 opacity-5">
+            <Barcode className="size-12" />
+          </div>
+        </Card>
       </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="size-5 text-primary" />
+              Sales Performance
+            </CardTitle>
+            <CardDescription>Daily revenue trends in selected period</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SalesAreaChart data={data.salesChartData} />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Order Status</CardTitle>
+            <CardDescription>Distribution of order lifecycle</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrderStatusChart data={data.orderStatusDistribution} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Top Categories</CardTitle>
+            <CardDescription>Sales distribution by product category</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SalesCategoryPieChart data={data.topSalesCategories} />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Recent Reviews</CardTitle>
+            <CardDescription>Latest customer feedback across store</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {data.latestReviews.length > 0 ? (
+                data.latestReviews.map((review: any) => (
+                  <div key={review._id} className="flex gap-4">
+                    <Avatar className="size-9 border">
+                      <AvatarImage src={review.user?.image} />
+                      <AvatarFallback>{review.user?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{review.user?.name}</span>
+                        <div className="flex items-center text-amber-500">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`size-3 ${
+                                i < review.rating ? "fill-current" : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs font-medium text-primary line-clamp-1">
+                        {review.product?.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                        &quot;{review.comment}&quot;
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDateTime(review.createdAt).dateTime}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex h-40 items-center justify-center text-muted-foreground italic">
+                  No reviews found in this period.
+                </div>
+              )}
+            </div>
+            <div className="mt-6 pt-4 border-t">
+              <Link
+                href="/admin/reviews"
+                className="text-sm font-medium text-primary hover:underline flex items-center justify-center gap-1"
+              >
+                Manage all reviews
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Monthly Earnings</CardTitle>
+            <CardDescription>Revenue trajectory over last 6 months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TableChart data={data.monthlySales} labelType="month" />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Best Sellers</CardTitle>
+            <CardDescription>Highest performing products by sales</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TableChart data={data.topSalesProducts} labelType="product" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Recent Orders</CardTitle>
+            <CardDescription>Latest transactions from your store</CardDescription>
+          </div>
+          <Link
+            href="/admin/orders"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            View All
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.latestOrders.map((order: IOrderList) => (
+                  <TableRow key={order._id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">
+                      {order.user ? order.user.name : "Guest Customer"}
+                    </TableCell>
+                    <TableCell>
+                      {formatDateTime(order.createdAt).dateOnly}
+                    </TableCell>
+                    <TableCell>
+                      <ProductPrice price={order.totalPrice} plain />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/admin/orders/${order._id}`}
+                        className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-accent"
+                      >
+                        Details
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -24,6 +24,9 @@ import {
 import { DateRange } from "react-day-picker";
 import Product from "../db/models/product.model";
 import User from "../db/models/user.model";
+import Review from "../db/models/review.model";
+import NewsletterSubscription from "../db/models/newsletter-subscription.model";
+import SupportTicket from "../db/models/support-ticket.model";
 import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
@@ -696,33 +699,35 @@ export async function getOrderSummary(date: DateRange) {
   cacheLife("hours");
   await connectToDatabase();
 
-  const ordersCount = await Order.countDocuments({
+  const query = {
     createdAt: {
       $gte: date.from,
       $lte: date.to,
     },
-  });
-  const productsCount = await Product.countDocuments({
-    createdAt: {
-      $gte: date.from,
-      $lte: date.to,
-    },
-  });
-  const usersCount = await User.countDocuments({
-    createdAt: {
-      $gte: date.from,
-      $lte: date.to,
-    },
-  });
+  };
+
+  const [
+    ordersCount,
+    productsCount,
+    usersCount,
+    reviewsCount,
+    newslettersCount,
+    ticketsCount,
+  ] = await Promise.all([
+    Order.countDocuments(query),
+    Product.countDocuments(query),
+    User.countDocuments(query),
+    Review.countDocuments(query),
+    NewsletterSubscription.countDocuments({
+      ...query,
+      status: "subscribed",
+    }),
+    SupportTicket.countDocuments({ status: "open" }),
+  ]);
 
   const totalSalesResult = await Order.aggregate([
     {
-      $match: {
-        createdAt: {
-          $gte: date.from,
-          $lte: date.to,
-        },
-      },
+      $match: query,
     },
     {
       $group: {
@@ -733,6 +738,14 @@ export async function getOrderSummary(date: DateRange) {
     { $project: { totalSales: { $ifNull: ["$sales", 0] } } },
   ]);
   const totalSales = totalSalesResult[0] ? totalSalesResult[0].totalSales : 0;
+
+  const avgOrderValue = ordersCount > 0 ? totalSales / ordersCount : 0;
+
+  const orderStatusDistribution = await Order.aggregate([
+    { $match: query },
+    { $group: { _id: "$status", value: { $sum: 1 } } },
+    { $project: { name: "$_id", value: 1, _id: 0 } },
+  ]);
 
   const today = new Date();
   const sixMonthEarlierDate = new Date(
@@ -762,7 +775,7 @@ export async function getOrderSummary(date: DateRange) {
       },
     },
 
-    { $sort: { label: -1 } },
+    { $sort: { label: 1 } },
   ]);
   const topSalesCategories = await getTopSalesCategories(date);
   const topSalesProducts = await getTopSalesProducts(date);
@@ -775,16 +788,29 @@ export async function getOrderSummary(date: DateRange) {
     .populate("user", "name")
     .sort({ createdAt: "desc" })
     .limit(limit);
+
+  const latestReviews = await Review.find()
+    .sort({ createdAt: "desc" })
+    .limit(5)
+    .populate("user", "name")
+    .populate("product", "name");
+
   return {
     ordersCount,
     productsCount,
     usersCount,
+    reviewsCount,
+    newslettersCount,
+    ticketsCount,
     totalSales,
+    avgOrderValue,
+    orderStatusDistribution: JSON.parse(JSON.stringify(orderStatusDistribution)),
     monthlySales: JSON.parse(JSON.stringify(monthlySales)),
     salesChartData: JSON.parse(JSON.stringify(await getSalesChartData(date))),
     topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),
     topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
     latestOrders: JSON.parse(JSON.stringify(latestOrders)) as IOrderList[],
+    latestReviews: JSON.parse(JSON.stringify(latestReviews)),
   };
 }
 
