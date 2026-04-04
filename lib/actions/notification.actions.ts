@@ -10,10 +10,12 @@ import StockSubscription from "../db/models/stock-subscription.model";
 import User from "../db/models/user.model";
 import AdminNotificationState from "../db/models/admin-notification-state.model";
 import SupportTicket from "../db/models/support-ticket.model";
+import Affiliate from "../db/models/affiliate.model";
+import AffiliatePayout from "../db/models/affiliate-payout.model";
 
 export type AdminNotificationItem = {
   id: string;
-  type: "order" | "review" | "stock-subscription" | "customer" | "support";
+  type: "order" | "review" | "stock-subscription" | "customer" | "support" | "affiliate" | "affiliate-payout";
   title: string;
   description: string;
   href: string;
@@ -83,6 +85,32 @@ type SupportNotificationSource = {
   status: "open" | "replied";
 };
 
+type AffiliateNotificationSource = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  affiliateCode: string;
+  status: "pending" | "approved" | "rejected";
+  user?: {
+    name?: string;
+    email?: string;
+  } | null;
+};
+
+type AffiliatePayoutNotificationSource = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  amount: number;
+  status: "pending" | "processing" | "paid" | "rejected";
+  paymentMethod: string;
+  affiliate?: {
+    affiliateCode: string;
+    user?: {
+      name?: string;
+      email?: string;
+    } | null;
+  } | null;
+};
+
 const asId = (value: { toString(): string } | string) => value.toString();
 const asDate = (value: Date | string) => new Date(value).toISOString();
 
@@ -105,7 +133,7 @@ export async function getAdminNotificationFeed(
 
   const lastSeenAt = state?.lastSeenAt ? new Date(state.lastSeenAt) : null;
 
-  const [orders, reviews, subscriptions, customers, supportTickets] = (await Promise.all([
+  const [orders, reviews, subscriptions, customers, supportTickets, affiliates, payouts] = (await Promise.all([
     Order.find()
       .populate("user", "name email")
       .sort({ createdAt: -1 })
@@ -130,12 +158,27 @@ export async function getAdminNotificationFeed(
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean(),
+    Affiliate.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean(),
+    AffiliatePayout.find()
+      .populate({
+        path: "affiliate",
+        populate: { path: "user", select: "name email" }
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean(),
   ])) as [
     OrderNotificationSource[],
     ReviewNotificationSource[],
     StockSubscriptionNotificationSource[],
     CustomerNotificationSource[],
     SupportNotificationSource[],
+    AffiliateNotificationSource[],
+    AffiliatePayoutNotificationSource[],
   ];
 
   const items: AdminNotificationItem[] = [
@@ -194,6 +237,26 @@ export async function getAdminNotificationFeed(
       createdAt: asDate(ticket.createdAt),
       isUnread: lastSeenAt ? new Date(ticket.createdAt) > lastSeenAt : true,
       meta: ticket.status === "replied" ? "Already replied" : "Needs admin response",
+    })),
+    ...affiliates.map((affiliate) => ({
+      id: `affiliate-${asId(affiliate._id)}`,
+      type: "affiliate" as const,
+      title: "New affiliate application",
+      description: `${affiliate.user?.name || "A user"} applied to be an affiliate (Code: ${affiliate.affiliateCode}).`,
+      href: "/admin/affiliates",
+      createdAt: asDate(affiliate.createdAt),
+      isUnread: lastSeenAt ? new Date(affiliate.createdAt) > lastSeenAt : true,
+      meta: affiliate.status === "pending" ? "Application pending" : `Status: ${affiliate.status}`,
+    })),
+    ...payouts.map((payout) => ({
+      id: `affiliate-payout-${asId(payout._id)}`,
+      type: "affiliate-payout" as const,
+      title: "New payout request",
+      description: `${payout.affiliate?.user?.name || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
+      href: "/admin/payouts",
+      createdAt: asDate(payout.createdAt),
+      isUnread: lastSeenAt ? new Date(payout.createdAt) > lastSeenAt : true,
+      meta: payout.status === "pending" ? "Payout pending" : `Status: ${payout.status}`,
     })),
   ]
     .sort(
