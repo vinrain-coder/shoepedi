@@ -6,7 +6,7 @@ import { Metadata } from "next";
 import { formatDateTime, formatId } from "@/lib/utils";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
 
@@ -58,7 +58,7 @@ export default async function CoinsPage() {
       <Breadcrumb />
       <div className="flex flex-col gap-2">
         <h1 className="h1-bold text-3xl flex items-center gap-2">
-          <Coins className="h-8 w-8 text-yellow-500" />
+          <CoinsIcon className="h-8 w-8 text-yellow-500" />
           My Coins
         </h1>
         <p className="text-muted-foreground">
@@ -69,7 +69,7 @@ export default async function CoinsPage() {
       <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-900/50">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
           <div className="p-4 rounded-full bg-yellow-500/10">
-            <Coins className="h-12 w-12 text-yellow-500 animate-pulse" />
+            <CoinsIcon className="h-12 w-12 text-yellow-500 animate-pulse" />
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-yellow-600 dark:text-yellow-400">Current Balance</p>

@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import Link from "next/link";
-import { ArrowRight, Coins, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
+import { ArrowRight, Coins as CoinsIcon, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +44,7 @@ const tabGroups: {
         href: "/account/coins",
         title: "My Coins",
         description: "Check your balance and view coin transaction history",
-        icon: Coins,
+        icon: CoinsIcon,
       },
     ],
   },
