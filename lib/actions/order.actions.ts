@@ -352,17 +352,7 @@ export const createOrderFromCart = async (
       throw new Error("Insufficient coins balance or payment failed");
     }
 
-    // Credit reward coins for coin-paid orders
-    try {
-      if (createdOrder.coinsEarned > 0) {
-        await Order.findByIdAndUpdate(createdOrder._id, { $set: { coinsCredited: true } });
-        await User.findByIdAndUpdate(userId, {
-          $inc: { coins: round2(createdOrder.coinsEarned) },
-        });
-      }
-    } catch (coinsError) {
-      console.error("Non-critical: Failed to credit reward coins for coin payment:", coinsError);
-    }
+    await runPostPaymentSideEffects(createdOrder._id.toString());
   }
 
   await runStatusTransition({
@@ -384,28 +374,11 @@ export const createOrderFromCart = async (
   return createdOrder;
 };
 
-const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
-  await connectToDatabase();
+const runPostPaymentSideEffects = async (orderId: string) => {
   const order = await Order.findById(orderId);
+  if (!order) return;
 
-  if (!order) throw new Error("Order not found");
-  if (order.isPaid) return { success: true, message: "Order is already paid" };
-
-  order.isPaid = true;
-  order.paidAt = new Date();
-  if (paymentInfo) {
-    order.paymentResult = paymentInfo;
-  }
-
-  appendTrackingHistory(order, {
-    status: order.status,
-    message: paymentInfo ? "Payment verified by gateway." : "Payment received successfully.",
-    source: "system",
-  });
-
-  await order.save();
-
-  // Credit earned coins to user
+  // 1. Credit earned coins to user
   try {
     if (order.coinsEarned > 0 && !order.coinsCredited) {
       const updatedOrder = await Order.findOneAndUpdate(
@@ -424,12 +397,14 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
     console.error("Non-critical: Failed to credit earned coins:", coinsError);
   }
 
+  // 2. Update product stock
   try {
     await updateProductStock(order._id.toString());
   } catch (stockError) {
     console.error("Critical: Failed to update product stock:", stockError);
   }
 
+  // 3. Increment coupon usage
   try {
     if (order.coupon?._id && !order.coupon.isAffiliate) {
       await incrementCouponUsage(order.coupon._id.toString());
@@ -438,7 +413,7 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
     console.error("Non-critical: Failed to increment coupon usage:", couponError);
   }
 
-  // Handle Affiliate Earnings
+  // 4. Handle Affiliate Earnings
   try {
     if (order.affiliate) {
       const { affiliate: settings } = await getSetting();
@@ -479,7 +454,7 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
     console.error("Non-critical: Failed to process affiliate earnings:", affiliateError);
   }
 
-  // Send purchase receipt
+  // 5. Send purchase receipt
   try {
     const populatedOrder = await Order.findById(orderId).populate("user", "name email");
     const emailUser = populatedOrder?.user as unknown as { email?: string };
@@ -493,6 +468,30 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
 
   revalidatePath(`/account/orders/${orderId}`);
   revalidatePath(`/admin/orders/${orderId}`);
+};
+
+const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
+  await connectToDatabase();
+  const order = await Order.findById(orderId);
+
+  if (!order) throw new Error("Order not found");
+  if (order.isPaid) return { success: true, message: "Order is already paid" };
+
+  order.isPaid = true;
+  order.paidAt = new Date();
+  if (paymentInfo) {
+    order.paymentResult = paymentInfo;
+  }
+
+  appendTrackingHistory(order, {
+    status: order.status,
+    message: paymentInfo ? "Payment verified by gateway." : "Payment received successfully.",
+    source: "system",
+  });
+
+  await order.save();
+
+  await runPostPaymentSideEffects(orderId);
 
   return { success: true, message: "Order paid successfully" };
 };
