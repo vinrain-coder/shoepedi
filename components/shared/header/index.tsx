@@ -40,7 +40,7 @@ export default async function Header() {
           </div>
 
           <div className="hidden md:block flex-1 max-w-xl">
-            <Search />
+            <Search categories={categories} siteName={site.name} />
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <NavbarCompare />
@@ -50,7 +50,7 @@ export default async function Header() {
         </div>
 
         <div className="md:hidden block py-2">
-          <Search />
+          <Search categories={categories} siteName={site.name} />
         </div>
       </div>
 
