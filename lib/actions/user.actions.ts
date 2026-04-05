@@ -130,3 +130,17 @@ export async function getUserById(userId: string) {
   if (!user) throw new Error("User not found");
   return JSON.parse(JSON.stringify(user)) as IUser;
 }
+
+export async function getUserCoins() {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session?.user?.id) return 0;
+
+    const user = await User.findById(session.user.id).select("coins").lean();
+    return user?.coins || 0;
+  } catch (error) {
+    console.error("Error fetching user coins:", error);
+    return 0;
+  }
+}

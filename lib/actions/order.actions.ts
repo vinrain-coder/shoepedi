@@ -130,14 +130,23 @@ const notifyCustomerOrderStatus = async (
 ) => {
   if (!shouldSendStatusNotification(status)) return;
 
-  const user = order.user as unknown as { email?: string };
-  if (!user?.email) return;
+  let email = (order.user as unknown as { email?: string })?.email;
+
+  if (!email) {
+     const populatedOrder = await Order.findById(order._id).populate("user", "email name");
+     email = (populatedOrder?.user as unknown as { email?: string })?.email;
+     if (email) {
+       (order as any).user = populatedOrder?.user;
+     }
+  }
+
+  if (!email) return;
 
   const { site } = await getSetting();
   const trackingLink = `${site.url}${buildTrackingLink(order.trackingNumber)}`;
 
   await sendOrderTrackingNotification({
-    order,
+    order: order as IOrder,
     statusLabel: ORDER_STATUS_LABELS[status],
     statusMessage: message,
     trackingLink,
@@ -145,11 +154,14 @@ const notifyCustomerOrderStatus = async (
 };
 
 const revertOrderEffects = async (order: IOrder) => {
-  // 1. Refund paid amount to coins if paid
-  if (order.isPaid) {
-    await User.findByIdAndUpdate(order.user, {
+  const userId = (order.user as any)?._id || order.user;
+
+  // 1. Refund paid amount to coins if paid and not already refunded
+  if (order.isPaid && !order.refundedToCoins) {
+    await User.findByIdAndUpdate(userId, {
       $inc: { coins: round2(order.totalPrice) },
     });
+    order.refundedToCoins = true;
   }
 
   // 2. Restore product stock if it was previously adjusted and not yet reverted
@@ -170,7 +182,7 @@ const revertOrderEffects = async (order: IOrder) => {
 
   // 3. Revoke earned coins if credited
   if (order.coinsCredited && order.coinsEarned > 0) {
-    await User.findByIdAndUpdate(order.user, {
+    await User.findByIdAndUpdate(userId, {
       $inc: { coins: -round2(order.coinsEarned) },
     });
     order.coinsCredited = false;
@@ -447,8 +459,8 @@ export const createOrderFromCart = async (
 
   if (cart.paymentMethod === "Coins") {
     const userUpdate = await User.findOneAndUpdate(
-      { _id: userId, coins: { $gte: cart.totalPrice } },
-      { $inc: { coins: -cart.totalPrice } },
+      { _id: userId, coins: { $gte: totalPrice } },
+      { $inc: { coins: -totalPrice } },
       { new: true }
     );
 
@@ -485,6 +497,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 1. Credit earned coins to user
   try {
+    const userId = (order.user as any)?._id || order.user;
     if (order.coinsEarned > 0 && !order.coinsCredited) {
       const updatedOrder = await Order.findOneAndUpdate(
         { _id: order._id, coinsCredited: { $ne: true } },
@@ -493,7 +506,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       );
 
       if (updatedOrder) {
-        await User.findByIdAndUpdate(order.user, {
+        await User.findByIdAndUpdate(userId, {
           $inc: { coins: round2(order.coinsEarned) },
         });
       }
@@ -570,7 +583,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
     const emailUser = populatedOrder?.user as unknown as { email?: string };
 
     if (emailUser?.email) {
-      await sendPurchaseReceipt({ order: populatedOrder as unknown as IOrder });
+      await sendPurchaseReceipt(populatedOrder as unknown as IOrder);
     }
   } catch (emailError) {
     console.error("Non-critical: Failed to send purchase receipt email:", emailError);
@@ -691,7 +704,7 @@ export async function updateOrderStatus({
 
     if (normalizedStatus === "delivered") {
       if ((order.user as { email?: string })?.email) {
-        await sendAskReviewOrderItems({ order: order as unknown as IOrder });
+        await sendAskReviewOrderItems(order as unknown as IOrder);
       }
     }
 

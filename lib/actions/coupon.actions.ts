@@ -138,13 +138,13 @@ export async function validateCoupon(code: string, itemsTotal: number) {
 
   if (coupon) {
     if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
-      throw new Error("Coupon has expired.");
+      throw new Error(`The coupon code "${code}" has expired.`);
     }
     if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-      throw new Error("Coupon usage limit reached.");
+      throw new Error(`The coupon code "${code}" has reached its maximum usage limit.`);
     }
     if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
-      throw new Error(`Minimum purchase amount required: ${coupon.minPurchase}`);
+      throw new Error(`Minimum purchase of ${coupon.minPurchase} is required for this coupon.`);
     }
 
     let discount = 0;
@@ -203,7 +203,7 @@ export async function validateCoupon(code: string, itemsTotal: number) {
     };
   }
 
-  throw new Error("Invalid or expired coupon.");
+  throw new Error(`The coupon code "${code}" is invalid or expired.`);
 }
 
 export async function incrementCouponUsage(couponId: string) {
