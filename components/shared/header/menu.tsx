@@ -34,7 +34,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         {!forAdmin && <CartButton />}
 
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="header-button">
+          <SheetTrigger className="align-middle header-button">
             <MenuIcon className="h-7 w-7" />
           </SheetTrigger>
 

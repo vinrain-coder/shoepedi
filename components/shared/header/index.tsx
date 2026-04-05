@@ -14,52 +14,54 @@ export default async function Header() {
   const { site } = await getSetting();
 
   return (
-    <header className="bg-black text-white border-b border-white/5">
-      <div className="px-4 md:px-8 py-2">
-        <div className="flex items-center justify-between gap-4">
+    <header className="bg-black text-white ">
+      <div className="px-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link
               href="/"
-              className="flex items-center hover:bg-white/5 transition-colors rounded-lg p-1 pr-3 font-extrabold text-2xl"
+              className="flex items-center header-button font-extrabold text-2xl m-1"
             >
               <Image
                 src={site.logo}
-                width={50}
-                height={50}
+                width={60}
+                height={60}
                 alt={`${site.name} logo`}
                 priority
-                className="mr-1"
               />
-              <span className="hidden sm:block tracking-tighter">
-                {site.name}
-              </span>
+              {site.name}
+              {/* <div className=" mt-1">
+                <h1 className="text-2xl font-bold">{site.name}</h1>
+                <p className="text-xs -mt-2 text-end text-primary">
+                  Collections
+                </p>
+              </div> */}
             </Link>
           </div>
 
-          <div className="hidden md:block flex-1 max-w-2xl mx-4">
+          <div className="hidden md:block flex-1 max-w-xl">
             <Search categories={categories} siteName={site.name} />
           </div>
-
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2">
             <NavbarCompare />
             <NavbarWishlist />
             <Menu />
           </div>
         </div>
 
-        <div className="md:hidden block py-2 mt-2">
+        <div className="md:hidden block py-2 -mt-2">
           <Search categories={categories} siteName={site.name} />
         </div>
       </div>
 
-      <div className="flex items-center px-4 md:px-8 bg-zinc-900 py-1.5 border-t border-white/5">
+      <div className="flex items-center px-3 mb-[1px] bg-gray-800">
         <Sidebar categories={categories} />
-        <div className="flex items-center flex-wrap gap-6 overflow-hidden max-h-[42px] ml-4">
+        <div className="flex items-center flex-wrap gap-3 overflow-hidden max-h-[42px]">
           {data.headerMenus.map((menu) => (
             <Link
               href={menu.href}
               key={menu.href}
-              className="text-sm font-medium text-white/80 hover:text-primary hover:bg-white/5 px-2 py-1 rounded-md transition-all"
+              className="header-button !p-2"
             >
               {menu.name}
             </Link>
