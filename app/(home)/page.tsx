@@ -136,13 +136,13 @@ const AsyncBlogSlider = async () => {
 };
 
 // Skeleton fallbacks
-const SkeletonCarousel = () => <Skeleton className="h-56 w-full rounded-lg" />;
-const SkeletonCard = () => <Skeleton className="h-64 w-full rounded-lg" />;
+const SkeletonCarousel = () => <Skeleton className="h-[30vh] md:h-[60vh] w-full rounded-none" />;
+const SkeletonCard = () => <Skeleton className="h-64 w-full rounded-2xl" />;
 const SkeletonProductSlider = () => (
-  <Skeleton className="h-72 w-full rounded-lg" />
+  <Skeleton className="h-72 w-full rounded-2xl" />
 );
 const SkeletonBlogSlider = () => (
-  <Skeleton className="h-64 w-full rounded-lg" />
+  <Skeleton className="h-64 w-full rounded-2xl" />
 );
 
 export default async function HomePage() {
@@ -164,7 +164,7 @@ export default async function HomePage() {
   };
 
   return (
-    <>
+    <div className="bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -174,48 +174,55 @@ export default async function HomePage() {
         <AsyncHomeCarousel />
       </Suspense>
 
-      <div className="md:p-4 md:space-y-4 bg-border">
+      <div className="max-w-7xl mx-auto px-4 py-12 md:py-20 space-y-16 md:space-y-24">
         {/* Home Cards: New Arrivals / Categories / Featured / Best Sellers */}
-        <Suspense fallback={<SkeletonCard />}>
-          <AsyncNewArrivalsCards />
-        </Suspense>
+        <section>
+          <Suspense fallback={<SkeletonCard />}>
+            <AsyncNewArrivalsCards />
+          </Suspense>
+        </section>
 
         {/* Today's Deals */}
-        <Card className="w-full rounded-none">
-          <CardContent className="p-4 items-center gap-3">
-            <Suspense fallback={<SkeletonProductSlider />}>
-              <AsyncTodaysDeals />
-            </Suspense>
-          </CardContent>
-        </Card>
+        <section>
+          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card/50 backdrop-blur-md">
+            <CardContent className="p-6">
+              <Suspense fallback={<SkeletonProductSlider />}>
+                <AsyncTodaysDeals />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Best Selling Products */}
-        <Card className="w-full rounded-none">
-          <CardContent className="p-4 items-center gap-3">
-            <Suspense fallback={<SkeletonProductSlider />}>
-              <AsyncBestSellingProducts />
-            </Suspense>
-          </CardContent>
-        </Card>
-      </div>
+        <section>
+          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card/50 backdrop-blur-md">
+            <CardContent className="p-6">
+              <Suspense fallback={<SkeletonProductSlider />}>
+                <AsyncBestSellingProducts />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </section>
 
-      {/* Browsing History */}
-      <div className="p-4 bg-background">
-        <BrowsingHistoryList />
-      </div>
-      {/* About Carousel */}
-      <div className="p-4 bg-background">
-        <Suspense fallback={<SkeletonCarousel />}>
-          <AboutCarousel />
-        </Suspense>
-      </div>
+        {/* Browsing History */}
+        <section className="bg-muted/30 rounded-3xl p-6 md:p-10">
+          <BrowsingHistoryList />
+        </section>
 
-      {/* Blog Slider */}
-      <div className="p-4 bg-background flex justify-center">
-        <Suspense fallback={<SkeletonBlogSlider />}>
-          <AsyncBlogSlider />
-        </Suspense>
+        {/* About Carousel */}
+        <section>
+          <Suspense fallback={<SkeletonCarousel />}>
+            <AboutCarousel />
+          </Suspense>
+        </section>
+
+        {/* Blog Slider */}
+        <section className="flex justify-center">
+          <Suspense fallback={<SkeletonBlogSlider />}>
+            <AsyncBlogSlider />
+          </Suspense>
+        </section>
       </div>
-    </>
+    </div>
   );
 }
