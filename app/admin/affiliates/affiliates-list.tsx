@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { updateAffiliateStatus, deleteAffiliate } from "@/lib/actions/affiliate.actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,11 @@ export default function AffiliatesAdminPage({
   totalAffiliates: number;
 }) {
   const [list, setList] = useState(affiliates);
+
+  useEffect(() => {
+    setList(affiliates);
+  }, [affiliates]);
+
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 

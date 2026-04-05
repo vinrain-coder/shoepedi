@@ -37,8 +37,27 @@ export default async function Page({
     getAffiliateAdminStats({ from, to }),
   ]);
 
-  if (!affiliatesData.success || !statsData.success)
-    return <div>Error loading affiliates data</div>;
+  if (!affiliatesData.success || !statsData.success) {
+    console.error("Affiliates data load failure:", {
+      affiliatesError: affiliatesData.success ? null : affiliatesData.message,
+      statsError: statsData.success ? null : statsData.message,
+    });
+    return (
+      <div className="container mx-auto py-10">
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-destructive">
+          <h2 className="text-lg font-bold">Failed to load affiliate data</h2>
+          <ul className="mt-2 list-inside list-disc text-sm">
+            {!affiliatesData.success && (
+              <li>Affiliates List: {affiliatesData.message}</li>
+            )}
+            {!statsData.success && (
+              <li>Admin Stats: {statsData.message}</li>
+            )}
+          </ul>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10 space-y-8">

@@ -27,13 +27,27 @@ export function AffiliatesDateRangePicker({
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
+  const parseDate = (dateStr: string | null): Date | undefined => {
+    if (!dateStr) return undefined;
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? undefined : d;
+  };
+
+  const computeDateRange = React.useCallback((): DateRange | undefined => {
+    const from = parseDate(fromParam);
+    const to = parseDate(toParam);
+    if (from && to) return { from, to };
+    if (from) return { from };
+    return undefined;
+  }, [fromParam, toParam]);
+
   const [calendarDate, setCalendarDate] = React.useState<DateRange | undefined>(
-    fromParam && toParam
-      ? { from: new Date(fromParam), to: new Date(toParam) }
-      : fromParam
-      ? { from: new Date(fromParam) }
-      : undefined
+    computeDateRange()
   );
+
+  React.useEffect(() => {
+    setCalendarDate(computeDateRange());
+  }, [computeDateRange]);
 
   const applyRange = (range: DateRange | undefined) => {
     const params = new URLSearchParams(searchParams.toString());

@@ -304,7 +304,7 @@ export async function getAffiliateAdminStats(dateRange?: {
           as: "affiliateInfo",
         },
       },
-      { $unwind: "$affiliateInfo" },
+      { $unwind: { path: "$affiliateInfo", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -313,13 +313,13 @@ export async function getAffiliateAdminStats(dateRange?: {
           as: "userInfo",
         },
       },
-      { $unwind: "$userInfo" },
+      { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           _id: 1,
           total: 1,
-          code: "$affiliateInfo.affiliateCode",
-          name: "$userInfo.name",
+          code: { $ifNull: ["$affiliateInfo.affiliateCode", "DELETED"] },
+          name: { $ifNull: ["$userInfo.name", "Deleted User"] },
         },
       },
     ]);

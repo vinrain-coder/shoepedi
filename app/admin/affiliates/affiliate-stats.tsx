@@ -22,7 +22,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 
 interface LeaderboardEntry {
@@ -137,11 +136,11 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
                         return null;
                       }}
                     />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                      {stats.monthlyPayouts.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
-                      ))}
-                    </Bar>
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      fill="hsl(var(--primary))"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -184,18 +183,33 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {stats.allTimeLeaderboard.map((item, i) => (
-                      <div key={item._id} className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-muted-foreground w-4">{i + 1}.</span>
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{item.name}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase">{item.code}</span>
+                    {stats.allTimeLeaderboard.length === 0 ? (
+                      <p className="text-xs text-center text-muted-foreground py-4">
+                        No affiliates have earnings yet
+                      </p>
+                    ) : (
+                      stats.allTimeLeaderboard.map((item, i) => (
+                        <div
+                          key={item._id}
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-muted-foreground w-4">
+                              {i + 1}.
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{item.name}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase">
+                                {item.code}
+                              </span>
+                            </div>
                           </div>
+                          <span className="font-bold">
+                            {formatCurrency(item.total)}
+                          </span>
                         </div>
-                        <span className="font-bold">{formatCurrency(item.total)}</span>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
