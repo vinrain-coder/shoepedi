@@ -150,6 +150,7 @@ const OrderStatusSchema = z.enum([
   "delivered",
   "cancelled",
   "returned",
+  "return_requested",
   "delivery_exception",
 ]);
 

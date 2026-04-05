@@ -13,6 +13,7 @@ export const ORDER_STATUS_FLOW = [
 export const TERMINAL_ORDER_STATUSES = [
   "cancelled",
   "returned",
+  "return_requested",
   "delivery_exception",
 ] as const;
 
@@ -39,12 +40,13 @@ export const ORDER_STATUS_TRANSITIONS: Record<
   pending: ["confirmed", "cancelled"],
   confirmed: ["processing", "cancelled"],
   processing: ["packed", "cancelled"],
-  packed: ["shipped", "cancelled"],
+  packed: ["shipped"],
   shipped: ["out_for_delivery", "delivery_exception"],
   out_for_delivery: ["delivered", "delivery_exception"],
-  delivered: ["returned"],
+  delivered: ["return_requested"],
   cancelled: [],
   returned: [],
+  return_requested: ["returned", "delivered"],
   delivery_exception: ["out_for_delivery", "returned"],
 };
 
@@ -58,6 +60,7 @@ export const ORDER_STATUS_LABELS: Record<OrderTrackingStatus, string> = {
   delivered: "Delivered",
   cancelled: "Cancelled",
   returned: "Returned",
+  return_requested: "Return Requested",
   delivery_exception: "Delivery exception",
 };
 
@@ -74,6 +77,7 @@ export const ORDER_STATUS_BADGE_VARIANTS: Record<
   delivered: "default",
   cancelled: "destructive",
   returned: "outline",
+  return_requested: "outline",
   delivery_exception: "destructive",
 };
 
@@ -134,6 +138,12 @@ export const ORDER_STATUS_COLOR_STYLES: Record<
     border: "border-zinc-300 dark:border-zinc-800",
     bg: "bg-zinc-50 dark:bg-zinc-950/30",
     text: "text-zinc-700 dark:text-zinc-300",
+  },
+  return_requested: {
+    dot: "bg-orange-500 dark:bg-orange-400",
+    border: "border-orange-300 dark:border-orange-800",
+    bg: "bg-orange-50 dark:bg-orange-950/30",
+    text: "text-orange-700 dark:text-orange-300",
   },
   delivery_exception: {
     dot: "bg-red-500 dark:bg-red-400",
