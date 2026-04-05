@@ -1,0 +1,45 @@
+
+> shoepedi@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 833ms
+- Cache Components enabled
+
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ HEAD /sign-in 500 in 3.2s (next.js: 2.7s, proxy.ts: 440ms, application-code: 143ms)
