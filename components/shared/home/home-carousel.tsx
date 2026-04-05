@@ -15,7 +15,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ICarousel } from "@/types";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function HomeCarousel({ items }: { items: ICarousel[] }) {
   const plugin = React.useRef(
@@ -62,28 +62,38 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
                 />
                 <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/20 to-transparent" />
                 <div className="absolute w-2/3 md:w-1/3 left-8 md:left-32 top-1/2 transform -translate-y-1/2 z-10">
-                  <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className={cn(
-                      "text-2xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg"
-                    )}
-                  >
-                    {item.title}
-                  </motion.h2>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                  >
-                    <Button
-                      size="lg"
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-8"
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={current}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
                     >
-                      {item.buttonCaption}
-                    </Button>
-                  </motion.div>
+                      <motion.h2
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className={cn(
+                          "text-2xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg"
+                        )}
+                      >
+                        {item.title}
+                      </motion.h2>
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.2 }}
+                      >
+                        <Button
+                          size="lg"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-8"
+                        >
+                          {item.buttonCaption}
+                        </Button>
+                      </motion.div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
             </Link>
@@ -95,6 +105,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
         {Array.from({ length: count }).map((_, i) => (
           <button
             key={i}
+            aria-label={`Go to slide ${i + 1}`}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               current === i
