@@ -20,7 +20,7 @@ import {
   sendAskReviewOrderItems,
   sendOrderTrackingNotification,
   sendPurchaseReceipt,
-} from "@/emails";
+} from "@/lib/email/transactional";
 import { DateRange } from "react-day-picker";
 import Product from "../db/models/product.model";
 import User from "../db/models/user.model";
@@ -865,6 +865,11 @@ export async function getOrderSummary(date: DateRange) {
     .populate("user", "name")
     .populate("product", "name");
 
+  const latestSubscribers = await NewsletterSubscription.find()
+    .sort({ subscribedAt: "desc" })
+    .limit(5)
+    .lean();
+
   return {
     ordersCount,
     productsCount,
@@ -881,6 +886,7 @@ export async function getOrderSummary(date: DateRange) {
     topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
     latestOrders: JSON.parse(JSON.stringify(latestOrders)) as IOrderList[],
     latestReviews: JSON.parse(JSON.stringify(latestReviews)),
+    latestSubscribers: JSON.parse(JSON.stringify(latestSubscribers)),
   };
 }
 

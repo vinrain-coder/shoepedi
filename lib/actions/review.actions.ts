@@ -13,7 +13,7 @@ import { IReviewDetails } from "@/types";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
-import { sendAdminEventNotification } from "@/emails";
+import { sendAdminEventNotification } from "@/lib/email/transactional";
 
 function normalizeReviewImages(input: { image?: string; images?: string[] }) {
   const fromImages = (input.images || []).filter(Boolean).slice(0, 2);

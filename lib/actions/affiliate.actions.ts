@@ -13,7 +13,7 @@ import {
   sendAdminEventNotification,
   sendAffiliateApprovalNotification,
   sendAffiliatePayoutNotification,
-} from "@/emails";
+} from "@/lib/email/transactional";
 import { formatCurrency } from "../utils";
 
 export async function registerAffiliate(data: any) {

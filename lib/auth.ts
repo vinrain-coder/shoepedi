@@ -10,7 +10,7 @@ import {
   sendResetPasswordEmail,
   sendVerifyEmail,
 } from "./email/auth-emails";
-import { sendAdminEventNotification } from "@/emails";
+import { sendAdminEventNotification } from "@/lib/email/transactional";
 
 const db = await getDb();
 

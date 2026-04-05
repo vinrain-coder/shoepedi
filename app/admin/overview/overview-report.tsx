@@ -289,6 +289,61 @@ export default function OverviewReport() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Recent Subscribers</CardTitle>
+              <CardDescription>Latest newsletter signups</CardDescription>
+            </div>
+            <Link
+              href="/admin/newsletters"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              View All
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.latestSubscribers.length > 0 ? (
+                    data.latestSubscribers.map((sub: any) => (
+                      <TableRow key={sub._id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium">{sub.email}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            sub.status === "subscribed" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+                          }`}>
+                            {sub.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {sub.subscribedAt ? formatDateTime(sub.subscribedAt).dateOnly : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center text-muted-foreground italic">
+                        No recent subscribers.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Top Categories</CardTitle>
             <CardDescription>Sales distribution by product category</CardDescription>
