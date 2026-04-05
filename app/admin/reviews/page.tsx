@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Search } from "lucide-react";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
 import ReviewReplyForm from "./review-reply-form";
@@ -14,10 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteReview, getAllReviews } from "@/lib/actions/review.actions";
+import { deleteReview, getAllReviews, getReviewStats } from "@/lib/actions/review.actions";
 import { IReviewDetails } from "@/types";
 import { getServerSession } from "@/lib/get-session";
 import { formatDateTime, formatId } from "@/lib/utils";
+import ReviewStatsCards from "./review-stats-cards";
+import { ReviewsDateRangePicker } from "./date-range-picker";
+import { Input } from "@/components/ui/input";
+import Form from "next/form";
+import NextLink from "next/link";
 
 export const metadata: Metadata = {
   title: "Admin Reviews",
@@ -29,49 +33,86 @@ type AdminReviewRow = IReviewDetails & {
 };
 
 export default async function ReviewsPage(props: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    query?: string;
+    rating?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
   const searchParams = await props.searchParams;
-  const { page = "1" } = searchParams;
+  const {
+    page = "1",
+    query = "",
+    rating = "all",
+    from,
+    to
+  } = searchParams;
 
   const session = await getServerSession();
   if (session?.user.role !== "ADMIN") {
     throw new Error("Admin permission required");
   }
 
-  const reviews = await getAllReviews({
-    page: Number(page),
-  });
+  const [reviews, stats] = await Promise.all([
+    getAllReviews({
+      page: Number(page),
+      query,
+      rating,
+      from,
+      to,
+    }),
+    getReviewStats(),
+  ]);
 
   return (
-    <div className="space-y-4">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-xl font-semibold">Reviews</h1>
-        <p className="text-xs text-muted-foreground">
-          Manage feedback & replies
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="h1-bold text-3xl">Reviews</h1>
+          <p className="text-muted-foreground">
+            Monitor customer feedback and manage administrative replies
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Form action="/admin/reviews" className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              name="query"
+              placeholder="Search comments..."
+              defaultValue={query}
+              className="pl-9"
+            />
+            {rating !== "all" && <input type="hidden" name="rating" value={rating} />}
+            {from && <input type="hidden" name="from" value={from} />}
+            {to && <input type="hidden" name="to" value={to} />}
+          </Form>
+          <ReviewsDateRangePicker />
+        </div>
       </div>
 
-      {/* TABLE */}
-      <div className="border rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table className="w-full table-fixed text-sm">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[70px]">ID</TableHead>
-                <TableHead className="w-[110px]">Date</TableHead>
-                <TableHead className="w-[180px]">Product</TableHead>
-                <TableHead className="w-[140px]">Customer</TableHead>
-                <TableHead className="w-[70px]">Rating</TableHead>
-                <TableHead className="w-[220px]">Review</TableHead>
-                <TableHead className="w-[200px]">Reply</TableHead>
-                <TableHead className="w-[60px]" />
-              </TableRow>
-            </TableHeader>
+      <ReviewStatsCards stats={stats} />
 
-            <TableBody>
-              {(reviews.data as AdminReviewRow[]).map((review) => {
+      <div className="rounded-md border bg-card overflow-hidden">
+        <Table className="text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[80px]">ID</TableHead>
+              <TableHead className="w-[120px]">Date</TableHead>
+              <TableHead className="w-[180px]">Product</TableHead>
+              <TableHead className="w-[150px]">Customer</TableHead>
+              <TableHead className="w-[80px]">Rating</TableHead>
+              <TableHead className="w-[250px]">Review</TableHead>
+              <TableHead className="w-[250px]">Reply</TableHead>
+              <TableHead className="w-[80px] text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {reviews.data.length > 0 ? (
+              (reviews.data as AdminReviewRow[]).map((review) => {
                 const reviewImages =
                   review.images && review.images.length > 0
                     ? review.images
@@ -79,129 +120,129 @@ export default async function ReviewsPage(props: {
                       ? [review.image]
                       : [];
                 return (
-                <TableRow key={review._id} className="align-top">
-                  {/* ID */}
-                  <TableCell className="text-xs font-mono text-muted-foreground">
-                    {formatId(review._id)}
-                  </TableCell>
+                  <TableRow key={review._id} className="align-top">
+                    <TableCell className="text-xs font-mono text-muted-foreground">
+                      {formatId(review._id)}
+                    </TableCell>
 
-                  {/* DATE */}
-                  <TableCell className="text-xs text-muted-foreground">
-                    {formatDateTime(review.createdAt!).dateTime}
-                  </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDateTime(review.createdAt!).dateTime}
+                    </TableCell>
 
-                  {/* PRODUCT */}
-                  <TableCell>
-                    <div className="flex gap-2 w-full overflow-hidden">
-                      {review.product?.images?.[0] && (
-                        <Image
-                          src={review.product.images[0]}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="rounded border shrink-0 object-cover"
-                        />
-                      )}
+                    <TableCell>
+                      <div className="flex gap-2 w-full overflow-hidden">
+                        {review.product?.images?.[0] && (
+                          <Image
+                            src={review.product.images[0]}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className="rounded border shrink-0 object-cover"
+                          />
+                        )}
 
-                      <div className="min-w-0 overflow-hidden">
-                        <Link
-                          href={`/product/${review.product?.slug}`}
-                          className="text-sm font-medium truncate block"
-                        >
-                          {review.product?.name || "Deleted"}
-                        </Link>
+                        <div className="min-w-0 overflow-hidden">
+                          <NextLink
+                            href={`/product/${review.product?.slug}`}
+                            className="text-sm font-medium truncate block hover:underline"
+                            target="_blank"
+                          >
+                            {review.product?.name || "Deleted"}
+                          </NextLink>
 
-                        <Badge className="text-[10px] mt-1 px-1 py-0">
-                          {review.isVerifiedPurchase ? "Verified" : "Feedback"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  {/* CUSTOMER */}
-                  <TableCell>
-                    <div className="text-xs overflow-hidden">
-                      <p className="font-medium truncate">
-                        {review.user?.name || "Deleted"}
-                      </p>
-                      <p className="text-muted-foreground truncate">
-                        {review.user?.email || "—"}
-                      </p>
-                    </div>
-                  </TableCell>
-
-                  {/* RATING */}
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm font-medium">
-                      <Star className="size-4 fill-primary text-primary" />
-                      {review.rating}
-                    </div>
-                  </TableCell>
-
-                  {/* REVIEW */}
-                  <TableCell>
-                    <div className="w-full overflow-hidden">
-                      <p className="text-sm font-medium truncate">
-                        {review.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {review.comment}
-                      </p>
-
-                      {reviewImages.length > 0 && (
-                        <div className="mt-1 flex gap-1.5">
-                          {reviewImages.slice(0, 2).map((imageUrl, index) => (
-                            <Image
-                              key={`${review._id}-${index}`}
-                              src={imageUrl}
-                              alt=""
-                              width={60}
-                              height={60}
-                              className="rounded border"
-                            />
-                          ))}
+                          <Badge variant={review.isVerifiedPurchase ? "default" : "secondary"} className="text-[10px] mt-1 px-1 py-0">
+                            {review.isVerifiedPurchase ? "Verified" : "Feedback"}
+                          </Badge>
                         </div>
-                      )}
-                    </div>
-                  </TableCell>
+                      </div>
+                    </TableCell>
 
-                  {/* REPLY */}
-                  <TableCell>
-                    <div className="w-full overflow-hidden space-y-1">
-                      {!!review.adminReply?.message?.trim() && (
-                        <p className="text-xs truncate">
-                          <span className="font-medium text-primary">
-                            {review.adminReply.repliedBy || "Admin"}:
-                          </span>{" "}
-                          {review.adminReply.message}
+                    <TableCell>
+                      <div className="text-xs overflow-hidden">
+                        <p className="font-medium truncate">
+                          {review.user?.name || "Deleted"}
                         </p>
-                      )}
+                        <p className="text-muted-foreground truncate">
+                          {review.user?.email || "—"}
+                        </p>
+                      </div>
+                    </TableCell>
 
-                      <ReviewReplyForm
-                        reviewId={review._id}
-                        initialReply={review.adminReply}
-                      />
-                    </div>
-                  </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm font-medium">
+                        <Star className="size-3 fill-amber-400 text-amber-400" />
+                        {review.rating}
+                      </div>
+                    </TableCell>
 
-                  {/* ACTION */}
-                  <TableCell className="text-right">
-                    <DeleteDialog id={review._id} action={deleteReview} />
-                  </TableCell>
-                </TableRow>
+                    <TableCell>
+                      <div className="w-full overflow-hidden">
+                        <p className="text-sm font-medium truncate">
+                          {review.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {review.comment}
+                        </p>
+
+                        {reviewImages.length > 0 && (
+                          <div className="mt-1 flex gap-1.5">
+                            {reviewImages.slice(0, 2).map((imageUrl, index) => (
+                              <Image
+                                key={`${review._id}-${index}`}
+                                src={imageUrl}
+                                alt=""
+                                width={40}
+                                height={40}
+                                className="rounded border"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="w-full overflow-hidden space-y-1">
+                        {!!review.adminReply?.message?.trim() && (
+                          <div className="p-2 bg-muted/50 rounded text-[11px]">
+                            <span className="font-semibold text-primary block">
+                              {review.adminReply.repliedBy || "Admin"}:
+                            </span>
+                            <p className="line-clamp-2">
+                               {review.adminReply.message}
+                            </p>
+                          </div>
+                        )}
+
+                        <ReviewReplyForm
+                          reviewId={review._id}
+                          initialReply={review.adminReply}
+                        />
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <DeleteDialog id={review._id} action={deleteReview} />
+                    </TableCell>
+                  </TableRow>
                 );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* PAGINATION */}
-        {reviews.totalPages > 1 && (
-          <div className="border-t p-3">
-            <Pagination page={page} totalPages={reviews.totalPages} />
-          </div>
-        )}
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  No reviews found matching the criteria.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
+
+      {reviews.totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination page={page} totalPages={reviews.totalPages} />
+        </div>
+      )}
     </div>
   );
-        }
+}

@@ -89,19 +89,29 @@ export async function getAllCoupons({
   page = 1,
   sort = "latest",
   limit = 10,
+  from,
+  to,
 }: {
   query?: string;
   page?: number;
   sort?: string;
   limit?: number;
+  from?: string;
+  to?: string;
 }) {
   await connectToDatabase();
 
-  const queryFilter = query
+  const queryFilter: any = query
     ? {
         code: { $regex: query, $options: "i" },
       }
     : {};
+
+  if (from || to) {
+    queryFilter.createdAt = {};
+    if (from) queryFilter.createdAt.$gte = new Date(from);
+    if (to) queryFilter.createdAt.$lte = new Date(to);
+  }
 
   const order: Record<string, 1 | -1> =
     sort === "discount-high-to-low"
@@ -224,6 +234,27 @@ export async function incrementCouponUsage(couponId: string) {
   revalidatePath("/admin/coupons");
 
   return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
+}
+
+export async function getCouponStats() {
+  await connectToDatabase();
+
+  const [totalCoupons, activeCoupons, expiredCoupons] = await Promise.all([
+    Coupon.countDocuments(),
+    Coupon.countDocuments({
+      isActive: true,
+      $or: [{ expiryDate: null }, { expiryDate: { $gt: new Date() } }],
+    }),
+    Coupon.countDocuments({
+      expiryDate: { $lt: new Date() },
+    }),
+  ]);
+
+  return {
+    totalCoupons,
+    activeCoupons,
+    expiredCoupons,
+  };
 }
 
 export async function decrementCouponUsage(couponId: string) {

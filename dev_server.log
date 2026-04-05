@@ -1,0 +1,173 @@
+
+> shoepedi@0.1.0 dev /app
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 627ms
+⚠ Invalid next.config.ts options detected:
+⚠     Unrecognized key(s) in object: 'turbo' at "experimental"
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+- Cache Components enabled
+- Experiments (use with caution):
+  ? turbo (invalid experimental key)
+
+○ Compiling /sign-in ...
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Fcoupons 500 in 19.1s (next.js: 18.9s, proxy.ts: 8ms, application-code: 186ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/transactional.tsx:364:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (lib/get-session.ts:8:1)
+    at module evaluation (app/(auth)/layout.tsx:57:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Fusers 500 in 991ms (next.js: 971ms, proxy.ts: 6ms, application-code: 14ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/transactional.tsx:364:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (lib/get-session.ts:8:1)
+    at module evaluation (app/(auth)/layout.tsx:57:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3780:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3944:30)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:3971:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__04gwc0-._.js:4115:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Fweb-pages 500 in 952ms (next.js: 933ms, proxy.ts: 6ms, application-code: 14ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/transactional.tsx:364:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (app/(auth)/layout.tsx:2:1)
+    at module evaluation (lib/get-session.ts:8:1)
+    at module evaluation (app/(auth)/layout.tsx:57:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;

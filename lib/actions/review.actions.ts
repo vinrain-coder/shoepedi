@@ -230,18 +230,47 @@ export const getReviewByProductId = async ({
 export async function getAllReviews({
   page = 1,
   limit = 10,
+  query = "",
+  rating = "all",
+  from,
+  to,
 }: {
   page?: number;
   limit?: number;
+  query?: string;
+  rating?: string;
+  from?: string;
+  to?: string;
 }) {
   await connectToDatabase();
 
+  const filter: any = {};
+
+  if (rating !== "all") {
+    filter.rating = Number(rating);
+  }
+
+  if (from || to) {
+    filter.createdAt = {};
+    if (from) filter.createdAt.$gte = new Date(from);
+    if (to) filter.createdAt.$lte = new Date(to);
+  }
+
+  // To search by product name or user name, we might need a more complex aggregation or multiple IDs.
+  // For simplicity, we'll start with comment/title search.
+  if (query) {
+    filter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { comment: { $regex: query, $options: "i" } },
+    ];
+  }
+
   const skip = (page - 1) * limit;
 
-  const total = await Review.countDocuments();
+  const total = await Review.countDocuments(filter);
 
-  const reviews = await Review.find()
-    .populate("user", "name email role") // ✅ safe, consistent
+  const reviews = await Review.find(filter)
+    .populate("user", "name email role")
     .populate("product", "name slug images")
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -252,6 +281,26 @@ export async function getAllReviews({
     data: JSON.parse(JSON.stringify(reviews)),
     total,
     totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function getReviewStats() {
+  await connectToDatabase();
+
+  const [totalReviews, avgRatingResult, verifiedPurchases, pendingReplies] = await Promise.all([
+    Review.countDocuments(),
+    Review.aggregate([
+      { $group: { _id: null, avgRating: { $avg: "$rating" } } },
+    ]),
+    Review.countDocuments({ isVerifiedPurchase: true }),
+    Review.countDocuments({ "adminReply.message": { $exists: false } }),
+  ]);
+
+  return {
+    totalReviews,
+    avgRating: avgRatingResult[0]?.avgRating?.toFixed(1) || 0,
+    verifiedPurchases,
+    pendingReplies,
   };
 }
 

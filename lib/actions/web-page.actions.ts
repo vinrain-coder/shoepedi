@@ -61,13 +61,61 @@ export async function deleteWebPage(id: string) {
 }
 
 // GET ALL
-export async function getAllWebPages() {
+export async function getAllWebPages({
+  query = "",
+  page = 1,
+  limit = 10,
+  isPublished = "all",
+}: {
+  query?: string;
+  page?: number;
+  limit?: number;
+  isPublished?: string;
+} = {}) {
   "use cache";
   cacheLife("hours");
   cacheTag("web-pages");
   await connectToDatabase();
-  const webPages = await WebPage.find();
-  return JSON.parse(JSON.stringify(webPages)) as IWebPage[];
+
+  const filter: any = {};
+  if (query) {
+    filter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { slug: { $regex: query, $options: "i" } },
+    ];
+  }
+  if (isPublished !== "all") {
+    filter.isPublished = isPublished === "true";
+  }
+
+  const skip = (page - 1) * limit;
+  const webPages = await WebPage.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const totalPages = Math.ceil((await WebPage.countDocuments(filter)) / limit);
+
+  return {
+    data: JSON.parse(JSON.stringify(webPages)) as IWebPage[],
+    totalPages,
+    totalWebPages: await WebPage.countDocuments(filter),
+  };
+}
+
+export async function getWebPageStats() {
+  await connectToDatabase();
+  const [totalWebPages, publishedWebPages, draftWebPages] = await Promise.all([
+    WebPage.countDocuments(),
+    WebPage.countDocuments({ isPublished: true }),
+    WebPage.countDocuments({ isPublished: false }),
+  ]);
+
+  return {
+    totalWebPages,
+    publishedWebPages,
+    draftWebPages,
+  };
 }
 export async function getWebPageById(webPageId: string) {
   "use cache";

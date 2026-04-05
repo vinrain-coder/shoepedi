@@ -85,7 +85,21 @@ export async function getMySupportTickets() {
   }
 }
 
-export async function getSupportTicketsAdmin() {
+export async function getSupportTicketsAdmin({
+  page = 1,
+  limit = 10,
+  query = "",
+  status = "all",
+  from,
+  to,
+}: {
+  page?: number;
+  limit?: number;
+  query?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+} = {}) {
   try {
     const session = await getServerSession();
     if (!session || session.user.role !== "ADMIN") {
@@ -93,11 +107,59 @@ export async function getSupportTicketsAdmin() {
     }
 
     await connectToDatabase();
-    const tickets = await SupportTicket.find().sort({ createdAt: -1 }).lean();
-    return { success: true, data: JSON.parse(JSON.stringify(tickets)) as SupportTicketDto[] };
+
+    const filter: any = {};
+    if (status !== "all") {
+      filter.status = status;
+    }
+    if (query) {
+      filter.$or = [
+        { name: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } },
+        { subject: { $regex: query, $options: "i" } },
+        { message: { $regex: query, $options: "i" } },
+      ];
+    }
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    const skip = (page - 1) * limit;
+    const [tickets, totalTickets] = await Promise.all([
+      SupportTicket.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      SupportTicket.countDocuments(filter),
+    ]);
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(tickets)) as SupportTicketDto[],
+      totalPages: Math.ceil(totalTickets / limit),
+      totalTickets,
+    };
   } catch (error) {
-    return { success: false, message: formatError(error), data: [] as SupportTicketDto[] };
+    return { success: false, message: formatError(error), data: [] as SupportTicketDto[], totalPages: 0, totalTickets: 0 };
   }
+}
+
+export async function getSupportStats() {
+  await connectToDatabase();
+  const [totalTickets, openTickets, repliedTickets] = await Promise.all([
+    SupportTicket.countDocuments(),
+    SupportTicket.countDocuments({ status: "open" }),
+    SupportTicket.countDocuments({ status: "replied" }),
+  ]);
+
+  return {
+    totalTickets,
+    openTickets,
+    repliedTickets,
+  };
 }
 
 export async function replySupportTicket(input: { id: string; reply: string }) {

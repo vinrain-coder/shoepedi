@@ -102,9 +102,13 @@ export async function updateUserName(user: IUserName) {
 export async function getAllUsers({
   limit,
   page,
+  search,
+  role,
 }: {
   limit?: number;
   page: number;
+  search?: string;
+  role?: string;
 }) {
   const {
     common: { pageSize },
@@ -112,15 +116,47 @@ export async function getAllUsers({
   limit = limit || pageSize;
   await connectToDatabase();
 
+  const query: any = {};
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+  if (role && role !== "all") {
+    query.role = role;
+  }
+
   const skipAmount = (Number(page) - 1) * limit;
-  const users = await User.find()
+  const users = await User.find(query)
     .sort({ createdAt: "desc" })
     .skip(skipAmount)
     .limit(limit);
-  const usersCount = await User.countDocuments();
+  const usersCount = await User.countDocuments(query);
   return {
     data: JSON.parse(JSON.stringify(users)) as IUser[],
     totalPages: Math.ceil(usersCount / limit),
+    totalUsers: usersCount,
+  };
+}
+
+export async function getUserStats() {
+  await connectToDatabase();
+
+  const [totalUsers, adminCount, customerCount, recentUsers] = await Promise.all([
+    User.countDocuments(),
+    User.countDocuments({ role: "ADMIN" }),
+    User.countDocuments({ role: "USER" }),
+    User.countDocuments({
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+    }),
+  ]);
+
+  return {
+    totalUsers,
+    adminCount,
+    customerCount,
+    recentUsers,
   };
 }
 

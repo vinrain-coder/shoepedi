@@ -166,6 +166,12 @@ export async function getAllCategoriesForAdmin({
   }
 }
 
+export async function getCategoryStats() {
+  await connectToDatabase();
+  const totalCategories = await Category.countDocuments();
+  return { totalCategories };
+}
+
 /* ---------------------------------
    GET ALL CATEGORIES FOR PRODUCT INPUT
    (Flat list or parent-based)

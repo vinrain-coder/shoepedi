@@ -163,10 +163,16 @@ export async function getAllSubscribers({
   limit,
   page,
   search,
+  status = "all",
+  from,
+  to,
 }: {
   limit?: number;
   page: number;
   search?: string;
+  status?: string;
+  from?: string;
+  to?: string;
 }) {
   try {
     await connectToDatabase();
@@ -181,9 +187,18 @@ export async function getAllSubscribers({
     const finalLimit = limit || pageSize;
     const skipAmount = (Number(page) - 1) * finalLimit;
 
-    const query = search
-      ? { email: { $regex: search, $options: "i" } }
-      : {};
+    const query: any = {};
+    if (search) {
+      query.email = { $regex: search, $options: "i" };
+    }
+    if (status !== "all") {
+      query.status = status;
+    }
+    if (from || to) {
+      query.subscribedAt = {};
+      if (from) query.subscribedAt.$gte = new Date(from);
+      if (to) query.subscribedAt.$lte = new Date(to);
+    }
 
     const [subscribers, totalSubscribers] = await Promise.all([
       NewsletterSubscription.find(query)
@@ -202,6 +217,21 @@ export async function getAllSubscribers({
   } catch (error) {
     throw new Error(formatError(error));
   }
+}
+
+export async function getNewsletterStats() {
+  await connectToDatabase();
+  const [totalSubscribers, activeSubscribers, unsubscribedCount] = await Promise.all([
+    NewsletterSubscription.countDocuments(),
+    NewsletterSubscription.countDocuments({ status: "subscribed" }),
+    NewsletterSubscription.countDocuments({ status: "unsubscribed" }),
+  ]);
+
+  return {
+    totalSubscribers,
+    activeSubscribers,
+    unsubscribedCount,
+  };
 }
 
 export async function deleteSubscription(id: string) {

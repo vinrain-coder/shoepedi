@@ -160,6 +160,12 @@ export async function getAllTagsForAdmin({
   }
 }
 
+export async function getTagStats() {
+  await connectToDatabase();
+  const totalTags = await Tag.countDocuments();
+  return { totalTags };
+}
+
 /* ---------------------------------
    GET ALL TAGS FOR PRODUCT INPUT
 ---------------------------------- */

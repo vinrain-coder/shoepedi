@@ -166,6 +166,12 @@ export async function getAllBrandsForAdmin({
   }
 }
 
+export async function getBrandStats() {
+  await connectToDatabase();
+  const totalBrands = await Brand.countDocuments();
+  return { totalBrands };
+}
+
 /* ---------------------------------
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         GET ALL BRANDS FOR PRODUCT INPUT
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            (Flat list or parent-based)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ---------------------------------- */
