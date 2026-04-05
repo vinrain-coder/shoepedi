@@ -134,7 +134,7 @@ export const formatDateTime = (dateString: Date) => {
   const dateOptions: Intl.DateTimeFormatOptions = {
     // weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
     month: "short", // abbreviated month name (e.g., 'Oct')
-    year: "numeric", // numeric year (e.g., '2023')
+    year: "numeric", // abbreviated month name (e.g., '2023')
     day: "numeric", // numeric day of the month (e.g., '25')
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
@@ -210,4 +210,35 @@ export function formatDate(date: Date | string) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+/**
+ * Normalizes date boundaries for filtering.
+ * @param from - Start date string.
+ * @param to - End date string.
+ * @returns An object with normalized UTC Dates or nulls.
+ */
+export function normalizeDateRange(from?: string, to?: string) {
+  const res: { fromDate: Date | null; toDate: Date | null } = {
+    fromDate: null,
+    toDate: null,
+  };
+
+  if (from) {
+    const d = new Date(from);
+    if (!isNaN(d.getTime())) {
+      res.fromDate = d;
+    }
+  }
+
+  if (to) {
+    const d = new Date(to);
+    if (!isNaN(d.getTime())) {
+      // Set to 23:59:59.999 UTC
+      d.setUTCHours(23, 59, 59, 999);
+      res.toDate = d;
+    }
+  }
+
+  return res;
 }

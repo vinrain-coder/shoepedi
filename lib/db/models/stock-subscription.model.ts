@@ -5,6 +5,7 @@ export interface IStockSubscription extends Document {
   email: string;
   subscribedAt: Date;
   isNotified: boolean;
+  notifiedAt?: Date;
 }
 
 const stockSubscriptionSchema = new Schema<IStockSubscription>(
@@ -27,6 +28,9 @@ const stockSubscriptionSchema = new Schema<IStockSubscription>(
     isNotified: {
       type: Boolean,
       default: false,
+    },
+    notifiedAt: {
+      type: Date,
     },
   },
   { timestamps: true }
