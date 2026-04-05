@@ -33,11 +33,6 @@ AskReviewOrderItemsEmail.PreviewProps = {
     itemsPrice: 100,
     taxPrice: 0,
     shippingPrice: 0,
-    coupon: {
-      code: "SAVE10",
-      discountType: "fixed",
-      discountAmount: 10,
-    },
     user: {
       name: "John Doe",
       email: "john.doe@example.com",
@@ -77,18 +72,17 @@ export default async function AskReviewOrderItemsEmail({
   const { site } = await getSetting();
   return (
     <Html>
-      <Preview>Tell us what you think about your recent order</Preview>
+      <Preview>Review Your Order Items</Preview>
       <Tailwind>
         <Head />
         <Body className="font-sans bg-gray-100 text-gray-800">
           <Container className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
             {/* Header */}
             <Heading className="text-3xl font-bold text-center text-orange-500">
-              We'd love your feedback
+              We will Love Your Feedback!
             </Heading>
             <Text className="text-center text-gray-600 mt-2">
-              Your feedback helps other shoppers buy with confidence and helps
-              us improve every order.
+              Your review helps us improve and helps other customers.
             </Text>
 
             {/* Order Summary */}
@@ -160,24 +154,12 @@ export default async function AskReviewOrderItemsEmail({
                 { name: "Items", price: order.itemsPrice },
                 { name: "Tax", price: order.taxPrice },
                 { name: "Shipping", price: order.shippingPrice },
-                ...(order.coupon
-                  ? [
-                      {
-                        name: `Coupon (${order.coupon.code})`,
-                        price: -Math.abs(order.coupon.discountAmount),
-                      },
-                    ]
-                  : []),
                 { name: "Total", price: order.totalPrice },
               ].map(({ name, price }) => (
                 <Row key={name} className="flex justify-between py-1">
                   <Column className="font-semibold">{name}:</Column>
                   <Column align="right">
-                    <Text className="m-0">
-                      {price < 0
-                        ? `- ${formatCurrency(Math.abs(price))}`
-                        : formatCurrency(price)}
-                    </Text>
+                    <Text className="m-0">{formatCurrency(price)}</Text>
                   </Column>
                 </Row>
               ))}
@@ -191,7 +173,7 @@ export default async function AskReviewOrderItemsEmail({
               <Text className="text-gray-500 text-sm">
                 If you have any questions, feel free to{" "}
                 <Link
-                  href={`${site.url}/page/contact-us`}
+                  href={`${site.url}/page/contact`}
                   className="text-blue-600"
                 >
                   contact us

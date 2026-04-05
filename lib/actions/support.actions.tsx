@@ -5,9 +5,10 @@ import { connectToDatabase } from "../db";
 import { getServerSession } from "../get-session";
 import { formatError } from "../utils";
 import SupportTicket from "../db/models/support-ticket.model";
-import { sendAdminEventNotification } from "@/emails";
-import { sendEmail } from "../email/send";
-import SupportTicketReplyEmail from "@/emails/support-ticket-reply";
+import {
+  sendAdminEventNotification,
+  sendSupportTicketReplyEmail,
+} from "@/lib/email/transactional";
 
 type SupportTicketDto = {
   _id: string;
@@ -120,17 +121,12 @@ export async function replySupportTicket(input: { id: string; reply: string }) {
     ticket.adminRepliedBy = session.user.name || session.user.email;
     await ticket.save();
 
-    await sendEmail({
+    await sendSupportTicketReplyEmail({
       to: ticket.email,
-      subject: `Re: ${ticket.subject}`,
-      react: (
-        <SupportTicketReplyEmail
-          customerName={ticket.name}
-          subject={ticket.subject}
-          originalMessage={ticket.message}
-          replyMessage={reply}
-        />
-      ),
+      customerName: ticket.name,
+      subject: ticket.subject,
+      originalMessage: ticket.message,
+      replyMessage: reply,
     });
 
     revalidatePath("/admin/support");

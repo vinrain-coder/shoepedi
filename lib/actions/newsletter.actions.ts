@@ -7,7 +7,12 @@ import { connectToDatabase } from "../db";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import { NewsletterSubscriptionSchema } from "../validator";
 import { formatError } from "../utils";
-import { sendAdminEventNotification } from "@/emails";
+import {
+  sendAdminEventNotification,
+  sendNewsletterConfirmationEmail,
+} from "@/lib/email/transactional";
+import { getSetting } from "./setting.actions";
+import { getServerSession } from "../get-session";
 
 export async function subscribeToNewsletter(input: {
   email: string;
@@ -81,15 +86,25 @@ export async function subscribeToNewsletter(input: {
       throw error;
     }));
 
-    await sendAdminEventNotification({
-      title: "Newsletter subscription created",
-      description: `${parsed.email} subscribed from ${parsed.source}.`,
-      href: "/admin",
-      meta: "Newsletter",
-      createdAt: now.toISOString(),
-    });
+    const { site } = await getSetting();
+    const unsubscribeLink = `${site.url}/unsubscribe?email=${encodeURIComponent(parsed.email)}&token=${unsubscribeToken}`;
+
+    await Promise.all([
+      sendNewsletterConfirmationEmail({
+        email: parsed.email,
+        unsubscribeLink,
+      }),
+      sendAdminEventNotification({
+        title: "Newsletter subscription created",
+        description: `${parsed.email} subscribed from ${parsed.source}.`,
+        href: "/admin/newsletters",
+        meta: "Newsletter",
+        createdAt: now.toISOString(),
+      }),
+    ]);
 
     revalidatePath("/");
+    revalidatePath("/admin/newsletters");
 
     return {
       success: true,
@@ -133,9 +148,78 @@ export async function unsubscribeFromNewsletter(input: {
       return { success: false, message: "Invalid unsubscribe link." };
     }
 
+    revalidatePath("/admin/newsletters");
+
     return {
       success: true,
       message: "You have been unsubscribed from marketing emails.",
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getAllSubscribers({
+  limit,
+  page,
+  search,
+}: {
+  limit?: number;
+  page: number;
+  search?: string;
+}) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
+    const {
+      common: { pageSize },
+    } = await getSetting();
+    const finalLimit = limit || pageSize;
+    const skipAmount = (Number(page) - 1) * finalLimit;
+
+    const query = search
+      ? { email: { $regex: search, $options: "i" } }
+      : {};
+
+    const [subscribers, totalSubscribers] = await Promise.all([
+      NewsletterSubscription.find(query)
+        .sort({ subscribedAt: -1 })
+        .skip(skipAmount)
+        .limit(finalLimit)
+        .lean(),
+      NewsletterSubscription.countDocuments(query),
+    ]);
+
+    return {
+      data: JSON.parse(JSON.stringify(subscribers)),
+      totalPages: Math.ceil(totalSubscribers / finalLimit),
+      totalSubscribers,
+    };
+  } catch (error) {
+    throw new Error(formatError(error));
+  }
+}
+
+export async function deleteSubscription(id: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
+    const res = await NewsletterSubscription.findByIdAndDelete(id);
+    if (!res) throw new Error("Subscription not found");
+
+    revalidatePath("/admin/newsletters");
+
+    return {
+      success: true,
+      message: "Subscription deleted successfully",
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

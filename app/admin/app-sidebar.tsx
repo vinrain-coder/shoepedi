@@ -11,6 +11,7 @@ import {
   IconDashboard,
   IconFileText,
   IconLayoutGrid,
+  IconMail,
   IconPalette,
   IconReceipt2,
   IconTags,
@@ -114,6 +115,11 @@ const data = {
       name: "Support Inbox",
       url: "/admin/support",
       icon: IconMessageCircle,
+    },
+    {
+      name: "Newsletters",
+      url: "/admin/newsletters",
+      icon: IconMail,
     },
   ],
   catalog: [

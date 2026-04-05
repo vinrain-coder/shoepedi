@@ -139,4 +139,4 @@ export default function StockSubscriptionNotificationEmail({
       </Tailwind>
     </Html>
   );
-  }
+}

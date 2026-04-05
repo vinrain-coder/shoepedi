@@ -7,7 +7,7 @@ import Product from "../db/models/product.model";
 import {
   sendAdminEventNotification,
   sendStockSubscriptionNotification,
-} from "@/emails";
+} from "@/lib/email/transactional";
 import { getSetting } from "./setting.actions";
 import { cacheLife } from "next/cache";
 
