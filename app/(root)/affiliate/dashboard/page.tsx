@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { CopyIcon, ExternalLinkIcon } from "lucide-react";
+import { CopyIcon, ExternalLinkIcon, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import CopyButton from "./copy-button";
 
 export default async function AffiliateDashboardPage() {
@@ -32,7 +32,10 @@ export default async function AffiliateDashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Affiliate Dashboard</h1>
         <div className="flex items-center gap-2">
-           <Badge variant={affiliate.status === "approved" ? "default" : affiliate.status === "pending" ? "outline" : "destructive"}>
+           <Badge className={affiliate.status === "approved" ? "badge-success" : affiliate.status === "pending" ? "badge-pending" : "badge-rejected"}>
+            {affiliate.status === "approved" && <CheckCircle2 className="h-3 w-3" />}
+            {affiliate.status === "pending" && <Clock className="h-3 w-3" />}
+            {affiliate.status === "rejected" && <AlertCircle className="h-3 w-3" />}
             Status: {affiliate.status.toUpperCase()}
           </Badge>
           <Button asChild variant="outline" size="sm">
@@ -118,7 +121,7 @@ export default async function AffiliateDashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-green-600">+{formatCurrency(earning.amount)}</p>
-                      <Badge variant="outline" className="text-[10px] h-4">
+                      <Badge className={`text-[10px] h-4 ${earning.status === 'earned' ? 'badge-success' : earning.status === 'pending' ? 'badge-pending' : 'badge-rejected'}`}>
                         {earning.status}
                       </Badge>
                     </div>
@@ -148,7 +151,7 @@ export default async function AffiliateDashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">-{formatCurrency(payout.amount)}</p>
-                      <Badge variant={payout.status === "paid" ? "default" : "outline"} className="text-[10px] h-4">
+                      <Badge className={`text-[10px] h-4 ${payout.status === 'paid' ? 'badge-success' : payout.status === 'pending' ? 'badge-pending' : 'badge-rejected'}`}>
                         {payout.status}
                       </Badge>
                     </div>

@@ -6,7 +6,7 @@ import { Metadata } from "next";
 import { formatDateTime, formatId } from "@/lib/utils";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
 
@@ -93,7 +93,7 @@ export default async function CoinsPage() {
               <Card key={event.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${event.type === 'earned' ? 'bg-green-100 text-green-600' : 'bg-destructive/10 text-red-600'}`}>
+                    <div className={`p-2 rounded-full ${event.type === 'earned' ? 'badge-success' : 'badge-rejected'}`}>
                       {event.type === 'earned' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
                     </div>
                     <div>
@@ -102,7 +102,8 @@ export default async function CoinsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                      {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
                       {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
                     </p>
                     <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>

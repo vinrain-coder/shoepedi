@@ -15,6 +15,7 @@ export interface IAffiliate extends Document {
     payPalEmail?: string;
     mPesaNumber?: string;
   };
+  adminNote?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +40,7 @@ const affiliateSchema = new Schema<IAffiliate>(
       payPalEmail: String,
       mPesaNumber: String,
     },
+    adminNote: String,
   },
   {
     timestamps: true,
