@@ -153,11 +153,11 @@ const notifyCustomerOrderStatus = async (
   });
 };
 
-const revertOrderEffects = async (order: IOrder) => {
+const revertOrderEffects = async (order: IOrder, options: { refundToCoins: boolean } = { refundToCoins: true }) => {
   const userId = (order.user as any)?._id || order.user;
 
-  // 1. Refund paid amount to coins if paid and not already refunded
-  if (order.isPaid) {
+  // 1. Refund paid amount to coins if paid and not already refunded (Only for cancellations)
+  if (options.refundToCoins && order.isPaid) {
     const updatedOrder = await Order.findOneAndUpdate(
       { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
       { $set: { refundedToCoins: true } },
@@ -272,8 +272,12 @@ const runStatusTransition = async ({
     );
   }
 
-  if (nextStatus === "cancelled" || nextStatus === "returned") {
-    await revertOrderEffects(order as IOrder);
+  if (nextStatus === "cancelled") {
+    await revertOrderEffects(order as IOrder, { refundToCoins: true });
+  }
+
+  if (nextStatus === "returned") {
+    await revertOrderEffects(order as IOrder, { refundToCoins: false });
   }
 
   if (nextStatus === "delivered") {

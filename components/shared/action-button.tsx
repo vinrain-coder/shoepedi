@@ -1,7 +1,6 @@
 "use client";
 import { useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -15,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { LoadingButton } from "./loading-button";
 
 export default function ActionButton({
   caption,
@@ -47,16 +47,17 @@ export default function ActionButton({
   };
 
   const button = (
-    <Button
+    <LoadingButton
       type="button"
       className={cn("rounded-full cursor-pointer", className)}
       variant={variant}
       size={size}
-      disabled={isPending}
+      loading={isPending}
+      loadingText="Processing..."
       onClick={requireConfirmation ? undefined : handleAction}
     >
-      {isPending ? "Processing..." : caption}
-    </Button>
+      {caption}
+    </LoadingButton>
   );
 
   if (requireConfirmation) {
