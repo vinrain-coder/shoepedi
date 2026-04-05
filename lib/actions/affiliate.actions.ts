@@ -5,8 +5,9 @@ import { connectToDatabase } from "../db";
 import Affiliate, { IAffiliate } from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
 import AffiliatePayout from "../db/models/affiliate-payout.model";
+import User from "../db/models/user.model";
 import { AffiliateInputSchema, AffiliatePayoutInputSchema } from "../validator";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { getServerSession } from "../get-session";
 import { getSetting } from "./setting.actions";
 import {
@@ -184,25 +185,210 @@ export async function createPayoutRequest(data: any) {
 }
 
 // Admin Actions
-export async function getAllAffiliates({ page = 1, limit = 20, status }: { page?: number, limit?: number, status?: string }) {
+export async function getAllAffiliates({
+  page = 1,
+  limit = 20,
+  status,
+  query,
+  from,
+  to,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  query?: string;
+  from?: string;
+  to?: string;
+}) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
-    const query = status ? { status } : {};
-    const affiliates = await Affiliate.find(query)
+    const filter: any = {};
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    if (query) {
+      const escapedQuery = escapeRegExp(query);
+      const regex = new RegExp(escapedQuery, "i");
+      const users = await User.find({
+        $or: [{ name: regex }, { email: regex }],
+      }).select("_id");
+      const userIds = users.map((u: any) => u._id);
+
+      filter.$or = [
+        { affiliateCode: regex },
+        { user: { $in: userIds } },
+      ];
+    }
+
+    const affiliates = await Affiliate.find(filter)
       .populate("user", "name email")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const count = await Affiliate.countDocuments(query);
+    const count = await Affiliate.countDocuments(filter);
 
     return {
       success: true,
       data: JSON.parse(JSON.stringify(affiliates)),
       totalPages: Math.ceil(count / limit),
+      totalAffiliates: count,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getAffiliateAdminStats(dateRange?: {
+  from?: string;
+  to?: string;
+}) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const from = dateRange?.from ? new Date(dateRange.from) : undefined;
+    const to = dateRange?.to ? new Date(dateRange.to) : undefined;
+    if (to) to.setHours(23, 59, 59, 999);
+
+    // 1. Status counts
+    const statusCounts = await Affiliate.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+    const statusStats = {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
+    };
+    statusCounts.forEach((s) => {
+      statusStats.total += s.count;
+      if (s._id === "approved") statusStats.approved = s.count;
+      if (s._id === "pending") statusStats.pending = s.count;
+      if (s._id === "rejected") statusStats.rejected = s.count;
+    });
+
+    // 2 & 3. Earnings in date range & Period Leaderboard
+    const earningsFilter: any = { status: "earned" };
+    if (from || to) {
+      earningsFilter.createdAt = {};
+      if (from) earningsFilter.createdAt.$gte = from;
+      if (to) earningsFilter.createdAt.$lte = to;
+    }
+
+    const periodEarningsAggregate = await AffiliateEarning.aggregate([
+      { $match: earningsFilter },
+      { $group: { _id: "$affiliate", total: { $sum: "$amount" } } },
+      { $sort: { total: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "affiliates",
+          localField: "_id",
+          foreignField: "_id",
+          as: "affiliateInfo",
+        },
+      },
+      { $unwind: { path: "$affiliateInfo", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "affiliateInfo.user",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
+      { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          total: 1,
+          code: { $ifNull: ["$affiliateInfo.affiliateCode", "DELETED"] },
+          name: { $ifNull: ["$userInfo.name", "Deleted User"] },
+        },
+      },
+    ]);
+
+    const totalEarnedInPeriodAggregate = await AffiliateEarning.aggregate([
+      { $match: earningsFilter },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+    const totalEarnedInPeriod = totalEarnedInPeriodAggregate[0]?.total || 0;
+
+    // 4. Total amount due (unpaid earnings balance)
+    const totalDueAggregate = await Affiliate.aggregate([
+      { $group: { _id: null, total: { $sum: "$earningsBalance" } } },
+    ]);
+    const totalDue = totalDueAggregate[0]?.total || 0;
+
+    // 5. Monthly paid payouts
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthlyPayouts = await AffiliatePayout.aggregate([
+      {
+        $match: {
+          status: "paid",
+          createdAt: { $gte: sixMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          total: { $sum: "$amount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          label: "$_id",
+          value: "$total",
+          _id: 0,
+        },
+      },
+    ]);
+
+    // 6. Highest earners of all time
+    const allTimeLeaderboard = await Affiliate.find({ totalEarnings: { $gt: 0 } })
+      .populate("user", "name")
+      .sort({ totalEarnings: -1 })
+      .limit(10)
+      .select("affiliateCode totalEarnings user");
+
+    const formattedAllTimeLeaderboard = allTimeLeaderboard.map((a: any) => ({
+      _id: a._id,
+      total: a.totalEarnings,
+      code: a.affiliateCode,
+      name: a.user?.name || "Deleted User",
+    }));
+
+    return {
+      success: true,
+      data: {
+        statusStats,
+        periodLeaderboard: JSON.parse(JSON.stringify(periodEarningsAggregate)),
+        totalEarnedInPeriod,
+        totalDue,
+        monthlyPayouts: JSON.parse(JSON.stringify(monthlyPayouts)),
+        allTimeLeaderboard: JSON.parse(JSON.stringify(formattedAllTimeLeaderboard)),
+      },
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

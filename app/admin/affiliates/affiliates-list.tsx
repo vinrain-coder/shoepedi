@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { updateAffiliateStatus, deleteAffiliate } from "@/lib/actions/affiliate.actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +19,26 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import DeleteDialog from "@/components/shared/delete-dialog";
+import Pagination from "@/components/shared/pagination";
+import { formatCurrency } from "@/lib/utils";
 
-export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] }) {
+export default function AffiliatesAdminPage({
+  affiliates,
+  totalPages,
+  currentPage,
+  totalAffiliates,
+}: {
+  affiliates: any[];
+  totalPages: number;
+  currentPage: number;
+  totalAffiliates: number;
+}) {
   const [list, setList] = useState(affiliates);
+
+  useEffect(() => {
+    setList(affiliates);
+  }, [affiliates]);
+
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
@@ -42,8 +59,14 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
 
 
   return (
-    <div className="container mx-auto py-10 space-y-6">
-      <h1 className="text-3xl font-bold">Manage Affiliates</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {totalAffiliates === 0
+            ? "No affiliates found"
+            : `Showing ${affiliates.length} of ${totalAffiliates} affiliates`}
+        </p>
+      </div>
 
       <Card>
         <CardHeader>
@@ -72,7 +95,7 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                       <div className="text-xs text-muted-foreground">{affiliate.user?.email}</div>
                     </TableCell>
                     <TableCell className="font-mono">{affiliate.affiliateCode}</TableCell>
-                    <TableCell>{affiliate.earningsBalance.toLocaleString()}</TableCell>
+                    <TableCell>{formatCurrency(affiliate.earningsBalance)}</TableCell>
                     <TableCell>
                       <Badge className={affiliate.status === "approved" ? "badge-success" : affiliate.status === "pending" ? "badge-pending" : "badge-rejected"}>
                         {affiliate.status === "approved" && <CheckCircle2 className="h-3 w-3" />}
@@ -142,6 +165,10 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
           )}
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <Pagination page={currentPage.toString()} totalPages={totalPages} />
+      )}
     </div>
   );
 }
