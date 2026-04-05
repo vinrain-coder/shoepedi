@@ -9,27 +9,49 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
+import Pagination from "@/components/shared/pagination";
+import { getSetting } from "@/lib/actions/setting.actions";
 
 export const metadata: Metadata = {
   title: "My Coins",
 };
 
-export default async function CoinsPage() {
+export default async function CoinsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page = "1" } = await searchParams;
+  const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
+
   await connectToDatabase();
   const session = await getServerSession();
   if (!session) return null;
 
+  const {
+    common: { pageSize },
+  } = await getSetting();
+
   const user = await User.findById(session.user.id);
 
   // Fetch orders where coins were earned, redeemed, or refunded
-  const coinOrders = await Order.find({
+  const query = {
     user: session.user.id,
     $or: [
       { coinsEarned: { $gt: 0 } },
       { coinsRedeemed: { $gt: 0 } },
-      { status: { $in: ["cancelled", "returned"] }, isPaid: true }
+      { status: { $in: ["cancelled", "returned"] }, refundedToCoins: true }
     ],
-  }).sort({ createdAt: -1 }).lean();
+  };
+
+  const totalCount = await Order.countDocuments(query);
+  const skipAmount = (pageNum - 1) * pageSize;
+
+  const coinOrders = await Order.find(query)
+    .sort({ createdAt: -1 })
+    .skip(skipAmount)
+    .limit(pageSize)
+    .lean();
 
   const history = coinOrders.flatMap((order: any) => {
     const events = [];
@@ -96,6 +118,9 @@ export default async function CoinsPage() {
             <h2 className="text-5xl font-extrabold text-foreground">{(user?.coins || 0).toFixed(2)}</h2>
             <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
           </div>
+          <p className="text-xs text-muted-foreground italic mt-2">
+            Coins are loyalty rewards and can only be used to pay for orders on ShoePedi.
+          </p>
         </CardContent>
       </Card>
 
@@ -131,6 +156,14 @@ export default async function CoinsPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+        {totalCount > pageSize && (
+          <div className="flex justify-center pt-4">
+            <Pagination
+              page={pageNum}
+              totalPages={Math.ceil(totalCount / pageSize)}
+            />
           </div>
         )}
       </div>

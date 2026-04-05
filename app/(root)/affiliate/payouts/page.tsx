@@ -6,14 +6,21 @@ import { formatCurrency } from "@/lib/utils";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import PayoutRequestForm from "@/components/affiliate/payout-request-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Pagination from "@/components/shared/pagination";
 
-export default async function AffiliatePayoutsPage() {
-  const { data } = await getAffiliateDashboardData();
+export default async function AffiliatePayoutsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page = "1" } = await searchParams;
+  const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
+  const { data } = await getAffiliateDashboardData({ payoutPage: pageNum });
   const { affiliate: settings } = await getSetting();
 
   if (!data) return <div>Unauthorized</div>;
 
-  const { affiliate, recentPayouts } = data;
+  const { affiliate, recentPayouts, payoutTotalPages } = data;
 
   return (
     <div className="container mx-auto py-10 space-y-8">
@@ -76,6 +83,14 @@ export default async function AffiliatePayoutsPage() {
                   ))}
                 </TableBody>
               </Table>
+            )}
+            {payoutTotalPages > 1 && (
+              <div className="flex justify-center pt-4">
+                <Pagination
+                  page={pageNum}
+                  totalPages={payoutTotalPages}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

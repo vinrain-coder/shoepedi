@@ -57,7 +57,7 @@ export async function registerAffiliate(data: any) {
   }
 }
 
-export async function getAffiliateDashboardData() {
+export async function getAffiliateDashboardData(params?: { payoutPage?: number; payoutLimit?: number }) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -71,9 +71,16 @@ export async function getAffiliateDashboardData() {
       .limit(10)
       .populate("order", "trackingNumber totalPrice status");
 
+    const payoutPage = Math.max(1, Math.floor(Number(params?.payoutPage) || 1));
+    const payoutLimit = Math.max(1, Math.floor(Number(params?.payoutLimit) || 10));
+    const skipPayouts = (payoutPage - 1) * payoutLimit;
+
     const payouts = await AffiliatePayout.find({ affiliate: affiliate._id })
       .sort({ createdAt: -1 })
-      .limit(10);
+      .skip(skipPayouts)
+      .limit(payoutLimit);
+
+    const totalPayouts = await AffiliatePayout.countDocuments({ affiliate: affiliate._id });
 
     return {
       success: true,
@@ -81,6 +88,7 @@ export async function getAffiliateDashboardData() {
         affiliate: JSON.parse(JSON.stringify(affiliate)),
         recentEarnings: JSON.parse(JSON.stringify(earnings)),
         recentPayouts: JSON.parse(JSON.stringify(payouts)),
+        payoutTotalPages: Math.ceil(totalPayouts / payoutLimit),
       },
     };
   } catch (error) {

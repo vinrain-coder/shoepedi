@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formUrlQuery } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -16,7 +16,14 @@ const Pagination = ({ page, totalPages, urlParamName }: PaginationProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [currentPage, setCurrentPage] = useState(Number(page));
+  const [currentPage, setCurrentPage] = useState(
+    Math.max(1, Number(page) || 1)
+  );
+
+  useEffect(() => {
+    const newPage = Math.max(1, Number(page) || 1);
+    setCurrentPage(newPage);
+  }, [page]);
 
   const onClick = (btnType: string) => {
     const newPage = btnType === "next" ? currentPage + 1 : currentPage - 1;
