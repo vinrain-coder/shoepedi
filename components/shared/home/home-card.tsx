@@ -20,7 +20,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
       {cards.map((card) => (
         <Card
           key={card.title}
-          className="rounded-2xl border-none shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-md flex flex-col overflow-hidden"
+          className="rounded-2xl border-none shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card flex flex-col overflow-hidden"
         >
           <CardContent className="p-5 flex-1">
             <h3 className="text-lg font-bold tracking-tight text-foreground/90 mb-6">{card.title}</h3>
