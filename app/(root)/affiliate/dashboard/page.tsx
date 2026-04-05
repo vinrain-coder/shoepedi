@@ -122,6 +122,9 @@ export default async function AffiliateDashboardPage() {
                     <div className="text-right">
                       <p className="font-bold text-green-600">+{formatCurrency(earning.amount)}</p>
                       <Badge className={`text-[10px] h-4 ${earning.status === 'earned' ? 'badge-success' : earning.status === 'pending' ? 'badge-pending' : 'badge-rejected'}`}>
+                        {earning.status === "earned" && <CheckCircle2 className="h-2 w-2" />}
+                        {earning.status === "pending" && <Clock className="h-2 w-2" />}
+                        {earning.status === "cancelled" && <AlertCircle className="h-2 w-2" />}
                         {earning.status}
                       </Badge>
                     </div>
@@ -152,6 +155,9 @@ export default async function AffiliateDashboardPage() {
                     <div className="text-right">
                       <p className="font-bold">-{formatCurrency(payout.amount)}</p>
                       <Badge className={`text-[10px] h-4 ${payout.status === 'paid' ? 'badge-success' : payout.status === 'pending' ? 'badge-pending' : 'badge-rejected'}`}>
+                        {payout.status === "paid" && <CheckCircle2 className="h-2 w-2" />}
+                        {payout.status === "pending" && <Clock className="h-2 w-2" />}
+                        {payout.status === "rejected" && <AlertCircle className="h-2 w-2" />}
                         {payout.status}
                       </Badge>
                     </div>

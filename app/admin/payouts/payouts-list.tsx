@@ -18,12 +18,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import DeleteDialog from "@/components/shared/delete-dialog";
 
 export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
   const [list, setList] = useState(payouts);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
   async function handleStatusUpdate(id: string, status: "paid" | "rejected") {
@@ -41,20 +41,6 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Are you sure you want to delete this payout request?")) return;
-
-    setIsDeleting(id);
-    const res = await deletePayoutRequest(id);
-    setIsDeleting(null);
-
-    if (res.success) {
-      toast.success(res.message);
-      setList(prev => prev.filter(p => p._id !== id));
-    } else {
-      toast.error(res.message);
-    }
-  }
 
   return (
     <div className="container mx-auto py-10 space-y-6">
@@ -146,15 +132,13 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
                           </Dialog>
                         </>
                       )}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        disabled={isDeleting === payout._id}
-                        onClick={() => handleDelete(payout._id)}
-                      >
-                        {isDeleting === payout._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                      </Button>
+                      <DeleteDialog
+                        id={payout._id}
+                        action={deletePayoutRequest}
+                        callbackAction={() => setList(prev => prev.filter(p => p._id !== payout._id))}
+                        title="Delete Payout Request?"
+                        description="This will delete the payout request and refund the amount to the affiliate's balance. This action cannot be undone."
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
