@@ -130,14 +130,23 @@ const notifyCustomerOrderStatus = async (
 ) => {
   if (!shouldSendStatusNotification(status)) return;
 
-  const user = order.user as unknown as { email?: string };
-  if (!user?.email) return;
+  let email = (order.user as unknown as { email?: string })?.email;
+
+  if (!email) {
+     const populatedOrder = await Order.findById(order._id).populate("user", "email name");
+     email = (populatedOrder?.user as unknown as { email?: string })?.email;
+     if (email) {
+       (order as any).user = populatedOrder?.user;
+     }
+  }
+
+  if (!email) return;
 
   const { site } = await getSetting();
   const trackingLink = `${site.url}${buildTrackingLink(order.trackingNumber)}`;
 
   await sendOrderTrackingNotification({
-    order,
+    order: order as IOrder,
     statusLabel: ORDER_STATUS_LABELS[status],
     statusMessage: message,
     trackingLink,
@@ -145,15 +154,32 @@ const notifyCustomerOrderStatus = async (
 };
 
 const revertOrderEffects = async (order: IOrder) => {
-  // 1. Refund paid amount to coins if paid
+  const userId = (order.user as any)?._id || order.user;
+
+  // 1. Refund paid amount to coins if paid and not already refunded
   if (order.isPaid) {
-    await User.findByIdAndUpdate(order.user, {
-      $inc: { coins: round2(order.totalPrice) },
-    });
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
+      { $set: { refundedToCoins: true } },
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { coins: round2(order.totalPrice) },
+      });
+      order.refundedToCoins = true;
+    }
   }
 
   // 2. Restore product stock if it was previously adjusted and not yet reverted
-  if (order.stockAdjusted && !order.stockReverted) {
+  const updatedOrderForStock = await Order.findOneAndUpdate(
+    { _id: order._id, stockAdjusted: true, stockReverted: { $ne: true } },
+    { $set: { stockReverted: true } },
+    { new: true }
+  );
+
+  if (updatedOrderForStock) {
     for (const item of order.items) {
       await Product.updateOne(
         { _id: item.product },
@@ -169,8 +195,14 @@ const revertOrderEffects = async (order: IOrder) => {
   }
 
   // 3. Revoke earned coins if credited
-  if (order.coinsCredited && order.coinsEarned > 0) {
-    await User.findByIdAndUpdate(order.user, {
+  const updatedOrderForCoins = await Order.findOneAndUpdate(
+    { _id: order._id, coinsCredited: true },
+    { $set: { coinsCredited: false } },
+    { new: true }
+  );
+
+  if (updatedOrderForCoins && order.coinsEarned > 0) {
+    await User.findByIdAndUpdate(userId, {
       $inc: { coins: -round2(order.coinsEarned) },
     });
     order.coinsCredited = false;
@@ -178,10 +210,11 @@ const revertOrderEffects = async (order: IOrder) => {
 
   // 4. Revoke affiliate commissions
   if (order.affiliate) {
-    const earning = await AffiliateEarning.findOne({
-      order: order._id,
-      status: { $ne: "cancelled" },
-    });
+    const earning = await AffiliateEarning.findOneAndUpdate(
+      { order: order._id, status: { $ne: "cancelled" } },
+      { $set: { status: "cancelled" } },
+      { new: true }
+    );
 
     if (earning) {
       await Affiliate.findByIdAndUpdate(order.affiliate, {
@@ -190,18 +223,24 @@ const revertOrderEffects = async (order: IOrder) => {
           totalEarnings: -earning.amount,
         },
       });
-      earning.status = "cancelled";
-      await earning.save();
     }
   }
 
   // 5. Revert coupon usage
-  if (order.coupon?._id && !order.coupon.isAffiliate && !order.couponUsageReverted) {
-    try {
-      await decrementCouponUsage(order.coupon._id.toString());
-      order.couponUsageReverted = true;
-    } catch (error) {
-      console.error("Non-critical: Failed to revert coupon usage:", error);
+  if (order.coupon?._id && !order.coupon.isAffiliate) {
+    const updatedOrderForCoupon = await Order.findOneAndUpdate(
+      { _id: order._id, couponUsageReverted: { $ne: true } },
+      { $set: { couponUsageReverted: true } },
+      { new: true }
+    );
+
+    if (updatedOrderForCoupon) {
+      try {
+        await decrementCouponUsage(order.coupon._id.toString());
+        order.couponUsageReverted = true;
+      } catch (error) {
+        console.error("Non-critical: Failed to revert coupon usage:", error);
+      }
     }
   }
 };
@@ -447,8 +486,8 @@ export const createOrderFromCart = async (
 
   if (cart.paymentMethod === "Coins") {
     const userUpdate = await User.findOneAndUpdate(
-      { _id: userId, coins: { $gte: cart.totalPrice } },
-      { $inc: { coins: -cart.totalPrice } },
+      { _id: userId, coins: { $gte: totalPrice } },
+      { $inc: { coins: -totalPrice } },
       { new: true }
     );
 
@@ -485,6 +524,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 1. Credit earned coins to user
   try {
+    const userId = (order.user as any)?._id || order.user;
     if (order.coinsEarned > 0 && !order.coinsCredited) {
       const updatedOrder = await Order.findOneAndUpdate(
         { _id: order._id, coinsCredited: { $ne: true } },
@@ -493,7 +533,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       );
 
       if (updatedOrder) {
-        await User.findByIdAndUpdate(order.user, {
+        await User.findByIdAndUpdate(userId, {
           $inc: { coins: round2(order.coinsEarned) },
         });
       }
@@ -504,11 +544,13 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 2. Update product stock
   try {
-    if (!order.stockAdjusted) {
-      const success = await updateProductStock(order._id.toString());
-      if (success) {
-        await Order.findByIdAndUpdate(order._id, { $set: { stockAdjusted: true } });
-      }
+    const updatedOrderForStock = await Order.findOneAndUpdate(
+      { _id: order._id, stockAdjusted: { $ne: true } },
+      { $set: { stockAdjusted: true } },
+      { new: true }
+    );
+    if (updatedOrderForStock) {
+      await updateProductStock(order._id.toString());
     }
   } catch (stockError) {
     console.error("Critical: Failed to update product stock:", stockError);
@@ -570,7 +612,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
     const emailUser = populatedOrder?.user as unknown as { email?: string };
 
     if (emailUser?.email) {
-      await sendPurchaseReceipt({ order: populatedOrder as unknown as IOrder });
+      await sendPurchaseReceipt(populatedOrder as unknown as IOrder);
     }
   } catch (emailError) {
     console.error("Non-critical: Failed to send purchase receipt email:", emailError);
@@ -691,7 +733,7 @@ export async function updateOrderStatus({
 
     if (normalizedStatus === "delivered") {
       if ((order.user as { email?: string })?.email) {
-        await sendAskReviewOrderItems({ order: order as unknown as IOrder });
+        await sendAskReviewOrderItems(order as unknown as IOrder);
       }
     }
 

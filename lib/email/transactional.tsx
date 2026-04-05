@@ -107,12 +107,18 @@ export const sendAdminEventNotification = async ({
 };
 
 export const sendPurchaseReceipt = async (order: IOrder) => {
+  const userEmail = (order.user as { email?: string })?.email;
+  if (!userEmail) {
+    console.error(`Cannot send purchase receipt for order ${order._id}: User email not found`);
+    return;
+  }
+
   const serializedOrder = JSON.parse(
     JSON.stringify(order),
   ) as unknown as SerializedOrder;
   const pdf = buildOrderReceiptPdf(serializedOrder);
   await sendEmail({
-    to: (order.user as { email: string }).email,
+    to: userEmail,
     subject: "Purchase Receipt",
     react: <PurchaseReceiptEmail order={order} />,
     attachments: [
@@ -125,8 +131,14 @@ export const sendPurchaseReceipt = async (order: IOrder) => {
 };
 
 export const sendAskReviewOrderItems = async (order: IOrder) => {
+  const userEmail = (order.user as { email?: string })?.email;
+  if (!userEmail) {
+    console.error(`Cannot send review request for order ${order._id}: User email not found`);
+    return;
+  }
+
   await sendEmail({
-    to: (order.user as { email: string }).email,
+    to: userEmail,
     subject: "Review your order items",
     react: <AskReviewOrderItemsEmail order={order} />,
   });

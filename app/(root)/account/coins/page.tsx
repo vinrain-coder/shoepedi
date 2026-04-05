@@ -21,16 +21,21 @@ export default async function CoinsPage() {
 
   const user = await User.findById(session.user.id);
 
-  // Fetch orders where coins were earned or redeemed
+  // Fetch orders where coins were earned, redeemed, or refunded
   const coinOrders = await Order.find({
     user: session.user.id,
-    $or: [{ coinsEarned: { $gt: 0 } }, { coinsRedeemed: { $gt: 0 } }],
-    isPaid: true
+    $or: [
+      { coinsEarned: { $gt: 0 } },
+      { coinsRedeemed: { $gt: 0 } },
+      { status: { $in: ["cancelled", "returned"] }, isPaid: true }
+    ],
   }).sort({ createdAt: -1 }).lean();
 
   const history = coinOrders.flatMap((order: any) => {
     const events = [];
-    if (order.coinsEarned > 0 && order.coinsCredited) {
+
+    // Original earnings
+    if (order.coinsEarned > 0 && order.coinsCredited && !["cancelled", "returned"].includes(order.status)) {
       events.push({
         id: `${order._id.toString()}-earned`,
         type: 'earned',
@@ -40,6 +45,8 @@ export default async function CoinsPage() {
         description: `Earned from Order ${formatId(order._id.toString())}`
       });
     }
+
+    // Redemptions
     if (order.coinsRedeemed > 0) {
       events.push({
         id: `${order._id.toString()}-redeemed`,
@@ -50,6 +57,19 @@ export default async function CoinsPage() {
         description: `Redeemed for Order ${formatId(order._id.toString())}`
       });
     }
+
+    // Refunds for cancelled/returned orders
+    if (["cancelled", "returned"].includes(order.status) && order.refundedToCoins) {
+       events.push({
+        id: `${order._id.toString()}-refund`,
+        type: 'earned', // Use earned styling for refunds
+        amount: order.totalPrice,
+        date: (order.updatedAt || new Date()).toISOString(),
+        orderId: order._id.toString(),
+        description: `Refund for ${order.status === 'cancelled' ? 'Cancelled' : 'Returned'} Order ${formatId(order._id.toString())}`
+      });
+    }
+
     return events;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 

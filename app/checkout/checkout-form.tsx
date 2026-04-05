@@ -52,6 +52,7 @@ import {
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getUserCoins } from "@/lib/actions/user.actions";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -336,6 +337,14 @@ const CheckoutForm = ({
   const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(
     null
   );
+
+  const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
+
+  useEffect(() => {
+    getUserCoins().then((coins) => {
+      if (coins !== null) setLiveUserCoins(coins);
+    });
+  }, []);
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
     [addressBook, selectedSavedAddressId]
@@ -522,7 +531,7 @@ const CheckoutForm = ({
   );
 
   const { data: session } = authClient.useSession();
-  const userCoins = (session?.user as any)?.coins || 0;
+  const userCoins = liveUserCoins !== null ? liveUserCoins : ((session?.user as any)?.coins || 0);
   const coinsToEarn = Math.round(itemsPrice * 0.04 * 100) / 100;
 
   const finalAvailablePaymentMethods = useMemo(() => {

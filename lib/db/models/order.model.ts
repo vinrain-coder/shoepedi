@@ -81,6 +81,7 @@ export interface IOrder extends Document {
   stockAdjusted?: boolean;
   stockReverted?: boolean;
   couponUsageReverted?: boolean;
+  refundedToCoins?: boolean;
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -229,6 +230,7 @@ const orderSchema = new Schema<IOrder>(
     stockAdjusted: { type: Boolean, default: false },
     stockReverted: { type: Boolean, default: false },
     couponUsageReverted: { type: Boolean, default: false },
+    refundedToCoins: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },
   {
