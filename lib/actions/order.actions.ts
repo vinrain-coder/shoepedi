@@ -157,15 +157,29 @@ const revertOrderEffects = async (order: IOrder) => {
   const userId = (order.user as any)?._id || order.user;
 
   // 1. Refund paid amount to coins if paid and not already refunded
-  if (order.isPaid && !order.refundedToCoins) {
-    await User.findByIdAndUpdate(userId, {
-      $inc: { coins: round2(order.totalPrice) },
-    });
-    order.refundedToCoins = true;
+  if (order.isPaid) {
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
+      { $set: { refundedToCoins: true } },
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { coins: round2(order.totalPrice) },
+      });
+      order.refundedToCoins = true;
+    }
   }
 
   // 2. Restore product stock if it was previously adjusted and not yet reverted
-  if (order.stockAdjusted && !order.stockReverted) {
+  const updatedOrderForStock = await Order.findOneAndUpdate(
+    { _id: order._id, stockAdjusted: true, stockReverted: { $ne: true } },
+    { $set: { stockReverted: true } },
+    { new: true }
+  );
+
+  if (updatedOrderForStock) {
     for (const item of order.items) {
       await Product.updateOne(
         { _id: item.product },
@@ -181,7 +195,13 @@ const revertOrderEffects = async (order: IOrder) => {
   }
 
   // 3. Revoke earned coins if credited
-  if (order.coinsCredited && order.coinsEarned > 0) {
+  const updatedOrderForCoins = await Order.findOneAndUpdate(
+    { _id: order._id, coinsCredited: true },
+    { $set: { coinsCredited: false } },
+    { new: true }
+  );
+
+  if (updatedOrderForCoins && order.coinsEarned > 0) {
     await User.findByIdAndUpdate(userId, {
       $inc: { coins: -round2(order.coinsEarned) },
     });
@@ -190,10 +210,11 @@ const revertOrderEffects = async (order: IOrder) => {
 
   // 4. Revoke affiliate commissions
   if (order.affiliate) {
-    const earning = await AffiliateEarning.findOne({
-      order: order._id,
-      status: { $ne: "cancelled" },
-    });
+    const earning = await AffiliateEarning.findOneAndUpdate(
+      { order: order._id, status: { $ne: "cancelled" } },
+      { $set: { status: "cancelled" } },
+      { new: true }
+    );
 
     if (earning) {
       await Affiliate.findByIdAndUpdate(order.affiliate, {
@@ -202,18 +223,24 @@ const revertOrderEffects = async (order: IOrder) => {
           totalEarnings: -earning.amount,
         },
       });
-      earning.status = "cancelled";
-      await earning.save();
     }
   }
 
   // 5. Revert coupon usage
-  if (order.coupon?._id && !order.coupon.isAffiliate && !order.couponUsageReverted) {
-    try {
-      await decrementCouponUsage(order.coupon._id.toString());
-      order.couponUsageReverted = true;
-    } catch (error) {
-      console.error("Non-critical: Failed to revert coupon usage:", error);
+  if (order.coupon?._id && !order.coupon.isAffiliate) {
+    const updatedOrderForCoupon = await Order.findOneAndUpdate(
+      { _id: order._id, couponUsageReverted: { $ne: true } },
+      { $set: { couponUsageReverted: true } },
+      { new: true }
+    );
+
+    if (updatedOrderForCoupon) {
+      try {
+        await decrementCouponUsage(order.coupon._id.toString());
+        order.couponUsageReverted = true;
+      } catch (error) {
+        console.error("Non-critical: Failed to revert coupon usage:", error);
+      }
     }
   }
 };
@@ -517,11 +544,13 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 2. Update product stock
   try {
-    if (!order.stockAdjusted) {
-      const success = await updateProductStock(order._id.toString());
-      if (success) {
-        await Order.findByIdAndUpdate(order._id, { $set: { stockAdjusted: true } });
-      }
+    const updatedOrderForStock = await Order.findOneAndUpdate(
+      { _id: order._id, stockAdjusted: { $ne: true } },
+      { $set: { stockAdjusted: true } },
+      { new: true }
+    );
+    if (updatedOrderForStock) {
+      await updateProductStock(order._id.toString());
     }
   } catch (stockError) {
     console.error("Critical: Failed to update product stock:", stockError);

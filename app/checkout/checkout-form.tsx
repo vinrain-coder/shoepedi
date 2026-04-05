@@ -341,7 +341,9 @@ const CheckoutForm = ({
   const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
 
   useEffect(() => {
-    getUserCoins().then(setLiveUserCoins);
+    getUserCoins().then((coins) => {
+      if (coins !== null) setLiveUserCoins(coins);
+    });
   }, []);
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
