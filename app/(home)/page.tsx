@@ -180,7 +180,7 @@ export default async function HomePage() {
         <AsyncHomeCarousel />
       </Suspense>
 
-      <div className="max-w-7xl mx-auto py-12 md:py-20 space-y-16 md:space-y-24 px-4 md:px-0">
+      <div className="max-w-7xl mx-auto py-8 md:py-16 space-y-10 md:space-y-16 px-2 md:px-0">
         {/* Home Cards: New Arrivals / Categories / Featured / Best Sellers */}
         <section>
           <Suspense fallback={<SkeletonCard />}>
@@ -191,7 +191,7 @@ export default async function HomePage() {
         {/* Today's Deals */}
         <section>
           <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <Suspense fallback={<SkeletonProductSlider />}>
                 <AsyncTodaysDeals />
               </Suspense>
@@ -202,7 +202,7 @@ export default async function HomePage() {
         {/* Best Selling Products */}
         <section>
           <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <Suspense fallback={<SkeletonProductSlider />}>
                 <AsyncBestSellingProducts />
               </Suspense>
@@ -211,7 +211,7 @@ export default async function HomePage() {
         </section>
 
         {/* Browsing History */}
-        <section className="bg-muted/30 rounded-3xl p-6 md:p-10">
+        <section className="bg-muted/30 rounded-3xl p-4 md:p-8">
           <BrowsingHistoryList />
         </section>
 
