@@ -6,6 +6,7 @@ import {
   canTransitionOrderStatus,
   generateTrackingNumber,
   normalizeOrderStatus,
+  ORDER_STATUS_FLOW,
   ORDER_STATUS_LABELS,
   OrderTrackingHistoryEventInput,
   OrderTrackingStatus,
@@ -170,15 +171,35 @@ const runStatusTransition = async ({
     );
   }
 
-  order.status = nextStatus;
-
   if (nextStatus === "delivered") {
+    // Backfill intermediate statuses if jumping to delivered
+    const flow = [...ORDER_STATUS_FLOW];
+    const currentIndex = flow.indexOf(order.status as any);
+    const deliveredIndex = flow.indexOf("delivered");
+
+    if (currentIndex !== -1 && currentIndex < deliveredIndex - 1) {
+      const now = Date.now();
+      for (let i = currentIndex + 1; i < deliveredIndex; i++) {
+        const intermediateStatus = flow[i];
+        appendTrackingHistory(order, {
+          status: intermediateStatus,
+          message: `Order moved to ${ORDER_STATUS_LABELS[intermediateStatus].toLowerCase()} (system).`,
+          source: "system",
+          // Use slightly earlier timestamps for intermediate events to maintain order
+          createdAt: new Date(now - (deliveredIndex - i) * 1000),
+        });
+      }
+    }
+
+    order.status = nextStatus;
     order.isDelivered = true;
     order.deliveredAt = new Date();
     order.shipment = {
       ...order.shipment,
       deliveredAt: order.deliveredAt,
     };
+  } else {
+    order.status = nextStatus;
   }
 
   if (nextStatus === "cancelled") {
