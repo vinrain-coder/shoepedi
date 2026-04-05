@@ -32,7 +32,7 @@ import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
-import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
+import { validateCoupon, incrementCouponUsage, decrementCouponUsage } from "./coupon.actions";
 import { getAffiliateByCode } from "./affiliate.actions";
 import Affiliate from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
@@ -144,10 +144,7 @@ const notifyCustomerOrderStatus = async (
   });
 };
 
-const revertOrderEffects = async (orderId: string) => {
-  const order = await Order.findById(orderId);
-  if (!order) return;
-
+const revertOrderEffects = async (order: IOrder) => {
   // 1. Refund paid amount to coins if paid
   if (order.isPaid) {
     await User.findByIdAndUpdate(order.user, {
@@ -155,17 +152,20 @@ const revertOrderEffects = async (orderId: string) => {
     });
   }
 
-  // 2. Restore product stock
-  for (const item of order.items) {
-    await Product.updateOne(
-      { _id: item.product },
-      {
-        $inc: {
-          countInStock: item.quantity,
-          numSales: -item.quantity,
-        },
-      }
-    );
+  // 2. Restore product stock if it was previously adjusted and not yet reverted
+  if (order.stockAdjusted && !order.stockReverted) {
+    for (const item of order.items) {
+      await Product.updateOne(
+        { _id: item.product },
+        {
+          $inc: {
+            countInStock: item.quantity,
+            numSales: -item.quantity,
+          },
+        }
+      );
+    }
+    order.stockReverted = true;
   }
 
   // 3. Revoke earned coins if credited
@@ -195,7 +195,15 @@ const revertOrderEffects = async (orderId: string) => {
     }
   }
 
-  await order.save();
+  // 5. Revert coupon usage
+  if (order.coupon?._id && !order.coupon.isAffiliate && !order.couponUsageReverted) {
+    try {
+      await decrementCouponUsage(order.coupon._id.toString());
+      order.couponUsageReverted = true;
+    } catch (error) {
+      console.error("Non-critical: Failed to revert coupon usage:", error);
+    }
+  }
 };
 
 const runStatusTransition = async ({
@@ -226,36 +234,42 @@ const runStatusTransition = async ({
   }
 
   if (nextStatus === "cancelled" || nextStatus === "returned") {
-    await revertOrderEffects(order._id.toString());
+    await revertOrderEffects(order as IOrder);
   }
 
   if (nextStatus === "delivered") {
-    // Backfill intermediate statuses if jumping to delivered
-    const flow = [...ORDER_STATUS_FLOW];
-    const currentIndex = flow.indexOf(order.status as any);
-    const deliveredIndex = flow.indexOf("delivered");
+    // If we're moving to delivered, and it's already marked as delivered (e.g. from return_requested)
+    // we don't want to overwrite timestamps or backfill
+    if (order.isDelivered && order.deliveredAt) {
+      order.status = nextStatus;
+    } else {
+      // Backfill intermediate statuses if jumping to delivered
+      const flow = [...ORDER_STATUS_FLOW];
+      const currentIndex = flow.indexOf(order.status as any);
+      const deliveredIndex = flow.indexOf("delivered");
 
-    if (currentIndex !== -1 && currentIndex < deliveredIndex - 1) {
-      const now = Date.now();
-      for (let i = currentIndex + 1; i < deliveredIndex; i++) {
-        const intermediateStatus = flow[i];
-        appendTrackingHistory(order, {
-          status: intermediateStatus,
-          message: `Order moved to ${ORDER_STATUS_LABELS[intermediateStatus].toLowerCase()} (system).`,
-          source: "system",
-          // Use slightly earlier timestamps for intermediate events to maintain order
-          createdAt: new Date(now - (deliveredIndex - i) * 1000),
-        });
+      if (currentIndex !== -1 && currentIndex < deliveredIndex - 1) {
+        const now = Date.now();
+        for (let i = currentIndex + 1; i < deliveredIndex; i++) {
+          const intermediateStatus = flow[i];
+          appendTrackingHistory(order, {
+            status: intermediateStatus,
+            message: `Order moved to ${ORDER_STATUS_LABELS[intermediateStatus].toLowerCase()} (system).`,
+            source: "system",
+            // Use slightly earlier timestamps for intermediate events to maintain order
+            createdAt: new Date(now - (deliveredIndex - i) * 1000),
+          });
+        }
       }
-    }
 
-    order.status = nextStatus;
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-    order.shipment = {
-      ...order.shipment,
-      deliveredAt: order.deliveredAt,
-    };
+      order.status = nextStatus;
+      order.isDelivered = true;
+      order.deliveredAt = new Date();
+      order.shipment = {
+        ...order.shipment,
+        deliveredAt: order.deliveredAt,
+      };
+    }
   } else {
     order.status = nextStatus;
   }
@@ -490,7 +504,12 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 2. Update product stock
   try {
-    await updateProductStock(order._id.toString());
+    if (!order.stockAdjusted) {
+      const success = await updateProductStock(order._id.toString());
+      if (success) {
+        await Order.findByIdAndUpdate(order._id, { $set: { stockAdjusted: true } });
+      }
+    }
   } catch (stockError) {
     console.error("Critical: Failed to update product stock:", stockError);
   }
