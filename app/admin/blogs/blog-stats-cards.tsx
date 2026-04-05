@@ -142,7 +142,20 @@ export default function BlogStatsCards({
                     ? "ring-2 ring-primary"
                     : "opacity-80 shadow-none border-dashed"
                 )}
-                onClick={() => stat.clickable && handleStatusClick(stat.id)}
+                {...(stat.clickable
+                  ? {
+                      as: "button" as const,
+                      onClick: () => handleStatusClick(stat.id),
+                      onKeyDown: (e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleStatusClick(stat.id);
+                        }
+                      },
+                      "aria-pressed": isActive,
+                      tabIndex: 0,
+                    }
+                  : {})}
               >
                 <CardContent className="flex flex-col items-center justify-center p-3 text-center">
                   <div className={cn("rounded-full p-1.5 mb-1", stat.color)}>

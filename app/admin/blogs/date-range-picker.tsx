@@ -27,13 +27,17 @@ export function BlogsDateRangePicker({
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const [calendarDate, setCalendarDate] = React.useState<DateRange | undefined>(
-    fromParam && toParam
-      ? { from: new Date(fromParam), to: new Date(toParam) }
-      : fromParam
-      ? { from: new Date(fromParam) }
-      : undefined
+  const calendarDate = React.useMemo<DateRange | undefined>(
+    () =>
+      fromParam && toParam
+        ? { from: new Date(fromParam), to: new Date(toParam) }
+        : fromParam
+        ? { from: new Date(fromParam) }
+        : undefined,
+    [fromParam, toParam]
   );
+
+  const [draftCalendarDate, setDraftCalendarDate] = React.useState<DateRange | undefined>(calendarDate);
 
   const applyRange = (range: DateRange | undefined) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -52,13 +56,17 @@ export function BlogsDateRangePicker({
   };
 
   const clearRange = () => {
-    setCalendarDate(undefined);
+    setDraftCalendarDate(undefined);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("from");
     params.delete("to");
     params.set("page", "1");
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
+
+  React.useEffect(() => {
+    setDraftCalendarDate(calendarDate);
+  }, [calendarDate]);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -90,14 +98,14 @@ export function BlogsDateRangePicker({
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
             mode="range"
-            defaultMonth={calendarDate?.from}
-            selected={calendarDate}
-            onSelect={setCalendarDate}
+            defaultMonth={draftCalendarDate?.from}
+            selected={draftCalendarDate}
+            onSelect={setDraftCalendarDate}
             numberOfMonths={2}
           />
           <div className="flex gap-4 p-4 pt-0">
             <PopoverClose asChild>
-              <Button onClick={() => applyRange(calendarDate)}>Apply</Button>
+              <Button onClick={() => applyRange(draftCalendarDate)}>Apply</Button>
             </PopoverClose>
             <PopoverClose asChild>
               <Button variant={"outline"}>Cancel</Button>

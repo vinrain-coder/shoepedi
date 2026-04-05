@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 interface BlogFiltersProps {
   categories: string[];
-  tags: string[];
+  tags: { value: string; label: string }[];
 }
 
 export default function BlogFilters({
@@ -110,8 +110,8 @@ export default function BlogFilters({
         <SelectContent>
           <SelectItem value="all">All Tags</SelectItem>
           {tags.map((t) => (
-            <SelectItem key={t} value={t}>
-              {t}
+            <SelectItem key={t.value} value={t.value}>
+              {t.label}
             </SelectItem>
           ))}
         </SelectContent>

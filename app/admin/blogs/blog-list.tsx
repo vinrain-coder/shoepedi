@@ -124,7 +124,7 @@ const BlogList = ({ data, page }: BlogListProps) => {
                     )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {formatDateTime(blog.updatedAt).dateTime}
+                    {formatDateTime(new Date(blog.updatedAt)).dateTime}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -134,7 +134,7 @@ const BlogList = ({ data, page }: BlogListProps) => {
                         </Link>
                       </Button>
                       <Button asChild variant="outline" size="sm" title="View">
-                        <Link target="_blank" href={`/blog/${blog.slug}`}>
+                        <Link target="_blank" href={`/blogs/${blog.slug}`}>
                           <EyeIcon className="size-4" />
                         </Link>
                       </Button>

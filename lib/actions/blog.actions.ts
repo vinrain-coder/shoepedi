@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { notFound } from "next/navigation";
@@ -223,15 +223,19 @@ export async function getAllBlogsForAdmin({
   } = await getSetting();
   limit = limit || pageSize;
 
-  const queryFilter =
-    query && query !== "all"
-      ? {
-          title: {
-            $regex: query,
-            $options: "i",
-          },
-        }
-      : {};
+  const pageNum = Math.max(1, Number.parseInt(String(page) || "1", 10) || 1);
+
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const trimmedQuery = query?.trim() || "";
+  const queryFilter = trimmedQuery
+    ? {
+        $or: [
+          { title: { $regex: escapeRegex(trimmedQuery), $options: "i" } },
+          { slug: { $regex: escapeRegex(trimmedQuery), $options: "i" } },
+        ],
+      }
+    : {};
 
   const categoryFilter =
     category && category !== "all"
@@ -254,12 +258,20 @@ export async function getAllBlogsForAdmin({
     from || to
       ? {
           updatedAt: {
-            ...(from ? { $gte: new Date(from) } : {}),
+            ...(from
+              ? {
+                  $gte: (() => {
+                    const d = new Date(from);
+                    d.setUTCHours(0, 0, 0, 0);
+                    return d;
+                  })(),
+                }
+              : {}),
             ...(to
               ? {
                   $lte: (() => {
                     const d = new Date(to);
-                    d.setHours(23, 59, 59, 999);
+                    d.setUTCHours(23, 59, 59, 999);
                     return d;
                   })(),
                 }
@@ -285,7 +297,7 @@ export async function getAllBlogsForAdmin({
 
   const blogs = await Blog.find(filters)
     .sort(order)
-    .skip(limit * (Number(page) - 1))
+    .skip(limit * (pageNum - 1))
     .limit(limit)
     .lean();
 
@@ -295,8 +307,8 @@ export async function getAllBlogsForAdmin({
     blogs: blogs.map(serializeBlog),
     totalPages: Math.ceil(countBlogs / limit),
     totalBlogs: countBlogs,
-    from: limit * (Number(page) - 1) + 1,
-    to: limit * (Number(page) - 1) + blogs.length,
+    from: limit * (pageNum - 1) + 1,
+    to: limit * (pageNum - 1) + blogs.length,
   };
 }
 
@@ -312,15 +324,17 @@ export async function getBlogAdminStats(params: {
   cacheTag("blogs");
   await connectToDatabase();
 
-  const queryFilter =
-    params.query && params.query !== "all"
-      ? {
-          title: {
-            $regex: params.query,
-            $options: "i",
-          },
-        }
-      : {};
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const trimmedQuery = params.query?.trim() || "";
+  const queryFilter = trimmedQuery
+    ? {
+        $or: [
+          { title: { $regex: escapeRegex(trimmedQuery), $options: "i" } },
+          { slug: { $regex: escapeRegex(trimmedQuery), $options: "i" } },
+        ],
+      }
+    : {};
 
   const categoryFilter =
     params.category && params.category !== "all"
@@ -336,12 +350,20 @@ export async function getBlogAdminStats(params: {
     params.from || params.to
       ? {
           updatedAt: {
-            ...(params.from ? { $gte: new Date(params.from) } : {}),
+            ...(params.from
+              ? {
+                  $gte: (() => {
+                    const d = new Date(params.from);
+                    d.setUTCHours(0, 0, 0, 0);
+                    return d;
+                  })(),
+                }
+              : {}),
             ...(params.to
               ? {
                   $lte: (() => {
                     const d = new Date(params.to);
-                    d.setHours(23, 59, 59, 999);
+                    d.setUTCHours(23, 59, 59, 999);
                     return d;
                   })(),
                 }
@@ -447,12 +469,13 @@ export async function getAllBlogTags() {
     { $project: { tag: "$_id", _id: 0 } },
   ]);
 
-  return tags.map((t) =>
-    t.tag
+  return tags.map((t) => ({
+    value: t.tag,
+    label: t.tag
       .split("-")
       .map((w: string) => w[0].toUpperCase() + w.slice(1))
       .join(" ")
-  );
+  }));
 }
 
 export async function incrementBlogViews(slug: string) {
