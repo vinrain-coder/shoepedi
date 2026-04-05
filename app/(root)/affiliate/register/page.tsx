@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +19,25 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
+import { Loader2 } from "lucide-react";
+
 export default function RegisterAffiliatePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  useEffect(() => {
+    async function checkStatus() {
+      const { exists } = await getAffiliateStatus();
+      if (exists) {
+        router.push("/affiliate/dashboard");
+      } else {
+        setCheckingStatus(false);
+      }
+    }
+    checkStatus();
+  }, [router]);
 
   const form = useForm({
     resolver: zodResolver(AffiliateInputSchema),
@@ -48,6 +64,14 @@ export default function RegisterAffiliatePage() {
     } else {
       toast.error(res.message);
     }
+  }
+
+  if (checkingStatus) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -155,7 +179,14 @@ export default function RegisterAffiliatePage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Application"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Application"
+                )}
               </Button>
             </form>
           </Form>

@@ -606,21 +606,38 @@ export const CouponUpdateSchema = CouponInputSchema.extend({
 });
 
 // Affiliate
-export const AffiliateInputSchema = z.object({
-  affiliateCode: z.string().min(3).max(20),
-  commissionRate: z.coerce.number().min(0).optional(),
-  discountRate: z.coerce.number().min(0).optional(),
-  paymentDetails: z.object({
-    bankName: z.string().optional(),
-    accountName: z.string().optional(),
-    accountNumber: z.string().optional(),
-    payPalEmail: z.string().email().optional().or(z.literal("")),
-    mPesaNumber: z.string().optional(),
-  }),
-});
+export const AffiliateInputSchema = z
+  .object({
+    affiliateCode: z
+      .string()
+      .min(3, "Affiliate code must be at least 3 characters")
+      .max(20, "Affiliate code must be at most 20 characters")
+      .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, hyphens and underscores are allowed"),
+    commissionRate: z.coerce.number().min(0).optional(),
+    discountRate: z.coerce.number().min(0).optional(),
+    paymentDetails: z.object({
+      bankName: z.string().optional(),
+      accountName: z.string().optional(),
+      accountNumber: z.string().optional(),
+      payPalEmail: z.string().email().optional().or(z.literal("")),
+      mPesaNumber: z.string().optional(),
+    }),
+  })
+  .refine(
+    (data) => {
+      const { bankName, accountNumber, payPalEmail, mPesaNumber } = data.paymentDetails;
+      return (bankName && accountNumber) || payPalEmail || mPesaNumber;
+    },
+    {
+      message: "Please provide at least one payment method (M-Pesa, PayPal, or Bank Details)",
+      path: ["paymentDetails"],
+    }
+  );
 
 export const AffiliatePayoutInputSchema = z.object({
   amount: Price("Payout amount"),
-  paymentMethod: z.string().min(1),
-  paymentDetails: z.record(z.unknown()),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  paymentDetails: z.object({
+    recipient: z.string().min(1, "Recipient details are required"),
+  }),
 });

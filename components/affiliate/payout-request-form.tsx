@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AffiliatePayoutInputSchema } from "@/lib/validator";
@@ -18,8 +19,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 export default function PayoutRequestForm({ currentBalance, minAmount }: { currentBalance: number, minAmount: number }) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -45,7 +48,7 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
     if (res.success) {
       toast.success(res.message);
       form.reset();
-      window.location.reload();
+      router.refresh();
     } else {
       toast.error(res.message);
     }
@@ -111,7 +114,14 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
             />
 
             <Button type="submit" className="w-full" disabled={isSubmitting || currentBalance < minAmount}>
-              {isSubmitting ? "Requesting..." : "Submit Payout Request"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Requesting...
+                </>
+              ) : (
+                "Submit Payout Request"
+              )}
             </Button>
           </form>
         </Form>

@@ -107,6 +107,25 @@ export async function isApprovedAffiliate() {
   }
 }
 
+export async function getAffiliateStatus() {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) return { exists: false };
+
+    const affiliate = await Affiliate.findOne({ user: session.user.id });
+    if (!affiliate) return { exists: false };
+
+    return {
+      exists: true,
+      status: affiliate.status,
+    };
+  } catch (error) {
+    console.error("Error getting affiliate status:", error);
+    return { exists: false };
+  }
+}
+
 export async function createPayoutRequest(data: any) {
   try {
     await connectToDatabase();
@@ -182,13 +201,16 @@ export async function getAllAffiliates({ page = 1, limit = 20, status }: { page?
   }
 }
 
-export async function updateAffiliateStatus(id: string, status: "approved" | "rejected") {
+export async function updateAffiliateStatus(id: string, status: "approved" | "rejected", adminNote?: string) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
-    const affiliate = await Affiliate.findByIdAndUpdate(id, { status }, { new: true }).populate("user", "name email");
+    const update: any = { status };
+    if (status === "rejected" && adminNote) update.adminNote = adminNote;
+
+    const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
 
     if (status === "approved") {
@@ -232,6 +254,48 @@ export async function getAllPayouts({ page = 1, limit = 20, status }: { page?: n
       data: JSON.parse(JSON.stringify(payouts)),
       totalPages: Math.ceil(count / limit),
     };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function deleteAffiliate(id: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const affiliate = await Affiliate.findById(id);
+    if (!affiliate) throw new Error("Affiliate not found");
+
+    // Optionally check if they have earnings/payouts before deleting or just delete everything
+    await AffiliateEarning.deleteMany({ affiliate: id });
+    await AffiliatePayout.deleteMany({ affiliate: id });
+    await Affiliate.findByIdAndDelete(id);
+
+    revalidatePath("/admin/affiliates");
+    return { success: true, message: "Affiliate and related data deleted successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function deletePayoutRequest(id: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const payout = await AffiliatePayout.findById(id);
+    if (!payout) throw new Error("Payout request not found");
+
+    // If pending, maybe refund? Usually delete means it was a mistake or cleanup.
+    // If user wants to "reject" they should use updatePayoutStatus.
+
+    await AffiliatePayout.findByIdAndDelete(id);
+
+    revalidatePath("/admin/payouts");
+    return { success: true, message: "Payout request deleted successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
