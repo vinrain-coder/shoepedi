@@ -53,7 +53,7 @@ export const subscribeToStock = async (data: {
       createdAt: (subscription.subscribedAt || new Date()).toISOString(),
     });
 
-    revalidatePath("/admin/stock-subscriptions");
+    revalidatePath("/admin/stockSubs");
     return { success: true, message: "Subscription successful!" };
   } catch (error) {
     console.error("Error subscribing to stock:", error);
@@ -68,13 +68,17 @@ export async function getAllStockSubscriptions({
   limit,
   page,
   filter,
+  query,
+  from,
+  to,
 }: {
   limit?: number;
   page: number;
-  filter?: "notified" | "pending";
+  filter?: string;
+  query?: string;
+  from?: string;
+  to?: string;
 }) {
-  "use cache";
-  cacheLife("hours");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -86,21 +90,90 @@ export async function getAllStockSubscriptions({
 
   const skipAmount = (Number(page) - 1) * limit;
 
-  let query = {};
-  if (filter === "notified") query = { isNotified: true };
-  if (filter === "pending") query = { isNotified: false };
+  // Build Filter Query
+  const filterQuery: any = {};
+  if (filter === "notified") filterQuery.isNotified = true;
+  if (filter === "pending") filterQuery.isNotified = false;
 
-  const subscriptions = await StockSubscription.find(query)
+  if (query) {
+    // We need to find products that match the query to filter by product name
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" },
+    }).select("_id");
+    const productIds = products.map((p) => p._id);
+
+    filterQuery.$or = [
+      { email: { $regex: query, $options: "i" } },
+      { product: { $in: productIds } },
+    ];
+  }
+
+  if (from || to) {
+    filterQuery.subscribedAt = {};
+    if (from) filterQuery.subscribedAt.$gte = new Date(from);
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      filterQuery.subscribedAt.$lte = toDate;
+    }
+  }
+
+  const subscriptions = await StockSubscription.find(filterQuery)
     .populate("product")
     .sort({ subscribedAt: "desc" }) // Sorting by latest subscriptions first
     .skip(skipAmount)
     .limit(limit);
 
-  const totalSubscriptions = await StockSubscription.countDocuments(query);
+  const totalSubscriptions = await StockSubscription.countDocuments(filterQuery);
 
   return {
     data: JSON.parse(JSON.stringify(subscriptions)),
     totalPages: Math.ceil(totalSubscriptions / limit),
+  };
+}
+
+/**
+ * Get stock subscription statistics.
+ */
+export async function getStockSubscriptionStats(params?: {
+  query?: string;
+  from?: string;
+  to?: string;
+}) {
+  await connectToDatabase();
+  const { query, from, to } = params || {};
+
+  const filterQuery: any = {};
+  if (query) {
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" },
+    }).select("_id");
+    const productIds = products.map((p) => p._id);
+    filterQuery.$or = [
+      { email: { $regex: query, $options: "i" } },
+      { product: { $in: productIds } },
+    ];
+  }
+  if (from || to) {
+    filterQuery.subscribedAt = {};
+    if (from) filterQuery.subscribedAt.$gte = new Date(from);
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      filterQuery.subscribedAt.$lte = toDate;
+    }
+  }
+
+  const [total, pending, notified] = await Promise.all([
+    StockSubscription.countDocuments(filterQuery),
+    StockSubscription.countDocuments({ ...filterQuery, isNotified: false }),
+    StockSubscription.countDocuments({ ...filterQuery, isNotified: true }),
+  ]);
+
+  return {
+    total,
+    pending,
+    notified,
   };
 }
 
@@ -129,23 +202,35 @@ export const notifySubscribers = async (productId: string) => {
         )
       );
 
-      console.log(
-        `✅ Notified ${subscriptions.length} subscribers about "${product.name}"`
-      );
-
-      // Instead of deleting, mark them as notified
+      // Mark them as notified
       await StockSubscription.updateMany(
         { product: productId, isNotified: false },
         { $set: { isNotified: true, notifiedAt: new Date() } }
       );
 
-      revalidatePath("/admin/stock-subscriptions");
-      return { success: true, message: "Subscribers notified." };
+      revalidatePath("/admin/stockSubs");
+      return { success: true, message: `Successfully notified ${subscriptions.length} subscribers.` };
     }
 
     return { success: false, message: "Product is still out of stock." };
   } catch (error) {
     console.error("❌ Stock notification error:", error);
+    return { success: false, message: "An error occurred." };
+  }
+};
+
+/**
+ * Delete a stock subscription.
+ */
+export const deleteStockSubscription = async (id: string) => {
+  try {
+    await connectToDatabase();
+    const subscription = await StockSubscription.findByIdAndDelete(id);
+    if (!subscription) return { success: false, message: "Subscription not found." };
+    revalidatePath("/admin/stockSubs");
+    return { success: true, message: "Subscription deleted successfully." };
+  } catch (error) {
+    console.error("Error deleting subscription:", error);
     return { success: false, message: "An error occurred." };
   }
 };
