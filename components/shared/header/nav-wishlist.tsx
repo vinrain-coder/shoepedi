@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { getWishlistCount } from "@/lib/actions/wishlist.actions";
 import { useSession } from "@/lib/auth-client";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
+import { cn } from "@/lib/utils";
 
-export default function NavbarWishlist() {
+export default function NavbarWishlist({ className }: { className?: string }) {
   const { data: session } = useSession();
   const { count, setCount } = useWishlistStore();
   const router = useRouter();
@@ -45,12 +46,12 @@ export default function NavbarWishlist() {
   return (
     <button
       onClick={handleClick}
-      className="relative flex items-center gap-1 p-2 cursor-pointer"
+      className={cn("relative flex items-center gap-1 p-2 cursor-pointer", className)}
     >
-      <Heart className="w-6 h-6 text-white" />
+      <Heart className="w-6 h-6" />
       <span
         className="
-          absolute -top-0 -right-0.5
+          absolute top-1 right-0.5
           flex min-h-[18px] min-w-[18px]
           items-center justify-center
           rounded-full bg-red-500 px-1

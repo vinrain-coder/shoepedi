@@ -36,7 +36,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
                       src={item.image}
                       alt={item.name}
                       fill
-                      className="object-scale-down p-2 transition-transform duration-500 group-hover:scale-110"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   </div>
                   <p className="text-center text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
