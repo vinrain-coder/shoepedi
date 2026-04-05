@@ -17,12 +17,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import DeleteDialog from "@/components/shared/delete-dialog";
 
 export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] }) {
   const [list, setList] = useState(affiliates);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
   async function handleStatusUpdate(id: string, status: "approved" | "rejected") {
@@ -40,20 +40,6 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Are you sure you want to delete this affiliate? This action cannot be undone.")) return;
-
-    setIsDeleting(id);
-    const res = await deleteAffiliate(id);
-    setIsDeleting(null);
-
-    if (res.success) {
-      toast.success(res.message);
-      setList(prev => prev.filter(a => a._id !== id));
-    } else {
-      toast.error(res.message);
-    }
-  }
 
   return (
     <div className="container mx-auto py-10 space-y-6">
@@ -108,7 +94,7 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                             {isUpdating === affiliate._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
                           </Button>
 
-                          <Dialog>
+                          <Dialog onOpenChange={(open) => !open && setRejectionReason("")}>
                             <DialogTrigger asChild>
                               <Button size="sm" variant="destructive" disabled={isUpdating === affiliate._id}>
                                 Reject
@@ -132,7 +118,7 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                                 <Button
                                   variant="destructive"
                                   onClick={() => handleStatusUpdate(affiliate._id, "rejected")}
-                                  disabled={!rejectionReason || isUpdating === affiliate._id}
+                                  disabled={!rejectionReason.trim() || isUpdating === affiliate._id}
                                 >
                                   {isUpdating === affiliate._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Reject"}
                                 </Button>
@@ -141,15 +127,13 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                           </Dialog>
                         </>
                       )}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        disabled={isDeleting === affiliate._id}
-                        onClick={() => handleDelete(affiliate._id)}
-                      >
-                        {isDeleting === affiliate._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                      </Button>
+                      <DeleteDialog
+                        id={affiliate._id}
+                        action={deleteAffiliate}
+                        callbackAction={() => setList(prev => prev.filter(a => a._id !== affiliate._id))}
+                        title="Delete Affiliate?"
+                        description="This will permanently delete the affiliate and all their related data including earnings and payouts. This action cannot be undone."
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
