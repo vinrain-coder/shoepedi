@@ -3,9 +3,7 @@ import AffiliatesAdminPage from "./affiliates-list";
 import StatusCards from "./status-cards";
 import { AffiliatesDateRangePicker } from "./date-range-picker";
 import AffiliateStats from "./affiliate-stats";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import Form from "next/form";
+import AffiliateFilters from "./affiliate-filters";
 
 export default async function Page({
   searchParams,
@@ -43,7 +41,7 @@ export default async function Page({
       statsError: statsData.success ? null : statsData.message,
     });
     return (
-      <div className="container mx-auto py-10">
+      <div className="w-full px-4 py-10 md:px-6">
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-destructive">
           <h2 className="text-lg font-bold">Failed to load affiliate data</h2>
           <ul className="mt-2 list-inside list-disc text-sm">
@@ -60,7 +58,7 @@ export default async function Page({
   }
 
   return (
-    <div className="container mx-auto py-10 space-y-8">
+    <div className="w-full px-4 py-10 space-y-8 md:px-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Affiliates</h1>
@@ -69,21 +67,7 @@ export default async function Page({
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Form action="/admin/affiliates" className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              name="query"
-              placeholder="Search by name, email, or code..."
-              defaultValue={query}
-              className="pl-9"
-            />
-            {status !== "all" && (
-              <input type="hidden" name="status" value={status} />
-            )}
-            {from && <input type="hidden" name="from" value={from} />}
-            {to && <input type="hidden" name="to" value={to} />}
-          </Form>
+          <AffiliateFilters />
           <AffiliatesDateRangePicker />
         </div>
       </div>

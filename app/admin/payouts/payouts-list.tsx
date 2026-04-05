@@ -20,9 +20,26 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import DeleteDialog from "@/components/shared/delete-dialog";
+import Pagination from "@/components/shared/pagination";
+import { useEffect } from "react";
 
-export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
+export default function PayoutsAdminPage({
+  payouts,
+  totalPages,
+  currentPage,
+  totalPayouts,
+}: {
+  payouts: any[];
+  totalPages: number;
+  currentPage: number;
+  totalPayouts: number;
+}) {
   const [list, setList] = useState(payouts);
+
+  useEffect(() => {
+    setList(payouts);
+  }, [payouts]);
+
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
@@ -43,8 +60,14 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
 
 
   return (
-    <div className="container mx-auto py-10 space-y-6">
-      <h1 className="text-3xl font-bold">Manage Payouts</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {totalPayouts === 0
+            ? "No payout requests found"
+            : `Showing ${payouts.length} of ${totalPayouts} payout requests`}
+        </p>
+      </div>
 
       <Card>
         <CardHeader>
@@ -147,6 +170,10 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
           )}
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <Pagination page={currentPage.toString()} totalPages={totalPages} />
+      )}
     </div>
   );
 }
