@@ -82,64 +82,64 @@ export const ORDER_STATUS_COLOR_STYLES: Record<
   { dot: string; border: string; bg: string; text: string }
 > = {
   pending: {
-    dot: "bg-slate-400",
-    border: "border-slate-300",
-    bg: "bg-slate-50",
-    text: "text-slate-700",
+    dot: "bg-slate-400 dark:bg-slate-500",
+    border: "border-slate-300 dark:border-slate-700",
+    bg: "bg-slate-50 dark:bg-slate-900/50",
+    text: "text-slate-700 dark:text-slate-300",
   },
   confirmed: {
-    dot: "bg-sky-500",
-    border: "border-sky-300",
-    bg: "bg-sky-50",
-    text: "text-sky-700",
+    dot: "bg-sky-500 dark:bg-sky-400",
+    border: "border-sky-300 dark:border-sky-800",
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+    text: "text-sky-700 dark:text-sky-300",
   },
   processing: {
-    dot: "bg-indigo-500",
-    border: "border-indigo-300",
-    bg: "bg-indigo-50",
-    text: "text-indigo-700",
+    dot: "bg-indigo-500 dark:bg-indigo-400",
+    border: "border-indigo-300 dark:border-indigo-800",
+    bg: "bg-indigo-50 dark:bg-indigo-950/30",
+    text: "text-indigo-700 dark:text-indigo-300",
   },
   packed: {
-    dot: "bg-violet-500",
-    border: "border-violet-300",
-    bg: "bg-violet-50",
-    text: "text-violet-700",
+    dot: "bg-violet-500 dark:bg-violet-400",
+    border: "border-violet-300 dark:border-violet-800",
+    bg: "bg-violet-50 dark:bg-violet-950/30",
+    text: "text-violet-700 dark:text-violet-300",
   },
   shipped: {
-    dot: "bg-cyan-500",
-    border: "border-cyan-300",
-    bg: "bg-cyan-50",
-    text: "text-cyan-700",
+    dot: "bg-cyan-500 dark:bg-cyan-400",
+    border: "border-cyan-300 dark:border-cyan-800",
+    bg: "bg-cyan-50 dark:bg-cyan-950/30",
+    text: "text-cyan-700 dark:text-cyan-300",
   },
   out_for_delivery: {
-    dot: "bg-amber-500",
-    border: "border-amber-300",
-    bg: "bg-amber-50",
-    text: "text-amber-700",
+    dot: "bg-amber-500 dark:bg-amber-400",
+    border: "border-amber-300 dark:border-amber-800",
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    text: "text-amber-700 dark:text-amber-300",
   },
   delivered: {
-    dot: "bg-emerald-500",
-    border: "border-emerald-300",
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
+    dot: "bg-emerald-500 dark:bg-emerald-400",
+    border: "border-emerald-300 dark:border-emerald-800",
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    text: "text-emerald-700 dark:text-emerald-300",
   },
   cancelled: {
-    dot: "bg-rose-500",
-    border: "border-rose-300",
-    bg: "bg-rose-50",
-    text: "text-rose-700",
+    dot: "bg-rose-500 dark:bg-rose-400",
+    border: "border-rose-300 dark:border-rose-800",
+    bg: "bg-rose-50 dark:bg-rose-950/30",
+    text: "text-rose-700 dark:text-rose-300",
   },
   returned: {
-    dot: "bg-zinc-500",
-    border: "border-zinc-300",
-    bg: "bg-zinc-50",
-    text: "text-zinc-700",
+    dot: "bg-zinc-500 dark:bg-zinc-400",
+    border: "border-zinc-300 dark:border-zinc-800",
+    bg: "bg-zinc-50 dark:bg-zinc-950/30",
+    text: "text-zinc-700 dark:text-zinc-300",
   },
   delivery_exception: {
-    dot: "bg-red-500",
-    border: "border-red-300",
-    bg: "bg-red-50",
-    text: "text-red-700",
+    dot: "bg-red-500 dark:bg-red-400",
+    border: "border-red-300 dark:border-red-800",
+    bg: "bg-red-50 dark:bg-red-950/30",
+    text: "text-red-700 dark:text-red-300",
   },
 };
 
@@ -164,7 +164,15 @@ export const normalizeOrderStatus = (
 export const canTransitionOrderStatus = (
   from: OrderTrackingStatus,
   to: OrderTrackingStatus,
-) => ORDER_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+) => {
+  if (
+    to === "delivered" &&
+    !["cancelled", "returned", "delivery_exception"].includes(from)
+  ) {
+    return true;
+  }
+  return ORDER_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+};
 
 export const generateTrackingNumber = () => {
   const timestamp = Date.now().toString(36).toUpperCase();
