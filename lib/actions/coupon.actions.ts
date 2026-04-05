@@ -225,3 +225,23 @@ export async function incrementCouponUsage(couponId: string) {
 
   return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
 }
+
+export async function decrementCouponUsage(couponId: string) {
+  await connectToDatabase();
+
+  if (!mongoose.Types.ObjectId.isValid(couponId)) {
+    throw new Error("Invalid coupon ID");
+  }
+
+  const updatedCoupon = await Coupon.findByIdAndUpdate(
+    couponId,
+    { $inc: { usageCount: -1 } },
+    { new: true }
+  );
+
+  if (!updatedCoupon) throw new Error("Coupon not found.");
+
+  revalidatePath("/admin/coupons");
+
+  return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
+}

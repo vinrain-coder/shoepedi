@@ -18,7 +18,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  cancelOrder,
   deliverOrder,
+  initiateExchange,
+  requestReturnOrder,
   SerializedOrder,
   updateOrderStatus,
   updateOrderToPaid,
@@ -289,13 +292,13 @@ export default function OrderDetailsForm({
                 />
               )}
 
-            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
+            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && order.status !== "cancelled" && (
               <ActionButton
                 caption="Mark as paid"
                 action={() => updateOrderToPaid(orderId)}
               />
             )}
-            {isAdmin && (
+            {isAdmin && !["cancelled", "returned"].includes(order.status) && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Update Order Status</label>
                 <select
@@ -315,11 +318,55 @@ export default function OrderDetailsForm({
                 />
               </div>
             )}
-            {isAdmin && isPaid && !isDelivered && (
+            {isAdmin && isPaid && !isDelivered && order.status !== "cancelled" && (
               <ActionButton
                 caption="Quick mark as delivered"
                 action={() => deliverOrder(orderId)}
               />
+            )}
+
+            {isAdmin && order.status === "returned" && !order.isExchangeInitiated && (
+              <ActionButton
+                caption="Initiate Exchange"
+                variant="outline"
+                requireConfirmation
+                confirmationMessage="Are you sure you want to initiate an exchange for this order? The customer will be responsible for new delivery costs."
+                action={() => initiateExchange(orderId)}
+              />
+            )}
+            {isAdmin && order.isExchangeInitiated && (
+              <Badge variant="outline" className="w-full justify-center py-2 border-orange-500 text-orange-600">
+                Exchange Processed
+              </Badge>
+            )}
+
+            {!isAdmin && ["pending", "confirmed", "processing"].includes(order.status) && (
+              <ActionButton
+                caption="Cancel Order"
+                variant="destructive"
+                requireConfirmation
+                confirmationMessage="Are you sure you want to cancel this order? Any paid amount will be refunded to your coins."
+                action={() => cancelOrder(orderId)}
+              />
+            )}
+
+            {!isAdmin && order.status === "delivered" && order.deliveredAt && (
+              (() => {
+                const deliveredDate = new Date(order.deliveredAt);
+                const sevenDaysLater = new Date(deliveredDate);
+                sevenDaysLater.setDate(deliveredDate.getDate() + 7);
+                const isWithinWindow = new Date() <= sevenDaysLater;
+
+                return isWithinWindow ? (
+                  <ActionButton
+                    caption="Return Order"
+                    variant="outline"
+                    requireConfirmation
+                    confirmationMessage="Are you sure you want to request a return for this order? Returns must be approved by an admin."
+                    action={() => requestReturnOrder(orderId)}
+                  />
+                ) : null;
+              })()
             )}
           </CardContent>
         </Card>

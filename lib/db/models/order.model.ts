@@ -77,6 +77,10 @@ export interface IOrder extends Document {
   trackingNumber: string;
   shipment?: IOrderShipment;
   trackingHistory: IOrderTrackingHistoryEvent[];
+  isExchangeInitiated?: boolean;
+  stockAdjusted?: boolean;
+  stockReverted?: boolean;
+  couponUsageReverted?: boolean;
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -103,6 +107,7 @@ const orderSchema = new Schema<IOrder>(
         "delivered",
         "cancelled",
         "returned",
+          "return_requested",
         "delivery_exception",
       ],
       default: "pending",
@@ -123,6 +128,7 @@ const orderSchema = new Schema<IOrder>(
             "delivered",
             "cancelled",
             "returned",
+          "return_requested",
             "delivery_exception",
           ],
         },
@@ -219,6 +225,10 @@ const orderSchema = new Schema<IOrder>(
     paidAt: { type: Date },
     isDelivered: { type: Boolean, required: true, default: false },
     deliveredAt: { type: Date },
+    isExchangeInitiated: { type: Boolean, default: false },
+    stockAdjusted: { type: Boolean, default: false },
+    stockReverted: { type: Boolean, default: false },
+    couponUsageReverted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },
   {

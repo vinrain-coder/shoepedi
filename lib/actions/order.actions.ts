@@ -32,7 +32,7 @@ import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
-import { validateCoupon, incrementCouponUsage } from "./coupon.actions";
+import { validateCoupon, incrementCouponUsage, decrementCouponUsage } from "./coupon.actions";
 import { getAffiliateByCode } from "./affiliate.actions";
 import Affiliate from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
@@ -144,6 +144,68 @@ const notifyCustomerOrderStatus = async (
   });
 };
 
+const revertOrderEffects = async (order: IOrder) => {
+  // 1. Refund paid amount to coins if paid
+  if (order.isPaid) {
+    await User.findByIdAndUpdate(order.user, {
+      $inc: { coins: round2(order.totalPrice) },
+    });
+  }
+
+  // 2. Restore product stock if it was previously adjusted and not yet reverted
+  if (order.stockAdjusted && !order.stockReverted) {
+    for (const item of order.items) {
+      await Product.updateOne(
+        { _id: item.product },
+        {
+          $inc: {
+            countInStock: item.quantity,
+            numSales: -item.quantity,
+          },
+        }
+      );
+    }
+    order.stockReverted = true;
+  }
+
+  // 3. Revoke earned coins if credited
+  if (order.coinsCredited && order.coinsEarned > 0) {
+    await User.findByIdAndUpdate(order.user, {
+      $inc: { coins: -round2(order.coinsEarned) },
+    });
+    order.coinsCredited = false;
+  }
+
+  // 4. Revoke affiliate commissions
+  if (order.affiliate) {
+    const earning = await AffiliateEarning.findOne({
+      order: order._id,
+      status: { $ne: "cancelled" },
+    });
+
+    if (earning) {
+      await Affiliate.findByIdAndUpdate(order.affiliate, {
+        $inc: {
+          earningsBalance: -earning.amount,
+          totalEarnings: -earning.amount,
+        },
+      });
+      earning.status = "cancelled";
+      await earning.save();
+    }
+  }
+
+  // 5. Revert coupon usage
+  if (order.coupon?._id && !order.coupon.isAffiliate && !order.couponUsageReverted) {
+    try {
+      await decrementCouponUsage(order.coupon._id.toString());
+      order.couponUsageReverted = true;
+    } catch (error) {
+      console.error("Non-critical: Failed to revert coupon usage:", error);
+    }
+  }
+};
+
 const runStatusTransition = async ({
   order,
   nextStatus,
@@ -171,33 +233,43 @@ const runStatusTransition = async ({
     );
   }
 
+  if (nextStatus === "cancelled" || nextStatus === "returned") {
+    await revertOrderEffects(order as IOrder);
+  }
+
   if (nextStatus === "delivered") {
-    // Backfill intermediate statuses if jumping to delivered
-    const flow = [...ORDER_STATUS_FLOW];
-    const currentIndex = flow.indexOf(order.status as any);
-    const deliveredIndex = flow.indexOf("delivered");
+    // If we're moving to delivered, and it's already marked as delivered (e.g. from return_requested)
+    // we don't want to overwrite timestamps or backfill
+    if (order.isDelivered && order.deliveredAt) {
+      order.status = nextStatus;
+    } else {
+      // Backfill intermediate statuses if jumping to delivered
+      const flow = [...ORDER_STATUS_FLOW];
+      const currentIndex = flow.indexOf(order.status as any);
+      const deliveredIndex = flow.indexOf("delivered");
 
-    if (currentIndex !== -1 && currentIndex < deliveredIndex - 1) {
-      const now = Date.now();
-      for (let i = currentIndex + 1; i < deliveredIndex; i++) {
-        const intermediateStatus = flow[i];
-        appendTrackingHistory(order, {
-          status: intermediateStatus,
-          message: `Order moved to ${ORDER_STATUS_LABELS[intermediateStatus].toLowerCase()} (system).`,
-          source: "system",
-          // Use slightly earlier timestamps for intermediate events to maintain order
-          createdAt: new Date(now - (deliveredIndex - i) * 1000),
-        });
+      if (currentIndex !== -1 && currentIndex < deliveredIndex - 1) {
+        const now = Date.now();
+        for (let i = currentIndex + 1; i < deliveredIndex; i++) {
+          const intermediateStatus = flow[i];
+          appendTrackingHistory(order, {
+            status: intermediateStatus,
+            message: `Order moved to ${ORDER_STATUS_LABELS[intermediateStatus].toLowerCase()} (system).`,
+            source: "system",
+            // Use slightly earlier timestamps for intermediate events to maintain order
+            createdAt: new Date(now - (deliveredIndex - i) * 1000),
+          });
+        }
       }
-    }
 
-    order.status = nextStatus;
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-    order.shipment = {
-      ...order.shipment,
-      deliveredAt: order.deliveredAt,
-    };
+      order.status = nextStatus;
+      order.isDelivered = true;
+      order.deliveredAt = new Date();
+      order.shipment = {
+        ...order.shipment,
+        deliveredAt: order.deliveredAt,
+      };
+    }
   } else {
     order.status = nextStatus;
   }
@@ -217,6 +289,18 @@ const runStatusTransition = async ({
   });
 
   await order.save();
+
+  if (nextStatus === "returned") {
+    const user = order.user as unknown as { email?: string; name?: string };
+    if (user?.email) {
+      await sendOrderTrackingNotification({
+        order: order as unknown as IOrder,
+        statusLabel: "Return Approved",
+        statusMessage: "Your return request has been approved.",
+        trackingLink: `${(await getSetting()).site.url}${buildTrackingLink(order.trackingNumber)}`,
+      });
+    }
+  }
   await notifyCustomerOrderStatus(
     order,
     nextStatus,
@@ -420,7 +504,12 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   // 2. Update product stock
   try {
-    await updateProductStock(order._id.toString());
+    if (!order.stockAdjusted) {
+      const success = await updateProductStock(order._id.toString());
+      if (success) {
+        await Order.findByIdAndUpdate(order._id, { $set: { stockAdjusted: true } });
+      }
+    }
   } catch (stockError) {
     console.error("Critical: Failed to update product stock:", stockError);
   }
@@ -610,7 +699,53 @@ export async function updateOrderStatus({
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath(buildTrackingLink(order.trackingNumber));
 
-    return { success: true, message: "Order status updated successfully" };
+    return { success: true, message: `Order status updated to ${ORDER_STATUS_LABELS[normalizedStatus]}` };
+  } catch (err) {
+    return { success: false, message: formatError(err) };
+  }
+}
+
+export async function initiateExchange(orderId: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
+    const order = await Order.findById(orderId).populate<{
+      user: { email: string; name: string };
+    }>("user", "name email");
+
+    if (!order) throw new Error("Order not found");
+    if (order.status !== "returned") {
+      throw new Error("Exchange can only be initiated for returned orders");
+    }
+
+    order.isExchangeInitiated = true;
+    appendTrackingHistory(order, {
+      status: "returned",
+      message: "Admin initiated an exchange for a different product. User will pay for delivery costs.",
+      source: "admin",
+      actor: session.user.name,
+    });
+
+    await order.save();
+
+    const user = order.user as unknown as { email?: string; name?: string };
+    if (user?.email) {
+      await sendOrderTrackingNotification({
+        order: order as unknown as IOrder,
+        statusLabel: "Exchange Initiated",
+        statusMessage: "An exchange has been initiated for your returned order. Please note that you will be responsible for the new delivery costs.",
+        trackingLink: `${(await getSetting()).site.url}${buildTrackingLink(order.trackingNumber)}`,
+      });
+    }
+
+    revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
+
+    return { success: true, message: "Exchange process initiated successfully" };
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
@@ -622,6 +757,110 @@ export async function deliverOrder(orderId: string) {
     status: "delivered",
     message: "Order marked as delivered.",
   });
+}
+
+export async function cancelOrder(orderId: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const order = await Order.findById(orderId).populate<{
+      user: { _id: string; email: string; name: string };
+    }>("user", "name email");
+
+    if (!order) throw new Error("Order not found");
+
+    const isUserOwner = order.user._id.toString() === session.user.id;
+    const isAdmin = session.user.role === "ADMIN";
+
+    if (!isUserOwner && !isAdmin) {
+      throw new Error("Unauthorized");
+    }
+
+    if (!["pending", "confirmed", "processing"].includes(order.status)) {
+      throw new Error(`Order cannot be cancelled in ${order.status} status`);
+    }
+
+    await runStatusTransition({
+      order,
+      nextStatus: "cancelled",
+      message: `Order cancelled by ${isAdmin ? "admin" : "customer"}.`,
+      source: isAdmin ? "admin" : "customer",
+      actor: session.user.name,
+    });
+
+    await sendAdminEventNotification({
+      title: "Order cancelled",
+      description: `Order ${orderId.slice(-8).toUpperCase()} was cancelled by ${session.user.name}.`,
+      href: `/admin/orders/${orderId}`,
+      meta: order.isPaid ? "Paid amount refunded to coins" : "Unpaid order",
+      createdAt: new Date().toISOString(),
+    });
+
+    revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/admin/orders");
+
+    return { success: true, message: "Order cancelled successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function requestReturnOrder(orderId: string) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const order = await Order.findById(orderId).populate<{
+      user: { _id: string; email: string; name: string };
+    }>("user", "name email");
+
+    if (!order) throw new Error("Order not found");
+
+    if (order.user._id.toString() !== session.user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    if (order.status !== "delivered") {
+      throw new Error("Only delivered orders can be returned");
+    }
+
+    if (!order.deliveredAt) {
+      throw new Error("Delivery date not recorded");
+    }
+
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    const isWithinReturnWindow = Date.now() - new Date(order.deliveredAt).getTime() <= sevenDaysInMs;
+
+    if (!isWithinReturnWindow) {
+      throw new Error("Return period has expired (7 days after delivery)");
+    }
+
+    await runStatusTransition({
+      order,
+      nextStatus: "return_requested",
+      message: "Customer requested a return.",
+      source: "customer",
+      actor: session.user.name,
+    });
+
+    await sendAdminEventNotification({
+      title: "Return request received",
+      description: `${session.user.name} requested a return for order ${orderId.slice(-8).toUpperCase()}.`,
+      href: `/admin/orders/${orderId}`,
+      createdAt: new Date().toISOString(),
+    });
+
+    revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
+
+    return { success: true, message: "Return request submitted successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
 }
 
 export async function getOrderByTrackingNumber(trackingNumber: string) {

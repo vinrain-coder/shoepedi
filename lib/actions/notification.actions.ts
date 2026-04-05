@@ -134,7 +134,7 @@ export async function getAdminNotificationFeed(
   const lastSeenAt = state?.lastSeenAt ? new Date(state.lastSeenAt) : null;
 
   const [orders, reviews, subscriptions, customers, supportTickets, affiliates, payouts] = (await Promise.all([
-    Order.find()
+    Order.find({ status: { $nin: ["cancelled", "return_requested"] } })
       .populate("user", "name email")
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -257,6 +257,34 @@ export async function getAdminNotificationFeed(
       createdAt: asDate(payout.createdAt),
       isUnread: lastSeenAt ? new Date(payout.createdAt) > lastSeenAt : true,
       meta: payout.status === "pending" ? "Payout pending" : `Status: ${payout.status}`,
+    })),
+    ...(await Order.find({ status: "cancelled" })
+      .populate("user", "name")
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .lean()).map((order) => ({
+      id: `order-cancelled-${asId(order._id)}`,
+      type: "order" as const,
+      title: "Order cancelled",
+      description: `Order ${order._id.toString().slice(-8).toUpperCase()} was cancelled by ${order.user?.name || "Customer"}.`,
+      href: `/admin/orders/${asId(order._id)}`,
+      createdAt: asDate(order.updatedAt),
+      isUnread: lastSeenAt ? new Date(order.updatedAt) > lastSeenAt : true,
+      meta: "Cancellation",
+    })),
+    ...(await Order.find({ status: "return_requested" })
+      .populate("user", "name")
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .lean()).map((order) => ({
+      id: `order-return-requested-${asId(order._id)}`,
+      type: "order" as const,
+      title: "New return request",
+      description: `Customer ${order.user?.name || ""} requested a return for order ${order._id.toString().slice(-8).toUpperCase()}.`,
+      href: `/admin/orders/${asId(order._id)}`,
+      createdAt: asDate(order.updatedAt),
+      isUnread: lastSeenAt ? new Date(order.updatedAt) > lastSeenAt : true,
+      meta: "Return Request",
     })),
   ]
     .sort(
