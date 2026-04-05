@@ -174,7 +174,7 @@ export default async function HomePage() {
         <AsyncHomeCarousel />
       </Suspense>
 
-      <div className="max-w-7xl mx-auto px-4 py-12 md:py-20 space-y-16 md:space-y-24">
+      <div className="max-w-7xl mx-auto py-12 md:py-20 space-y-16 md:space-y-24">
         {/* Home Cards: New Arrivals / Categories / Featured / Best Sellers */}
         <section>
           <Suspense fallback={<SkeletonCard />}>
@@ -184,7 +184,7 @@ export default async function HomePage() {
 
         {/* Today's Deals */}
         <section>
-          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card/50 backdrop-blur-md">
+          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card">
             <CardContent className="p-6">
               <Suspense fallback={<SkeletonProductSlider />}>
                 <AsyncTodaysDeals />
@@ -195,7 +195,7 @@ export default async function HomePage() {
 
         {/* Best Selling Products */}
         <section>
-          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card/50 backdrop-blur-md">
+          <Card className="w-full rounded-2xl border-none shadow-md overflow-hidden bg-card">
             <CardContent className="p-6">
               <Suspense fallback={<SkeletonProductSlider />}>
                 <AsyncBestSellingProducts />
