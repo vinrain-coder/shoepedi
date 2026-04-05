@@ -165,6 +165,10 @@ export function formatId(id: string) {
   return `..${id.substring(id.length - 6)}`;
 }
 
+export function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
 export const getFilterUrl = ({
   params,
   category,

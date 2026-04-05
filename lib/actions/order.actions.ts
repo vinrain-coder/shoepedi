@@ -1,7 +1,7 @@
 "use server";
 
 import { Cart, IOrderList, OrderItem, ShippingAddress } from "@/types";
-import { formatError, round2 } from "../utils";
+import { escapeRegExp, formatError, round2 } from "../utils";
 import {
   canTransitionOrderStatus,
   generateTrackingNumber,
@@ -966,16 +966,23 @@ export async function getAllOrders({
   if (from || to) {
     filter.createdAt = {};
     if (from) filter.createdAt.$gte = new Date(from);
-    if (to) filter.createdAt.$lte = new Date(to);
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      filter.createdAt.$lte = toDate;
+    }
   }
   if (query) {
+    const escapedQuery = escapeRegExp(query);
     const users = await User.find({
-      name: { $regex: query, $options: "i" },
-    }).select("_id");
+      name: { $regex: escapedQuery, $options: "i" },
+    })
+      .select("_id")
+      .limit(50);
     const userIds = users.map((u) => u._id);
 
     filter.$or = [
-      { trackingNumber: { $regex: query, $options: "i" } },
+      { trackingNumber: { $regex: escapedQuery, $options: "i" } },
       { user: { $in: userIds } },
     ];
     if (mongoose.Types.ObjectId.isValid(query)) {
@@ -1009,7 +1016,11 @@ export async function getOrderStatusStats(dateRange?: {
   if (dateRange?.from || dateRange?.to) {
     query.createdAt = {};
     if (dateRange.from) query.createdAt.$gte = new Date(dateRange.from);
-    if (dateRange.to) query.createdAt.$lte = new Date(dateRange.to);
+    if (dateRange.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = toDate;
+    }
   }
 
   const statusDistribution = await Order.aggregate([

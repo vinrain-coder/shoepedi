@@ -7,8 +7,7 @@ import {
   ORDER_STATUS_COLOR_STYLES,
   ORDER_TRACKING_STATUSES,
 } from "@/lib/order-tracking";
-import { useRouter, useSearchParams } from "next/navigation";
-import { formUrlQuery } from "@/lib/utils";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Package, ListChecks } from "lucide-react";
 
 interface StatusCardsProps {
@@ -24,14 +23,19 @@ export default function StatusCards({
 }: StatusCardsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const handleStatusClick = (status: string) => {
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: "status",
-      value: status === "all" ? null : status,
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", status);
+    }
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: false,
     });
-    router.push(newUrl, { scroll: false });
   };
 
   return (
