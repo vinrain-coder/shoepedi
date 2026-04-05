@@ -1,7 +1,7 @@
 "use server";
 
 import { Cart, IOrderList, OrderItem, ShippingAddress } from "@/types";
-import { formatError, round2 } from "../utils";
+import { escapeRegExp, formatError, round2 } from "../utils";
 import {
   canTransitionOrderStatus,
   generateTrackingNumber,
@@ -937,9 +937,17 @@ export async function deleteOrder(id: string) {
 export async function getAllOrders({
   limit,
   page,
+  status,
+  from,
+  to,
+  query,
 }: {
   limit?: number;
   page: number;
+  status?: string;
+  from?: string;
+  to?: string;
+  query?: string;
 }) {
   "use cache";
   cacheLife("minutes");
@@ -949,15 +957,87 @@ export async function getAllOrders({
   limit = limit || pageSize;
   await connectToDatabase();
   const skipAmount = (Number(page) - 1) * limit;
-  const orders = await Order.find()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filter: any = {};
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+  if (from || to) {
+    filter.createdAt = {};
+    if (from) filter.createdAt.$gte = new Date(from);
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      filter.createdAt.$lte = toDate;
+    }
+  }
+  if (query) {
+    const escapedQuery = escapeRegExp(query);
+    const users = await User.find({
+      name: { $regex: escapedQuery, $options: "i" },
+    })
+      .select("_id")
+      .limit(50);
+    const userIds = users.map((u) => u._id);
+
+    filter.$or = [
+      { trackingNumber: { $regex: escapedQuery, $options: "i" } },
+      { user: { $in: userIds } },
+    ];
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      filter.$or.push({ _id: query });
+    }
+  }
+
+  const orders = await Order.find(filter)
     .populate("user", "name")
     .sort({ createdAt: "desc" })
     .skip(skipAmount)
     .limit(limit);
-  const ordersCount = await Order.countDocuments();
+  const ordersCount = await Order.countDocuments(filter);
   return {
     data: JSON.parse(JSON.stringify(orders)) as IOrderList[],
     totalPages: Math.ceil(ordersCount / limit),
+    totalOrders: ordersCount,
+  };
+}
+
+export async function getOrderStatusStats(dateRange?: {
+  from?: string;
+  to?: string;
+}) {
+  "use cache";
+  cacheLife("minutes");
+  await connectToDatabase();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: any = {};
+  if (dateRange?.from || dateRange?.to) {
+    query.createdAt = {};
+    if (dateRange.from) query.createdAt.$gte = new Date(dateRange.from);
+    if (dateRange.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = toDate;
+    }
+  }
+
+  const statusDistribution = await Order.aggregate([
+    { $match: query },
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+
+  const totalOrders = await Order.countDocuments(query);
+
+  const stats = statusDistribution.reduce((acc, curr) => {
+    acc[curr._id] = curr.count;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return {
+    stats,
+    totalOrders,
   };
 }
 export async function getMyOrders({
