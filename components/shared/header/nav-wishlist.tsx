@@ -45,18 +45,10 @@ export default function NavbarWishlist() {
   return (
     <button
       onClick={handleClick}
-      className="relative flex items-center gap-1 p-2 cursor-pointer"
+      className="header-button relative"
     >
-      <Heart className="w-6 h-6 text-white" />
-      <span
-        className="
-          absolute -top-0 -right-0.5
-          flex min-h-[18px] min-w-[18px]
-          items-center justify-center
-          rounded-full bg-red-500 px-1
-          text-[10px] leading-none text-white font-semibold
-        "
-      >
+      <Heart className="w-6 h-6" />
+      <span className="header-badge">
         {count}
       </span>
     </button>

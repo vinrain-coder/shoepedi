@@ -109,7 +109,7 @@ export default function Search({
     <div className="relative w-full" ref={containerRef}>
       <form
         onSubmit={handleSubmit}
-        className="flex items-stretch h-9"
+        className="flex items-stretch h-10 overflow-hidden rounded-lg border border-white/20 bg-white/10 group focus-within:ring-1 focus-within:ring-primary transition-all"
         role="search"
       >
         <Select
@@ -120,7 +120,7 @@ export default function Search({
             setActiveIndex(-1);
           }}
         >
-          <SelectTrigger className="w-auto h-full dark:border-gray-200 bg-gray-100 border-r rounded-r-none rounded-l-md rtl:rounded-r-md rtl:rounded-l-none cursor-pointer focus:ring-0">
+          <SelectTrigger className="w-auto h-full border-0 border-r border-white/20 rounded-none bg-transparent cursor-pointer focus:ring-0 text-white">
             <SelectValue placeholder="All" />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -133,7 +133,7 @@ export default function Search({
           </SelectContent>
         </Select>
         <Input
-          className="flex-1 rounded-none dark:border-gray-200 bg-gray-100 text-black dark:text-white text-base h-full focus-visible:ring-0"
+          className="flex-1 rounded-none border-0 bg-transparent text-white placeholder:text-white/50 text-base h-full focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
           placeholder={`Search ${siteName}`}
           name="q"
           type="search"
@@ -149,10 +149,10 @@ export default function Search({
         />
         <button
           type="submit"
-          className="bg-primary text-black rounded-s-none rounded-e-md h-9 px-3 py-2 cursor-pointer"
+          className="bg-primary text-primary-foreground h-full px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors"
           aria-label="Search"
         >
-          <SearchIcon className="w-6 h-6" />
+          <SearchIcon className="w-5 h-5" />
         </button>
       </form>
 
