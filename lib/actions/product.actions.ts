@@ -152,9 +152,18 @@ export async function getAllProductsForAdmin({
         }
       : {};
 
-  const categoryFilter = category && category !== "all" ? { category } : {};
-  const brandFilter = brand && brand !== "all" ? { brand } : {};
-  const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
+  const categoryFilter =
+    category && category !== "all"
+      ? { category: { $regex: new RegExp(`^${category}$`, "i") } }
+      : {};
+  const brandFilter =
+    brand && brand !== "all"
+      ? { brand: { $regex: new RegExp(`^${brand}$`, "i") } }
+      : {};
+  const tagFilter =
+    tag && tag !== "all"
+      ? { tags: { $regex: new RegExp(`^${tag}$`, "i") } }
+      : {};
 
   let publishedFilter = {};
   if (isPublished === "true") {
@@ -249,12 +258,16 @@ export async function getProductAdminStats(params: {
 
   const categoryFilter =
     params.category && params.category !== "all"
-      ? { category: params.category }
+      ? { category: { $regex: new RegExp(`^${params.category}$`, "i") } }
       : {};
   const brandFilter =
-    params.brand && params.brand !== "all" ? { brand: params.brand } : {};
+    params.brand && params.brand !== "all"
+      ? { brand: { $regex: new RegExp(`^${params.brand}$`, "i") } }
+      : {};
   const tagFilter =
-    params.tag && params.tag !== "all" ? { tags: params.tag } : {};
+    params.tag && params.tag !== "all"
+      ? { tags: { $regex: new RegExp(`^${params.tag}$`, "i") } }
+      : {};
 
   const dateFilter =
     params.from || params.to
