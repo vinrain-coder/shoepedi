@@ -133,7 +133,7 @@ export default function Search({
           </SelectContent>
         </Select>
         <Input
-          className="flex-1 rounded-none dark:border-gray-200 bg-gray-100 text-black dark:text-white text-base h-full focus-visible:ring-0"
+          className="flex-1 rounded-none dark:border-gray-200 bg-gray-100 text-black dark:text-white text-base h-full focus-visible:ring-1 focus-visible:ring-primary"
           placeholder={`Search ${siteName}`}
           name="q"
           type="search"
