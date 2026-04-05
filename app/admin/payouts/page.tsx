@@ -36,7 +36,7 @@ export default async function Page({
 
   if (!payoutsData.success || !statsData.success) {
     return (
-      <div className="w-full px-4 py-10 md:px-6">
+      <div className="w-full">
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-destructive">
           <h2 className="text-lg font-bold">Failed to load payout data</h2>
           <ul className="mt-2 list-inside list-disc text-sm">
@@ -53,7 +53,7 @@ export default async function Page({
   }
 
   return (
-    <div className="w-full px-4 py-10 space-y-8 md:px-6">
+    <div className="w-full space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Payouts</h1>
