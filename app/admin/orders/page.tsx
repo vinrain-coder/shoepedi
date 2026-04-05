@@ -57,7 +57,7 @@ export default async function OrdersPage(props: {
       to,
       query,
     }),
-    getOrderStatusStats({ from, to }),
+    getOrderStatusStats({ from, to }, query),
   ]);
 
   return (

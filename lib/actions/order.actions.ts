@@ -1003,32 +1003,53 @@ export async function getAllOrders({
   };
 }
 
-export async function getOrderStatusStats(dateRange?: {
-  from?: string;
-  to?: string;
-}) {
+export async function getOrderStatusStats(
+  dateRange?: {
+    from?: string;
+    to?: string;
+  },
+  searchQuery?: string
+) {
   "use cache";
   cacheLife("minutes");
   await connectToDatabase();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const query: any = {};
+  const filter: any = {};
   if (dateRange?.from || dateRange?.to) {
-    query.createdAt = {};
-    if (dateRange.from) query.createdAt.$gte = new Date(dateRange.from);
+    filter.createdAt = {};
+    if (dateRange.from) filter.createdAt.$gte = new Date(dateRange.from);
     if (dateRange.to) {
       const toDate = new Date(dateRange.to);
       toDate.setHours(23, 59, 59, 999);
-      query.createdAt.$lte = toDate;
+      filter.createdAt.$lte = toDate;
+    }
+  }
+
+  if (searchQuery) {
+    const escapedQuery = escapeRegExp(searchQuery);
+    const users = await User.find({
+      name: { $regex: escapedQuery, $options: "i" },
+    })
+      .select("_id")
+      .limit(50);
+    const userIds = users.map((u) => u._id);
+
+    filter.$or = [
+      { trackingNumber: { $regex: escapedQuery, $options: "i" } },
+      { user: { $in: userIds } },
+    ];
+    if (mongoose.Types.ObjectId.isValid(searchQuery)) {
+      filter.$or.push({ _id: searchQuery });
     }
   }
 
   const statusDistribution = await Order.aggregate([
-    { $match: query },
+    { $match: filter },
     { $group: { _id: "$status", count: { $sum: 1 } } },
   ]);
 
-  const totalOrders = await Order.countDocuments(query);
+  const totalOrders = await Order.countDocuments(filter);
 
   const stats = statusDistribution.reduce((acc, curr) => {
     acc[curr._id] = curr.count;
