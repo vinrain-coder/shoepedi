@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Bell, BellOff, ListTodo } from "lucide-react";
 import Link from "next/link";
@@ -34,26 +34,26 @@ export default function StockSubStatsCards({
       value: stats.total,
       icon: ListTodo,
       filter: "all",
-      color: "text-blue-600",
+      color: "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
     },
     {
       title: "Pending Notifications",
       value: stats.pending,
       icon: Bell,
       filter: "pending",
-      color: "text-amber-600",
+      color: "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
     },
     {
       title: "Notified Subscribers",
       value: stats.notified,
       icon: BellOff,
       filter: "notified",
-      color: "text-emerald-600",
+      color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {cards.map((card) => {
         const Icon = card.icon;
         const isActive = currentFilter === card.filter;
@@ -62,18 +62,22 @@ export default function StockSubStatsCards({
           <Link key={card.title} href={getFilterLink(card.filter)}>
             <Card
               className={cn(
-                "transition-all hover:shadow-md cursor-pointer",
-                isActive && "ring-2 ring-primary"
+                "transition-all hover:ring-2 hover:ring-primary/20 cursor-pointer",
+                isActive
+                  ? "ring-2 ring-primary"
+                  : "opacity-80 shadow-none border-dashed"
               )}
             >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardContent className="flex flex-col items-center justify-center p-3 text-center">
+                <div className={cn("rounded-full p-1.5 mb-1", card.color)}>
+                  <Icon className="size-3" />
+                </div>
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-tight line-clamp-1">
                   {card.title}
-                </CardTitle>
-                <Icon className={cn("h-4 w-4", card.color)} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
+                </span>
+                <span className="text-lg font-bold leading-tight">
+                  {card.value}
+                </span>
               </CardContent>
             </Card>
           </Link>
