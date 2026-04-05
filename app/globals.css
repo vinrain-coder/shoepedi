@@ -191,10 +191,4 @@
   .badge-rejected {
     @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 flex items-center gap-1;
   }
-  .header-button {
-    @apply hover:bg-white/10 px-3 py-2 rounded-md transition-colors flex items-center gap-2 cursor-pointer;
-  }
-  .header-badge {
-    @apply absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground;
-  }
 }

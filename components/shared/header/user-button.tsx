@@ -41,15 +41,15 @@ export default function UserButton() {
   }, [session]);
 
   return (
-    <div className="flex items-center">
+    <div className="flex gap-2 items-center">
       <DropdownMenu>
-        <DropdownMenuTrigger className="header-button" asChild>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col text-xs text-left leading-tight">
-              <span className="text-white/70">Hello, {session ? session.user.name : "Sign in"}</span>
+        <DropdownMenuTrigger className="header-button cursor-pointer" asChild>
+          <div className="flex items-center">
+            <div className="flex flex-col text-xs text-left ml-6 md:ml-0">
+              <span>Hello, {session ? session.user.name : "Sign in"}</span>
               <span className="font-bold">Account & Orders</span>
             </div>
-            <ChevronDownIcon className="h-4 w-4 text-white/50" />
+            <ChevronDownIcon />
           </div>
         </DropdownMenuTrigger>
 

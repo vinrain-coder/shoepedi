@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, House, MoonStar, Navigation, UserRoundCheck, UserRoundPlus } from "lucide-react";
+import { ChevronRight, House, Menu as MenuIcon, MoonStar, Navigation } from "lucide-react";
 import { useState } from "react";
 import {
   Sheet,
@@ -35,11 +35,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className="align-middle header-button">
-            {session ? (
-              <UserRoundCheck className="h-7 w-7" />
-            ) : (
-              <UserRoundPlus className="h-7 w-7" />
-            )}
+            <MenuIcon className="h-7 w-7" />
           </SheetTrigger>
 
           <SheetContent className="flex flex-col gap-4 overflow-y-auto px-3">
