@@ -22,6 +22,8 @@ export default async function CoinsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page = "1" } = await searchParams;
+  const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
+
   await connectToDatabase();
   const session = await getServerSession();
   if (!session) return null;
@@ -43,7 +45,7 @@ export default async function CoinsPage({
   };
 
   const totalCount = await Order.countDocuments(query);
-  const skipAmount = (Number(page) - 1) * pageSize;
+  const skipAmount = (pageNum - 1) * pageSize;
 
   const coinOrders = await Order.find(query)
     .sort({ createdAt: -1 })
@@ -159,7 +161,7 @@ export default async function CoinsPage({
         {totalCount > pageSize && (
           <div className="flex justify-center pt-4">
             <Pagination
-              page={page}
+              page={pageNum}
               totalPages={Math.ceil(totalCount / pageSize)}
             />
           </div>

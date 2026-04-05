@@ -14,7 +14,8 @@ export default async function AffiliatePayoutsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page = "1" } = await searchParams;
-  const { data } = await getAffiliateDashboardData({ payoutPage: Number(page) });
+  const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
+  const { data } = await getAffiliateDashboardData({ payoutPage: pageNum });
   const { affiliate: settings } = await getSetting();
 
   if (!data) return <div>Unauthorized</div>;
@@ -86,7 +87,7 @@ export default async function AffiliatePayoutsPage({
             {payoutTotalPages > 1 && (
               <div className="flex justify-center pt-4">
                 <Pagination
-                  page={page}
+                  page={pageNum}
                   totalPages={payoutTotalPages}
                 />
               </div>

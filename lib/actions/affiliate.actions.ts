@@ -71,8 +71,8 @@ export async function getAffiliateDashboardData(params?: { payoutPage?: number; 
       .limit(10)
       .populate("order", "trackingNumber totalPrice status");
 
-    const payoutPage = params?.payoutPage || 1;
-    const payoutLimit = params?.payoutLimit || 10;
+    const payoutPage = Math.max(1, Math.floor(Number(params?.payoutPage) || 1));
+    const payoutLimit = Math.max(1, Math.floor(Number(params?.payoutLimit) || 10));
     const skipPayouts = (payoutPage - 1) * payoutLimit;
 
     const payouts = await AffiliatePayout.find({ affiliate: affiliate._id })
