@@ -141,6 +141,7 @@ const data = {
       title: "Analytics",
       url: "#",
       icon: IconClipboardList,
+      comingSoon: true,
     },
     {
       title: "Settings",

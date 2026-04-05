@@ -23,6 +23,7 @@ export function NavSecondary({
     title: string;
     url: string;
     icon: Icon;
+    comingSoon?: boolean;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { isMobile, toggleSidebar } = useSidebar();
@@ -34,27 +35,36 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => {
             const isActive = pathname === item.url;
+            const isDisabled = item.comingSoon || item.url === "#";
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                  asChild
+                  asChild={!isDisabled}
                   isActive={isActive}
-                  tooltip={item.title}
+                  tooltip={item.comingSoon ? `${item.title} (Coming Soon)` : item.title}
                   className={cn(
                     "transition-all duration-200",
                     isActive &&
-                      "bg-linear-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary"
+                      "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary",
+                    isDisabled && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <Link
-                    href={item.url}
-                    onClick={() => {
-                      if (isMobile) toggleSidebar();
-                    }}
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
+                  {isDisabled ? (
+                    <div className="flex items-center gap-2">
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.url}
+                      onClick={() => {
+                        if (isMobile) toggleSidebar();
+                      }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
