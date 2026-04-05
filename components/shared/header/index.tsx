@@ -14,7 +14,7 @@ export default async function Header() {
   const { site } = await getSetting();
 
   return (
-    <header className="bg-black text-white">
+    <header className="bg-black text-white ">
       <div className="px-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -49,7 +49,7 @@ export default async function Header() {
           </div>
         </div>
 
-        <div className="md:hidden block py-2">
+        <div className="md:hidden block py-2 -mt-2">
           <Search categories={categories} siteName={site.name} />
         </div>
       </div>
