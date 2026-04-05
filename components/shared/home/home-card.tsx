@@ -22,7 +22,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
           key={card.title}
           className="rounded-2xl border-none shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card flex flex-col overflow-hidden"
         >
-          <CardContent className="p-3 flex-1">
+          <CardContent className="py-0 flex-1">
             <h3 className="text-lg font-bold tracking-tight text-foreground/90 mb-6">{card.title}</h3>
             <div className="grid grid-cols-2 gap-4 md:gap-6">
               {card.items.map((item) => (
@@ -47,7 +47,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
             </div>
           </CardContent>
           {card.link && (
-            <CardFooter className="p-3 pt-0">
+            <CardFooter className="pt-0">
               <Link
                 href={card.link.href}
                 className="text-primary text-sm font-bold hover:underline inline-flex items-center gap-1 group/link transition-all"
