@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, House, MoonStar, Navigation, MenuIcon, ShoppingCart, User, Heart, GitCompare } from "lucide-react";
+import { ChevronRight, House, MoonStar, Navigation, UserRoundCheck, UserRoundPlus } from "lucide-react";
 import { useState } from "react";
 import {
   Sheet,
@@ -17,132 +17,134 @@ import ThemeSwitcher from "./theme-switcher";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
-import NavbarWishlist from "./nav-wishlist";
-import NavbarCompare from "./nav-compare";
 
 const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
   const { data: session } = authClient.useSession();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex justify-end items-center gap-2 md:gap-4">
-      {/* Desktop Navigation */}
-      <nav className="md:flex items-center gap-4 hidden">
-        <NavbarCompare />
-        <NavbarWishlist />
+    <div className="flex justify-end">
+      <nav className="md:flex gap-3 hidden w-full">
         <ThemeSwitcher />
         <UserButton />
         {!forAdmin && <CartButton />}
       </nav>
 
-      {/* Mobile Navigation */}
-      <nav className="flex items-center gap-1 md:hidden">
+      <nav className="md:hidden flex gap-1">
         {!forAdmin && <CartButton />}
 
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="p-2 hover:bg-accent rounded-full transition-colors">
-            <MenuIcon className="h-6 w-6" />
-            <span className="sr-only">Open menu</span>
+          <SheetTrigger className="align-middle header-button">
+            {session ? (
+              <UserRoundCheck className="h-7 w-7" />
+            ) : (
+              <UserRoundPlus className="h-7 w-7" />
+            )}
           </SheetTrigger>
 
-          <SheetContent side="right" className="flex flex-col gap-6 overflow-y-auto w-[300px] sm:w-[400px]">
-            <SheetHeader className="w-full border-b pb-4 text-left">
-              <SheetTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter">
-                <House className="h-5 w-5 text-primary" /> Navigation
+          <SheetContent className="flex flex-col gap-4 overflow-y-auto px-3">
+            <SheetHeader className="w-full border-b pb-3 text-left">
+              <SheetTitle className="ml-1 flex items-center gap-2">
+                <House className="h-4 w-4" /> Site Menu
               </SheetTitle>
               <SheetDescription className="text-xs">
                 Quick access to navigation, account, and appearance settings.
               </SheetDescription>
             </SheetHeader>
 
-            <Accordion type="multiple" defaultValue={["navigation", "account", "appearance"]} className="w-full border-none">
-              <AccordionItem value="appearance" className="border-b-0">
-                <AccordionTrigger className="py-3 text-sm hover:no-underline">
-                  <span className="flex items-center gap-3 font-bold uppercase tracking-wider text-xs text-muted-foreground">
-                    <MoonStar className="h-4 w-4" /> Appearance
+            <Accordion type="multiple" defaultValue={["navigation", "account", "appearance"]} className="w-full">
+              <AccordionItem value="appearance">
+                <AccordionTrigger className="py-3 text-sm">
+                  <span className="flex items-center gap-2 font-semibold">
+                    <MoonStar className="h-4 w-4" /> Theme toggle
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <ThemeSwitcher className="ml-0 w-full justify-start rounded-xl bg-muted/30 hover:bg-muted/50 p-4 transition-colors" />
+                  <ThemeSwitcher className="ml-0 w-full justify-start" />
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="navigation" className="border-b-0">
-                <AccordionTrigger className="py-3 text-sm hover:no-underline">
-                  <span className="flex items-center gap-3 font-bold uppercase tracking-wider text-xs text-muted-foreground">
-                    <Navigation className="h-4 w-4" /> Quick Links
+              <AccordionItem value="navigation">
+                <AccordionTrigger className="py-3 text-sm">
+                  <span className="flex items-center gap-2 font-semibold">
+                    <Navigation className="h-4 w-4" /> Navigation links
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="space-y-1">
                     {[
-                      { href: "/", label: "Home", icon: House },
-                      { href: "/search", label: "Shop All", icon: ShoppingCart },
-                      { href: "/compare", label: "Compare", icon: GitCompare },
-                      { href: "/wishlist", label: "Wishlist", icon: Heart },
-                      { href: "/blogs", label: "Our Blog", icon: ChevronRight },
-                      { href: "/track", label: "Track Order", icon: ChevronRight },
+                      { href: "/", label: "Home" },
+                      { href: "/search", label: "Shop all products" },
+                      { href: "/categories", label: "Categories" },
+                      { href: "/brands", label: "Brands" },
+                      { href: "/compare", label: "Compare products" },
+                      { href: "/blogs", label: "Blogs" },
+                      { href: "/track", label: "Track order" },
+                      { href: "/support", label: "Support" },
                     ].map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-accent hover:pl-6"
-                      >
-                        {item.icon && <item.icon className="h-4 w-4 text-muted-foreground" />}
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          prefetch
+                          onClick={() => setOpen(false)}
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
+                        >
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="account" className="border-b-0">
-                <AccordionTrigger className="py-3 text-sm hover:no-underline">
-                  <span className="flex items-center gap-3 font-bold uppercase tracking-wider text-xs text-muted-foreground">
-                    <User className="h-4 w-4" /> My Account
-                  </span>
+              <AccordionItem value="account">
+                <AccordionTrigger className="py-3 text-sm">
+                  <span className="font-semibold">Account links</span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="space-y-1">
                     {session ? (
                       <>
                         {[
-                          { href: "/account", label: "Personal Info" },
-                          { href: "/account/orders", label: "Order History" },
-                          { href: "/account/reviews", label: "My Reviews" },
+                          { href: "/account", label: "Your account" },
+                          { href: "/account/orders", label: "Orders" },
+                          { href: "/wishlist", label: "Wishlist" },
+                          { href: "/compare", label: "Compare" },
+                          { href: "/account/reviews", label: "My reviews" },
+                          { href: "/account/comments", label: "My comments" },
                         ].map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
+                            prefetch
                             onClick={() => setOpen(false)}
-                            className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-accent hover:pl-6"
+                            className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                           >
                             <span>{item.label}</span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                           </Link>
                         ))}
-                        <div className="pt-4 mt-2 border-t">
+                        <div className="pt-3">
                           <SignOutButton />
                         </div>
                       </>
                     ) : (
-                      <div className="grid grid-cols-1 gap-3 pt-2">
+                      <>
                         <Link
                           href="/sign-in"
                           onClick={() => setOpen(false)}
-                          className="flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                         >
-                          Sign In
+                          <span>Sign in</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </Link>
                         <Link
                           href="/sign-up"
                           onClick={() => setOpen(false)}
-                          className="flex items-center justify-center rounded-xl border-2 border-primary px-4 py-3 text-sm font-bold text-primary transition-all hover:bg-primary/5"
+                          className="flex items-center justify-between rounded-md px-1 py-2 text-sm transition-colors hover:bg-accent/60"
                         >
-                          Create Account
+                          <span>Create account</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </Link>
-                      </div>
+                      </>
                     )}
                   </div>
                 </AccordionContent>
