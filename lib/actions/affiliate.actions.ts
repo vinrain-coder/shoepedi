@@ -432,28 +432,124 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
   }
 }
 
-export async function getAllPayouts({ page = 1, limit = 20, status }: { page?: number, limit?: number, status?: string }) {
+export async function getAllPayouts({
+  page = 1,
+  limit = 20,
+  status,
+  query,
+  from,
+  to,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  query?: string;
+  from?: string;
+  to?: string;
+}) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
-    const query = status ? { status } : {};
-    const payouts = await AffiliatePayout.find(query)
+    const filter: any = {};
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    if (query) {
+      const escapedQuery = escapeRegExp(query);
+      const regex = new RegExp(escapedQuery, "i");
+      const users = await User.find({
+        $or: [{ name: regex }, { email: regex }],
+      }).select("_id");
+      const userIds = users.map((u: any) => u._id);
+
+      const affiliates = await Affiliate.find({
+        $or: [{ affiliateCode: regex }, { user: { $in: userIds } }],
+      }).select("_id");
+      const affiliateIds = affiliates.map((a: any) => a._id);
+
+      filter.$or = [{ affiliate: { $in: affiliateIds } }];
+    }
+
+    const payouts = await AffiliatePayout.find(filter)
       .populate({
         path: "affiliate",
-        populate: { path: "user", select: "name email" }
+        populate: { path: "user", select: "name email" },
       })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const count = await AffiliatePayout.countDocuments(query);
+    const count = await AffiliatePayout.countDocuments(filter);
 
     return {
       success: true,
       data: JSON.parse(JSON.stringify(payouts)),
       totalPages: Math.ceil(count / limit),
+      totalPayouts: count,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function getPayoutAdminStats(dateRange?: {
+  from?: string;
+  to?: string;
+}) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const filter: any = {};
+    if (dateRange?.from || dateRange?.to) {
+      filter.createdAt = {};
+      if (dateRange?.from) filter.createdAt.$gte = new Date(dateRange.from);
+      if (dateRange?.to) {
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    const stats = await AffiliatePayout.aggregate([
+      { $match: filter },
+      { $group: { _id: "$status", count: { $sum: 1 }, amount: { $sum: "$amount" } } },
+    ]);
+
+    const statusStats = {
+      total: { count: 0, amount: 0 },
+      paid: { count: 0, amount: 0 },
+      pending: { count: 0, amount: 0 },
+      processing: { count: 0, amount: 0 },
+      rejected: { count: 0, amount: 0 },
+    };
+
+    stats.forEach((s) => {
+      statusStats.total.count += s.count;
+      statusStats.total.amount += s.amount;
+      if (s._id === "paid") statusStats.paid = { count: s.count, amount: s.amount };
+      if (s._id === "pending") statusStats.pending = { count: s.count, amount: s.amount };
+      if (s._id === "processing") statusStats.processing = { count: s.count, amount: s.amount };
+      if (s._id === "rejected") statusStats.rejected = { count: s.count, amount: s.amount };
+    });
+
+    return {
+      success: true,
+      data: statusStats,
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
