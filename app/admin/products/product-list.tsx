@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import Link from "next/link";
 
+import Link from "next/link";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,17 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  deleteProduct,
-  getAllProductsForAdmin,
-} from "@/lib/actions/product.actions";
+import { deleteProduct } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
-
-import React, { useEffect, useState, useTransition } from "react";
-import { Input } from "@/components/ui/input";
-import { formatDateTime, formatId } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, EyeIcon, PenBox } from "lucide-react";
+import { cn, formatDateTime, formatId } from "@/lib/utils";
+import { EyeIcon, PenBox } from "lucide-react";
 import Image from "next/image";
+import Pagination from "@/components/shared/pagination";
+import ProductPrice from "@/components/shared/product/product-price";
 
 type ProductListDataProps = {
   products: IProduct[];
@@ -31,185 +26,150 @@ type ProductListDataProps = {
   to: number;
   from: number;
 };
-const ProductList = () => {
-  const [page, setPage] = useState<number>(1);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [data, setData] = useState<ProductListDataProps>();
-  const [isPending, startTransition] = useTransition();
 
-  const handlePageChange = (changeType: "next" | "prev") => {
-    const newPage = changeType === "next" ? page + 1 : page - 1;
-    if (changeType === "next") {
-      setPage(newPage);
-    } else {
-      setPage(newPage);
-    }
-    startTransition(async () => {
-      const data = await getAllProductsForAdmin({
-        query: inputValue,
-        page: newPage,
-      });
-      setData(data);
-    });
-  };
+interface ProductListProps {
+  data: ProductListDataProps;
+  page: number;
+}
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (value) {
-      clearTimeout((window as any).debounce);
-      (window as any).debounce = setTimeout(() => {
-        startTransition(async () => {
-          const data = await getAllProductsForAdmin({ query: value, page: 1 });
-          setData(data);
-        });
-      }, 500);
-    } else {
-      startTransition(async () => {
-        const data = await getAllProductsForAdmin({ query: "", page });
-        setData(data);
-      });
-    }
-  };
-  useEffect(() => {
-    startTransition(async () => {
-      const data = await getAllProductsForAdmin({ query: "" });
-      setData(data);
-    });
-  }, []);
-
+const ProductList = ({ data, page }: ProductListProps) => {
   return (
-    <div>
-      <div className="space-y-2">
-        <div className="flex flex-row flex-wrap justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2 ">
-            <h1 className="font-bold text-lg">Products</h1>
-            <div className="flex flex-wrap items-center  gap-2 ">
-              <Input
-                className="w-auto"
-                type="text "
-                value={inputValue}
-                onChange={handleInputChange}
-                placeholder="Filter name..."
-              />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {data.totalProducts === 0
+            ? "No products found"
+            : `Showing ${data.from}-${data.to} of ${data.totalProducts} products`}
+        </p>
+      </div>
 
-              {isPending ? (
-                <p>Loading...</p>
-              ) : (
-                <p>
-                  {data?.totalProducts === 0
-                    ? "No"
-                    : `${data?.from}-${data?.to} of ${data?.totalProducts}`}
-                  {" results"}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <Button asChild variant="default">
-            <Link href="/admin/products/create">Create Product</Link>
-          </Button>
-        </div>
-        <div>
-          <Table className="table-fixed w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">Id</TableHead>
-                <TableHead className="w-20">Image</TableHead>
-                <TableHead className="w-60">Name</TableHead>
-                <TableHead className="w-28 text-right">Price</TableHead>
-                <TableHead className="w-40">Category</TableHead>
-                <TableHead className="w-20">Stock</TableHead>
-                <TableHead className="w-20">Rating</TableHead>
-                <TableHead className="w-24">Published</TableHead>
-                <TableHead className="w-40">Updated</TableHead>
-                <TableHead className="w-36">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.products.map((product: IProduct) => (
-                <TableRow key={product._id}>
-                  <TableCell className="w-16">{formatId(product._id)}</TableCell>
+      <div className="rounded-md border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-16">Id</TableHead>
+              <TableHead className="w-20">Image</TableHead>
+              <TableHead className="w-60">Name</TableHead>
+              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Rating</TableHead>
+              <TableHead>Published</TableHead>
+              <TableHead>Updated</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.products.length > 0 ? (
+              data.products.map((product: IProduct) => (
+                <TableRow key={product._id.toString()}>
+                  <TableCell className="font-mono text-xs">
+                    {formatId(product._id.toString())}
+                  </TableCell>
                   <TableCell>
                     {product.images?.length > 0 ? (
-                      <Image
-                        src={product.images[0]}
-                        alt={product.name}
-                        width={64}
-                        height={64}
-                        className="object-cover rounded-md border"
-                      />
+                      <div className="relative aspect-square w-12 overflow-hidden rounded-md border">
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
-                      <span>No Image</span>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted text-[10px] text-muted-foreground">
+                        No Image
+                      </div>
                     )}
                   </TableCell>
-                  <TableCell className="truncate">
-                    <Link href={`/admin/products/${product._id}`}>
+                  <TableCell className="max-w-[240px] truncate font-medium">
+                    <Link
+                      href={`/admin/products/${product._id}`}
+                      className="hover:underline"
+                    >
                       {product.name}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-right">KES.{product.price}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.countInStock}</TableCell>
-                  <TableCell>{product.avgRating}</TableCell>
-                  <TableCell>{product.isPublished ? "Yes" : "No"}</TableCell>
-                  <TableCell className="w-40">
-                    {formatDateTime(product.updatedAt).dateTime}
+                  <TableCell className="text-right">
+                    <ProductPrice price={product.price} plain />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-start gap-2">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                      {product.category}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={cn(
+                        "font-medium",
+                        product.countInStock <= 0
+                          ? "text-rose-600"
+                          : product.countInStock <= 10
+                          ? "text-orange-600"
+                          : ""
+                      )}
+                    >
+                      {product.countInStock}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">{product.avgRating}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({product.numReviews})
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {product.isPublished ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        Yes
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-400">
+                        No
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {formatDateTime(product.updatedAt).dateTime}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm" title="Edit">
                         <Link href={`/admin/products/${product._id}`}>
-                          <PenBox />
+                          <PenBox className="size-4" />
                         </Link>
                       </Button>
                       <Button asChild variant="outline" size="sm" title="View">
                         <Link target="_blank" href={`/product/${product.slug}`}>
-                          <EyeIcon />
+                          <EyeIcon className="size-4" />
                         </Link>
                       </Button>
-                      <DeleteDialog
-                        id={product._id}
-                        action={deleteProduct}
-                        callbackAction={() => {
-                          startTransition(async () => {
-                            const data = await getAllProductsForAdmin({
-                              query: inputValue,
-                            });
-                            setData(data);
-                          });
-                        }}
-                      />
+                      <DeleteDialog id={product._id.toString()} action={deleteProduct} />
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {(data?.totalPages ?? 0) > 1 && (
-            <div className="flex items-center gap-2 justify-center">
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange("prev")}
-                disabled={Number(page) <= 1}
-                className="w-24"
-              >
-                <ChevronLeft /> Previous
-              </Button>
-              Page {page} of {data?.totalPages}
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange("next")}
-                disabled={Number(page) >= (data?.totalPages ?? 0)}
-                className="w-24"
-              >
-                Next <ChevronRight />
-              </Button>
-            </div>
-          )}
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={10}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No products found matching the criteria.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
+
+      {data.totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination page={page.toString()} totalPages={data.totalPages} />
+        </div>
+      )}
     </div>
   );
 };

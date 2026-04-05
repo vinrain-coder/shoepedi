@@ -112,11 +112,23 @@ export async function getAllProductsForAdmin({
   page = 1,
   sort = "latest",
   limit,
+  category,
+  brand,
+  tag,
+  isPublished,
+  from,
+  to,
 }: {
   query: string;
   page?: number;
   sort?: string;
   limit?: number;
+  category?: string;
+  brand?: string;
+  tag?: string;
+  isPublished?: string;
+  from?: string;
+  to?: string;
 }) {
   "use cache";
   cacheLife("hours");
@@ -127,6 +139,9 @@ export async function getAllProductsForAdmin({
     common: { pageSize },
   } = await getSetting();
   limit = limit || pageSize;
+
+  const LOW_STOCK_THRESHOLD = 10;
+
   const queryFilter =
     query && query !== "all"
       ? {
@@ -136,6 +151,48 @@ export async function getAllProductsForAdmin({
           },
         }
       : {};
+
+  const categoryFilter = category && category !== "all" ? { category } : {};
+  const brandFilter = brand && brand !== "all" ? { brand } : {};
+  const tagFilter = tag && tag !== "all" ? { tags: tag } : {};
+
+  let publishedFilter = {};
+  if (isPublished === "true") {
+    publishedFilter = { isPublished: true };
+  } else if (isPublished === "false") {
+    publishedFilter = { isPublished: false };
+  } else if (isPublished === "out_of_stock") {
+    publishedFilter = { countInStock: { $lte: 0 } };
+  } else if (isPublished === "low_stock") {
+    publishedFilter = { countInStock: { $lte: LOW_STOCK_THRESHOLD, $gt: 0 } };
+  }
+
+  const dateFilter =
+    from || to
+      ? {
+          updatedAt: {
+            ...(from ? { $gte: new Date(from) } : {}),
+            ...(to
+              ? {
+                  $lte: (() => {
+                    const d = new Date(to);
+                    d.setHours(23, 59, 59, 999);
+                    return d;
+                  })(),
+                }
+              : {}),
+          },
+        }
+      : {};
+
+  const filters = {
+    ...queryFilter,
+    ...categoryFilter,
+    ...brandFilter,
+    ...tagFilter,
+    ...publishedFilter,
+    ...dateFilter,
+  };
 
   const order: Record<string, 1 | -1> =
     sort === "best-selling"
@@ -147,23 +204,107 @@ export async function getAllProductsForAdmin({
       : sort === "avg-customer-review"
       ? { avgRating: -1 }
       : { _id: -1 };
-  const products = await Product.find({
-    ...queryFilter,
-  })
+
+  const products = await Product.find(filters)
     .sort(order)
     .skip(limit * (Number(page) - 1))
     .limit(limit)
     .lean();
 
-  const countProducts = await Product.countDocuments({
-    ...queryFilter,
-  });
+  const countProducts = await Product.countDocuments(filters);
+
   return {
     products: JSON.parse(JSON.stringify(products)) as IProduct[],
-    totalPages: Math.ceil(countProducts / pageSize),
+    totalPages: Math.ceil(countProducts / limit),
     totalProducts: countProducts,
-    from: pageSize * (Number(page) - 1) + 1,
-    to: pageSize * (Number(page) - 1) + products.length,
+    from: limit * (Number(page) - 1) + 1,
+    to: limit * (Number(page) - 1) + products.length,
+  };
+}
+
+export async function getProductAdminStats(params: {
+  query?: string;
+  category?: string;
+  brand?: string;
+  tag?: string;
+  from?: string;
+  to?: string;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("products");
+  await connectToDatabase();
+
+  const LOW_STOCK_THRESHOLD = 10;
+
+  const queryFilter =
+    params.query && params.query !== "all"
+      ? {
+          name: {
+            $regex: params.query,
+            $options: "i",
+          },
+        }
+      : {};
+
+  const categoryFilter =
+    params.category && params.category !== "all"
+      ? { category: params.category }
+      : {};
+  const brandFilter =
+    params.brand && params.brand !== "all" ? { brand: params.brand } : {};
+  const tagFilter =
+    params.tag && params.tag !== "all" ? { tags: params.tag } : {};
+
+  const dateFilter =
+    params.from || params.to
+      ? {
+          updatedAt: {
+            ...(params.from ? { $gte: new Date(params.from) } : {}),
+            ...(params.to
+              ? {
+                  $lte: (() => {
+                    const d = new Date(params.to);
+                    d.setHours(23, 59, 59, 999);
+                    return d;
+                  })(),
+                }
+              : {}),
+          },
+        }
+      : {};
+
+  const baseFilters = {
+    ...queryFilter,
+    ...categoryFilter,
+    ...brandFilter,
+    ...tagFilter,
+    ...dateFilter,
+  };
+
+  const [
+    totalProducts,
+    publishedProducts,
+    draftProducts,
+    outOfStockProducts,
+    lowStockProducts,
+  ] = await Promise.all([
+    Product.countDocuments(baseFilters),
+    Product.countDocuments({ ...baseFilters, isPublished: true }),
+    Product.countDocuments({ ...baseFilters, isPublished: false }),
+    Product.countDocuments({ ...baseFilters, countInStock: { $lte: 0 } }),
+    Product.countDocuments({
+      ...baseFilters,
+      countInStock: { $lte: LOW_STOCK_THRESHOLD, $gt: 0 },
+    }),
+  ]);
+
+  return {
+    totalProducts,
+    publishedProducts,
+    draftProducts,
+    outOfStockProducts,
+    lowStockProducts,
   };
 }
 
