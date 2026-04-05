@@ -10,6 +10,7 @@ import { connectToDatabase } from "../db";
 import Blog, { IBlog, IBlogComment, IBlogReply } from "../db/models/blog.model";
 import { BlogCommentInputSchema, BlogInputSchema, BlogLikeInputSchema, BlogUpdateSchema } from "../validator";
 import { formatError } from "../utils";
+import { getSetting } from "./setting.actions";
 
 const BLOG_ADMIN_PATH = "/admin/blogs";
 
@@ -44,8 +45,8 @@ function serializeComment(comment: IBlogComment) {
   };
 }
 
-type SerializedComment = ReturnType<typeof serializeComment>;
-type SerializedBlog = {
+export type SerializedComment = ReturnType<typeof serializeComment>;
+export type SerializedBlog = {
   _id: string;
   title: string;
   slug: string;
@@ -187,6 +188,212 @@ export async function getAllBlogs({
   return {
     blogs: blogs.map(serializeBlog),
     totalPages,
+  };
+}
+
+// GET ALL BLOGS FOR ADMIN
+export async function getAllBlogsForAdmin({
+  query,
+  page = 1,
+  sort = "latest",
+  limit,
+  category,
+  tag,
+  isPublished,
+  from,
+  to,
+}: {
+  query?: string;
+  page?: number;
+  sort?: string;
+  limit?: number;
+  category?: string;
+  tag?: string;
+  isPublished?: string;
+  from?: string;
+  to?: string;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blogs");
+  await connectToDatabase();
+
+  const {
+    common: { pageSize },
+  } = await getSetting();
+  limit = limit || pageSize;
+
+  const queryFilter =
+    query && query !== "all"
+      ? {
+          title: {
+            $regex: query,
+            $options: "i",
+          },
+        }
+      : {};
+
+  const categoryFilter =
+    category && category !== "all"
+      ? { category }
+      : {};
+
+  const tagFilter =
+    tag && tag !== "all"
+      ? { tags: tag }
+      : {};
+
+  let publishedFilter = {};
+  if (isPublished === "true") {
+    publishedFilter = { isPublished: true };
+  } else if (isPublished === "false") {
+    publishedFilter = { isPublished: false };
+  }
+
+  const dateFilter =
+    from || to
+      ? {
+          updatedAt: {
+            ...(from ? { $gte: new Date(from) } : {}),
+            ...(to
+              ? {
+                  $lte: (() => {
+                    const d = new Date(to);
+                    d.setHours(23, 59, 59, 999);
+                    return d;
+                  })(),
+                }
+              : {}),
+          },
+        }
+      : {};
+
+  const filters = {
+    ...queryFilter,
+    ...categoryFilter,
+    ...tagFilter,
+    ...publishedFilter,
+    ...dateFilter,
+  };
+
+  const order: Record<string, 1 | -1> =
+    sort === "views"
+      ? { views: -1 }
+      : sort === "likes"
+      ? { likesCount: -1 }
+      : { createdAt: -1 };
+
+  const blogs = await Blog.find(filters)
+    .sort(order)
+    .skip(limit * (Number(page) - 1))
+    .limit(limit)
+    .lean();
+
+  const countBlogs = await Blog.countDocuments(filters);
+
+  return {
+    blogs: blogs.map(serializeBlog),
+    totalPages: Math.ceil(countBlogs / limit),
+    totalBlogs: countBlogs,
+    from: limit * (Number(page) - 1) + 1,
+    to: limit * (Number(page) - 1) + blogs.length,
+  };
+}
+
+export async function getBlogAdminStats(params: {
+  query?: string;
+  category?: string;
+  tag?: string;
+  from?: string;
+  to?: string;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blogs");
+  await connectToDatabase();
+
+  const queryFilter =
+    params.query && params.query !== "all"
+      ? {
+          title: {
+            $regex: params.query,
+            $options: "i",
+          },
+        }
+      : {};
+
+  const categoryFilter =
+    params.category && params.category !== "all"
+      ? { category: { $regex: new RegExp(`^${params.category}$`, "i") } }
+      : {};
+
+  const tagFilter =
+    params.tag && params.tag !== "all"
+      ? { tags: { $regex: new RegExp(`^${params.tag}$`, "i") } }
+      : {};
+
+  const dateFilter =
+    params.from || params.to
+      ? {
+          updatedAt: {
+            ...(params.from ? { $gte: new Date(params.from) } : {}),
+            ...(params.to
+              ? {
+                  $lte: (() => {
+                    const d = new Date(params.to);
+                    d.setHours(23, 59, 59, 999);
+                    return d;
+                  })(),
+                }
+              : {}),
+          },
+        }
+      : {};
+
+  const baseFilters = {
+    ...queryFilter,
+    ...categoryFilter,
+    ...tagFilter,
+    ...dateFilter,
+  };
+
+  const [
+    totalBlogs,
+    publishedBlogs,
+    draftBlogs,
+    stats
+  ] = await Promise.all([
+    Blog.countDocuments(baseFilters),
+    Blog.countDocuments({ ...baseFilters, isPublished: true }),
+    Blog.countDocuments({ ...baseFilters, isPublished: false }),
+    Blog.aggregate([
+      { $match: baseFilters },
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: "$views" },
+          totalLikes: { $sum: "$likesCount" },
+          totalComments: {
+            $sum: {
+              $reduce: {
+                input: { $ifNull: ["$comments", []] },
+                initialValue: 0,
+                in: { $add: ["$$value", 1, { $size: { $ifNull: ["$$this.replies", []] } }] }
+              }
+            }
+          },
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    totalBlogs,
+    publishedBlogs,
+    draftBlogs,
+    totalViews: stats[0]?.totalViews || 0,
+    totalLikes: stats[0]?.totalLikes || 0,
+    totalComments: stats[0]?.totalComments || 0,
   };
 }
 
