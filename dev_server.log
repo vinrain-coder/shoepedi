@@ -1,0 +1,697 @@
+
+> shoepedi@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 649ms
+- Cache Components enabled
+
+○ Compiling /affiliate/dashboard ...
+⨯ Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at module evaluation (lib/email/resend.ts:3:23)
+    at module evaluation (lib/email/send.ts:1:1)
+    at module evaluation (lib/email/transactional.tsx:1:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:12:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+  1 | import { Resend } from "resend";
+  2 |
+> 3 | export const resend = new Resend(process.env.RESEND_API_KEY as string);
+    |                       ^
+  4 |
+⨯ Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at module evaluation (lib/email/resend.ts:3:23)
+    at module evaluation (lib/email/send.ts:1:1)
+    at module evaluation (lib/email/transactional.tsx:1:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:12:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+  1 | import { Resend } from "resend";
+  2 |
+> 3 | export const resend = new Resend(process.env.RESEND_API_KEY as string);
+    |                       ^
+  4 | {
+  page: '/affiliate/dashboard'
+}
+Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ unhandledRejection: Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ unhandledRejection:  Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+○ Compiling /_error ...
+ GET /affiliate/dashboard 500 in 28.4s (next.js: 27.5s, proxy.ts: 587ms, application-code: 383ms)
+[browser] Uncaught Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at module evaluation (lib/email/resend.ts:3:23)
+    at module evaluation (lib/email/send.ts:1:1)
+    at module evaluation (lib/email/transactional.tsx:1:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:12:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+  1 | import { Resend } from "resend";
+  2 |
+> 3 | export const resend = new Resend(process.env.RESEND_API_KEY as string);
+    |                       ^
+  4 |
+○ Compiling /sign-in ...
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Faccount%2Fcoins 500 in 4.4s (next.js: 4.4s, proxy.ts: 6ms, application-code: 17ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Faffiliates 500 in 83ms (next.js: 58ms, proxy.ts: 10ms, application-code: 15ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Fpayouts 500 in 79ms (next.js: 58ms, proxy.ts: 6ms, application-code: 15ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+ GET /affiliate/register 500 in 5.4s (next.js: 2.9s, proxy.ts: 6ms, application-code: 2.5s)
+[browser] Uncaught Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB
+✓ Compiled in 227ms
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/affiliate/dashboard'
+}
+ GET /affiliate/dashboard 500 in 189ms (next.js: 164ms, proxy.ts: 9ms, application-code: 16ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/affiliate/dashboard'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Faccount%2Fcoins 500 in 82ms (next.js: 64ms, proxy.ts: 6ms, application-code: 12ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Faffiliates 500 in 142ms (next.js: 108ms, proxy.ts: 11ms, application-code: 23ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:3902:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4066:30)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__09rjnl1._.js:4479:30)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:869:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/sign-in'
+}
+ GET /sign-in?redirect=%2Fadmin%2Fpayouts 500 in 103ms (next.js: 66ms, proxy.ts: 14ms, application-code: 22ms)
+[browser] Uncaught Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (lib/email/auth-emails.tsx:50:1)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (lib/auth.ts:169:1)
+    at <unknown> (lib/actions/affiliate.actions.ts:10:1)
+    at module evaluation (lib/db/models/affiliate-payout.model.ts:36:16)
+    at <unknown> (app/(root)/affiliate/dashboard/page.tsx:1:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0nh0b.z._.js:231:30)
+    at module evaluation (app/(root)/affiliate/dashboard/page.tsx:167:1)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  environmentName: 'Cache',
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+⨯ Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB {
+  digest: '2143333640'
+}
+ GET /affiliate/register 500 in 1743ms (next.js: 10ms, proxy.ts: 9ms, application-code: 1724ms)
+[browser] Uncaught Error: MONGODB_URI is missing
+    at connectToDatabase (lib/db/index.ts:20:27)
+    at getSetting (lib/actions/setting.actions.ts:40:26)
+  18 |   if (cached.conn) return cached.conn;
+  19 |
+> 20 |   if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+     |                           ^
+  21 |
+  22 |   cached.promise ??= mongoose.connect(MONGODB_URI, {
+  23 |     dbName: process.env.MONGODB_DB, // ✅ FORCE correct DB
+✓ Compiled in 272ms

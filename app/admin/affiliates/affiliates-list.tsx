@@ -108,7 +108,7 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                             {isUpdating === affiliate._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
                           </Button>
 
-                          <Dialog>
+                          <Dialog onOpenChange={(open) => !open && setRejectionReason("")}>
                             <DialogTrigger asChild>
                               <Button size="sm" variant="destructive" disabled={isUpdating === affiliate._id}>
                                 Reject
@@ -132,7 +132,7 @@ export default function AffiliatesAdminPage({ affiliates }: { affiliates: any[] 
                                 <Button
                                   variant="destructive"
                                   onClick={() => handleStatusUpdate(affiliate._id, "rejected")}
-                                  disabled={!rejectionReason || isUpdating === affiliate._id}
+                                  disabled={!rejectionReason.trim() || isUpdating === affiliate._id}
                                 >
                                   {isUpdating === affiliate._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Reject"}
                                 </Button>

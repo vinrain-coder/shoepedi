@@ -113,7 +113,7 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
                             {isUpdating === payout._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark Paid"}
                           </Button>
 
-                          <Dialog>
+                          <Dialog onOpenChange={(open) => !open && setRejectionReason("")}>
                             <DialogTrigger asChild>
                               <Button size="sm" variant="destructive" disabled={isUpdating === payout._id}>
                                 Reject
@@ -137,7 +137,7 @@ export default function PayoutsAdminPage({ payouts }: { payouts: any[] }) {
                                 <Button
                                   variant="destructive"
                                   onClick={() => handleStatusUpdate(payout._id, "rejected")}
-                                  disabled={!rejectionReason || isUpdating === payout._id}
+                                  disabled={!rejectionReason.trim() || isUpdating === payout._id}
                                 >
                                   {isUpdating === payout._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Reject"}
                                 </Button>

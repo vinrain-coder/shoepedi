@@ -208,7 +208,14 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
     const update: any = { status };
-    if (status === "rejected" && adminNote) update.adminNote = adminNote;
+    if (status === "rejected") {
+      if (!adminNote || adminNote.trim().length === 0) {
+        throw new Error("A rejection reason is mandatory");
+      }
+      update.adminNote = adminNote.trim();
+    } else if (status === "approved") {
+      update.adminNote = ""; // Clear stale notes on approval
+    }
 
     const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
@@ -281,23 +288,42 @@ export async function deleteAffiliate(id: string) {
 }
 
 export async function deletePayoutRequest(id: string) {
-  try {
-    await connectToDatabase();
-    const session = await getServerSession();
-    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
 
-    const payout = await AffiliatePayout.findById(id);
+  try {
+    const userSession = await getServerSession();
+    if (userSession?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+    const payout = await AffiliatePayout.findById(id).session(session);
     if (!payout) throw new Error("Payout request not found");
 
-    // If pending, maybe refund? Usually delete means it was a mistake or cleanup.
-    // If user wants to "reject" they should use updatePayoutStatus.
+    // Enforce allowed statuses for deletion
+    if (payout.status !== "pending" && payout.status !== "processing") {
+      throw new Error(`Cannot delete a payout with status: ${payout.status}`);
+    }
 
-    await AffiliatePayout.findByIdAndDelete(id);
+    // Refund affiliate balance before deletion
+    const affiliate = await Affiliate.findById(payout.affiliate).session(session);
+    if (affiliate) {
+      affiliate.earningsBalance += payout.amount;
+      await affiliate.save({ session });
+    }
 
+    await AffiliatePayout.findByIdAndDelete(id).session(session);
+
+    await session.commitTransaction();
     revalidatePath("/admin/payouts");
-    return { success: true, message: "Payout request deleted successfully" };
+    revalidatePath("/affiliate/payouts");
+    revalidatePath("/affiliate/dashboard");
+
+    return { success: true, message: "Payout request deleted and balance refunded successfully" };
   } catch (error) {
+    await session.abortTransaction();
     return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
   }
 }
 
@@ -314,16 +340,22 @@ export async function updatePayoutStatus(id: string, status: "paid" | "rejected"
     }
 
     if (status === "rejected") {
+      if (!adminNote || adminNote.trim().length === 0) {
+        throw new Error("A rejection reason is mandatory");
+      }
+      payout.adminNote = adminNote.trim();
+
       // Refund affiliate balance
       const affiliate = await Affiliate.findById(payout.affiliate);
       if (affiliate) {
         affiliate.earningsBalance += payout.amount;
         await affiliate.save();
       }
+    } else if (status === "paid") {
+      payout.adminNote = ""; // Clear stale notes on payment
     }
 
     payout.status = status;
-    payout.adminNote = adminNote;
     await payout.save();
 
     if (status === "paid") {
