@@ -27,13 +27,29 @@ export function StockSubDateRangePicker({
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const [calendarDate, setCalendarDate] = React.useState<DateRange | undefined>(
-    fromParam && toParam
+  // Committed range derived from URL
+  const committedRange = React.useMemo(() => {
+    return fromParam && toParam
       ? { from: new Date(fromParam), to: new Date(toParam) }
       : fromParam
       ? { from: new Date(fromParam) }
-      : undefined
-  );
+      : undefined;
+  }, [fromParam, toParam]);
+
+  // Draft state for popover/calendar
+  const [draftCalendarDate, setDraftCalendarDate] = React.useState<DateRange | undefined>(committedRange);
+
+  // Sync draft with committed range when searchParams change
+  React.useEffect(() => {
+    setDraftCalendarDate(committedRange);
+  }, [committedRange]);
+
+  // Sync draft with committed range when popover opens (in case of cancelled previous edits)
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setDraftCalendarDate(committedRange);
+    }
+  };
 
   const applyRange = (range: DateRange | undefined) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -52,7 +68,7 @@ export function StockSubDateRangePicker({
   };
 
   const clearRange = () => {
-    setCalendarDate(undefined);
+    setDraftCalendarDate(undefined);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("from");
     params.delete("to");
@@ -62,25 +78,25 @@ export function StockSubDateRangePicker({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Popover>
+      <Popover onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant={"outline"}
             className={cn(
               "justify-start text-left font-normal min-w-[240px]",
-              !calendarDate && "text-muted-foreground"
+              !committedRange && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {calendarDate?.from ? (
-              calendarDate.to ? (
+            {committedRange?.from ? (
+              committedRange.to ? (
                 <>
-                  {formatDateTime(calendarDate.from).dateOnly} -{" "}
-                  {formatDateTime(calendarDate.to).dateOnly}
+                  {formatDateTime(committedRange.from).dateOnly} -{" "}
+                  {formatDateTime(committedRange.to).dateOnly}
                 </>
               ) : (
-                formatDateTime(calendarDate.from).dateOnly
+                formatDateTime(committedRange.from).dateOnly
               )
             ) : (
               <span>Subscribed in...</span>
@@ -90,14 +106,14 @@ export function StockSubDateRangePicker({
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
             mode="range"
-            defaultMonth={calendarDate?.from}
-            selected={calendarDate}
-            onSelect={setCalendarDate}
+            defaultMonth={draftCalendarDate?.from}
+            selected={draftCalendarDate}
+            onSelect={setDraftCalendarDate}
             numberOfMonths={2}
           />
           <div className="flex gap-4 p-4 pt-0">
             <PopoverClose asChild>
-              <Button onClick={() => applyRange(calendarDate)}>Apply</Button>
+              <Button onClick={() => applyRange(draftCalendarDate)}>Apply</Button>
             </PopoverClose>
             <PopoverClose asChild>
               <Button variant={"outline"}>Cancel</Button>

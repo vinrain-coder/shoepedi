@@ -1,7 +1,10 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Bell, BellOff, ListTodo } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface StockSubStatsCardsProps {
   stats: {
@@ -16,6 +19,15 @@ export default function StockSubStatsCards({
   stats,
   currentFilter,
 }: StockSubStatsCardsProps) {
+  const searchParams = useSearchParams();
+
+  const getFilterLink = (filter: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("filter", filter);
+    params.set("page", "1");
+    return `/admin/stockSubs?${params.toString()}`;
+  };
+
   const cards = [
     {
       title: "Total Subscriptions",
@@ -47,7 +59,7 @@ export default function StockSubStatsCards({
         const isActive = currentFilter === card.filter;
 
         return (
-          <Link key={card.title} href={`/admin/stockSubs?filter=${card.filter}`}>
+          <Link key={card.title} href={getFilterLink(card.filter)}>
             <Card
               className={cn(
                 "transition-all hover:shadow-md cursor-pointer",

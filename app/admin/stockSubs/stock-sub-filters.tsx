@@ -9,9 +9,19 @@ export default function StockSubFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [query, setQuery] = useState(searchParams.get("query") || "");
+
+  const currentQuery = searchParams.get("query") || "";
+  const [query, setQuery] = useState(currentQuery);
+
+  // Sync state from URL for external changes (e.g. reset)
+  useEffect(() => {
+    setQuery(currentQuery);
+  }, [currentQuery]);
 
   useEffect(() => {
+    // Only run debounced effect if query actually changed relative to URL
+    if (query === currentQuery) return;
+
     const delayDebounceFn = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
       if (query) {
@@ -22,12 +32,12 @@ export default function StockSubFilters() {
       params.set("page", "1");
 
       startTransition(() => {
-        router.push(`/admin/stockSubs?${params.toString()}`);
+        router.replace(`/admin/stockSubs?${params.toString()}`, { scroll: false });
       });
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [query, router, searchParams]);
+  }, [query, currentQuery, router]);
 
   return (
     <div className="relative w-full max-w-sm">

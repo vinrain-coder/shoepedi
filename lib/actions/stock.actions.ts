@@ -9,7 +9,8 @@ import {
   sendStockSubscriptionNotification,
 } from "@/lib/email/transactional";
 import { getSetting } from "./setting.actions";
-import { cacheLife } from "next/cache";
+import { escapeRegExp, normalizeDateRange } from "@/lib/utils";
+import { getServerSession } from "@/lib/get-session";
 
 /**
  * Subscribe to stock notifications for a product.
@@ -96,26 +97,24 @@ export async function getAllStockSubscriptions({
   if (filter === "pending") filterQuery.isNotified = false;
 
   if (query) {
+    const escapedQuery = escapeRegExp(query);
     // We need to find products that match the query to filter by product name
     const products = await Product.find({
-      name: { $regex: query, $options: "i" },
+      name: { $regex: escapedQuery, $options: "i" },
     }).select("_id");
     const productIds = products.map((p) => p._id);
 
     filterQuery.$or = [
-      { email: { $regex: query, $options: "i" } },
+      { email: { $regex: escapedQuery, $options: "i" } },
       { product: { $in: productIds } },
     ];
   }
 
-  if (from || to) {
+  const { fromDate, toDate } = normalizeDateRange(from, to);
+  if (fromDate || toDate) {
     filterQuery.subscribedAt = {};
-    if (from) filterQuery.subscribedAt.$gte = new Date(from);
-    if (to) {
-      const toDate = new Date(to);
-      toDate.setHours(23, 59, 59, 999);
-      filterQuery.subscribedAt.$lte = toDate;
-    }
+    if (fromDate) filterQuery.subscribedAt.$gte = fromDate;
+    if (toDate) filterQuery.subscribedAt.$lte = toDate;
   }
 
   const subscriptions = await StockSubscription.find(filterQuery)
@@ -145,23 +144,22 @@ export async function getStockSubscriptionStats(params?: {
 
   const filterQuery: any = {};
   if (query) {
+    const escapedQuery = escapeRegExp(query);
     const products = await Product.find({
-      name: { $regex: query, $options: "i" },
+      name: { $regex: escapedQuery, $options: "i" },
     }).select("_id");
     const productIds = products.map((p) => p._id);
     filterQuery.$or = [
-      { email: { $regex: query, $options: "i" } },
+      { email: { $regex: escapedQuery, $options: "i" } },
       { product: { $in: productIds } },
     ];
   }
-  if (from || to) {
+
+  const { fromDate, toDate } = normalizeDateRange(from, to);
+  if (fromDate || toDate) {
     filterQuery.subscribedAt = {};
-    if (from) filterQuery.subscribedAt.$gte = new Date(from);
-    if (to) {
-      const toDate = new Date(to);
-      toDate.setHours(23, 59, 59, 999);
-      filterQuery.subscribedAt.$lte = toDate;
-    }
+    if (fromDate) filterQuery.subscribedAt.$gte = fromDate;
+    if (toDate) filterQuery.subscribedAt.$lte = toDate;
   }
 
   const [total, pending, notified] = await Promise.all([
@@ -224,6 +222,11 @@ export const notifySubscribers = async (productId: string) => {
  */
 export const deleteStockSubscription = async (id: string) => {
   try {
+    const session = await getServerSession();
+    if (session?.user.role !== "ADMIN") {
+      return { success: false, message: "Admin permission required" };
+    }
+
     await connectToDatabase();
     const subscription = await StockSubscription.findByIdAndDelete(id);
     if (!subscription) return { success: false, message: "Subscription not found." };
