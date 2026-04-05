@@ -47,6 +47,8 @@ const data = {
       url: "/admin/overview",
       icon: IconDashboard,
     },
+  ],
+  operations: [
     {
       title: "Products",
       url: "/admin/products",
@@ -58,10 +60,17 @@ const data = {
       icon: IconReceipt2,
     },
     {
+      title: "Coupons",
+      url: "/admin/coupons",
+      icon: IconTicket,
+    },
+    {
       title: "Users",
       url: "/admin/users",
       icon: IconUsers,
     },
+  ],
+  finance: [
     {
       title: "Affiliates",
       url: "/admin/affiliates",
@@ -73,82 +82,77 @@ const data = {
       icon: IconCash,
     },
   ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: IconSettings,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconClipboardList,
-    },
-    {
-      title: "Coupons",
-      url: "/admin/coupons",
-      icon: IconTicket,
-    },
-  ],
   storefront: [
     {
-      name: "Site Pages",
+      title: "Site Pages",
       url: "/admin/web-pages",
       icon: IconFileText,
     },
     {
-      name: "Blog Posts",
+      title: "Blog Posts",
       url: "/admin/blogs",
       icon: IconArticle,
     },
     {
-      name: "Restock Alerts",
+      title: "Restock Alerts",
       url: "/admin/stockSubs",
       icon: IconBellRinging,
     },
     {
-      name: "Customer Reviews",
+      title: "Customer Reviews",
       url: "/admin/reviews",
       icon: IconChecklist,
     },
     {
-      name: "Support Inbox",
+      title: "Support Inbox",
       url: "/admin/support",
       icon: IconMessageCircle,
     },
     {
-      name: "Newsletters",
+      title: "Newsletters",
       url: "/admin/newsletters",
       icon: IconMail,
     },
   ],
   catalog: [
     {
-      name: "Categories",
+      title: "Categories",
       url: "/admin/categories",
       icon: IconCategory,
     },
     {
-      name: "Brands",
+      title: "Brands",
       url: "/admin/brands",
       icon: IconPalette,
     },
     {
-      name: "Tags",
+      title: "Tags",
       url: "/admin/tags",
       icon: IconTags,
     },
     {
-      name: "Colors",
+      title: "Colors",
       url: "/admin/colors",
       icon: IconColorSwatch,
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Analytics",
+      url: "#",
+      icon: IconClipboardList,
+    },
+    {
+      title: "Settings",
+      url: "/admin/settings",
+      icon: IconSettings,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -172,6 +176,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavDocuments title="Operations" items={data.operations} />
+        <NavDocuments title="Finance" items={data.finance} />
         <NavDocuments title="Storefront" items={data.storefront} />
         <NavContent title="Catalog" items={data.catalog} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
