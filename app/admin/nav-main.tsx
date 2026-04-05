@@ -12,6 +12,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function NavMain({
   items,
@@ -23,6 +25,7 @@ export function NavMain({
   }[];
 }) {
   const { isMobile, toggleSidebar } = useSidebar();
+  const pathname = usePathname();
 
   return (
     <SidebarGroup>
@@ -59,22 +62,34 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link
-                  href={item.url}
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    if (isMobile) toggleSidebar(); // close sidebar on mobile
-                  }}
+          {items.map((item) => {
+            const isActive = pathname === item.url;
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={isActive}
+                  className={cn(
+                    "transition-all duration-200",
+                    isActive &&
+                      "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary"
+                  )}
                 >
-                  {item.icon && <item.icon className="w-5 h-5" />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+                  <Link
+                    href={item.url}
+                    className="flex items-center gap-2"
+                    onClick={() => {
+                      if (isMobile) toggleSidebar(); // close sidebar on mobile
+                    }}
+                  >
+                    {item.icon && <item.icon className="w-5 h-5" />}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
