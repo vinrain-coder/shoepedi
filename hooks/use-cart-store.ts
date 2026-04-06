@@ -55,7 +55,7 @@ const useCartStore = create(
       },
 
       addItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress, deliveryDateIndex } = get().cart;
+        const { items, shippingAddress, deliveryDateIndex, discount } = get().cart;
         const existItem = items.find(
           (x) =>
             x.product === item.product &&
@@ -87,6 +87,7 @@ const useCartStore = create(
           items: updatedCartItems,
           shippingAddress,
           deliveryDateIndex,
+          discount,
         });
         set({
           cart: {
@@ -112,7 +113,7 @@ const useCartStore = create(
         color?: string,
         size?: string
       ) => {
-        const { items, shippingAddress } = get().cart;
+        const { items, shippingAddress, deliveryDateIndex, discount } = get().cart;
         const exist = items.find((x) => x.clientId === item.clientId);
         if (!exist) return;
 
@@ -151,6 +152,7 @@ const useCartStore = create(
           items: updatedCartItems,
           shippingAddress,
           deliveryDateIndex,
+          discount,
         });
         set({
           cart: {
@@ -161,7 +163,7 @@ const useCartStore = create(
         });
       },
       removeItem: async (item: OrderItem) => {
-        const { items, shippingAddress, deliveryDateIndex } = get().cart;
+        const { items, shippingAddress, deliveryDateIndex, discount } = get().cart;
         const updatedCartItems = items.filter(
           (x) =>
             x.product !== item.product ||
@@ -172,6 +174,7 @@ const useCartStore = create(
           items: updatedCartItems,
           shippingAddress,
           deliveryDateIndex,
+          discount,
         });
         set({
           cart: {

@@ -440,14 +440,16 @@ export const createOrderFromCart = async (
     }
   }
 
+  const pricing = await calcDeliveryDateAndPrice({
+    items: clientSideCart.items,
+    shippingAddress: clientSideCart.shippingAddress,
+    deliveryDateIndex: clientSideCart.deliveryDateIndex,
+    discount: appliedCoupon?.discountAmount || 0,
+  });
+
   const cart = {
     ...clientSideCart,
-    ...(await calcDeliveryDateAndPrice({
-      items: clientSideCart.items,
-      shippingAddress: clientSideCart.shippingAddress,
-      deliveryDateIndex: clientSideCart.deliveryDateIndex,
-      discount: appliedCoupon?.discountAmount || 0,
-    })),
+    ...pricing,
   };
 
   if (cart.paymentMethod === "Coins") {
@@ -468,8 +470,7 @@ export const createOrderFromCart = async (
   }
 
   const totalPrice = cart.totalPrice;
-  const netItemsPrice = Math.max(0, cart.itemsPrice - (appliedCoupon?.discountAmount || 0));
-  coinsEarned = round2(netItemsPrice * (common.coinsRewardRate / 100));
+  coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
 
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
@@ -594,8 +595,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
         if (affiliateDoc && affiliateDoc.status === "approved") {
           const commissionRate = settings.commissionRate;
 
-          const netItemsPrice = Math.max(0, order.itemsPrice - (order.coupon?.discountAmount || 0));
-          const commissionAmount = round2((netItemsPrice * commissionRate) / 100);
+          const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
 
           if (commissionAmount > 0) {
             const existingEarning = await AffiliateEarning.findOne({ order: order._id });
@@ -1138,7 +1138,7 @@ export async function getOrderById(
 }
 
 export const calcDeliveryDateAndPrice = async ({
-  items,
+  items = [],
   shippingAddress,
   deliveryDateIndex,
   discount = 0,
@@ -1148,66 +1148,77 @@ export const calcDeliveryDateAndPrice = async ({
   shippingAddress?: ShippingAddress;
   discount?: number;
 }) => {
-  const { availableDeliveryDates, common } = await getSetting();
-  const itemsPrice = round2(
-    items.reduce((acc, item) => acc + item.price * item.quantity, 0),
-  );
+  try {
+    const { availableDeliveryDates, common } = await getSetting();
+    const itemsPrice = round2(
+      (items || []).reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0),
+    );
 
-  let locationRate = 0;
-  if (shippingAddress?.province && shippingAddress?.city) {
-    await connectToDatabase();
-    // Normalize location strings for consistent lookup
-    const normalizedProvince = shippingAddress.province
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
-    const normalizedCity = shippingAddress.city
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
-    const location = await DeliveryLocation.findOne({
-      county: normalizedProvince,
-      city: normalizedCity,
-    }).lean();
-    if (location) {
-      locationRate = location.rate;
+    let locationRate = 0;
+    if (shippingAddress?.province && shippingAddress?.city) {
+      await connectToDatabase();
+      const normalizedProvince = (shippingAddress.province || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+      const normalizedCity = (shippingAddress.city || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+      if (normalizedProvince && normalizedCity) {
+        const location = await DeliveryLocation.findOne({
+          county: normalizedProvince,
+          city: normalizedCity,
+        }).lean();
+        if (location) {
+          locationRate = location.rate || 0;
+        }
+      }
     }
+
+    const safeDeliveryDateIndex =
+      deliveryDateIndex === undefined || isNaN(Number(deliveryDateIndex))
+        ? Math.max(0, (availableDeliveryDates?.length || 1) - 1)
+        : Number(deliveryDateIndex);
+
+    const deliveryDate = availableDeliveryDates?.[safeDeliveryDateIndex];
+
+    const shippingPrice =
+      !shippingAddress || !deliveryDate
+        ? 0
+        : calculateShippingPrice({
+            deliveryDate,
+            itemsPrice,
+            shippingRate: locationRate,
+          });
+
+    const netItemsPrice = Math.max(0, itemsPrice - (discount || 0));
+    const taxRate = common?.taxRate ?? 0;
+    const taxPrice = !shippingAddress ? 0 : round2(netItemsPrice * (taxRate / 100));
+
+    const safeShippingPrice = shippingPrice ?? 0;
+    const totalPrice = round2(netItemsPrice + safeShippingPrice + taxPrice);
+
+    return {
+      deliveryDateIndex: safeDeliveryDateIndex,
+      itemsPrice: Number(itemsPrice) || 0,
+      shippingPrice: Number(safeShippingPrice) || 0,
+      taxPrice: Number(taxPrice) || 0,
+      discount: Number(discount) || 0,
+      totalPrice: Number(totalPrice) || 0,
+    };
+  } catch (error) {
+    console.error("calcDeliveryDateAndPrice error:", error);
+    return {
+      deliveryDateIndex: 0,
+      itemsPrice: 0,
+      shippingPrice: 0,
+      taxPrice: 0,
+      discount: 0,
+      totalPrice: 0,
+    };
   }
-
-  const deliveryDate =
-    availableDeliveryDates[
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex
-    ];
-  const shippingPrice =
-    !shippingAddress || !deliveryDate
-      ? undefined
-      : calculateShippingPrice({
-          deliveryDate,
-          itemsPrice,
-          shippingRate: locationRate,
-        });
-
-  const netItemsPrice = Math.max(0, itemsPrice - discount);
-  const taxPrice = !shippingAddress ? undefined : round2(netItemsPrice * (common.taxRate / 100));
-  const totalPrice = round2(
-    netItemsPrice +
-      (shippingPrice ? round2(shippingPrice) : 0) +
-      (taxPrice ? round2(taxPrice) : 0),
-  );
-  return {
-    availableDeliveryDates,
-    deliveryDateIndex:
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex,
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
-    discount,
-    totalPrice,
-  };
 };
 
 // GET ORDERS BY USER

@@ -144,81 +144,86 @@ export async function getAllCoupons({
 
 // VALIDATE COUPON DURING CHECKOUT
 export async function validateCoupon(code: string, itemsTotal: number) {
-  await connectToDatabase();
+  try {
+    await connectToDatabase();
 
-  const normalizedCode = normalizeCouponCode(code);
-  if (!normalizedCode) throw new Error("Enter a coupon code.");
+    const normalizedCode = normalizeCouponCode(code || "");
+    if (!normalizedCode) throw new Error("Enter a coupon code.");
 
-  const coupon = await Coupon.findOne({ code: normalizedCode, isActive: true });
+    const coupon = await Coupon.findOne({ code: normalizedCode, isActive: true });
 
-  if (coupon) {
-    if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
-      throw new Error(`The coupon code "${code}" has expired.`);
+    if (coupon) {
+      if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+        throw new Error(`The coupon code "${code}" has expired.`);
+      }
+      if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
+        throw new Error(`The coupon code "${code}" has reached its maximum usage limit.`);
+      }
+      if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
+        throw new Error(`Minimum purchase of ${coupon.minPurchase} is required for this coupon.`);
+      }
+
+      let discount = 0;
+      if (coupon.discountType === "percentage") {
+        discount = ((coupon.discountValue || 0) / 100) * (itemsTotal || 0);
+      } else {
+        discount = coupon.discountValue || 0;
+      }
+
+      const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
+
+      return {
+        coupon: {
+          _id: (coupon._id || "").toString(),
+          code: coupon.code || "",
+          discountType: coupon.discountType || "percentage",
+          discountValue: Number(coupon.discountValue) || 0,
+          discountAmount: Number(normalizedDiscount) || 0,
+        },
+        discount: Number(normalizedDiscount) || 0,
+        newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
+      };
     }
-    if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-      throw new Error(`The coupon code "${code}" has reached its maximum usage limit.`);
-    }
-    if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
-      throw new Error(`Minimum purchase of ${coupon.minPurchase} is required for this coupon.`);
+
+    // If not a regular coupon, check if it's an affiliate code
+    const affiliate = await Affiliate.findOne({
+      affiliateCode: normalizedCode,
+      status: "approved",
+    });
+
+    if (affiliate) {
+      const settings = await getSetting();
+      if (!settings?.affiliate?.enabled) {
+        throw new Error("Affiliate program is currently disabled.");
+      }
+
+      const discountRate =
+        affiliate.discountRate !== undefined
+          ? affiliate.discountRate
+          : settings.affiliate.defaultDiscountRate;
+
+      const discount = ((discountRate || 0) / 100) * (itemsTotal || 0);
+      const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
+
+      return {
+        coupon: {
+          _id: (affiliate._id || "").toString(),
+          code: affiliate.affiliateCode || "",
+          discountType: "percentage",
+          discountValue: Number(discountRate) || 0,
+          discountAmount: Number(normalizedDiscount) || 0,
+          isAffiliate: true,
+        },
+        discount: Number(normalizedDiscount) || 0,
+        newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
+      };
     }
 
-    let discount = 0;
-    if (coupon.discountType === "percentage") {
-      discount = (coupon.discountValue / 100) * itemsTotal;
-    } else {
-      discount = coupon.discountValue;
-    }
-
-    const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
-
-    return {
-      coupon: {
-        _id: coupon._id.toString(),
-        code: coupon.code,
-        discountType: coupon.discountType,
-        discountValue: coupon.discountValue,
-        discountAmount: normalizedDiscount,
-      },
-      discount: normalizedDiscount,
-      newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
-    };
+    throw new Error(`The coupon code "${code}" is invalid or expired.`);
+  } catch (error) {
+    console.error("validateCoupon error:", error);
+    throw error;
   }
-
-  // If not a regular coupon, check if it's an affiliate code
-  const affiliate = await Affiliate.findOne({
-    affiliateCode: normalizedCode,
-    status: "approved",
-  });
-
-  if (affiliate) {
-    const settings = await getSetting();
-    if (!settings.affiliate.enabled) {
-      throw new Error("Affiliate program is currently disabled.");
-    }
-
-    const discountRate =
-      affiliate.discountRate !== undefined
-        ? affiliate.discountRate
-        : settings.affiliate.defaultDiscountRate;
-
-    const discount = (discountRate / 100) * itemsTotal;
-    const normalizedDiscount = Math.min(Number(discount.toFixed(2)), itemsTotal);
-
-    return {
-      coupon: {
-        _id: affiliate._id.toString(),
-        code: affiliate.affiliateCode,
-        discountType: "percentage",
-        discountValue: discountRate,
-        discountAmount: normalizedDiscount,
-        isAffiliate: true,
-      },
-      discount: normalizedDiscount,
-      newTotal: Math.max(Number((itemsTotal - normalizedDiscount).toFixed(2)), 0),
-    };
-  }
-
-  throw new Error(`The coupon code "${code}" is invalid or expired.`);
 }
 
 export async function incrementCouponUsage(couponId: string) {
