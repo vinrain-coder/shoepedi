@@ -8,6 +8,8 @@ import {
   CategoryInputSchema,
   CouponInputSchema,
   DeliveryDateSchema,
+  DeliveryCountySchema,
+  DeliveryLocationSchema,
   OrderInputSchema,
   OrderItemSchema,
   PaymentMethodSchema,
@@ -112,6 +114,8 @@ export type SiteLanguage = z.infer<typeof SiteLanguageSchema>;
 export type SiteCurrency = z.infer<typeof SiteCurrencySchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type DeliveryDate = z.infer<typeof DeliveryDateSchema>;
+export type DeliveryCounty = z.infer<typeof DeliveryCountySchema>;
+export type DeliveryLocation = z.infer<typeof DeliveryLocationSchema>;
 
 // blog
 export type IBlogInput = z.infer<typeof BlogInputSchema>;

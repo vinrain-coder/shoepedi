@@ -37,6 +37,7 @@ import { getAffiliateByCode } from "./affiliate.actions";
 import Affiliate from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
 import { cookies } from "next/headers";
+import { calculateShippingPrice } from "../delivery";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 export type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
@@ -1132,7 +1133,7 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
 }) => {
-  const { availableDeliveryDates } = await getSetting();
+  const { availableDeliveryDates, deliveryCounties } = await getSetting();
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );
@@ -1146,10 +1147,13 @@ export const calcDeliveryDateAndPrice = async ({
   const shippingPrice =
     !shippingAddress || !deliveryDate
       ? undefined
-      : deliveryDate.freeShippingMinPrice > 0 &&
-          itemsPrice >= deliveryDate.freeShippingMinPrice
-        ? 0
-        : deliveryDate.shippingPrice;
+      : calculateShippingPrice({
+          deliveryDate,
+          itemsPrice,
+          deliveryCounties,
+          county: shippingAddress.province,
+          place: shippingAddress.city,
+        });
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
   const totalPrice = round2(
