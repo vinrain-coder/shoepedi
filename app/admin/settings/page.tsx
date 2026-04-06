@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 const SettingPage = async () => {
   return (
-    <div className="w-full px-1 md:px-4">
+    <div className="w-full md:px-4">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="h1-bold text-3xl tracking-tight">Settings</h1>
