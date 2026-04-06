@@ -21,6 +21,7 @@ import {
   IconMessageCircle,
   IconAffiliate,
   IconCash,
+  IconMapPin,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -68,6 +69,11 @@ const data = {
       title: "Users",
       url: "/admin/users",
       icon: IconUsers,
+    },
+    {
+      title: "Delivery Locations",
+      url: "/admin/delivery-locations",
+      icon: IconMapPin,
     },
   ],
   finance: [

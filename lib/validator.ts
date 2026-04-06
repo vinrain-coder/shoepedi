@@ -432,9 +432,6 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, "At least one delivery date is required"),
   defaultDeliveryDate: z.string().min(1, "Delivery date is required"),
-  deliveryCounties: z
-    .array(DeliveryCountySchema)
-    .min(1, "At least one delivery county is required"),
   affiliate: z.object({
     enabled: z.boolean().default(false),
     commissionRate: z.coerce.number().min(0).default(5),
@@ -658,4 +655,14 @@ export const AffiliatePayoutInputSchema = z.object({
   paymentDetails: z.object({
     recipient: z.string().min(1, "Recipient details are required"),
   }),
+});
+
+export const DeliveryLocationInputSchema = z.object({
+  county: z.string().trim().min(1, "County is required"),
+  city: z.string().trim().min(1, "City is required"),
+  rate: Price("Rate"),
+});
+
+export const DeliveryLocationUpdateSchema = DeliveryLocationInputSchema.extend({
+  _id: MongoId,
 });

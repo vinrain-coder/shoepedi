@@ -38,6 +38,7 @@ import Affiliate from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
 import { cookies } from "next/headers";
 import { calculateShippingPrice } from "../delivery";
+import DeliveryLocation from "../db/models/delivery-location.model";
 //import { sendAskReviewOrderItems, sendPurchaseReceipt } from "../email/transactional";
 
 export type SerializedOrder = Omit<IOrder, "_id"> & { _id: string };
@@ -1133,10 +1134,31 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
 }) => {
-  const { availableDeliveryDates, deliveryCounties } = await getSetting();
+  const { availableDeliveryDates } = await getSetting();
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );
+
+  let locationRate = 0;
+  if (shippingAddress?.province && shippingAddress?.city) {
+    await connectToDatabase();
+    // Normalize location strings for consistent lookup
+    const normalizedProvince = shippingAddress.province
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+    const normalizedCity = shippingAddress.city
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+    const location = await DeliveryLocation.findOne({
+      county: normalizedProvince,
+      city: normalizedCity,
+    }).lean();
+    if (location) {
+      locationRate = location.rate;
+    }
+  }
 
   const deliveryDate =
     availableDeliveryDates[
@@ -1150,9 +1172,7 @@ export const calcDeliveryDateAndPrice = async ({
       : calculateShippingPrice({
           deliveryDate,
           itemsPrice,
-          deliveryCounties,
-          county: shippingAddress.province,
-          place: shippingAddress.city,
+          shippingRate: locationRate,
         });
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
