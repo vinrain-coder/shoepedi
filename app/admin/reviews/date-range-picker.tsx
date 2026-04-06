@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { PopoverClose } from "@radix-ui/react-popover";
 
-export function ProductsDateRangePicker({
+export function ReviewsDateRangePicker({
   className,
 }: {
   className?: string;
@@ -101,7 +101,7 @@ export function ProductsDateRangePicker({
                 formatDateTime(appliedDateRange.from).dateOnly
               )
             ) : (
-              <span>Updated in...</span>
+              <span>Reviewed in...</span>
             )}
           </Button>
         </PopoverTrigger>

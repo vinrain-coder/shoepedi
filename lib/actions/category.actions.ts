@@ -4,7 +4,7 @@ import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category, { ICategory } from "@/lib/db/models/category.model";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
 import { IProduct } from "../db/models/product.model";
@@ -121,7 +121,13 @@ export async function getAllCategoriesForAdmin({
   query = "",
   page = 1,
   limit = 10,
-}: GetAllCategoriesParams) {
+}: GetAllCategoriesParams): Promise<{
+  categories: ICategory[];
+  totalCategories: number;
+  totalPages: number;
+  from: number;
+  to: number;
+}> {
   "use cache";
   cacheLife("hours");
   cacheTag("categories");
@@ -131,8 +137,8 @@ export async function getAllCategoriesForAdmin({
     const filter = query
       ? {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { slug: { $regex: query, $options: "i" } },
+            { name: { $regex: escapeRegExp(query), $options: "i" } },
+            { slug: { $regex: escapeRegExp(query), $options: "i" } },
           ],
         }
       : {};
@@ -163,6 +169,20 @@ export async function getAllCategoriesForAdmin({
       from: 0,
       to: 0,
     };
+  }
+}
+
+export async function getCategoryStats() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
+  try {
+    await connectToDatabase();
+    const totalCategories = await Category.countDocuments();
+    return { totalCategories };
+  } catch (error) {
+    console.error("Error fetching category stats:", error);
+    return { totalCategories: 0 };
   }
 }
 

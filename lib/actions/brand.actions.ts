@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 import { BrandInputSchema, BrandUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
 import Brand, { IBrand } from "../db/models/brand.model";
@@ -130,8 +130,8 @@ export async function getAllBrandsForAdmin({
     const filter = query
       ? {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { slug: { $regex: query, $options: "i" } },
+            { name: { $regex: escapeRegExp(query), $options: "i" } },
+            { slug: { $regex: escapeRegExp(query), $options: "i" } },
           ],
         }
       : {};
@@ -163,6 +163,20 @@ export async function getAllBrandsForAdmin({
       from: 0,
       to: 0,
     };
+  }
+}
+
+export async function getBrandStats() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("brands");
+  try {
+    await connectToDatabase();
+    const totalBrands = await Brand.countDocuments();
+    return { totalBrands };
+  } catch (error) {
+    console.error("Error fetching brand stats:", error);
+    return { totalBrands: 0 };
   }
 }
 

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import { NewsletterSubscriptionSchema } from "../validator";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import {
   sendAdminEventNotification,
   sendNewsletterConfirmationEmail,
@@ -163,10 +163,16 @@ export async function getAllSubscribers({
   limit,
   page,
   search,
+  status = "all",
+  from,
+  to,
 }: {
   limit?: number;
   page: number;
   search?: string;
+  status?: string;
+  from?: string;
+  to?: string;
 }) {
   try {
     await connectToDatabase();
@@ -181,9 +187,23 @@ export async function getAllSubscribers({
     const finalLimit = limit || pageSize;
     const skipAmount = (Number(page) - 1) * finalLimit;
 
-    const query = search
-      ? { email: { $regex: search, $options: "i" } }
-      : {};
+    const query: any = {};
+    if (search) {
+      query.email = { $regex: escapeRegExp(search), $options: "i" };
+    }
+    if (status !== "all") {
+      query.status = status;
+    }
+    if (from || to) {
+      const fromDate = from ? new Date(from) : null;
+      const toDate = to ? new Date(to) : null;
+
+      if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
+        query.subscribedAt = {};
+        if (fromDate && !isNaN(fromDate.getTime())) query.subscribedAt.$gte = fromDate;
+        if (toDate && !isNaN(toDate.getTime())) query.subscribedAt.$lte = toDate;
+      }
+    }
 
     const [subscribers, totalSubscribers] = await Promise.all([
       NewsletterSubscription.find(query)
@@ -202,6 +222,26 @@ export async function getAllSubscribers({
   } catch (error) {
     throw new Error(formatError(error));
   }
+}
+
+export async function getNewsletterStats() {
+  const session = await getServerSession();
+  if (session?.user.role !== "ADMIN") {
+    throw new Error("Admin permission required");
+  }
+
+  await connectToDatabase();
+  const [totalSubscribers, activeSubscribers, unsubscribedCount] = await Promise.all([
+    NewsletterSubscription.countDocuments(),
+    NewsletterSubscription.countDocuments({ status: "subscribed" }),
+    NewsletterSubscription.countDocuments({ status: "unsubscribed" }),
+  ]);
+
+  return {
+    totalSubscribers,
+    activeSubscribers,
+    unsubscribedCount,
+  };
 }
 
 export async function deleteSubscription(id: string) {

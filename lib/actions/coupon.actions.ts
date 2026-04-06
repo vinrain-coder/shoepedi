@@ -3,7 +3,7 @@
 import { connectToDatabase } from "@/lib/db";
 import Coupon, { ICoupon } from "@/lib/db/models/coupon.model";
 import { revalidatePath } from "next/cache";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { CouponInputSchema, CouponUpdateSchema } from "../validator";
 import Affiliate from "../db/models/affiliate.model";
 import { getSetting } from "./setting.actions";
@@ -89,19 +89,34 @@ export async function getAllCoupons({
   page = 1,
   sort = "latest",
   limit = 10,
+  from,
+  to,
 }: {
   query?: string;
   page?: number;
   sort?: string;
   limit?: number;
+  from?: string;
+  to?: string;
 }) {
   await connectToDatabase();
 
-  const queryFilter = query
+  const queryFilter: any = query
     ? {
-        code: { $regex: query, $options: "i" },
+        code: { $regex: escapeRegExp(query), $options: "i" },
       }
     : {};
+
+  if (from || to) {
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+
+    if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
+      queryFilter.createdAt = {};
+      if (fromDate && !isNaN(fromDate.getTime())) queryFilter.createdAt.$gte = fromDate;
+      if (toDate && !isNaN(toDate.getTime())) queryFilter.createdAt.$lte = toDate;
+    }
+  }
 
   const order: Record<string, 1 | -1> =
     sort === "discount-high-to-low"
@@ -224,6 +239,28 @@ export async function incrementCouponUsage(couponId: string) {
   revalidatePath("/admin/coupons");
 
   return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
+}
+
+export async function getCouponStats() {
+  await connectToDatabase();
+
+  const now = new Date();
+  const [totalCoupons, activeCoupons, expiredCoupons] = await Promise.all([
+    Coupon.countDocuments(),
+    Coupon.countDocuments({
+      isActive: true,
+      $or: [{ expiryDate: null }, { expiryDate: { $gt: now } }],
+    }),
+    Coupon.countDocuments({
+      expiryDate: { $lt: now },
+    }),
+  ]);
+
+  return {
+    totalCoupons,
+    activeCoupons,
+    expiredCoupons,
+  };
 }
 
 export async function decrementCouponUsage(couponId: string) {

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { PopoverClose } from "@radix-ui/react-popover";
 
-export function ProductsDateRangePicker({
+export function SupportDateRangePicker({
   className,
 }: {
   className?: string;
@@ -27,24 +27,28 @@ export function ProductsDateRangePicker({
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | undefined>(
-    fromParam && toParam
-      ? { from: new Date(fromParam), to: new Date(toParam) }
-      : fromParam
-      ? { from: new Date(fromParam) }
-      : undefined
-  );
+  const validateDate = (dateStr: string | null): Date | undefined => {
+    if (!dateStr) return undefined;
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime()) ? date : undefined;
+  };
+
+  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | undefined>(() => {
+    const from = validateDate(fromParam);
+    const to = validateDate(toParam);
+    if (from && to) return { from, to };
+    if (from) return { from };
+    return undefined;
+  });
 
   const [draftCalendarDate, setDraftCalendarDate] = React.useState<DateRange | undefined>(
     appliedDateRange
   );
 
   React.useEffect(() => {
-    const newRange = fromParam && toParam
-      ? { from: new Date(fromParam), to: new Date(toParam) }
-      : fromParam
-      ? { from: new Date(fromParam) }
-      : undefined;
+    const from = validateDate(fromParam);
+    const to = validateDate(toParam);
+    const newRange = from && to ? { from, to } : from ? { from } : undefined;
     setAppliedDateRange(newRange);
     setDraftCalendarDate(newRange);
   }, [fromParam, toParam]);
@@ -57,9 +61,7 @@ export function ProductsDateRangePicker({
       params.delete("from");
     }
     if (range?.to) {
-      const endOfDay = new Date(range.to);
-      endOfDay.setHours(23, 59, 59, 999);
-      params.set("to", endOfDay.toISOString());
+      params.set("to", range.to.toISOString());
     } else {
       params.delete("to");
     }
@@ -101,7 +103,7 @@ export function ProductsDateRangePicker({
                 formatDateTime(appliedDateRange.from).dateOnly
               )
             ) : (
-              <span>Updated in...</span>
+              <span>Submitted in...</span>
             )}
           </Button>
         </PopoverTrigger>

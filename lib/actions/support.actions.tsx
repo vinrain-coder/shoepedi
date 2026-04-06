@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import { getServerSession } from "../get-session";
-import { formatError } from "../utils";
+import { formatError, normalizeDateRange, escapeRegExp } from "../utils";
 import SupportTicket from "../db/models/support-ticket.model";
 import {
   sendAdminEventNotification,
@@ -85,7 +85,21 @@ export async function getMySupportTickets() {
   }
 }
 
-export async function getSupportTicketsAdmin() {
+export async function getSupportTicketsAdmin({
+  page = 1,
+  limit = 10,
+  query = "",
+  status = "all",
+  from,
+  to,
+}: {
+  page?: number;
+  limit?: number;
+  query?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+} = {}) {
   try {
     const session = await getServerSession();
     if (!session || session.user.role !== "ADMIN") {
@@ -93,11 +107,66 @@ export async function getSupportTicketsAdmin() {
     }
 
     await connectToDatabase();
-    const tickets = await SupportTicket.find().sort({ createdAt: -1 }).lean();
-    return { success: true, data: JSON.parse(JSON.stringify(tickets)) as SupportTicketDto[] };
+
+    const filter: Record<string, unknown> = {};
+    if (status !== "all") {
+      filter.status = status;
+    }
+    if (query) {
+      const escapedQuery = escapeRegExp(query);
+      filter.$or = [
+        { name: { $regex: escapedQuery, $options: "i" } },
+        { email: { $regex: escapedQuery, $options: "i" } },
+        { subject: { $regex: escapedQuery, $options: "i" } },
+        { message: { $regex: escapedQuery, $options: "i" } },
+      ];
+    }
+    const { fromDate, toDate } = normalizeDateRange(from, to);
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    const skip = (page - 1) * limit;
+    const [tickets, totalTickets] = await Promise.all([
+      SupportTicket.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      SupportTicket.countDocuments(filter),
+    ]);
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(tickets)) as SupportTicketDto[],
+      totalPages: Math.ceil(totalTickets / limit),
+      totalTickets,
+    };
   } catch (error) {
-    return { success: false, message: formatError(error), data: [] as SupportTicketDto[] };
+    return { success: false, message: formatError(error), data: [] as SupportTicketDto[], totalPages: 0, totalTickets: 0 };
   }
+}
+
+export async function getSupportStats() {
+  const session = await getServerSession();
+  if (session?.user.role !== "ADMIN") {
+    throw new Error("Admin permission required");
+  }
+
+  await connectToDatabase();
+  const [totalTickets, openTickets, repliedTickets] = await Promise.all([
+    SupportTicket.countDocuments(),
+    SupportTicket.countDocuments({ status: "open" }),
+    SupportTicket.countDocuments({ status: "replied" }),
+  ]);
+
+  return {
+    totalTickets,
+    openTickets,
+    repliedTickets,
+  };
 }
 
 export async function replySupportTicket(input: { id: string; reply: string }) {
