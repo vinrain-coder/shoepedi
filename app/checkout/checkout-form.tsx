@@ -53,6 +53,8 @@ import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getUserCoins } from "@/lib/actions/user.actions";
+import { getProductsByIds } from "@/lib/actions/product.actions";
+import { IProduct } from "@/lib/db/models/product.model";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -109,6 +111,19 @@ const CheckoutForm = ({
       ""
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
+  const [products, setProducts] = useState<IProduct[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productIds = items.map((item) => item.product);
+      const uniqueProductIds = [...new Set(productIds)];
+      if (uniqueProductIds.length > 0) {
+        const fetchedProducts = await getProductsByIds(uniqueProductIds);
+        setProducts(fetchedProducts);
+      }
+    };
+    fetchProducts();
+  }, [items]);
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -1006,38 +1021,92 @@ const CheckoutForm = ({
                             </div>
 
                             <div className="flex-1">
-                              <p className="font-semibold">
-                                {item.name}, {item.color}, {item.size}
-                              </p>
+                              <p className="font-semibold">{item.name}</p>
                               <p className="font-bold">
                                 <ProductPrice price={item.price} plain />
                               </p>
 
-                              <Select
-                                value={item.quantity.toString()}
-                                onValueChange={(value) => {
-                                  if (value === "0") removeItem(item);
-                                  else updateItem(item, Number(value));
-                                }}
-                              >
-                                <SelectTrigger className="w-24 cursor-pointer">
-                                  <SelectValue>
-                                    Qty: {item.quantity}
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent position="popper">
-                                  {Array.from({
-                                    length: item.countInStock,
-                                  }).map((_, i) => (
-                                    <SelectItem key={i + 1} value={`${i + 1}`}>
-                                      {i + 1}
+                              <div className="flex flex-wrap gap-2 my-2">
+                                <Select
+                                  value={item.color}
+                                  onValueChange={(value) =>
+                                    updateItem(
+                                      item,
+                                      item.quantity,
+                                      value,
+                                      item.size
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="w-auto cursor-pointer">
+                                    <SelectValue>{item.color}</SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent position="popper">
+                                    {products
+                                      .find(
+                                        (p) => p._id.toString() === item.product
+                                      )
+                                      ?.colors.map((color) => (
+                                        <SelectItem key={color} value={color}>
+                                          {color}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+
+                                <Select
+                                  value={item.size}
+                                  onValueChange={(value) =>
+                                    updateItem(
+                                      item,
+                                      item.quantity,
+                                      item.color,
+                                      value
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="w-auto cursor-pointer">
+                                    <SelectValue>{item.size}</SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent position="popper">
+                                    {products
+                                      .find(
+                                        (p) => p._id.toString() === item.product
+                                      )
+                                      ?.sizes.map((size) => (
+                                        <SelectItem key={size} value={size}>
+                                          {size}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+
+                                <Select
+                                  value={item.quantity.toString()}
+                                  onValueChange={(value) => {
+                                    if (value === "0") removeItem(item);
+                                    else updateItem(item, Number(value));
+                                  }}
+                                >
+                                  <SelectTrigger className="w-24 cursor-pointer">
+                                    <SelectValue>
+                                      Qty: {item.quantity}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent position="popper">
+                                    {Array.from({
+                                      length: item.countInStock,
+                                    }).map((_, i) => (
+                                      <SelectItem key={i + 1} value={`${i + 1}`}>
+                                        {i + 1}
+                                      </SelectItem>
+                                    ))}
+                                    <SelectItem key="delete" value="0">
+                                      Delete
                                     </SelectItem>
-                                  ))}
-                                  <SelectItem key="delete" value="0">
-                                    Delete
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           </div>
                         ))}

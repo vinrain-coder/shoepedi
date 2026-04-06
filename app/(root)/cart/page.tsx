@@ -16,6 +16,9 @@ import useSettingStore from "@/hooks/use-setting-store";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getProductsByIds } from "@/lib/actions/product.actions";
+import { IProduct } from "@/lib/db/models/product.model";
 
 export default function CartPage() {
   const {
@@ -23,6 +26,19 @@ export default function CartPage() {
     updateItem,
     removeItem,
   } = useCartStore();
+  const [products, setProducts] = useState<IProduct[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productIds = items.map((item) => item.product);
+      const uniqueProductIds = [...new Set(productIds)];
+      if (uniqueProductIds.length > 0) {
+        const fetchedProducts = await getProductsByIds(uniqueProductIds);
+        setProducts(fetchedProducts);
+      }
+    };
+    fetchProducts();
+  }, [items]);
   const router = useRouter();
   const {
     setting: {
@@ -80,15 +96,51 @@ export default function CartPage() {
                         >
                           {item.name}
                         </Link>
-                        <div>
-                          <p className="text-sm">
-                            <span className="font-bold"> Color: </span>{" "}
-                            {item.color}
-                          </p>
-                          <p className="text-sm">
-                            <span className="font-bold"> Size: </span>{" "}
-                            {item.size}
-                          </p>
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm">Color:</span>
+                            <Select
+                              value={item.color}
+                              onValueChange={(value) =>
+                                updateItem(item, item.quantity, value, item.size)
+                              }
+                            >
+                              <SelectTrigger className="w-auto cursor-pointer">
+                                <SelectValue>{item.color}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent position="popper">
+                                {products
+                                  .find((p) => p._id.toString() === item.product)
+                                  ?.colors.map((color) => (
+                                    <SelectItem key={color} value={color}>
+                                      {color}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm">Size:</span>
+                            <Select
+                              value={item.size}
+                              onValueChange={(value) =>
+                                updateItem(item, item.quantity, item.color, value)
+                              }
+                            >
+                              <SelectTrigger className="w-auto cursor-pointer">
+                                <SelectValue>{item.size}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent position="popper">
+                                {products
+                                  .find((p) => p._id.toString() === item.product)
+                                  ?.sizes.map((size) => (
+                                    <SelectItem key={size} value={size}>
+                                      {size}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         <div className="flex gap-2 items-center">
                           <Select
