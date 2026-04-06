@@ -397,11 +397,11 @@ export const createOrderFromCart = async (
 
   const cart = {
     ...clientSideCart,
-    ...calcDeliveryDateAndPrice({
+    ...(await calcDeliveryDateAndPrice({
       items: clientSideCart.items,
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    }),
+    })),
   };
 
   let appliedCoupon:
@@ -1123,6 +1123,8 @@ export async function getOrderById(
   return serializeOrder(hydrated);
 }
 
+import DeliveryLocation from "../db/models/delivery-location.model";
+
 export const calcDeliveryDateAndPrice = async ({
   items,
   shippingAddress,
@@ -1130,9 +1132,45 @@ export const calcDeliveryDateAndPrice = async ({
 }: {
   deliveryDateIndex?: number;
   items: OrderItem[];
-  shippingAddress?: ShippingAddress;
+  shippingAddress?: ShippingAddress & { county?: string };
 }) => {
-  const { availableDeliveryDates } = await getSetting();
+  const { availableDeliveryDates: defaultDeliveryDates } = await getSetting();
+
+  let availableDeliveryDates = defaultDeliveryDates;
+
+  // If we have county and city, try to fetch custom rates
+  if (shippingAddress?.county && shippingAddress?.city) {
+    await connectToDatabase();
+    const location = await DeliveryLocation.findOne({
+      county: shippingAddress.county,
+      city: shippingAddress.city,
+    });
+
+    if (location && location.rates && location.rates.length > 0) {
+      // Map custom rates to DeliveryDate format
+      availableDeliveryDates = location.rates.map((rate) => {
+        const defaultRate = defaultDeliveryDates.find(
+          (d) => d.name.toLowerCase() === rate.deliveryDateName.toLowerCase()
+        );
+
+        if (!defaultRate) {
+          console.warn(
+            `[calcDeliveryDateAndPrice] No matching default delivery date found for rate "${rate.deliveryDateName}" ` +
+            `in location: ${location.county}/${location.city}. ` +
+            `Using explicit fallback values.`
+          );
+        }
+
+        return {
+          name: rate.deliveryDateName,
+          daysToDeliver: defaultRate?.daysToDeliver ?? 0,
+          shippingPrice: rate.price,
+          freeShippingMinPrice: defaultRate?.freeShippingMinPrice ?? 0,
+        };
+      });
+    }
+  }
+
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );

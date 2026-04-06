@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createOrder, SerializedOrder } from "@/lib/actions/order.actions";
+import { createOrder, SerializedOrder, calcDeliveryDateAndPrice } from "@/lib/actions/order.actions";
 import {
   calculateFutureDate,
   formatDateTime,
@@ -29,7 +29,7 @@ import { ShippingAddressSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
@@ -55,6 +55,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getUserCoins } from "@/lib/actions/user.actions";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
+import { getUniqueCounties, getCitiesByCounty } from "@/lib/actions/delivery-location.actions";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -70,6 +71,7 @@ const shippingAddressDefaultValues =
         fullName: "Basir",
         street: "1911, 65 Sherbrooke Est",
         city: "Montreal",
+        county: "",
         province: "Quebec",
         phone: "4181234567",
         postalCode: "H2X 1C4",
@@ -79,6 +81,7 @@ const shippingAddressDefaultValues =
         fullName: "",
         street: "",
         city: "",
+        county: "",
         province: "",
         phone: "",
         postalCode: "",
@@ -106,12 +109,15 @@ const CheckoutForm = ({
   const [addressBook, setAddressBook] =
     useState<AddressBookEntry[]>(savedAddresses);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
-    selectedAddressId ||
+    savedAddresses.find((address) => address.id === selectedAddressId)?.id ||
       savedAddresses.find((address) => address.isDefault)?.id ||
       ""
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
+  const [counties, setCounties] = useState<string[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [isCityLoading, startCityTransition] = useTransition();
 
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
@@ -147,7 +153,7 @@ const CheckoutForm = ({
       site,
       availablePaymentMethods,
       defaultPaymentMethod,
-      availableDeliveryDates,
+      availableDeliveryDates: defaultDeliveryDates,
     },
   } = useSettingStore();
 
@@ -168,7 +174,10 @@ const CheckoutForm = ({
     removeItem,
     clearCart,
     setDeliveryDateIndex,
+    setCartPrices,
   } = useCartStore();
+
+  const [availableDeliveryDates, setAvailableDeliveryDates] = useState(defaultDeliveryDates);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -181,6 +190,12 @@ const CheckoutForm = ({
     };
     fetchProducts();
   }, [items]);
+
+  useEffect(() => {
+    getUniqueCounties().then((res) => {
+      if (res.success && res.data) setCounties(res.data);
+    });
+  }, []);
 
   const appliedCouponCode = appliedCoupon?.code;
   const discountAmount = appliedCoupon?.discountAmount ?? 0;
@@ -195,6 +210,40 @@ const CheckoutForm = ({
     resolver: zodResolver(ShippingAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
+
+  const watchCounty = shippingAddressForm.watch("county");
+
+  useEffect(() => {
+    if (!watchCounty) {
+      setCities([]);
+      return;
+    }
+    startCityTransition(async () => {
+      const res = await getCitiesByCounty(watchCounty);
+      if (res.success && res.data) setCities(res.data);
+    });
+  }, [watchCounty]);
+
+  const watchCity = shippingAddressForm.watch("city");
+
+  useEffect(() => {
+    if (watchCounty && watchCity) {
+      calcDeliveryDateAndPrice({
+        items,
+        shippingAddress: { ...shippingAddressForm.getValues(), county: watchCounty, city: watchCity },
+        deliveryDateIndex,
+      }).then((res) => {
+        setAvailableDeliveryDates(res.availableDeliveryDates);
+        setCartPrices({
+          itemsPrice: res.itemsPrice,
+          shippingPrice: res.shippingPrice,
+          taxPrice: res.taxPrice,
+          totalPrice: res.totalPrice,
+        });
+      });
+    }
+  }, [watchCounty, watchCity, items, deliveryDateIndex, setCartPrices, shippingAddressForm]);
+
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
     values
   ) => {
@@ -235,6 +284,7 @@ const CheckoutForm = ({
       fullName: selectedAddress.fullName,
       street: selectedAddress.street,
       city: selectedAddress.city,
+      county: (selectedAddress as any).county || "",
       province: selectedAddress.province,
       phone: selectedAddress.phone,
       postalCode: selectedAddress.postalCode,
@@ -256,6 +306,7 @@ const CheckoutForm = ({
     shippingAddressForm.setValue("fullName", shippingAddress.fullName);
     shippingAddressForm.setValue("street", shippingAddress.street);
     shippingAddressForm.setValue("city", shippingAddress.city);
+    shippingAddressForm.setValue("county", shippingAddress.county || "");
     shippingAddressForm.setValue("country", shippingAddress.country);
     shippingAddressForm.setValue("postalCode", shippingAddress.postalCode);
     shippingAddressForm.setValue("province", shippingAddress.province);
@@ -294,12 +345,37 @@ const CheckoutForm = ({
   const handlePlaceOrder = async () => {
     try {
       setIsPlacingOrder(true);
+
+      // Defensive validation
+      if (!shippingAddress || !shippingAddress.county || !shippingAddress.city) {
+        toast.error("Please select a valid county and city for delivery");
+        if (!shippingAddress?.county) {
+          shippingAddressForm.setFocus("county");
+        } else if (!shippingAddress?.city) {
+          shippingAddressForm.setFocus("city");
+        }
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (shippingPrice === undefined || taxPrice === undefined) {
+        toast.error("Unable to calculate shipping and tax. Please select a valid delivery location.");
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (deliveryDateIndex === undefined || !availableDeliveryDates[deliveryDateIndex]) {
+        toast.error("Please select a valid delivery date");
+        setIsPlacingOrder(false);
+        return;
+      }
+
       // Create the order on the server
       const res = await createOrder({
         items,
         shippingAddress,
         expectedDeliveryDate: calculateFutureDate(
-          availableDeliveryDates[deliveryDateIndex!].daysToDeliver
+          availableDeliveryDates[deliveryDateIndex].daysToDeliver
         ),
         deliveryDateIndex,
         paymentMethod,
@@ -593,7 +669,7 @@ const CheckoutForm = ({
                   <p>
                     {shippingAddress.fullName} <br />
                     {shippingAddress.street} <br />
-                    {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
+                    {`${shippingAddress.city}, ${shippingAddress.county || ""}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
                   </p>
                 </div>
                 <div className="col-span-2">
@@ -659,7 +735,7 @@ const CheckoutForm = ({
                               <p className="break-words">{address.fullName}</p>
                               <p className="break-words">
                                 {address.street}, {address.city},{" "}
-                                {address.province}, {address.postalCode},{" "}
+                                {(address as any).county || ""}, {address.province}, {address.postalCode},{" "}
                                 {address.country}
                               </p>
                               <p className="break-words text-muted-foreground">
@@ -765,17 +841,54 @@ const CheckoutForm = ({
                         <div className="flex flex-col gap-5 md:flex-row">
                           <FormField
                             control={shippingAddressForm.control}
-                            name="city"
+                            name="county"
                             render={({ field }) => (
                               <FormItem className="w-full">
-                                <FormLabel>City</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Enter city" {...field} />
-                                </FormControl>
+                                <FormLabel>County</FormLabel>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select County" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {counties.map((county) => (
+                                      <SelectItem key={county} value={county}>{county}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+                          <FormField
+                            control={shippingAddressForm.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormLabel>City</FormLabel>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  disabled={!watchCounty || isCityLoading}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={isCityLoading ? "Loading..." : "Select City"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {cities.map((location) => (
+                                      <SelectItem key={location._id} value={location.city}>{location.city}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-5 md:flex-row">
                           <FormField
                             control={shippingAddressForm.control}
                             name="province"
@@ -957,7 +1070,7 @@ const CheckoutForm = ({
                       formatDateTime(
                         calculateFutureDate(
                           availableDeliveryDates[deliveryDateIndex]
-                            .daysToDeliver
+                            ?.daysToDeliver || 0
                         )
                       ).dateOnly
                     }
@@ -997,7 +1110,7 @@ const CheckoutForm = ({
                           formatDateTime(
                             calculateFutureDate(
                               availableDeliveryDates[deliveryDateIndex!]
-                                .daysToDeliver
+                                ?.daysToDeliver || 0
                             )
                           ).dateOnly
                         }
@@ -1125,7 +1238,7 @@ const CheckoutForm = ({
                           <ul>
                             <RadioGroup
                               value={
-                                availableDeliveryDates[deliveryDateIndex!].name
+                                availableDeliveryDates[deliveryDateIndex!]?.name
                               }
                               onValueChange={(value) =>
                                 setDeliveryDateIndex(

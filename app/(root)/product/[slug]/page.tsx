@@ -29,6 +29,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Factory, Layers, RotateCcw, Tag, Truck, Wallet } from "lucide-react";
 import CompareButton from "@/components/shared/product/compare-button";
+import DeliverySelection from "@/components/shared/product/delivery-selection";
 
 export async function generateMetadata({
   params,
@@ -404,6 +405,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     </div>
                   </div>
                 )}
+                <Separator className="my-2" />
+                <DeliverySelection />
                 {product.countInStock === 0 && (
                   <div className="flex justify-center items-center mt-4">
                     <SubscribeButton productId={product._id.toString()} />

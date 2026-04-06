@@ -29,6 +29,12 @@ interface CartState {
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>;
   setPaymentMethod: (paymentMethod: string) => void;
   setDeliveryDateIndex: (index: number) => Promise<void>;
+  setCartPrices: (prices: {
+    itemsPrice: number;
+    shippingPrice?: number;
+    taxPrice?: number;
+    totalPrice: number;
+  }) => void;
 }
 
 const useCartStore = create(
@@ -184,11 +190,20 @@ const useCartStore = create(
         set({
           cart: {
             ...get().cart,
+            deliveryDateIndex: index,
             ...(await calcDeliveryDateAndPrice({
               items,
               shippingAddress,
               deliveryDateIndex: index,
             })),
+          },
+        });
+      },
+      setCartPrices: (prices) => {
+        set({
+          cart: {
+            ...get().cart,
+            ...prices,
           },
         });
       },
