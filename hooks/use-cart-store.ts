@@ -18,7 +18,12 @@ const initialState: Cart = {
 interface CartState {
   cart: Cart;
   addItem: (item: OrderItem, quantity: number) => Promise<string>;
-  updateItem: (item: OrderItem, quantity: number) => Promise<void>;
+  updateItem: (
+    item: OrderItem,
+    quantity: number,
+    color?: string,
+    size?: string
+  ) => Promise<void>;
   removeItem: (item: OrderItem) => void;
   clearCart: () => void;
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>;
@@ -81,22 +86,47 @@ const useCartStore = create(
         }
         return foundItem.clientId;
       },
-      updateItem: async (item: OrderItem, quantity: number) => {
+      updateItem: async (
+        item: OrderItem,
+        quantity: number,
+        color?: string,
+        size?: string
+      ) => {
         const { items, shippingAddress } = get().cart;
-        const exist = items.find(
-          (x) =>
-            x.product === item.product &&
-            x.color === item.color &&
-            x.size === item.size
-        );
+        const exist = items.find((x) => x.clientId === item.clientId);
         if (!exist) return;
-        const updatedCartItems = items.map((x) =>
-          x.product === item.product &&
-          x.color === item.color &&
-          x.size === item.size
-            ? { ...exist, quantity: quantity }
-            : x
+
+        const newColor = color !== undefined ? color : exist.color;
+        const newSize = size !== undefined ? size : exist.size;
+
+        const duplicate = items.find(
+          (x) =>
+            x.clientId !== item.clientId &&
+            x.product === item.product &&
+            x.color === newColor &&
+            x.size === newSize
         );
+
+        let updatedCartItems: OrderItem[];
+        if (duplicate) {
+          const newQuantity = Math.min(
+            duplicate.countInStock,
+            duplicate.quantity + quantity
+          );
+          updatedCartItems = items
+            .map((x) =>
+              x.clientId === duplicate.clientId
+                ? { ...x, quantity: newQuantity }
+                : x
+            )
+            .filter((x) => x.clientId !== item.clientId);
+        } else {
+          updatedCartItems = items.map((x) =>
+            x.clientId === item.clientId
+              ? { ...x, quantity, color: newColor, size: newSize }
+              : x
+          );
+        }
         set({
           cart: {
             ...get().cart,

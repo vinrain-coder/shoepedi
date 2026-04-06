@@ -14,11 +14,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   cacheComponents: true,
-  experimental: {
-    turbo: {
-      enabled: false,
-    },
-  },
   images: {
     remotePatterns: [
       {
