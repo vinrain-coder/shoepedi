@@ -69,6 +69,44 @@ export default function CommonForm({
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={control}
+            name="common.coinsRewardRate"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Coins Reward Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 4.0"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="common.taxRate"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tax Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 0.0"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex flex-col gap-5 md:flex-row">
+          <FormField
+            control={control}
             name="common.defaultTheme"
             render={({ field }) => (
               <FormItem className="w-full">

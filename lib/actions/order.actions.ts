@@ -417,7 +417,8 @@ export const createOrderFromCart = async (
     | undefined;
 
   let totalPrice = cart.totalPrice;
-  const coinsEarned = round2(cart.itemsPrice * 0.04);
+  const { common } = await getSetting();
+  const coinsEarned = round2((cart.itemsPrice * common.coinsRewardRate) / 100);
   let coinsRedeemed = 0;
   let isPaid = false;
   let paidAt: Date | undefined;
@@ -578,10 +579,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       if (settings?.enabled) {
         const affiliateDoc = await Affiliate.findById(order.affiliate);
         if (affiliateDoc && affiliateDoc.status === "approved") {
-          const commissionRate =
-            affiliateDoc.commissionRate !== undefined
-              ? affiliateDoc.commissionRate
-              : settings.commissionRate;
+          const commissionRate = settings.commissionRate;
 
           const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
 
@@ -1134,7 +1132,7 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
 }) => {
-  const { availableDeliveryDates } = await getSetting();
+  const { availableDeliveryDates, common } = await getSetting();
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0),
   );
@@ -1142,18 +1140,9 @@ export const calcDeliveryDateAndPrice = async ({
   let locationRate = 0;
   if (shippingAddress?.province && shippingAddress?.city) {
     await connectToDatabase();
-    // Normalize location strings for consistent lookup
-    const normalizedProvince = shippingAddress.province
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
-    const normalizedCity = shippingAddress.city
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
     const location = await DeliveryLocation.findOne({
-      county: normalizedProvince,
-      city: normalizedCity,
+      county: shippingAddress.province,
+      city: shippingAddress.city,
     }).lean();
     if (location) {
       locationRate = location.rate;
@@ -1175,7 +1164,7 @@ export const calcDeliveryDateAndPrice = async ({
           shippingRate: locationRate,
         });
 
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0);
+  const taxPrice = !shippingAddress ? undefined : round2((itemsPrice * common.taxRate) / 100);
   const totalPrice = round2(
     itemsPrice +
       (shippingPrice ? round2(shippingPrice) : 0) +
