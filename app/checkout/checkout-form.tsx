@@ -113,18 +113,6 @@ const CheckoutForm = ({
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const productIds = items.map((item) => item.product);
-      const uniqueProductIds = [...new Set(productIds)];
-      if (uniqueProductIds.length > 0) {
-        const fetchedProducts = await getProductsByIds(uniqueProductIds);
-        setProducts(fetchedProducts);
-      }
-    };
-    fetchProducts();
-  }, [items]);
-
   const resetCoupon = (message?: string) => {
     setAppliedCoupon(null);
     setCouponError(null);
@@ -181,6 +169,19 @@ const CheckoutForm = ({
     clearCart,
     setDeliveryDateIndex,
   } = useCartStore();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productIds = items.map((item) => item.product);
+      const uniqueProductIds = [...new Set(productIds)];
+      if (uniqueProductIds.length > 0) {
+        const fetchedProducts = await getProductsByIds(uniqueProductIds);
+        setProducts(fetchedProducts);
+      }
+    };
+    fetchProducts();
+  }, [items]);
+
   const appliedCouponCode = appliedCoupon?.code;
   const discountAmount = appliedCoupon?.discountAmount ?? 0;
   const finalTotal = useMemo(
@@ -1042,15 +1043,18 @@ const CheckoutForm = ({
                                     <SelectValue>{item.color}</SelectValue>
                                   </SelectTrigger>
                                   <SelectContent position="popper">
-                                    {products
-                                      .find(
+                                    {(() => {
+                                      const foundProduct = products.find(
                                         (p) => p._id.toString() === item.product
-                                      )
-                                      ?.colors.map((color) => (
-                                        <SelectItem key={color} value={color}>
-                                          {color}
-                                        </SelectItem>
-                                      ))}
+                                      );
+                                      return (foundProduct?.colors ?? []).map(
+                                        (color) => (
+                                          <SelectItem key={color} value={color}>
+                                            {color}
+                                          </SelectItem>
+                                        )
+                                      );
+                                    })()}
                                   </SelectContent>
                                 </Select>
 
@@ -1069,15 +1073,18 @@ const CheckoutForm = ({
                                     <SelectValue>{item.size}</SelectValue>
                                   </SelectTrigger>
                                   <SelectContent position="popper">
-                                    {products
-                                      .find(
+                                    {(() => {
+                                      const foundProduct = products.find(
                                         (p) => p._id.toString() === item.product
-                                      )
-                                      ?.sizes.map((size) => (
-                                        <SelectItem key={size} value={size}>
-                                          {size}
-                                        </SelectItem>
-                                      ))}
+                                      );
+                                      return (foundProduct?.sizes ?? []).map(
+                                        (size) => (
+                                          <SelectItem key={size} value={size}>
+                                            {size}
+                                          </SelectItem>
+                                        )
+                                      );
+                                    })()}
                                   </SelectContent>
                                 </Select>
 

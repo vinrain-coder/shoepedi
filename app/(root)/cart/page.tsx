@@ -109,13 +109,18 @@ export default function CartPage() {
                                 <SelectValue>{item.color}</SelectValue>
                               </SelectTrigger>
                               <SelectContent position="popper">
-                                {products
-                                  .find((p) => p._id.toString() === item.product)
-                                  ?.colors.map((color) => (
-                                    <SelectItem key={color} value={color}>
-                                      {color}
-                                    </SelectItem>
-                                  ))}
+                                {(() => {
+                                  const product = products.find(
+                                    (p) => p._id.toString() === item.product
+                                  );
+                                  return product?.colors?.length
+                                    ? product.colors.map((color) => (
+                                        <SelectItem key={color} value={color}>
+                                          {color}
+                                        </SelectItem>
+                                      ))
+                                    : null;
+                                })()}
                               </SelectContent>
                             </Select>
                           </div>
@@ -131,13 +136,18 @@ export default function CartPage() {
                                 <SelectValue>{item.size}</SelectValue>
                               </SelectTrigger>
                               <SelectContent position="popper">
-                                {products
-                                  .find((p) => p._id.toString() === item.product)
-                                  ?.sizes.map((size) => (
-                                    <SelectItem key={size} value={size}>
-                                      {size}
-                                    </SelectItem>
-                                  ))}
+                                {(() => {
+                                  const product = products.find(
+                                    (p) => p._id.toString() === item.product
+                                  );
+                                  return product?.sizes?.length
+                                    ? product.sizes.map((size) => (
+                                        <SelectItem key={size} value={size}>
+                                          {size}
+                                        </SelectItem>
+                                      ))
+                                    : null;
+                                })()}
                               </SelectContent>
                             </Select>
                           </div>
