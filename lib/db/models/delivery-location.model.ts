@@ -11,9 +11,9 @@ export interface IDeliveryLocation extends Document {
 
 const deliveryLocationSchema = new Schema<IDeliveryLocation>(
   {
-    county: { type: String, required: true, index: true, trim: true, lowercase: true },
-    city: { type: String, required: true, index: true, trim: true, lowercase: true },
-    rate: { type: Number, required: true, default: 0, min: 0 },
+    county: { type: String, required: true, index: true },
+    city: { type: String, required: true, index: true },
+    rate: { type: Number, required: true, default: 0 },
   },
   {
     timestamps: true,

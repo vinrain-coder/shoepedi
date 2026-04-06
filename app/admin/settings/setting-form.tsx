@@ -15,6 +15,7 @@ import CarouselForm from "./carousel-form";
 import AffiliateForm from "./affiliate-form";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";
+import { Save } from "lucide-react";
 
 const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   const { setSetting } = useSetting();
@@ -23,6 +24,7 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
     resolver: zodResolver(SettingInputSchema),
     defaultValues: setting,
   });
+
   const {
     formState: { isSubmitting },
   } = form;
@@ -38,36 +40,35 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md md:max-w-3xl">
     <Form {...form}>
       <form
-        className="space-y-4 w-full"
+        className="space-y-10 pb-20"
         method="post"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <SiteInfoForm id="setting-site-info" form={form} />
-        <CommonForm id="setting-common" form={form} />
-        <CarouselForm id="setting-carousels" form={form} />
+        <section className="space-y-6">
+          <SiteInfoForm id="setting-site-info" form={form} />
+          <CommonForm id="setting-common" form={form} />
+          <CarouselForm id="setting-carousels" form={form} />
+          <PaymentMethodForm id="setting-payment-methods" form={form} />
+          <DeliveryDateForm id="setting-delivery-dates" form={form} />
+          <AffiliateForm id="setting-affiliate" form={form} />
+        </section>
 
-        <PaymentMethodForm id="setting-payment-methods" form={form} />
-
-        <DeliveryDateForm id="setting-delivery-dates" form={form} />
-        <AffiliateForm id="setting-affiliate" form={form} />
-
-        <div>
+        <div className="fixed bottom-6 right-6 z-50 md:right-10 lg:right-16">
           <SubmitButton
             type="submit"
             isLoading={isSubmitting}
-            loadingText="Submitting..."
-            className="w-full mb-24 cursor-pointer"
+            loadingText="Saving..."
+            className="h-14 rounded-full px-8 shadow-2xl hover:scale-105 transition-transform"
             size="lg"
           >
-            Save Setting
+            <Save className="mr-2 h-5 w-5" />
+            Save Configuration
           </SubmitButton>
         </div>
       </form>
     </Form>
-  </div>
   );
 };
 

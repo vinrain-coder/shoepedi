@@ -376,37 +376,16 @@ const CheckoutForm = ({
 
   const [counties, setCounties] = useState<string[]>([]);
   const [places, setPlaces] = useState<{ city: string; rate: number }[]>([]);
-  const [countiesError, setCountiesError] = useState<string | null>(null);
-  const [placesError, setPlacesError] = useState<string | null>(null);
 
   useEffect(() => {
-    getAllCounties()
-      .then((data) => {
-        setCounties(data);
-        setCountiesError(null);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch counties:", error);
-        setCounties([]);
-        setCountiesError("Failed to load counties. Please try again.");
-      });
+    getAllCounties().then(setCounties);
   }, []);
 
   useEffect(() => {
     if (selectedCounty) {
-      getPlacesByCounty(selectedCounty)
-        .then((data) => {
-          setPlaces(data);
-          setPlacesError(null);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch places for county:", selectedCounty, error);
-          setPlaces([]);
-          setPlacesError("Failed to load delivery places. Please try again.");
-        });
+      getPlacesByCounty(selectedCounty).then(setPlaces);
     } else {
       setPlaces([]);
-      setPlacesError(null);
     }
   }, [selectedCounty]);
 
@@ -843,11 +822,6 @@ const CheckoutForm = ({
                                     </SelectContent>
                                   </Select>
                                 </FormControl>
-                                {countiesError && (
-                                  <p className="text-xs text-destructive mt-1">
-                                    {countiesError}
-                                  </p>
-                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -889,11 +863,6 @@ const CheckoutForm = ({
                                 {!selectedCounty && (
                                   <p className="text-xs text-muted-foreground">
                                     Select a county first to load delivery places.
-                                  </p>
-                                )}
-                                {placesError && (
-                                  <p className="text-xs text-destructive mt-1">
-                                    {placesError}
                                   </p>
                                 )}
                                 <FormMessage />

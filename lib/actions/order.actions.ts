@@ -578,10 +578,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       if (settings?.enabled) {
         const affiliateDoc = await Affiliate.findById(order.affiliate);
         if (affiliateDoc && affiliateDoc.status === "approved") {
-          const commissionRate =
-            affiliateDoc.commissionRate !== undefined
-              ? affiliateDoc.commissionRate
-              : settings.commissionRate;
+          const commissionRate = settings.commissionRate;
 
           const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
 
@@ -1142,18 +1139,9 @@ export const calcDeliveryDateAndPrice = async ({
   let locationRate = 0;
   if (shippingAddress?.province && shippingAddress?.city) {
     await connectToDatabase();
-    // Normalize location strings for consistent lookup
-    const normalizedProvince = shippingAddress.province
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
-    const normalizedCity = shippingAddress.city
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
     const location = await DeliveryLocation.findOne({
-      county: normalizedProvince,
-      city: normalizedCity,
+      county: shippingAddress.province,
+      city: shippingAddress.city,
     }).lean();
     if (location) {
       locationRate = location.rate;

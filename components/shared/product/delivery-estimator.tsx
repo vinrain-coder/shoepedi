@@ -28,42 +28,21 @@ export default function DeliveryEstimator({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAllCounties()
-      .then((data) => {
-        setCounties(data);
-        if (data.length > 0) {
-          setCounty(data[0]);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch counties:", error);
-        setCounties([]);
-        setCounty("");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    getAllCounties().then((data) => {
+      setCounties(data);
+      if (data.length > 0) {
+        setCounty(data[0]);
+      }
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
     if (county) {
-      setLoading(true);
-      getPlacesByCounty(county)
-        .then((data) => {
-          setPlaces(data);
-          setPlace("");
-        })
-        .catch((error) => {
-          console.error("Failed to fetch places for county:", county, error);
-          setPlaces([]);
-          setPlace("");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setPlaces([]);
-      setPlace("");
+      getPlacesByCounty(county).then((data) => {
+        setPlaces(data);
+        setPlace("");
+      });
     }
   }, [county]);
 
