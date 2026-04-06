@@ -109,8 +109,7 @@ const CheckoutForm = ({
   const [addressBook, setAddressBook] =
     useState<AddressBookEntry[]>(savedAddresses);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
-    selectedAddressId ||
-      savedAddresses.find((address) => address.id === selectedSavedAddressId)?.id ||
+    savedAddresses.find((address) => address.id === selectedAddressId)?.id ||
       savedAddresses.find((address) => address.isDefault)?.id ||
       ""
   );
@@ -346,18 +345,43 @@ const CheckoutForm = ({
   const handlePlaceOrder = async () => {
     try {
       setIsPlacingOrder(true);
+
+      // Defensive validation
+      if (!shippingAddress || !shippingAddress.county || !shippingAddress.city) {
+        toast.error("Please select a valid county and city for delivery");
+        if (!shippingAddress?.county) {
+          shippingAddressForm.setFocus("county");
+        } else if (!shippingAddress?.city) {
+          shippingAddressForm.setFocus("city");
+        }
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (shippingPrice === undefined || taxPrice === undefined) {
+        toast.error("Unable to calculate shipping and tax. Please select a valid delivery location.");
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (deliveryDateIndex === undefined || !availableDeliveryDates[deliveryDateIndex]) {
+        toast.error("Please select a valid delivery date");
+        setIsPlacingOrder(false);
+        return;
+      }
+
       // Create the order on the server
       const res = await createOrder({
         items,
-        shippingAddress: shippingAddress!,
+        shippingAddress,
         expectedDeliveryDate: calculateFutureDate(
-          availableDeliveryDates[deliveryDateIndex!].daysToDeliver
+          availableDeliveryDates[deliveryDateIndex].daysToDeliver
         ),
         deliveryDateIndex,
         paymentMethod,
         itemsPrice,
-        shippingPrice: shippingPrice!,
-        taxPrice: taxPrice!,
+        shippingPrice,
+        taxPrice,
         totalPrice,
         coupon: appliedCoupon
           ? {
@@ -1344,7 +1368,8 @@ const CheckoutForm = ({
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" /> Placing
                           order...
-                        </> : (
+                        </>
+                      ) : (
                         "Place Your Order"
                       )}
                     </Button>

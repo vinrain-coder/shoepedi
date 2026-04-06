@@ -8,7 +8,6 @@ import { z } from "zod";
 
 import MarkdownEditor from "react-markdown-editor-lite";
 import ReactMarkdown from "react-markdown";
-import "react-markdown-editor-lite/lib/index.css";
 import { Button } from "@/components/ui/button";
 import {
   Form,

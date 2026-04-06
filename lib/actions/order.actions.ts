@@ -1151,13 +1151,21 @@ export const calcDeliveryDateAndPrice = async ({
       availableDeliveryDates = location.rates.map((rate) => {
         const defaultRate = defaultDeliveryDates.find(
           (d) => d.name.toLowerCase() === rate.deliveryDateName.toLowerCase()
-        ) || defaultDeliveryDates[0];
+        );
+
+        if (!defaultRate) {
+          console.warn(
+            `[calcDeliveryDateAndPrice] No matching default delivery date found for rate "${rate.deliveryDateName}" ` +
+            `in location: ${location.county}/${location.city}. ` +
+            `Using explicit fallback values.`
+          );
+        }
 
         return {
           name: rate.deliveryDateName,
-          daysToDeliver: defaultRate.daysToDeliver,
+          daysToDeliver: defaultRate?.daysToDeliver ?? 0,
           shippingPrice: rate.price,
-          freeShippingMinPrice: defaultRate.freeShippingMinPrice,
+          freeShippingMinPrice: defaultRate?.freeShippingMinPrice ?? 0,
         };
       });
     }
