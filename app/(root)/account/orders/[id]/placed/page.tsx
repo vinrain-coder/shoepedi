@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle2, Package, Truck, Clock } from "lucide-react";
+import { CheckCircle2, Package, Truck, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button, buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-const colors = ["#10b981", "#14b8a6", "#06b6d4", "#3b82f6", "#8b5cf6"];
+const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"]; // Primary-aligned gold/yellow palette
 
 export default function OrderPlacedPage() {
   const router = useRouter();
@@ -16,12 +19,12 @@ export default function OrderPlacedPage() {
     if (!orderId) return;
 
     const interval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 4, 100));
-    }, 40);
+      setProgress((prev) => Math.min(prev + 1, 100)); // Slower progress for 5s
+    }, 50);
 
     const timeout = setTimeout(() => {
       router.replace(`/account/orders/${orderId}`);
-    }, 1000);
+    }, 5000);
 
     return () => {
       clearInterval(interval);
@@ -49,7 +52,7 @@ export default function OrderPlacedPage() {
   }));
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20">
+    <div className="min-h-[70vh] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background">
 
       {/* Confetti */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -65,13 +68,13 @@ export default function OrderPlacedPage() {
         ))}
       </div>
 
-      <div className="relative z-10 text-center max-w-md mx-auto">
+      <div className="relative z-10 text-center max-w-lg mx-auto">
         {/* Success Icon with Sparkles */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="relative mx-auto mb-8 w-28 h-28 flex items-center justify-center"
+          className="relative mx-auto mb-10 w-32 h-32 flex items-center justify-center"
         >
           {sparkles.map((s) => {
             const x = s.distance * Math.cos((s.angle * Math.PI) / 180);
@@ -88,10 +91,10 @@ export default function OrderPlacedPage() {
             );
           })}
 
-          <div className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping" />
-          <div className="absolute inset-0 rounded-full bg-emerald-400/10 animate-pulse" style={{ animationDelay: "0.2s" }} />
-          <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-2xl shadow-emerald-500/50">
-            <CheckCircle2 className="h-14 w-14 text-white drop-shadow-lg" strokeWidth={2.5} />
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+          <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse" style={{ animationDelay: "0.2s" }} />
+          <div className="relative w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-2xl shadow-primary/40">
+            <CheckCircle2 className="h-12 w-12 text-primary-foreground drop-shadow-md" strokeWidth={2.5} />
           </div>
         </motion.div>
 
@@ -100,7 +103,7 @@ export default function OrderPlacedPage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
+          className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight text-foreground"
         >
           Order Placed Successfully!
         </motion.h1>
@@ -110,11 +113,11 @@ export default function OrderPlacedPage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 mb-6 shadow-lg"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted/50 dark:bg-muted/30 border border-muted-foreground/20 mb-8 shadow-sm"
         >
-          <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Order #{orderId?.slice(0, 8)}
+          <Package className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-foreground">
+            Order #{orderId?.slice(0, 12)}
           </span>
         </motion.div>
 
@@ -123,45 +126,72 @@ export default function OrderPlacedPage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="grid grid-cols-3 gap-3 mb-8"
+          className="grid grid-cols-3 gap-4 mb-10"
         >
           {[
-            { icon: <CheckCircle2 className="h-5 w-5 text-emerald-500 mx-auto mb-1" />, label: "Confirmed" },
-            { icon: <Clock className="h-5 w-5 text-amber-500 mx-auto mb-1" />, label: "Processing" },
-            { icon: <Truck className="h-5 w-5 text-blue-500 mx-auto mb-1" />, label: "Soon" },
+            { icon: <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto mb-2" />, label: "Confirmed" },
+            { icon: <Clock className="h-5 w-5 text-primary mx-auto mb-2" />, label: "Processing" },
+            { icon: <Truck className="h-5 w-5 text-blue-500 mx-auto mb-2" />, label: "Delivered Soon" },
           ].map((item, idx) => (
             <div
               key={idx}
-              className="p-3 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:scale-105 transition-transform"
+              className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
             >
               {item.icon}
-              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.label}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
             </div>
           ))}
         </motion.div>
 
-        {/* Progress Bar */}
-        <motion.div
-          className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden mb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <motion.div
-            className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/50"
-            style={{ width: `${progress}%` }}
-            transition={{ ease: "easeOut", duration: 0.3 }}
-          />
-        </motion.div>
+        {/* Progress Bar & Actions */}
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <motion.div
+              className="w-full bg-muted rounded-full h-1.5 overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ ease: "linear", duration: 0.1 }}
+              />
+            </motion.div>
+            <motion.p
+              className="text-xs text-muted-foreground font-medium flex items-center justify-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              Auto-redirecting in a moment...
+            </motion.p>
+          </div>
 
-        <motion.p
-          className="text-sm text-gray-500 dark:text-gray-400 animate-pulse"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, repeat: Infinity, repeatType: "reverse" }}
-        >
-          Redirecting to order details...
-        </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+          >
+            <Link
+              href={`/account/orders/${orderId}`}
+              className={cn(buttonVariants({ size: "lg", variant: "default" }), "w-full sm:w-auto font-bold gap-2 px-8")}
+            >
+              View Order Details <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/search"
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full sm:w-auto")}
+            >
+              Continue Shopping
+            </Link>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
