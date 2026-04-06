@@ -29,7 +29,7 @@ import { ShippingAddressSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition, useRef } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
@@ -105,6 +105,7 @@ const CheckoutForm = ({
     discountType: "percentage" | "fixed";
     discountAmount: number;
   } | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -132,38 +133,43 @@ const CheckoutForm = ({
   };
 
   const handleApplyCoupon = async (code?: string) => {
-    try {
-      setIsApplyingCoupon(true);
-      const targetCode = code || couponCode;
-      if (!targetCode) return;
+    if (isPlacingOrder || isApplyingCoupon) return;
+    const targetCode = (code || couponCode || "").trim();
+    if (!targetCode) return;
 
-      const result = await validateCoupon(targetCode, itemsPrice);
-      setCouponCode(result.coupon.code);
-      setCouponError(null);
-      setAppliedCoupon({
-        _id: result.coupon._id,
-        code: result.coupon.code,
-        discountType: toDiscountType(result.coupon.discountType),
-        discountAmount: result.discount,
-      });
+    setIsApplyingCoupon(true);
+    setCouponError(null);
 
-      // Update cart prices with new discount
-      await setCartPrices(
-        items,
-        shippingAddress,
-        deliveryDateIndex,
-        result.discount
-      );
+    startTransition(async () => {
+      try {
+        const result = await validateCoupon(targetCode, itemsPrice);
 
-      toast.success("Coupon applied successfully");
-    } catch (error: unknown) {
-      setAppliedCoupon(null);
-      const message = getErrorMessage(error);
-      setCouponError(message);
-      toast.error(message);
-    } finally {
-      setIsApplyingCoupon(false);
-    }
+        setCouponCode(result.coupon.code);
+        setAppliedCoupon({
+          _id: result.coupon._id,
+          code: result.coupon.code,
+          discountType: toDiscountType(result.coupon.discountType),
+          discountAmount: result.discount,
+        });
+
+        // Update cart prices with new discount
+        await setCartPrices(
+          items,
+          shippingAddress,
+          deliveryDateIndex,
+          result.discount
+        );
+
+        toast.success("Coupon applied successfully");
+      } catch (error: unknown) {
+        setAppliedCoupon(null);
+        const message = getErrorMessage(error);
+        setCouponError(message);
+        toast.error(message);
+      } finally {
+        setIsApplyingCoupon(false);
+      }
+    });
   };
 
   const {
@@ -298,28 +304,6 @@ const CheckoutForm = ({
     shippingAddressForm.setValue("phone", shippingAddress.phone);
   }, [items, isMounted, router, shippingAddress, shippingAddressForm]);
 
-  useEffect(() => {
-    if (!appliedCouponCode) return;
-
-    validateCoupon(appliedCouponCode, itemsPrice)
-      .then((result) => {
-        setAppliedCoupon((currentCoupon) =>
-          currentCoupon
-            ? {
-                ...currentCoupon,
-                code: result.coupon.code,
-                discountType: toDiscountType(result.coupon.discountType),
-                discountAmount: result.discount,
-                _id: result.coupon._id,
-              }
-            : currentCoupon
-        );
-      })
-      .catch(() => {
-        resetCoupon("Your coupon is no longer valid for this order.");
-        setCouponError("Your coupon is no longer valid for this order.");
-      });
-  }, [appliedCouponCode, itemsPrice]);
 
   const [isAddressSelected, setIsAddressSelected] = useState<boolean>(false);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] =
@@ -436,14 +420,18 @@ const CheckoutForm = ({
     });
   }, []);
 
+  const hasAutoApplied = useRef(false);
   useEffect(() => {
-    if (appliedCoupon || isApplyingCoupon || !itemsPrice) return;
-    const affiliateCode = Cookies.get("affiliate_code");
-    if (affiliateCode) {
-      handleApplyCoupon(affiliateCode);
+    // Only attempt auto-application once when itemsPrice is available
+    if (itemsPrice > 0 && !appliedCoupon && !isApplyingCoupon && !hasAutoApplied.current) {
+      const affiliateCode = Cookies.get("affiliate_code");
+      if (affiliateCode) {
+        hasAutoApplied.current = true;
+        handleApplyCoupon(affiliateCode);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemsPrice]);
+  }, [itemsPrice, appliedCoupon]);
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
     [addressBook, selectedSavedAddressId]
