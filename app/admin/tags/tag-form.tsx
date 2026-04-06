@@ -21,7 +21,7 @@ import SubmitButton from "@/components/shared/submit-button";
 
 import { TagInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
-import { createTag, updateTagAction } from "@/lib/actions/tag.actions";
+import { createTag, revalidateTagAction } from "@/lib/actions/tag.actions";
 import MediaUploader from "@/components/shared/media-uploader";
   
 /* ---------------- Types ---------------- */
@@ -69,7 +69,7 @@ export default function TagForm({
       const res =
         type === "Create"
           ? await createTag(values)
-          : await updateTagAction({
+          : await revalidateTagAction({
               ...values,
               _id: tagId!,
             });

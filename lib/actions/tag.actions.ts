@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import { formatError } from "@/lib/utils";
 import { TagInputSchema, TagUpdateSchema } from "../validator";
@@ -27,7 +27,7 @@ export async function createTag(data: z.infer<typeof TagInputSchema>) {
     await Tag.create(tag);
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag created successfully" };
   } catch (error) {
@@ -38,7 +38,7 @@ export async function createTag(data: z.infer<typeof TagInputSchema>) {
 /* ---------------------------------
    UPDATE TAG
 ---------------------------------- */
-export async function updateTagAction(data: z.infer<typeof TagUpdateSchema>) {
+export async function revalidateTagAction(data: z.infer<typeof TagUpdateSchema>) {
   try {
     const tag = TagUpdateSchema.parse(data);
     await connectToDatabase();
@@ -54,7 +54,7 @@ export async function updateTagAction(data: z.infer<typeof TagUpdateSchema>) {
     }
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag updated successfully" };
   } catch (error) {
@@ -75,7 +75,7 @@ export async function deleteTag(id: string) {
     await Tag.findByIdAndDelete(id);
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag deleted successfully" };
   } catch (error) {
@@ -115,7 +115,7 @@ export async function getAllTagsForAdmin({
   page = 1,
   limit = 10,
 }: GetAllTagsParams) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("tags");
 
@@ -164,7 +164,7 @@ export async function getAllTagsForAdmin({
    GET ALL TAGS FOR PRODUCT INPUT
 ---------------------------------- */
 export async function getAllTagsForAdminProductCreate() {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("tags");
 

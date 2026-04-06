@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { notFound } from "next/navigation";
@@ -213,7 +213,7 @@ export async function getAllBlogsForAdmin({
   from?: string;
   to?: string;
 }) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("blogs");
   await connectToDatabase();
@@ -319,7 +319,7 @@ export async function getBlogAdminStats(params: {
   from?: string;
   to?: string;
 }) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("blogs");
   await connectToDatabase();

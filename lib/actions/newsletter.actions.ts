@@ -1,7 +1,7 @@
 "use server";
 
 import crypto from "crypto";
-import { revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 
 import { connectToDatabase } from "../db";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
@@ -149,6 +149,7 @@ export async function unsubscribeFromNewsletter(input: {
     }
 
     revalidatePath("/admin/newsletters");
+    revalidateTag("newsletters");
 
     return {
       success: true,
@@ -168,6 +169,9 @@ export async function getAllSubscribers({
   page: number;
   search?: string;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("newsletters");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -216,6 +220,7 @@ export async function deleteSubscription(id: string) {
     if (!res) throw new Error("Subscription not found");
 
     revalidatePath("/admin/newsletters");
+    revalidateTag("newsletters");
 
     return {
       success: true,

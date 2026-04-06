@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/db";
 import Coupon, { ICoupon } from "@/lib/db/models/coupon.model";
-import { revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { formatError } from "../utils";
 import { CouponInputSchema, CouponUpdateSchema } from "../validator";
 import Affiliate from "../db/models/affiliate.model";
@@ -24,6 +24,7 @@ export async function createCoupon(data: ICouponInput) {
 
     await Coupon.create({ ...coupon, code: normalizeCouponCode(coupon.code) });
     revalidatePath("/admin/coupons");
+    revalidateTag("coupons");
     return { success: true, message: "Coupon created successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -51,6 +52,7 @@ export async function updateCoupon(data: z.infer<typeof CouponUpdateSchema>) {
     if (!updatedCoupon) throw new Error("Coupon not found.");
 
     revalidatePath("/admin/coupons");
+    revalidateTag("coupons");
     return { success: true, message: "Coupon updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -65,6 +67,7 @@ export async function deleteCoupon(id: string) {
     if (!res) throw new Error("Coupon not found.");
 
     revalidatePath("/admin/coupons");
+    revalidateTag("coupons");
     return { success: true, message: "Coupon deleted successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -73,6 +76,9 @@ export async function deleteCoupon(id: string) {
 
 // GET SINGLE COUPON BY ID
 export async function getCouponById(id: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("coupons");
   await connectToDatabase();
   if (!mongoose.Types.ObjectId.isValid(id))
     throw new Error("Invalid coupon ID");
@@ -95,6 +101,9 @@ export async function getAllCoupons({
   sort?: string;
   limit?: number;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("coupons");
   await connectToDatabase();
 
   const queryFilter = query
@@ -222,6 +231,7 @@ export async function incrementCouponUsage(couponId: string) {
   if (!updatedCoupon) throw new Error("Coupon not found.");
 
   revalidatePath("/admin/coupons");
+  revalidateTag("coupons");
 
   return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
 }
@@ -242,6 +252,7 @@ export async function decrementCouponUsage(couponId: string) {
   if (!updatedCoupon) throw new Error("Coupon not found.");
 
   revalidatePath("/admin/coupons");
+  revalidateTag("coupons");
 
   return JSON.parse(JSON.stringify(updatedCoupon)) as ICoupon;
 }

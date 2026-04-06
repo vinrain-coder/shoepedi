@@ -1,7 +1,7 @@
 "use server";
 
 import mongoose from "mongoose";
-import { cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
@@ -187,6 +187,9 @@ export async function getReviews({
   limit?: number;
   page: number;
 }) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("reviews");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -211,7 +214,7 @@ export const getReviewByProductId = async ({
 }: {
   productId: string;
 }) => {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("reviews");
   await connectToDatabase();
@@ -234,6 +237,9 @@ export async function getAllReviews({
   page?: number;
   limit?: number;
 }) {
+  "use cache: private";
+  cacheLife("hours");
+  cacheTag("reviews");
   await connectToDatabase();
 
   const skip = (page - 1) * limit;
@@ -295,7 +301,7 @@ export async function replyToReview({
       ? await Product.findById(existingReview.product).select("slug").lean()
       : null;
 
-    updateTag("reviews");
+    revalidateTag("reviews");
     revalidatePath("/admin/reviews");
     if (product?.slug) {
       revalidatePath(`/product/${product.slug}`);
@@ -333,7 +339,7 @@ export async function deleteReview(id: string) {
 
     const product = await Product.findById(review.product).select("slug").lean();
 
-    updateTag("reviews");
+    revalidateTag("reviews");
     revalidatePath("/admin/reviews");
     if (product?.slug) {
       revalidatePath(`/product/${product.slug}`);
@@ -354,6 +360,9 @@ export async function deleteReview(id: string) {
 
 
 export async function getMyReviews() {
+  "use cache: private";
+  cacheLife("hours");
+  cacheTag("reviews");
   try {
     const session = await getServerSession();
     if (!session) throw new Error("Not authenticated");

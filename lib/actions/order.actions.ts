@@ -15,7 +15,7 @@ import {
 import { connectToDatabase } from "../db";
 import { OrderInputSchema } from "../validator";
 import Order, { IOrder } from "../db/models/order.model";
-import { revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import {
   sendAdminEventNotification,
   sendAskReviewOrderItems,
@@ -31,7 +31,6 @@ import SupportTicket from "../db/models/support-ticket.model";
 import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
-import { cacheLife } from "next/cache";
 import { validateCoupon, incrementCouponUsage, decrementCouponUsage } from "./coupon.actions";
 import { getAffiliateByCode } from "./affiliate.actions";
 import Affiliate from "../db/models/affiliate.model";
@@ -86,6 +85,7 @@ const ensureTrackingState = async (order: IOrder | (IOrder & { user?: { email?: 
 
   if (changed) {
     await order.save();
+    revalidateTag("orders");
   }
 
   return order;
@@ -332,6 +332,7 @@ const runStatusTransition = async ({
   });
 
   await order.save();
+  revalidateTag("orders");
 
   if (nextStatus === "returned") {
     const user = order.user as unknown as { email?: string; name?: string };
@@ -601,6 +602,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
                 },
               });
               revalidatePath("/affiliate/dashboard");
+              revalidateTag("affiliates");
             }
           }
         }
@@ -624,6 +626,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
 
   revalidatePath(`/account/orders/${orderId}`);
   revalidatePath(`/admin/orders/${orderId}`);
+  revalidateTag("orders");
 };
 
 const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
@@ -646,6 +649,7 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
   });
 
   await order.save();
+  revalidateTag("orders");
 
   await runPostPaymentSideEffects(orderId);
 
@@ -910,6 +914,9 @@ export async function requestReturnOrder(orderId: string) {
 }
 
 export async function getOrderByTrackingNumber(trackingNumber: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("orders");
   await connectToDatabase();
   const order = await Order.findOne({ trackingNumber }).select(
     "_id trackingNumber status trackingHistory shipment expectedDeliveryDate shippingAddress items itemsPrice shippingPrice taxPrice totalPrice updatedAt",
@@ -927,6 +934,7 @@ export async function deleteOrder(id: string) {
     const res = await Order.findByIdAndDelete(id);
     if (!res) throw new Error("Order not found");
     revalidatePath("/admin/orders");
+    revalidateTag("orders");
     return {
       success: true,
       message: "Order deleted successfully",
@@ -953,8 +961,9 @@ export async function getAllOrders({
   to?: string;
   query?: string;
 }) {
-  "use cache";
+  "use cache: private";
   cacheLife("minutes");
+  cacheTag("orders");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -1014,8 +1023,9 @@ export async function getOrderStatusStats(
   },
   searchQuery?: string
 ) {
-  "use cache";
+  "use cache: private";
   cacheLife("minutes");
+  cacheTag("orders");
   await connectToDatabase();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1172,7 +1182,7 @@ export const calcDeliveryDateAndPrice = async ({
 
 // GET ORDERS BY USER
 export async function getOrderSummary(date: DateRange) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   await connectToDatabase();
 
@@ -1298,7 +1308,7 @@ export async function getOrderSummary(date: DateRange) {
 }
 
 async function getSalesChartData(date: DateRange) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   const result = await Order.aggregate([
     {
@@ -1341,7 +1351,7 @@ async function getSalesChartData(date: DateRange) {
 }
 
 async function getTopSalesProducts(date: DateRange) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   const result = await Order.aggregate([
     {
@@ -1394,7 +1404,7 @@ async function getTopSalesProducts(date: DateRange) {
 }
 
 async function getTopSalesCategories(date: DateRange, limit = 5) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   const result = await Order.aggregate([
     {

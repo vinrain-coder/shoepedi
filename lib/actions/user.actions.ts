@@ -6,7 +6,7 @@ import { UserSignUpSchema, UserUpdateSchema } from "../validator";
 import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
 import { formatError } from "../utils";
-import { revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
@@ -26,6 +26,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
       ...user,
       password: await bcrypt.hash(user.password, 5),
     });
+    revalidateTag("users");
     return { success: true, message: "User created successfully" };
   } catch (error) {
     return { success: false, error: formatError(error) };
@@ -40,6 +41,7 @@ export async function deleteUser(id: string) {
     const res = await User.findByIdAndDelete(id);
     if (!res) throw new Error("Use not found");
     revalidatePath("/admin/users");
+    revalidateTag("users");
     return {
       success: true,
       message: "User deleted successfully",
@@ -60,6 +62,7 @@ export async function updateUser(user: z.infer<typeof UserUpdateSchema>) {
     dbUser.role = user.role;
     const updatedUser = await dbUser.save();
     revalidatePath("/admin/users");
+    revalidateTag("users");
     return {
       success: true,
       message: "User updated successfully",
@@ -77,6 +80,7 @@ export async function updateUserName(user: IUserName) {
     if (!currentUser) throw new Error("User not found");
     currentUser.name = user.name;
     const updatedUser = await currentUser.save();
+    revalidateTag("users");
     return {
       success: true,
       message: "User updated successfully",
@@ -106,6 +110,9 @@ export async function getAllUsers({
   limit?: number;
   page: number;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("users");
   const {
     common: { pageSize },
   } = await getSetting();
@@ -125,6 +132,9 @@ export async function getAllUsers({
 }
 
 export async function getUserById(userId: string) {
+  "use cache: private";
+  cacheLife("hours");
+  cacheTag("users");
   await connectToDatabase();
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
@@ -132,6 +142,9 @@ export async function getUserById(userId: string) {
 }
 
 export async function getUserCoins(): Promise<number | null> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("users");
   try {
     await connectToDatabase();
     const session = await getServerSession();

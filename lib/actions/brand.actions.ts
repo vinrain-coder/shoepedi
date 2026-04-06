@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import { formatError } from "@/lib/utils";
 import { BrandInputSchema, BrandUpdateSchema } from "../validator";
@@ -27,7 +27,7 @@ export async function createBrand(data: z.infer<typeof BrandInputSchema>) {
 
     await Brand.create(brand);
     revalidatePath("/admin/brands");
-    updateTag("brands");
+    revalidateTag("brands");
 
     return { success: true, message: "Brand created successfully" };
   } catch (error) {
@@ -55,7 +55,7 @@ export async function updateBrand(data: z.infer<typeof BrandUpdateSchema>) {
     }
 
     revalidatePath("/admin/brands");
-    updateTag("brands");
+    revalidateTag("brands");
     return { success: true, message: "Brand updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -121,7 +121,7 @@ export async function getAllBrandsForAdmin({
   page = 1,
   limit = 10,
 }: GetAllBrandsParams) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("brands");
   try {
@@ -170,7 +170,7 @@ export async function getAllBrandsForAdmin({
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         GET ALL BRANDS FOR PRODUCT INPUT
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            (Flat list or parent-based)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ---------------------------------- */
 export async function getAllBrandsForAdminProductInput() {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("brands");
   await connectToDatabase();

@@ -1,6 +1,6 @@
 "use server";
 
-import { cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheTag, revalidatePath, revalidateTag } from "next/cache";
 
 import { connectToDatabase } from "@/lib/db";
 import WebPage, { IWebPage } from "@/lib/db/models/web-page.model";
@@ -17,7 +17,7 @@ export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
     await connectToDatabase();
     await WebPage.create(webPage);
     revalidatePath("/admin/web-pages");
-    updateTag("web-pages");
+    revalidateTag("web-pages");
     return {
       success: true,
       message: "WebPage created successfully",
@@ -34,7 +34,7 @@ export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
     await connectToDatabase();
     await WebPage.findByIdAndUpdate(webPage._id, webPage);
     revalidatePath("/admin/web-pages");
-    updateTag("web-pages");
+    revalidateTag("web-pages");
     return {
       success: true,
       message: "WebPage updated successfully",
@@ -50,7 +50,7 @@ export async function deleteWebPage(id: string) {
     const res = await WebPage.findByIdAndDelete(id);
     if (!res) throw new Error("WebPage not found");
     revalidatePath("/admin/web-pages");
-    updateTag("web-pages");
+    revalidateTag("web-pages");
     return {
       success: true,
       message: "WebPage deleted successfully",
@@ -62,7 +62,7 @@ export async function deleteWebPage(id: string) {
 
 // GET ALL
 export async function getAllWebPages() {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("web-pages");
   await connectToDatabase();
@@ -70,7 +70,7 @@ export async function getAllWebPages() {
   return JSON.parse(JSON.stringify(webPages)) as IWebPage[];
 }
 export async function getWebPageById(webPageId: string) {
-  "use cache";
+  "use cache: private";
   cacheLife("days");
   cacheTag("web-pages");
   await connectToDatabase();
@@ -80,7 +80,7 @@ export async function getWebPageById(webPageId: string) {
 
 // GET ONE PAGE BY SLUG
 export async function getWebPageBySlug(slug: string) {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("web-pages");
   await connectToDatabase();

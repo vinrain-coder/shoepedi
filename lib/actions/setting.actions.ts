@@ -7,7 +7,7 @@ import { connectToDatabase } from "../db";
 import { formatError } from "../utils";
 import { cacheLife } from "next/cache";
 import { cacheTag } from "next/cache";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 const withSettingDefaults = (
   setting?: Partial<ISettingInput> | null
@@ -33,7 +33,7 @@ const withSettingDefaults = (
  * Fetch cached settings
  */
 export async function getSetting(): Promise<ISettingInput> {
-  "use cache";
+  "use cache: private";
   cacheLife("hours");
   cacheTag("settings");
 
@@ -49,7 +49,7 @@ export async function getSetting(): Promise<ISettingInput> {
  * Fetch fresh (uncached) settings if needed
  */
 export async function getNoCachedSetting(): Promise<ISettingInput> {
-  "use cache";
+  "use cache: private";
   cacheLife("minutes");
   cacheTag("settings");
   await connectToDatabase();
@@ -72,7 +72,7 @@ export async function updateSetting(newSetting: ISettingInput) {
     }).lean();
 
     // Revalidate cached settings
-    updateTag("settings");
+    revalidateTag("settings");
 
     return { success: true, message: "Setting updated successfully" };
   } catch (error) {

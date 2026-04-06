@@ -2,6 +2,7 @@
 
 import mongoose, { ObjectId } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 import { getServerSession } from "@/lib/get-session";
 import { IProduct } from "../db/models/product.model";
 
@@ -42,6 +43,9 @@ async function ensureWishlistIsArray(userId: string) {
 
 // ✅ Get wishlist product IDs
 export async function getWishlist(): Promise<string[]> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("wishlist");
   const user = await getCurrentUser();
   if (!user) return [];
 
@@ -67,6 +71,7 @@ export async function addToWishlist(productId: string): Promise<string[]> {
       { returnDocument: "after" }
     );
 
+  revalidateTag("wishlist");
   return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
 }
 
@@ -87,11 +92,15 @@ export async function removeFromWishlist(productId: string): Promise<string[]> {
       { returnDocument: "after" }
     );
 
+  revalidateTag("wishlist");
   return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
 }
 
 // ✅ Fetch full product details for wishlist
 export async function getWishlistProducts(): Promise<IProduct[]> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("wishlist");
   const db = await getDb();
   const user = await getCurrentUser();
   if (
@@ -118,6 +127,9 @@ export async function getWishlistProducts(): Promise<IProduct[]> {
 
 // ✅ Count wishlist items
 export async function getWishlistCount(): Promise<number> {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("wishlist");
   const user = await getCurrentUser();
   if (!user) return 0;
 

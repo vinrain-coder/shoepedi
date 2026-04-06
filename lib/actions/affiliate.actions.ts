@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "../db";
 import Affiliate, { IAffiliate } from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
@@ -52,6 +52,7 @@ export async function registerAffiliate(data: any) {
     });
 
     revalidatePath("/affiliate/dashboard");
+    revalidateTag("affiliates");
     return { success: true, message: "Application submitted successfully", data: JSON.parse(JSON.stringify(affiliate)) };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -59,6 +60,9 @@ export async function registerAffiliate(data: any) {
 }
 
 export async function getAffiliateDashboardData(params?: { payoutPage?: number; payoutLimit?: number }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("affiliates", "payouts");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -98,11 +102,17 @@ export async function getAffiliateDashboardData(params?: { payoutPage?: number; 
 }
 
 export async function getAffiliateByCode(code: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("affiliates");
   await connectToDatabase();
   return await Affiliate.findOne({ affiliateCode: code, status: "approved" });
 }
 
 export async function isApprovedAffiliate() {
+  "use cache: private";
+  cacheLife("hours");
+  cacheTag("affiliates");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -117,6 +127,9 @@ export async function isApprovedAffiliate() {
 }
 
 export async function getAffiliateStatus() {
+  "use cache: private";
+  cacheLife("hours");
+  cacheTag("affiliates");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -169,6 +182,9 @@ export async function createPayoutRequest(data: any) {
     affiliate.earningsBalance -= validatedData.amount;
     await affiliate.save();
 
+    revalidateTag("affiliates");
+    revalidateTag("payouts");
+
     await sendAdminEventNotification({
       title: "New payout request",
       description: `${session.user.name || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
@@ -200,6 +216,9 @@ export async function getAllAffiliates({
   from?: string;
   to?: string;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("affiliates");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -257,6 +276,9 @@ export async function getAffiliateAdminStats(dateRange?: {
   from?: string;
   to?: string;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("affiliates", "payouts");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -414,6 +436,8 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
 
+    revalidateTag("affiliates");
+
     if (status === "approved") {
       const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
       const phone = user.addresses?.[0]?.phone;
@@ -447,6 +471,9 @@ export async function getAllPayouts({
   from?: string;
   to?: string;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("payouts");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -509,6 +536,9 @@ export async function getPayoutAdminStats(dateRange?: {
   from?: string;
   to?: string;
 }) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag("payouts");
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -570,6 +600,9 @@ export async function deleteAffiliate(id: string) {
     await AffiliatePayout.deleteMany({ affiliate: id });
     await Affiliate.findByIdAndDelete(id);
 
+    revalidateTag("affiliates");
+    revalidateTag("payouts");
+
     revalidatePath("/admin/affiliates");
     return { success: true, message: "Affiliate and related data deleted successfully" };
   } catch (error) {
@@ -604,6 +637,8 @@ export async function deletePayoutRequest(id: string) {
     await AffiliatePayout.findByIdAndDelete(id).session(session);
 
     await session.commitTransaction();
+    revalidateTag("payouts");
+    revalidateTag("affiliates");
     revalidatePath("/admin/payouts");
     revalidatePath("/affiliate/payouts");
     revalidatePath("/affiliate/dashboard");
@@ -648,6 +683,9 @@ export async function updatePayoutStatus(id: string, status: "paid" | "rejected"
     payout.status = status;
     await payout.save();
 
+    revalidateTag("payouts");
+    revalidateTag("affiliates");
+
     if (status === "paid") {
       const populatedPayout = await AffiliatePayout.findById(payout._id).populate({
         path: "affiliate",
@@ -669,6 +707,8 @@ export async function updatePayoutStatus(id: string, status: "paid" | "rejected"
     }
 
     revalidatePath("/admin/payouts");
+    revalidateTag("payouts");
+    revalidateTag("affiliates");
     return { success: true, message: `Payout ${status}` };
   } catch (error) {
     return { success: false, message: formatError(error) };
