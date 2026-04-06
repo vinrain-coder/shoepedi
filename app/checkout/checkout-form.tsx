@@ -55,7 +55,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getUserCoins } from "@/lib/actions/user.actions";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
-import { calculateShippingPrice, findDeliveryCounty } from "@/lib/delivery";
+import { calculateShippingPrice } from "@/lib/delivery";
+import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -151,7 +152,6 @@ const CheckoutForm = ({
       availablePaymentMethods,
       defaultPaymentMethod,
       availableDeliveryDates,
-      deliveryCounties,
     },
   } = useSettingStore();
 
@@ -206,17 +206,12 @@ const CheckoutForm = ({
     values
   ) => {
     try {
-      const countyRecord = findDeliveryCounty(deliveryCounties, values.province);
-      if (!countyRecord) {
-        toast.error("Please select a valid county from the delivery list.");
+      if (!values.province) {
+        toast.error("Please select a valid county.");
         return;
       }
-      const isPlaceValid = countyRecord.places.some(
-        (place) =>
-          place.name.trim().toLowerCase() === values.city.trim().toLowerCase()
-      );
-      if (!isPlaceValid) {
-        toast.error("Please select a valid delivery place for the selected county.");
+      if (!values.city) {
+        toast.error("Please select a valid delivery place.");
         return;
       }
 
@@ -378,10 +373,21 @@ const CheckoutForm = ({
   const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
   const selectedCounty = shippingAddressForm.watch("province");
   const selectedPlace = shippingAddressForm.watch("city");
-  const selectedCountyRecord = useMemo(
-    () => findDeliveryCounty(deliveryCounties, selectedCounty),
-    [deliveryCounties, selectedCounty]
-  );
+
+  const [counties, setCounties] = useState<string[]>([]);
+  const [places, setPlaces] = useState<{ city: string; rate: number }[]>([]);
+
+  useEffect(() => {
+    getAllCounties().then(setCounties);
+  }, []);
+
+  useEffect(() => {
+    if (selectedCounty) {
+      getPlacesByCounty(selectedCounty).then(setPlaces);
+    } else {
+      setPlaces([]);
+    }
+  }, [selectedCounty]);
 
   useEffect(() => {
     getUserCoins().then((coins) => {
@@ -797,24 +803,25 @@ const CheckoutForm = ({
                               <FormItem className="w-full">
                                 <FormLabel>County</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    list="delivery-county-options"
-                                    placeholder="Search and select a county"
-                                    onChange={(event) => {
-                                      field.onChange(event.target.value);
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={(val) => {
+                                      field.onChange(val);
                                       shippingAddressForm.setValue("city", "");
                                     }}
-                                  />
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select county" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {counties.map((c) => (
+                                        <SelectItem key={c} value={c}>
+                                          {c}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </FormControl>
-                                <datalist id="delivery-county-options">
-                                  {deliveryCounties.map((county) => (
-                                    <option
-                                      key={county.county}
-                                      value={county.county}
-                                    />
-                                  ))}
-                                </datalist>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -829,21 +836,21 @@ const CheckoutForm = ({
                                   <Select
                                     value={field.value}
                                     onValueChange={field.onChange}
-                                    disabled={!selectedCountyRecord}
+                                    disabled={!selectedCounty || places.length === 0}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select delivery place" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {(selectedCountyRecord?.places ?? []).map(
-                                        (place) => (
+                                      {places.map(
+                                        (p) => (
                                           <SelectItem
-                                            key={place.name}
-                                            value={place.name}
+                                            key={p.city}
+                                            value={p.city}
                                           >
-                                            {place.name} (
+                                            {p.city} (
                                             <ProductPrice
-                                              price={place.rate}
+                                              price={p.rate}
                                               plain
                                             />
                                             )
@@ -853,7 +860,7 @@ const CheckoutForm = ({
                                     </SelectContent>
                                   </Select>
                                 </FormControl>
-                                {!selectedCountyRecord && (
+                                {!selectedCounty && (
                                   <p className="text-xs text-muted-foreground">
                                     Select a county first to load delivery places.
                                   </p>
@@ -1226,30 +1233,30 @@ const CheckoutForm = ({
                                       }
                                     </div>
                                     <div>
-                                      {(calculateShippingPrice({
-                                        deliveryDate: dd,
-                                        itemsPrice,
-                                        deliveryCounties,
-                                        county: selectedCounty,
-                                        place: selectedPlace,
-                                      }) ?? 0) === 0 ? (
-                                        "FREE Shipping"
-                                      ) : (
-                                        <span>
-                                          <ProductPrice
-                                            price={
-                                              calculateShippingPrice({
-                                                deliveryDate: dd,
-                                                itemsPrice,
-                                                deliveryCounties,
-                                                county: selectedCounty,
-                                                place: selectedPlace,
-                                              }) ?? dd.shippingPrice
-                                            }
-                                            plain
-                                          />
-                                        </span>
-                                      )}
+                                      {(() => {
+                                        const placeRecord = places.find(p => p.city === selectedPlace);
+                                        const locationRate = placeRecord?.rate ?? 0;
+                                        const totalPrice = calculateShippingPrice({
+                                          deliveryDate: dd,
+                                          itemsPrice,
+                                          shippingRate: locationRate,
+                                        }) ?? 0;
+
+                                        if (totalPrice === 0) return "FREE Shipping";
+
+                                        return (
+                                          <div className="flex flex-col">
+                                            <span className="font-bold">
+                                              <ProductPrice price={totalPrice} plain />
+                                            </span>
+                                            {locationRate > 0 && (
+                                              <span className="text-[10px] text-muted-foreground font-normal">
+                                                (Speed: <ProductPrice price={dd.shippingPrice} plain /> + Location: <ProductPrice price={locationRate} plain />)
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   </Label>
                                 </div>

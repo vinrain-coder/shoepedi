@@ -103,17 +103,6 @@ const settingSchema = new Schema<ISetting>(
       },
     ],
     defaultDeliveryDate: { type: String, required: true },
-    deliveryCounties: [
-      {
-        county: { type: String, required: true },
-        places: [
-          {
-            name: { type: String, required: true },
-            rate: { type: Number, required: true, default: 0 },
-          },
-        ],
-      },
-    ],
     affiliate: {
       enabled: { type: Boolean, required: true, default: false },
       commissionRate: { type: Number, required: true, default: 5 },

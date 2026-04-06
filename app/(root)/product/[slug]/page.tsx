@@ -143,7 +143,7 @@ function RelatedLoading() {
 export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
-  const [product, { site, availableDeliveryDates, deliveryCounties }] = await Promise.all([
+  const [product, { site, availableDeliveryDates }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
   ]);
@@ -436,7 +436,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                   </ul>
                 </div>
                 <DeliveryEstimator
-                  deliveryCounties={deliveryCounties}
                   deliveryDates={availableDeliveryDates}
                   itemsPrice={product.price}
                 />
