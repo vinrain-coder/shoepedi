@@ -22,7 +22,8 @@ export default function AffiliateSettingForm({
   id?: string;
 }) {
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Affiliate Settings</CardTitle>
       </CardHeader>
@@ -93,5 +94,6 @@ export default function AffiliateSettingForm({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

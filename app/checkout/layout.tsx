@@ -2,12 +2,24 @@ import { HelpCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { getSetting } from "@/lib/actions/setting.actions";
+import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
 
-export default function CheckoutLayout({
+export default async function CheckoutLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { common } = await getSetting();
+
+  if (common.isMaintenanceMode) {
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      redirect("/maintenance");
+    }
+  }
+
   return (
     <div className="p-4">
       <header className="bg-card mb-4 border-b">

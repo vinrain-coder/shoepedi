@@ -50,7 +50,8 @@ export default function PaymentMethodForm({
   }, [JSON.stringify(availablePaymentMethods)]);
 
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Payment Methods</CardTitle>
       </CardHeader>
@@ -153,5 +154,6 @@ export default function PaymentMethodForm({
         />
       </CardContent>
     </Card>
+    </div>
   );
 }

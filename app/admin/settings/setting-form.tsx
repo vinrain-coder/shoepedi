@@ -38,10 +38,10 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md md:max-w-3xl">
+    <div className="w-full">
     <Form {...form}>
       <form
-        className="space-y-4 w-full"
+        className="space-y-12 w-full"
         method="post"
         onSubmit={form.handleSubmit(onSubmit)}
       >
