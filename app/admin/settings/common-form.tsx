@@ -78,10 +78,13 @@ export default function CommonForm({
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="Enter Coins Reward Rate"
+                    placeholder="4.00"
                     {...field}
                   />
                 </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Percentage of gross items price awarded as coins (e.g. 4 for 4%).
+                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -96,10 +99,13 @@ export default function CommonForm({
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="Enter Tax Rate"
+                    placeholder="0.00"
                     {...field}
                   />
                 </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Sales tax percentage applied to items price (e.g. 16 for 16%).
+                </p>
                 <FormMessage />
               </FormItem>
             )}

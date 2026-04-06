@@ -20,6 +20,7 @@ const withSettingDefaults = (
     ...setting,
     common: { ...fallback.common, ...(setting.common ?? {}) },
     site: { ...fallback.site, ...(setting.site ?? {}) },
+    affiliate: { ...fallback.affiliate, ...(setting.affiliate ?? {}) },
     notifications: {
       sms: {
         ...fallback.notifications.sms,

@@ -381,16 +381,16 @@ export const SettingInputSchema = z.object({
     pageSize: z.coerce
       .number()
       .min(1, "Page size must be at least 1")
-      .default(9),
+      .default(12),
     isMaintenanceMode: z.boolean().default(false),
     freeShippingMinPrice: z.coerce
       .number()
       .min(0, "Free shipping min price must be at least 0")
-      .default(0),
+      .default(5000),
     coinsRewardRate: z.coerce
       .number()
       .min(0, "Coins reward rate must be at least 0")
-      .default(0),
+      .default(4),
     taxRate: z.coerce
       .number()
       .min(0, "Tax rate must be at least 0")
@@ -442,7 +442,7 @@ export const SettingInputSchema = z.object({
   defaultDeliveryDate: z.string().min(1, "Delivery date is required"),
   affiliate: z.object({
     enabled: z.boolean().default(false),
-    commissionRate: z.coerce.number().min(0).default(5),
+    commissionRate: z.coerce.number().min(0).default(10),
     defaultDiscountRate: z.coerce.number().min(0).default(5),
     cookieExpiryDays: z.coerce.number().min(1).default(30),
     minWithdrawalAmount: z.coerce.number().min(0).default(1000),

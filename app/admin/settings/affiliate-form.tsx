@@ -57,8 +57,11 @@ export default function AffiliateSettingForm({
               <FormItem>
                 <FormLabel>Default Commission Rate (%)</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" placeholder="10" {...field} />
                 </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Global percentage earned by affiliates on the gross price of items sold.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -85,8 +88,11 @@ export default function AffiliateSettingForm({
               <FormItem className="md:col-span-2">
                 <FormLabel>Minimum Withdrawal Amount</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" placeholder="1000" {...field} />
                 </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  The minimum balance required for an affiliate to request a payout.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
