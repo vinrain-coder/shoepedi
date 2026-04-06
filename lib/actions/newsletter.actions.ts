@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import { NewsletterSubscriptionSchema } from "../validator";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import {
   sendAdminEventNotification,
   sendNewsletterConfirmationEmail,
@@ -189,7 +189,7 @@ export async function getAllSubscribers({
 
     const query: any = {};
     if (search) {
-      query.email = { $regex: search, $options: "i" };
+      query.email = { $regex: escapeRegExp(search), $options: "i" };
     }
     if (status !== "all") {
       query.status = status;

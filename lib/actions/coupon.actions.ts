@@ -3,7 +3,7 @@
 import { connectToDatabase } from "@/lib/db";
 import Coupon, { ICoupon } from "@/lib/db/models/coupon.model";
 import { revalidatePath } from "next/cache";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { CouponInputSchema, CouponUpdateSchema } from "../validator";
 import Affiliate from "../db/models/affiliate.model";
 import { getSetting } from "./setting.actions";
@@ -103,7 +103,7 @@ export async function getAllCoupons({
 
   const queryFilter: any = query
     ? {
-        code: { $regex: query, $options: "i" },
+        code: { $regex: escapeRegExp(query), $options: "i" },
       }
     : {};
 
@@ -244,14 +244,15 @@ export async function incrementCouponUsage(couponId: string) {
 export async function getCouponStats() {
   await connectToDatabase();
 
+  const now = new Date();
   const [totalCoupons, activeCoupons, expiredCoupons] = await Promise.all([
     Coupon.countDocuments(),
     Coupon.countDocuments({
       isActive: true,
-      $or: [{ expiryDate: null }, { expiryDate: { $gt: new Date() } }],
+      $or: [{ expiryDate: null }, { expiryDate: { $gt: now } }],
     }),
     Coupon.countDocuments({
-      expiryDate: { $lt: new Date() },
+      expiryDate: { $lt: now },
     }),
   ]);
 

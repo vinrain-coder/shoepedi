@@ -3,7 +3,7 @@
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
 import { cacheTag, revalidatePath, updateTag } from "next/cache";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { ProductInputSchema, ProductUpdateSchema } from "../validator";
 import { IProductInput } from "@/types";
 import { z } from "zod";
@@ -146,7 +146,7 @@ export async function getAllProductsForAdmin({
     query && query !== "all"
       ? {
           name: {
-            $regex: query,
+            $regex: escapeRegExp(query),
             $options: "i",
           },
         }
@@ -487,7 +487,7 @@ export async function getAllProducts({
     query && query !== "all"
       ? {
           name: {
-            $regex: query,
+            $regex: escapeRegExp(query),
             $options: "i",
           },
         }

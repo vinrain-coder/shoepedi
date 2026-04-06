@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 import { BrandInputSchema, BrandUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
 import Brand, { IBrand } from "../db/models/brand.model";
@@ -130,8 +130,8 @@ export async function getAllBrandsForAdmin({
     const filter = query
       ? {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { slug: { $regex: query, $options: "i" } },
+            { name: { $regex: escapeRegExp(query), $options: "i" } },
+            { slug: { $regex: escapeRegExp(query), $options: "i" } },
           ],
         }
       : {};

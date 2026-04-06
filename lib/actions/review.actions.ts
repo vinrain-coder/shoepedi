@@ -247,7 +247,10 @@ export async function getAllReviews({
   const filter: any = {};
 
   if (rating !== "all") {
-    filter.rating = Number(rating);
+    const ratingValue = parseInt(rating, 10);
+    if (Number.isInteger(ratingValue) && ratingValue >= 1 && ratingValue <= 5) {
+      filter.rating = ratingValue;
+    }
   }
 
   if (from || to) {
@@ -256,11 +259,7 @@ export async function getAllReviews({
     if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
       filter.createdAt = {};
       if (fromDate && !isNaN(fromDate.getTime())) filter.createdAt.$gte = fromDate;
-      if (toDate && !isNaN(toDate.getTime())) {
-        const end = new Date(toDate);
-        end.setHours(23, 59, 59, 999);
-        filter.createdAt.$lte = end;
-      }
+      if (toDate && !isNaN(toDate.getTime())) filter.createdAt.$lte = toDate;
     }
   }
 

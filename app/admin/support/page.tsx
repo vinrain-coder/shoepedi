@@ -19,17 +19,25 @@ export default async function AdminSupportPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
+  const rawPage = Number(searchParams.page);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   const {
     query = "",
     status = "all",
-    from,
-    to
   } = searchParams;
+
+  const validateDateParam = (dateStr: string | undefined): string | undefined => {
+    if (!dateStr) return undefined;
+    const timestamp = Date.parse(dateStr);
+    return !isNaN(timestamp) ? dateStr : undefined;
+  };
+
+  const from = validateDateParam(searchParams.from);
+  const to = validateDateParam(searchParams.to);
 
   const [result, stats] = await Promise.all([
     getSupportTicketsAdmin({
-      page: Number(page),
+      page,
       query,
       status,
       from,

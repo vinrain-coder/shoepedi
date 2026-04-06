@@ -106,7 +106,7 @@ export default function WebPageStatsCards({
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => handleStatusClick(stat.id)}
-                className="w-full text-left focus:outline-none"
+                className="w-full text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <Card
                   className={cn(

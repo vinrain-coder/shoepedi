@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
 import { getServerSession } from "../get-session";
-import { formatError } from "../utils";
+import { formatError, normalizeDateRange, escapeRegExp } from "../utils";
 import SupportTicket from "../db/models/support-ticket.model";
 import {
   sendAdminEventNotification,
@@ -113,17 +113,19 @@ export async function getSupportTicketsAdmin({
       filter.status = status;
     }
     if (query) {
+      const escapedQuery = escapeRegExp(query);
       filter.$or = [
-        { name: { $regex: query, $options: "i" } },
-        { email: { $regex: query, $options: "i" } },
-        { subject: { $regex: query, $options: "i" } },
-        { message: { $regex: query, $options: "i" } },
+        { name: { $regex: escapedQuery, $options: "i" } },
+        { email: { $regex: escapedQuery, $options: "i" } },
+        { subject: { $regex: escapedQuery, $options: "i" } },
+        { message: { $regex: escapedQuery, $options: "i" } },
       ];
     }
-    if (from || to) {
+    const { fromDate, toDate } = normalizeDateRange(from, to);
+    if (fromDate || toDate) {
       filter.createdAt = {};
-      if (from) filter.createdAt.$gte = new Date(from);
-      if (to) filter.createdAt.$lte = new Date(to);
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
     }
 
     const skip = (page - 1) * limit;

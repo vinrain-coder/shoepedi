@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,14 @@ export default async function AdminUserPage(props: {
     getUserStats(),
   ]);
 
+  if (page > data.totalPages && data.totalPages > 0) {
+    const params = new URLSearchParams();
+    params.set("page", String(data.totalPages));
+    if (search) params.set("search", search);
+    if (role !== "all") params.set("role", role);
+    redirect(`/admin/users?${params.toString()}`);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -69,6 +78,7 @@ export default async function AdminUserPage(props: {
               placeholder="Search users..."
               defaultValue={search}
               className="pl-9"
+              aria-label="Search users"
             />
             {role !== "all" && <input type="hidden" name="role" value={role} />}
           </Form>

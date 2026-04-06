@@ -93,6 +93,8 @@ export default function ReviewStatsCards({
           size="sm"
           onClick={() => setIsVisible(!isVisible)}
           className="h-8 gap-1 text-xs"
+          aria-expanded={isVisible}
+          aria-controls="review-stats"
         >
           {isVisible ? (
             <>
@@ -107,7 +109,7 @@ export default function ReviewStatsCards({
       </div>
 
       {isVisible && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div id="review-stats" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {statConfig.map((stat) => {
             const isActive = currentRating === stat.id;
             const Icon = stat.icon;
@@ -119,7 +121,8 @@ export default function ReviewStatsCards({
                 disabled={!stat.clickable}
                 onClick={() => stat.clickable && handleRatingClick(stat.id)}
                 className={cn(
-                  "w-full text-left focus:outline-none",
+                  "w-full text-left",
+                  stat.clickable && "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
                   !stat.clickable && "cursor-default"
                 )}
               >

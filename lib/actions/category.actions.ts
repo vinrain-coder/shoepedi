@@ -4,7 +4,7 @@ import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category, { ICategory } from "@/lib/db/models/category.model";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
 import { IProduct } from "../db/models/product.model";
@@ -137,8 +137,8 @@ export async function getAllCategoriesForAdmin({
     const filter = query
       ? {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { slug: { $regex: query, $options: "i" } },
+            { name: { $regex: escapeRegExp(query), $options: "i" } },
+            { slug: { $regex: escapeRegExp(query), $options: "i" } },
           ],
         }
       : {};

@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 import { TagInputSchema, TagUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
 import Tag, { ITag } from "../db/models/tag.model";
@@ -125,8 +125,8 @@ export async function getAllTagsForAdmin({
     const filter = query
       ? {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { slug: { $regex: query, $options: "i" } },
+            { name: { $regex: escapeRegExp(query), $options: "i" } },
+            { slug: { $regex: escapeRegExp(query), $options: "i" } },
           ],
         }
       : {};
@@ -227,4 +227,3 @@ export async function getTagBySlug(slug: string) {
 
   return JSON.parse(JSON.stringify(tag)) as ITag;
 }
-

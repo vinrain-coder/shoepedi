@@ -77,6 +77,13 @@ export async function getAllWebPages({
   cacheTag("web-pages");
   await connectToDatabase();
 
+  // Normalize and validate inputs
+  const normalizedLimit = Math.min(Math.max(1, Math.floor(Number(limit) || 10)), 100);
+  const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const normalizedIsPublished = ["true", "false", "all"].includes(String(isPublished))
+    ? String(isPublished)
+    : "all";
+
   const filter: any = {};
   if (query) {
     const escapedQuery = escapeRegExp(query);
@@ -85,18 +92,18 @@ export async function getAllWebPages({
       { slug: { $regex: escapedQuery, $options: "i" } },
     ];
   }
-  if (isPublished !== "all") {
-    filter.isPublished = isPublished === "true";
+  if (normalizedIsPublished !== "all") {
+    filter.isPublished = normalizedIsPublished === "true";
   }
 
   const totalCount = await WebPage.countDocuments(filter);
-  const totalPages = Math.ceil(totalCount / limit);
-  const skip = (page - 1) * limit;
+  const totalPages = Math.ceil(totalCount / normalizedLimit);
+  const skip = (normalizedPage - 1) * normalizedLimit;
 
   const webPages = await WebPage.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(normalizedLimit);
 
   return {
     data: JSON.parse(JSON.stringify(webPages)) as IWebPage[],

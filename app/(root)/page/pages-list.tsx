@@ -9,7 +9,7 @@ export default async function WebPagesList() {
   "use cache";
   cacheLife("days");
 
-  const response = await getAllWebPages();
+  const response = await getAllWebPages({ isPublished: "true" });
   const pages = response.data;
 
   if (!pages || pages.length === 0) {
