@@ -55,12 +55,29 @@ export default function AffiliateSettingForm({
             name="affiliate.commissionRate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Default Commission Rate (%)</FormLabel>
+                <FormLabel>Global Commission Rate (%) (Global Control)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="10" {...field} />
                 </FormControl>
                 <p className="text-[0.8rem] text-muted-foreground">
-                  Global percentage earned by affiliates on the net items price (after coupon discounts).
+                  Fixed percentage earned by all affiliates on the gross items price.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="affiliate.defaultDiscountRate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Global Discount Rate (%) (Global Control)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="5" {...field} />
+                </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Fixed percentage discount provided to customers using an affiliate code.
                 </p>
                 <FormMessage />
               </FormItem>
