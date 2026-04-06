@@ -30,7 +30,8 @@ export default function SiteInfoForm({
 
   const siteLogo = watch("site.logo");
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Site Info</CardTitle>
       </CardHeader>
@@ -316,5 +317,6 @@ export default function SiteInfoForm({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

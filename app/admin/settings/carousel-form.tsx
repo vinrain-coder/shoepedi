@@ -31,7 +31,8 @@ export default function CarouselForm({
     formState: { errors },
   } = form;
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Carousels</CardTitle>
       </CardHeader>
@@ -151,5 +152,6 @@ export default function CarouselForm({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

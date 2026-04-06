@@ -30,7 +30,8 @@ export default function CommonForm({
   const { control } = form;
 
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Common Settings</CardTitle>
       </CardHeader>
@@ -58,6 +59,44 @@ export default function CommonForm({
                 <FormControl>
                   <Input
                     placeholder="Enter Free Shipping Minimum Price"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex flex-col gap-5 md:flex-row">
+          <FormField
+            control={control}
+            name="common.coinsRewardRate"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Coins Reward Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Enter Coins Reward Rate"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="common.taxRate"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tax Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Enter Tax Rate"
                     {...field}
                   />
                 </FormControl>
@@ -115,5 +154,6 @@ export default function CommonForm({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

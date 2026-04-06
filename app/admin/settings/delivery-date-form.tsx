@@ -50,7 +50,8 @@ export default function DeliveryDateForm({
   }, [JSON.stringify(availableDeliveryDates)]);
 
   return (
-    <Card id={id}>
+    <div id={id}>
+    <Card>
       <CardHeader>
         <CardTitle>Delivery Dates</CardTitle>
       </CardHeader>
@@ -195,5 +196,6 @@ export default function DeliveryDateForm({
         />
       </CardContent>
     </Card>
+    </div>
   );
 }
