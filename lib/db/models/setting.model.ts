@@ -10,10 +10,10 @@ export interface ISetting extends Document, ISettingInput {
 const settingSchema = new Schema<ISetting>(
   {
     common: {
-      pageSize: { type: Number, required: true, default: 9 },
+      pageSize: { type: Number, required: true, default: 12 },
       isMaintenanceMode: { type: Boolean, required: true, default: false },
-      freeShippingMinPrice: { type: Number, required: true, default: 0 },
-      coinsRewardRate: { type: Number, required: true, default: 0 },
+      freeShippingMinPrice: { type: Number, required: true, default: 5000 },
+      coinsRewardRate: { type: Number, required: true, default: 4 },
       taxRate: { type: Number, required: true, default: 0 },
       defaultTheme: { type: String, required: true, default: "light" },
       defaultColor: { type: String, required: true, default: "gold" },
@@ -107,7 +107,7 @@ const settingSchema = new Schema<ISetting>(
     defaultDeliveryDate: { type: String, required: true },
     affiliate: {
       enabled: { type: Boolean, required: true, default: false },
-      commissionRate: { type: Number, required: true, default: 5 },
+      commissionRate: { type: Number, required: true, default: 10 },
       defaultDiscountRate: { type: Number, required: true, default: 5 },
       cookieExpiryDays: { type: Number, required: true, default: 30 },
       minWithdrawalAmount: { type: Number, required: true, default: 1000 },

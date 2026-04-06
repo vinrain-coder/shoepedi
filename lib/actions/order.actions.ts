@@ -399,11 +399,11 @@ export const createOrderFromCart = async (
 
   const cart = {
     ...clientSideCart,
-    ...calcDeliveryDateAndPrice({
+    ...(await calcDeliveryDateAndPrice({
       items: clientSideCart.items,
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    }),
+    })),
   };
 
   let appliedCoupon:
@@ -418,7 +418,7 @@ export const createOrderFromCart = async (
 
   const { common } = await getSetting();
   let totalPrice = cart.totalPrice;
-  const coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
+  let coinsEarned = 0;
   let coinsRedeemed = 0;
   let isPaid = false;
   let paidAt: Date | undefined;
@@ -457,6 +457,8 @@ export const createOrderFromCart = async (
       affiliateCode = appliedCoupon.code;
     }
   }
+
+  coinsEarned = round2((cart.itemsPrice - (appliedCoupon?.discountAmount || 0)) * (common.coinsRewardRate / 100));
 
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
@@ -581,7 +583,8 @@ const runPostPaymentSideEffects = async (orderId: string) => {
         if (affiliateDoc && affiliateDoc.status === "approved") {
           const commissionRate = settings.commissionRate;
 
-          const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
+          const netItemsPrice = order.itemsPrice - (order.coupon?.discountAmount || 0);
+          const commissionAmount = round2((netItemsPrice * commissionRate) / 100);
 
           if (commissionAmount > 0) {
             const existingEarning = await AffiliateEarning.findOne({ order: order._id });
