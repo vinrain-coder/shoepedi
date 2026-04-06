@@ -108,7 +108,7 @@ export async function getSupportTicketsAdmin({
 
     await connectToDatabase();
 
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     if (status !== "all") {
       filter.status = status;
     }
@@ -148,6 +148,11 @@ export async function getSupportTicketsAdmin({
 }
 
 export async function getSupportStats() {
+  const session = await getServerSession();
+  if (session?.user.role !== "ADMIN") {
+    throw new Error("Admin permission required");
+  }
+
   await connectToDatabase();
   const [totalTickets, openTickets, repliedTickets] = await Promise.all([
     SupportTicket.countDocuments(),

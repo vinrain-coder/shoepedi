@@ -75,6 +75,7 @@ export default function UserStatsCards({
       value: stats.recentUsers,
       icon: Clock,
       color: "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
+      clickable: false,
     },
   ];
 
@@ -113,12 +114,13 @@ export default function UserStatsCards({
               <Card
                 key={stat.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:ring-2 hover:ring-primary/20",
+                  "transition-all",
+                  stat.clickable !== false && "cursor-pointer hover:ring-2 hover:ring-primary/20",
                   isActive
                     ? "ring-2 ring-primary"
                     : "opacity-80 shadow-none border-dashed"
                 )}
-                onClick={() => handleRoleClick(stat.id)}
+                onClick={() => stat.clickable !== false && handleRoleClick(stat.id)}
               >
                 <CardContent className="flex flex-col items-center justify-center p-3 text-center">
                   <div className={cn("rounded-full p-1.5 mb-1", stat.color)}>

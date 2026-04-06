@@ -4,7 +4,7 @@ import { cacheTag, revalidatePath, updateTag } from "next/cache";
 
 import { connectToDatabase } from "@/lib/db";
 import WebPage, { IWebPage } from "@/lib/db/models/web-page.model";
-import { formatError } from "@/lib/utils";
+import { formatError, escapeRegExp } from "@/lib/utils";
 
 import { WebPageInputSchema, WebPageUpdateSchema } from "../validator";
 import { z } from "zod";
@@ -79,27 +79,29 @@ export async function getAllWebPages({
 
   const filter: any = {};
   if (query) {
+    const escapedQuery = escapeRegExp(query);
     filter.$or = [
-      { title: { $regex: query, $options: "i" } },
-      { slug: { $regex: query, $options: "i" } },
+      { title: { $regex: escapedQuery, $options: "i" } },
+      { slug: { $regex: escapedQuery, $options: "i" } },
     ];
   }
   if (isPublished !== "all") {
     filter.isPublished = isPublished === "true";
   }
 
+  const totalCount = await WebPage.countDocuments(filter);
+  const totalPages = Math.ceil(totalCount / limit);
   const skip = (page - 1) * limit;
+
   const webPages = await WebPage.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
-  const totalPages = Math.ceil((await WebPage.countDocuments(filter)) / limit);
-
   return {
     data: JSON.parse(JSON.stringify(webPages)) as IWebPage[],
     totalPages,
-    totalWebPages: await WebPage.countDocuments(filter),
+    totalWebPages: totalCount,
   };
 }
 

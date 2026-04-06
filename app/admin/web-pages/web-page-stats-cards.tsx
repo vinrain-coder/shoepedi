@@ -101,28 +101,34 @@ export default function WebPageStatsCards({
             const Icon = stat.icon;
 
             return (
-              <Card
+              <button
                 key={stat.id}
-                className={cn(
-                  "cursor-pointer transition-all hover:ring-2 hover:ring-primary/20",
-                  isActive
-                    ? "ring-2 ring-primary"
-                    : "opacity-80 shadow-none border-dashed"
-                )}
+                type="button"
+                aria-pressed={isActive}
                 onClick={() => handleStatusClick(stat.id)}
+                className="w-full text-left focus:outline-none"
               >
-                <CardContent className="flex flex-col items-center justify-center p-3 text-center">
-                  <div className={cn("rounded-full p-1.5 mb-1", stat.color)}>
-                    <Icon className="size-3" />
-                  </div>
-                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-tight line-clamp-1">
-                    {stat.label}
-                  </span>
-                  <span className="text-lg font-bold leading-tight">
-                    {stat.value}
-                  </span>
-                </CardContent>
-              </Card>
+                <Card
+                  className={cn(
+                    "cursor-pointer transition-all hover:ring-2 hover:ring-primary/20",
+                    isActive
+                      ? "ring-2 ring-primary"
+                      : "opacity-80 shadow-none border-dashed"
+                  )}
+                >
+                  <CardContent className="flex flex-col items-center justify-center p-3 text-center">
+                    <div className={cn("rounded-full p-1.5 mb-1", stat.color)}>
+                      <Icon className="size-3" />
+                    </div>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-tight line-clamp-1">
+                      {stat.label}
+                    </span>
+                    <span className="text-lg font-bold leading-tight">
+                      {stat.value}
+                    </span>
+                  </CardContent>
+                </Card>
+              </button>
             );
           })}
         </div>

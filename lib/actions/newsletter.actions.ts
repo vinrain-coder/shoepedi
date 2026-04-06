@@ -195,9 +195,14 @@ export async function getAllSubscribers({
       query.status = status;
     }
     if (from || to) {
-      query.subscribedAt = {};
-      if (from) query.subscribedAt.$gte = new Date(from);
-      if (to) query.subscribedAt.$lte = new Date(to);
+      const fromDate = from ? new Date(from) : null;
+      const toDate = to ? new Date(to) : null;
+
+      if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
+        query.subscribedAt = {};
+        if (fromDate && !isNaN(fromDate.getTime())) query.subscribedAt.$gte = fromDate;
+        if (toDate && !isNaN(toDate.getTime())) query.subscribedAt.$lte = toDate;
+      }
     }
 
     const [subscribers, totalSubscribers] = await Promise.all([
@@ -220,6 +225,11 @@ export async function getAllSubscribers({
 }
 
 export async function getNewsletterStats() {
+  const session = await getServerSession();
+  if (session?.user.role !== "ADMIN") {
+    throw new Error("Admin permission required");
+  }
+
   await connectToDatabase();
   const [totalSubscribers, activeSubscribers, unsubscribedCount] = await Promise.all([
     NewsletterSubscription.countDocuments(),

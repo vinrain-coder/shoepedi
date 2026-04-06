@@ -2,7 +2,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   LayoutGrid,
   ChevronDown,

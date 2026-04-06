@@ -38,7 +38,7 @@ export default async function AdminUserPage(props: {
   if (session?.user.role !== "ADMIN")
     throw new Error("Admin permission required");
 
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const search = searchParams.search || "";
   const role = searchParams.role || "all";
 

@@ -161,9 +161,17 @@ export async function getAllTagsForAdmin({
 }
 
 export async function getTagStats() {
-  await connectToDatabase();
-  const totalTags = await Tag.countDocuments();
-  return { totalTags };
+  "use cache";
+  cacheLife("hours");
+  cacheTag("tags");
+  try {
+    await connectToDatabase();
+    const totalTags = await Tag.countDocuments();
+    return { totalTags };
+  } catch (error) {
+    console.error("Error fetching tag stats:", error);
+    return { totalTags: 0 };
+  }
 }
 
 /* ---------------------------------

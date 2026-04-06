@@ -34,7 +34,7 @@ export default async function AdminTagPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const query = searchParams.query || "";
 
   const [data, stats] = await Promise.all([
@@ -89,38 +89,41 @@ export default async function AdminTagPage(props: {
           </TableHeader>
           <TableBody>
             {data.tags.length > 0 ? (
-              (data.tags as ITag[]).map((tag) => (
-                <TableRow key={tag._id as string}>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {formatId(tag._id as string)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                       <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+              (data.tags as ITag[]).map((tag) => {
+                const id = String(tag._id);
+                return (
+                  <TableRow key={id}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {formatId(id)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
                           <Hash className="size-4 text-primary" />
-                       </div>
-                       <span className="font-medium">{tag.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    /{tag.slug}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
-                    {formatDateTime(tag.createdAt).dateTime}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/tags/${tag._id}`}>
-                          <PenBox className="mr-2 h-4 w-4" />
-                          Edit
-                        </Link>
-                      </Button>
-                      <DeleteDialog id={tag._id as string} action={deleteTag} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                        </div>
+                        <span className="font-medium">{tag.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      /{tag.slug}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
+                      {formatDateTime(tag.createdAt).dateTime}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/admin/tags/${id}`}>
+                            <PenBox className="mr-2 h-4 w-4" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <DeleteDialog id={id} action={deleteTag} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">

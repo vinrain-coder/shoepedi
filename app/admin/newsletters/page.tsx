@@ -39,7 +39,7 @@ export default async function AdminNewsletterSubscribers(props: {
   if (session?.user.role !== "ADMIN")
     throw new Error("Admin permission required");
 
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const search = searchParams.search || "";
   const status = searchParams.status || "all";
   const from = searchParams.from;

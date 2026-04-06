@@ -5,7 +5,7 @@ import { IUserName, IUserSignUp } from "@/types";
 import { UserSignUpSchema, UserUpdateSchema } from "../validator";
 import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSetting } from "./setting.actions";
@@ -118,9 +118,10 @@ export async function getAllUsers({
 
   const query: any = {};
   if (search) {
+    const escapedSearch = escapeRegExp(search);
     query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
+      { name: { $regex: escapedSearch, $options: "i" } },
+      { email: { $regex: escapedSearch, $options: "i" } },
     ];
   }
   if (role && role !== "all") {

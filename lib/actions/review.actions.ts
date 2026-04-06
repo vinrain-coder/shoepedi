@@ -7,7 +7,7 @@ import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
 import User from "../db/models/user.model";
 import Review, { IReview } from "../db/models/review.model";
-import { formatError } from "../utils";
+import { formatError, escapeRegExp } from "../utils";
 import { ReviewInputSchema } from "../validator";
 import { IReviewDetails } from "@/types";
 import { getSetting } from "./setting.actions";
@@ -251,17 +251,24 @@ export async function getAllReviews({
   }
 
   if (from || to) {
-    filter.createdAt = {};
-    if (from) filter.createdAt.$gte = new Date(from);
-    if (to) filter.createdAt.$lte = new Date(to);
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+    if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
+      filter.createdAt = {};
+      if (fromDate && !isNaN(fromDate.getTime())) filter.createdAt.$gte = fromDate;
+      if (toDate && !isNaN(toDate.getTime())) {
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = end;
+      }
+    }
   }
 
-  // To search by product name or user name, we might need a more complex aggregation or multiple IDs.
-  // For simplicity, we'll start with comment/title search.
   if (query) {
+    const escapedQuery = escapeRegExp(query);
     filter.$or = [
-      { title: { $regex: query, $options: "i" } },
-      { comment: { $regex: query, $options: "i" } },
+      { title: { $regex: escapedQuery, $options: "i" } },
+      { comment: { $regex: escapedQuery, $options: "i" } },
     ];
   }
 

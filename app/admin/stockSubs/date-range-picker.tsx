@@ -59,7 +59,9 @@ export function StockSubDateRangePicker({
       params.delete("from");
     }
     if (range?.to) {
-      params.set("to", range.to.toISOString());
+      const endOfDay = new Date(range.to);
+      endOfDay.setHours(23, 59, 59, 999);
+      params.set("to", endOfDay.toISOString());
     } else {
       params.delete("to");
     }

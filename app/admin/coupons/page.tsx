@@ -38,8 +38,8 @@ export default async function AdminCouponPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const {
-    page = "1",
     query = "",
     from,
     to,
@@ -49,7 +49,7 @@ export default async function AdminCouponPage(props: {
   const [data, stats] = await Promise.all([
     getAllCoupons({
       query,
-      page: Number(page),
+      page,
       from,
       to,
       sort,

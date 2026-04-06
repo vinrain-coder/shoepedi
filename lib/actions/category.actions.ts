@@ -121,7 +121,13 @@ export async function getAllCategoriesForAdmin({
   query = "",
   page = 1,
   limit = 10,
-}: GetAllCategoriesParams) {
+}: GetAllCategoriesParams): Promise<{
+  categories: ICategory[];
+  totalCategories: number;
+  totalPages: number;
+  from: number;
+  to: number;
+}> {
   "use cache";
   cacheLife("hours");
   cacheTag("categories");
@@ -167,9 +173,17 @@ export async function getAllCategoriesForAdmin({
 }
 
 export async function getCategoryStats() {
-  await connectToDatabase();
-  const totalCategories = await Category.countDocuments();
-  return { totalCategories };
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
+  try {
+    await connectToDatabase();
+    const totalCategories = await Category.countDocuments();
+    return { totalCategories };
+  } catch (error) {
+    console.error("Error fetching category stats:", error);
+    return { totalCategories: 0 };
+  }
 }
 
 /* ---------------------------------

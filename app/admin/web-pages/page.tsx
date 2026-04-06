@@ -32,9 +32,11 @@ export default async function AdminWebPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const query = searchParams.query || "";
-  const isPublished = searchParams.isPublished || "all";
+  const isPublished = ["all", "true", "false"].includes(searchParams.isPublished as string)
+    ? (searchParams.isPublished as string)
+    : "all";
 
   const [data, stats] = await Promise.all([
     getAllWebPages({

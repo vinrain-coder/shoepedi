@@ -167,9 +167,17 @@ export async function getAllBrandsForAdmin({
 }
 
 export async function getBrandStats() {
-  await connectToDatabase();
-  const totalBrands = await Brand.countDocuments();
-  return { totalBrands };
+  "use cache";
+  cacheLife("hours");
+  cacheTag("brands");
+  try {
+    await connectToDatabase();
+    const totalBrands = await Brand.countDocuments();
+    return { totalBrands };
+  } catch (error) {
+    console.error("Error fetching brand stats:", error);
+    return { totalBrands: 0 };
+  }
 }
 
 /* ---------------------------------

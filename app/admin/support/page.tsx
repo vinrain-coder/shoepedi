@@ -19,8 +19,8 @@ export default async function AdminSupportPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const {
-    page = "1",
     query = "",
     status = "all",
     from,

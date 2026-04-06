@@ -35,7 +35,7 @@ export default async function AdminBrandPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const query = searchParams.query || "";
 
   const [data, stats] = await Promise.all([
@@ -64,6 +64,7 @@ export default async function AdminBrandPage(props: {
               placeholder="Search brands..."
               defaultValue={query}
               className="pl-9"
+              aria-label="Search brands"
             />
           </Form>
           <Button asChild>

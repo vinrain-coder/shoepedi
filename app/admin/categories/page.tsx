@@ -34,7 +34,7 @@ export default async function AdminCategoryPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const query = searchParams.query || "";
 
   const [data, stats] = await Promise.all([
@@ -89,7 +89,7 @@ export default async function AdminCategoryPage(props: {
           </TableHeader>
           <TableBody>
             {data.categories.length > 0 ? (
-              (data.categories as ICategory[]).map((category) => (
+              data.categories.map((category) => (
                 <TableRow key={category._id as string}>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {formatId(category._id as string)}

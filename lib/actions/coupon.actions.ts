@@ -108,9 +108,14 @@ export async function getAllCoupons({
     : {};
 
   if (from || to) {
-    queryFilter.createdAt = {};
-    if (from) queryFilter.createdAt.$gte = new Date(from);
-    if (to) queryFilter.createdAt.$lte = new Date(to);
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+
+    if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
+      queryFilter.createdAt = {};
+      if (fromDate && !isNaN(fromDate.getTime())) queryFilter.createdAt.$gte = fromDate;
+      if (toDate && !isNaN(toDate.getTime())) queryFilter.createdAt.$lte = toDate;
+    }
   }
 
   const order: Record<string, 1 | -1> =

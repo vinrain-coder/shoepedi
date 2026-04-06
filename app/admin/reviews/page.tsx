@@ -42,8 +42,8 @@ export default async function ReviewsPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
+  const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const {
-    page = "1",
     query = "",
     rating = "all",
     from,
@@ -93,7 +93,7 @@ export default async function ReviewsPage(props: {
         </div>
       </div>
 
-      <ReviewStatsCards stats={stats} />
+      <ReviewStatsCards stats={stats} currentRating={rating} />
 
       <div className="rounded-md border bg-card overflow-hidden">
         <Table className="text-sm">
@@ -142,13 +142,19 @@ export default async function ReviewsPage(props: {
                         )}
 
                         <div className="min-w-0 overflow-hidden">
-                          <NextLink
-                            href={`/product/${review.product?.slug}`}
-                            className="text-sm font-medium truncate block hover:underline"
-                            target="_blank"
-                          >
-                            {review.product?.name || "Deleted"}
-                          </NextLink>
+                          {review.product?.slug ? (
+                            <NextLink
+                              href={`/product/${review.product.slug}`}
+                              className="text-sm font-medium truncate block hover:underline"
+                              target="_blank"
+                            >
+                              {review.product.name || "Deleted"}
+                            </NextLink>
+                          ) : (
+                            <span className="text-sm font-medium truncate block">
+                              {review.product?.name || "Deleted"}
+                            </span>
+                          )}
 
                           <Badge variant={review.isVerifiedPurchase ? "default" : "secondary"} className="text-[10px] mt-1 px-1 py-0">
                             {review.isVerifiedPurchase ? "Verified" : "Feedback"}
