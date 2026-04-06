@@ -73,7 +73,7 @@ export default function CommonForm({
             name="common.coinsRewardRate"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Coins Reward Rate (%)</FormLabel>
+                <FormLabel>Coins Reward Rate (%) (Global Control)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -94,7 +94,7 @@ export default function CommonForm({
             name="common.taxRate"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Tax Rate (%)</FormLabel>
+                <FormLabel>Tax Rate (%) (Global Control)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

@@ -397,15 +397,6 @@ export const createOrderFromCart = async (
     }
   }
 
-  const cart = {
-    ...clientSideCart,
-    ...(await calcDeliveryDateAndPrice({
-      items: clientSideCart.items,
-      shippingAddress: clientSideCart.shippingAddress,
-      deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    })),
-  };
-
   let appliedCoupon:
     | {
         _id?: string;
@@ -417,11 +408,47 @@ export const createOrderFromCart = async (
     | undefined;
 
   const { common } = await getSetting();
-  let totalPrice = cart.totalPrice;
   let coinsEarned = 0;
   let coinsRedeemed = 0;
   let isPaid = false;
   let paidAt: Date | undefined;
+
+  const itemsPriceRaw = round2(
+    clientSideCart.items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+  );
+
+  const couponCodeToUse = coupon?.code || affiliateCode;
+
+  if (couponCodeToUse) {
+    try {
+      const validatedCoupon = await validateCoupon(couponCodeToUse, itemsPriceRaw);
+
+      appliedCoupon = {
+        _id: validatedCoupon.coupon._id,
+        code: validatedCoupon.coupon.code,
+        discountType: validatedCoupon.coupon.discountType as "percentage" | "fixed",
+        discountAmount: validatedCoupon.discount,
+        isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
+      };
+
+      if (appliedCoupon.isAffiliate) {
+        affiliateId = appliedCoupon._id;
+        affiliateCode = appliedCoupon.code;
+      }
+    } catch (error) {
+       console.error("Auto-coupon application failed:", error);
+    }
+  }
+
+  const cart = {
+    ...clientSideCart,
+    ...(await calcDeliveryDateAndPrice({
+      items: clientSideCart.items,
+      shippingAddress: clientSideCart.shippingAddress,
+      deliveryDateIndex: clientSideCart.deliveryDateIndex,
+      discount: appliedCoupon?.discountAmount || 0,
+    })),
+  };
 
   if (cart.paymentMethod === "Coins") {
     const user = await User.findById(userId);
@@ -440,25 +467,9 @@ export const createOrderFromCart = async (
     paidAt = new Date();
   }
 
-  if (coupon?.code) {
-    const validatedCoupon = await validateCoupon(coupon.code, cart.itemsPrice);
-
-    appliedCoupon = {
-      _id: validatedCoupon.coupon._id,
-      code: validatedCoupon.coupon.code,
-      discountType: validatedCoupon.coupon.discountType as "percentage" | "fixed",
-      discountAmount: validatedCoupon.discount,
-      isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
-    };
-    totalPrice = round2(cart.totalPrice - validatedCoupon.discount);
-
-    if (appliedCoupon.isAffiliate) {
-      affiliateId = appliedCoupon._id;
-      affiliateCode = appliedCoupon.code;
-    }
-  }
-
-  coinsEarned = round2((cart.itemsPrice - (appliedCoupon?.discountAmount || 0)) * (common.coinsRewardRate / 100));
+  const totalPrice = cart.totalPrice;
+  const netItemsPrice = Math.max(0, cart.itemsPrice - (appliedCoupon?.discountAmount || 0));
+  coinsEarned = round2(netItemsPrice * (common.coinsRewardRate / 100));
 
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
@@ -583,7 +594,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
         if (affiliateDoc && affiliateDoc.status === "approved") {
           const commissionRate = settings.commissionRate;
 
-          const netItemsPrice = order.itemsPrice - (order.coupon?.discountAmount || 0);
+          const netItemsPrice = Math.max(0, order.itemsPrice - (order.coupon?.discountAmount || 0));
           const commissionAmount = round2((netItemsPrice * commissionRate) / 100);
 
           if (commissionAmount > 0) {
@@ -1130,10 +1141,12 @@ export const calcDeliveryDateAndPrice = async ({
   items,
   shippingAddress,
   deliveryDateIndex,
+  discount = 0,
 }: {
   deliveryDateIndex?: number;
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
+  discount?: number;
 }) => {
   const { availableDeliveryDates, common } = await getSetting();
   const itemsPrice = round2(
@@ -1176,9 +1189,10 @@ export const calcDeliveryDateAndPrice = async ({
           shippingRate: locationRate,
         });
 
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * (common.taxRate / 100));
+  const netItemsPrice = Math.max(0, itemsPrice - discount);
+  const taxPrice = !shippingAddress ? undefined : round2(netItemsPrice * (common.taxRate / 100));
   const totalPrice = round2(
-    itemsPrice +
+    netItemsPrice +
       (shippingPrice ? round2(shippingPrice) : 0) +
       (taxPrice ? round2(taxPrice) : 0),
   );
@@ -1191,6 +1205,7 @@ export const calcDeliveryDateAndPrice = async ({
     itemsPrice,
     shippingPrice,
     taxPrice,
+    discount,
     totalPrice,
   };
 };

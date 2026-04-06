@@ -52,6 +52,7 @@ import {
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
+import Cookies from "js-cookie";
 import { getUserCoins } from "@/lib/actions/user.actions";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
@@ -117,16 +118,26 @@ const CheckoutForm = ({
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
 
-  const resetCoupon = (message?: string) => {
+  const resetCoupon = async (message?: string) => {
     setAppliedCoupon(null);
     setCouponError(null);
+    // Recalculate prices without discount
+    await setCartPrices(
+      items,
+      shippingAddress,
+      deliveryDateIndex,
+      0
+    );
     if (message) toast.info(message);
   };
 
-  const handleApplyCoupon = async () => {
+  const handleApplyCoupon = async (code?: string) => {
     try {
       setIsApplyingCoupon(true);
-      const result = await validateCoupon(couponCode, itemsPrice);
+      const targetCode = code || couponCode;
+      if (!targetCode) return;
+
+      const result = await validateCoupon(targetCode, itemsPrice);
       setCouponCode(result.coupon.code);
       setCouponError(null);
       setAppliedCoupon({
@@ -135,6 +146,15 @@ const CheckoutForm = ({
         discountType: toDiscountType(result.coupon.discountType),
         discountAmount: result.discount,
       });
+
+      // Update cart prices with new discount
+      await setCartPrices(
+        items,
+        shippingAddress,
+        deliveryDateIndex,
+        result.discount
+      );
+
       toast.success("Coupon applied successfully");
     } catch (error: unknown) {
       setAppliedCoupon(null);
@@ -162,6 +182,7 @@ const CheckoutForm = ({
       itemsPrice,
       shippingPrice,
       taxPrice,
+      discount,
       totalPrice,
       shippingAddress,
       deliveryDateIndex,
@@ -173,6 +194,7 @@ const CheckoutForm = ({
     removeItem,
     clearCart,
     setDeliveryDateIndex,
+    setCartPrices,
   } = useCartStore();
 
   useEffect(() => {
@@ -191,11 +213,8 @@ const CheckoutForm = ({
   const effectiveDeliveryDateIndex =
     deliveryDateIndex ?? availableDeliveryDates.length - 1;
   const selectedDeliveryDate = availableDeliveryDates[effectiveDeliveryDateIndex];
-  const discountAmount = appliedCoupon?.discountAmount ?? 0;
-  const finalTotal = useMemo(
-    () => Math.max(0, totalPrice - discountAmount),
-    [discountAmount, totalPrice]
-  );
+  const discountAmount = discount ?? 0;
+  const finalTotal = totalPrice;
 
   const isMounted = useIsMounted();
 
@@ -216,7 +235,7 @@ const CheckoutForm = ({
         return;
       }
 
-      await setShippingAddress(values);
+      await setShippingAddress(values, discountAmount);
 
       if (saveAddressToAccount && session) {
         const result = await upsertUserAddress({
@@ -416,6 +435,15 @@ const CheckoutForm = ({
       if (coins !== null) setLiveUserCoins(coins);
     });
   }, []);
+
+  useEffect(() => {
+    if (appliedCoupon || isApplyingCoupon || !itemsPrice) return;
+    const affiliateCode = Cookies.get("affiliate_code");
+    if (affiliateCode) {
+      handleApplyCoupon(affiliateCode);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsPrice]);
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
     [addressBook, selectedSavedAddressId]
@@ -520,7 +548,7 @@ const CheckoutForm = ({
             <div className="text-lg font-bold">Order Summary</div>
             <div className="space-y-2">
               <div className="flex justify-between text-orange-600 font-medium">
-                <span>Coins to earn:</span>
+                <span>Coins to earn ({common.coinsRewardRate}%):</span>
                 <span>{coinsToEarn} coins</span>
               </div>
               <div className="flex justify-between">
@@ -544,7 +572,7 @@ const CheckoutForm = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span> Tax:</span>
+                <span> Tax ({common.taxRate}%):</span>
                 <span>
                   {taxPrice === undefined ? (
                     "--"
@@ -603,7 +631,7 @@ const CheckoutForm = ({
 
   const { data: session } = authClient.useSession();
   const userCoins = liveUserCoins !== null ? liveUserCoins : ((session?.user as any)?.coins || 0);
-  const coinsToEarn = Math.round((itemsPrice - discountAmount) * (common.coinsRewardRate / 100) * 100) / 100;
+  const coinsToEarn = Math.round(itemsPrice * (common.coinsRewardRate / 100) * 100) / 100;
 
   const finalAvailablePaymentMethods = useMemo(() => {
     const methods = [...availablePaymentMethods];
@@ -1242,7 +1270,8 @@ const CheckoutForm = ({
                                 setDeliveryDateIndex(
                                   availableDeliveryDates.findIndex(
                                     (address) => address.name === value
-                                  )!
+                                    )!,
+                                    discountAmount
                                 )
                               }
                             >

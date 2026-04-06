@@ -247,6 +247,7 @@ export const CartSchema = z.object({
   itemsPrice: z.number(),
   taxPrice: z.optional(z.number()),
   shippingPrice: z.optional(z.number()),
+  discount: z.number().default(0),
   totalPrice: z.number(),
   paymentMethod: z.optional(z.string()),
   shippingAddress: z.optional(ShippingAddressSchema),

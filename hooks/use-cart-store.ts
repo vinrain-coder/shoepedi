@@ -26,9 +26,10 @@ interface CartState {
   ) => Promise<void>;
   removeItem: (item: OrderItem) => void;
   clearCart: () => void;
-  setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>;
+  setShippingAddress: (shippingAddress: ShippingAddress, discount?: number) => Promise<void>;
   setPaymentMethod: (paymentMethod: string) => void;
-  setDeliveryDateIndex: (index: number) => Promise<void>;
+  setDeliveryDateIndex: (index: number, discount?: number) => Promise<void>;
+  setCartPrices: (items: OrderItem[], shippingAddress?: ShippingAddress, deliveryDateIndex?: number, discount?: number) => Promise<void>;
 }
 
 const useCartStore = create(
@@ -36,8 +37,25 @@ const useCartStore = create(
     (set, get) => ({
       cart: initialState,
 
+      setCartPrices: async (items: OrderItem[], shippingAddress?: ShippingAddress, deliveryDateIndex?: number, discount?: number) => {
+        const result = await calcDeliveryDateAndPrice({
+          items,
+          shippingAddress,
+          deliveryDateIndex,
+          discount,
+        });
+        set({
+          cart: {
+            ...get().cart,
+            items,
+            shippingAddress,
+            ...result,
+          }
+        });
+      },
+
       addItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart;
+        const { items, shippingAddress, deliveryDateIndex } = get().cart;
         const existItem = items.find(
           (x) =>
             x.product === item.product &&
@@ -65,14 +83,16 @@ const useCartStore = create(
             )
           : [...items, { ...item, quantity }];
 
+        const result = await calcDeliveryDateAndPrice({
+          items: updatedCartItems,
+          shippingAddress,
+          deliveryDateIndex,
+        });
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...result,
           },
         });
         const foundItem = updatedCartItems.find(
@@ -127,46 +147,53 @@ const useCartStore = create(
               : x
           );
         }
+        const result = await calcDeliveryDateAndPrice({
+          items: updatedCartItems,
+          shippingAddress,
+          deliveryDateIndex,
+        });
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...result,
           },
         });
       },
       removeItem: async (item: OrderItem) => {
-        const { items, shippingAddress } = get().cart;
+        const { items, shippingAddress, deliveryDateIndex } = get().cart;
         const updatedCartItems = items.filter(
           (x) =>
             x.product !== item.product ||
             x.color !== item.color ||
             x.size !== item.size
         );
+        const result = await calcDeliveryDateAndPrice({
+          items: updatedCartItems,
+          shippingAddress,
+          deliveryDateIndex,
+        });
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...result,
           },
         });
       },
-      setShippingAddress: async (shippingAddress: ShippingAddress) => {
-        const { items } = get().cart;
+      setShippingAddress: async (shippingAddress: ShippingAddress, discount?: number) => {
+        const { items, deliveryDateIndex } = get().cart;
+        const result = await calcDeliveryDateAndPrice({
+          items,
+          shippingAddress,
+          deliveryDateIndex,
+          discount,
+        });
         set({
           cart: {
             ...get().cart,
             shippingAddress,
-            ...(await calcDeliveryDateAndPrice({
-              items,
-              shippingAddress,
-            })),
+            ...result,
           },
         });
       },
@@ -178,17 +205,18 @@ const useCartStore = create(
           },
         });
       },
-      setDeliveryDateIndex: async (index: number) => {
+      setDeliveryDateIndex: async (index: number, discount?: number) => {
         const { items, shippingAddress } = get().cart;
-
+        const result = await calcDeliveryDateAndPrice({
+          items,
+          shippingAddress,
+          deliveryDateIndex: index,
+          discount,
+        });
         set({
           cart: {
             ...get().cart,
-            ...(await calcDeliveryDateAndPrice({
-              items,
-              shippingAddress,
-              deliveryDateIndex: index,
-            })),
+            ...result,
           },
         });
       },
