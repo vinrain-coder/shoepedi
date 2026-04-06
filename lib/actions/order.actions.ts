@@ -1142,9 +1142,18 @@ export const calcDeliveryDateAndPrice = async ({
   let locationRate = 0;
   if (shippingAddress?.province && shippingAddress?.city) {
     await connectToDatabase();
+    // Normalize location strings for consistent lookup
+    const normalizedProvince = shippingAddress.province
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+    const normalizedCity = shippingAddress.city
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
     const location = await DeliveryLocation.findOne({
-      county: shippingAddress.province,
-      city: shippingAddress.city,
+      county: normalizedProvince,
+      city: normalizedCity,
     }).lean();
     if (location) {
       locationRate = location.rate;
