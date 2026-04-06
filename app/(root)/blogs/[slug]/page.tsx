@@ -132,13 +132,13 @@ export default async function BlogPage({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-2 sm:px-3">
+    <div className="mx-auto w-full max-w-4xl">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
       <Breadcrumb />
-      <div className="mt-2 rounded-2xl border border-border/60 bg-background p-4 sm:p-6">
+      <div className="mt-2 rounded-2xl border border-border/60 bg-background p-2 sm:p-4">
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2 text-sm">
             <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{blog.category}</span>
@@ -159,7 +159,7 @@ export default async function BlogPage({
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-border/60 bg-background p-3 sm:p-5">
+      <div className="mt-4 rounded-2xl border border-border/60 bg-background p-2 sm:p-4">
         {resolvedImage && (
           <div className="relative mb-5 h-56 w-full overflow-hidden rounded-xl sm:h-72">
             <Image
