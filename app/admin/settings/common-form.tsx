@@ -145,7 +145,7 @@ export default function CommonForm({
             control={control}
             name="common.isMaintenanceMode"
             render={({ field }) => (
-              <FormItem className="space-x-2 items-center">
+              <FormItem className="flex space-x-2 items-center">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
