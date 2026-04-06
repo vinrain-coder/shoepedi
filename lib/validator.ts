@@ -251,6 +251,8 @@ export const CartSchema = z.object({
   paymentMethod: z.optional(z.string()),
   shippingAddress: z.optional(ShippingAddressSchema),
   deliveryDateIndex: z.optional(z.number()),
+  selectedCounty: z.optional(z.string()),
+  selectedDeliveryPlace: z.optional(z.string()),
   expectedDeliveryDate: z.optional(z.date()),
 });
 
@@ -352,6 +354,18 @@ export const DeliveryDateSchema = z.object({
     .min(0, "Free shipping min amount must be at least 0"),
 });
 
+export const DeliveryLocationSchema = z.object({
+  name: z.string().trim().min(1, "Delivery place name is required"),
+  rate: z.coerce.number().min(0, "Delivery place rate must be at least 0"),
+});
+
+export const DeliveryCountySchema = z.object({
+  county: z.string().trim().min(1, "County is required"),
+  places: z
+    .array(DeliveryLocationSchema)
+    .min(1, "At least one delivery place is required"),
+});
+
 
 const SmsNotificationSchema = z.object({
   enabled: z.boolean().default(true),
@@ -418,6 +432,9 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, "At least one delivery date is required"),
   defaultDeliveryDate: z.string().min(1, "Delivery date is required"),
+  deliveryCounties: z
+    .array(DeliveryCountySchema)
+    .min(1, "At least one delivery county is required"),
   affiliate: z.object({
     enabled: z.boolean().default(false),
     commissionRate: z.coerce.number().min(0).default(5),

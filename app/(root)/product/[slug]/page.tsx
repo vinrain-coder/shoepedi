@@ -29,6 +29,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Factory, Layers, RotateCcw, Tag, Truck, Wallet } from "lucide-react";
 import CompareButton from "@/components/shared/product/compare-button";
+import DeliveryEstimator from "@/components/shared/product/delivery-estimator";
 
 export async function generateMetadata({
   params,
@@ -142,7 +143,7 @@ function RelatedLoading() {
 export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
-  const [product, { site }] = await Promise.all([
+  const [product, { site, availableDeliveryDates, deliveryCounties }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
   ]);
@@ -434,6 +435,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     </li>
                   </ul>
                 </div>
+                <DeliveryEstimator
+                  deliveryCounties={deliveryCounties}
+                  deliveryDates={availableDeliveryDates}
+                  itemsPrice={product.price}
+                />
               </CardContent>
             </Card>
           </div>

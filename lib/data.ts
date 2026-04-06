@@ -447,6 +447,23 @@ Please note that certain items, such as socks and insoles, are not eligible for 
         { name: "Express", daysToDeliver: 1, shippingPrice: 600, freeShippingMinPrice: 10000 },
       ],
       defaultDeliveryDate: "Standard",
+      deliveryCounties: [
+        {
+          county: "Nairobi",
+          places: [
+            { name: "CBD", rate: 120 },
+            { name: "Westlands", rate: 180 },
+            { name: "Karen", rate: 250 },
+          ],
+        },
+        {
+          county: "Mombasa",
+          places: [
+            { name: "Nyali", rate: 280 },
+            { name: "Likoni", rate: 320 },
+          ],
+        },
+      ],
       affiliate: {
         enabled: true,
         commissionRate: 10,

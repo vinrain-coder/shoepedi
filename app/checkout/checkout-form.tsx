@@ -55,6 +55,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getUserCoins } from "@/lib/actions/user.actions";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
+import { calculateShippingPrice, findDeliveryCounty } from "@/lib/delivery";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -63,14 +64,16 @@ const PaystackInline = dynamic(
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong";
+const toDiscountType = (value: string): "percentage" | "fixed" =>
+  value === "fixed" ? "fixed" : "percentage";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
-        fullName: "Basir",
-        street: "1911, 65 Sherbrooke Est",
-        city: "Montreal",
-        province: "Quebec",
+      fullName: "Basir",
+      street: "1911, 65 Sherbrooke Est",
+      city: "CBD",
+      province: "Nairobi",
         phone: "4181234567",
         postalCode: "H2X 1C4",
         country: "Canada",
@@ -128,7 +131,7 @@ const CheckoutForm = ({
       setAppliedCoupon({
         _id: result.coupon._id,
         code: result.coupon.code,
-        discountType: result.coupon.discountType,
+        discountType: toDiscountType(result.coupon.discountType),
         discountAmount: result.discount,
       });
       toast.success("Coupon applied successfully");
@@ -148,6 +151,7 @@ const CheckoutForm = ({
       availablePaymentMethods,
       defaultPaymentMethod,
       availableDeliveryDates,
+      deliveryCounties,
     },
   } = useSettingStore();
 
@@ -183,6 +187,9 @@ const CheckoutForm = ({
   }, [items]);
 
   const appliedCouponCode = appliedCoupon?.code;
+  const effectiveDeliveryDateIndex =
+    deliveryDateIndex ?? availableDeliveryDates.length - 1;
+  const selectedDeliveryDate = availableDeliveryDates[effectiveDeliveryDateIndex];
   const discountAmount = appliedCoupon?.discountAmount ?? 0;
   const finalTotal = useMemo(
     () => Math.max(0, totalPrice - discountAmount),
@@ -199,6 +206,20 @@ const CheckoutForm = ({
     values
   ) => {
     try {
+      const countyRecord = findDeliveryCounty(deliveryCounties, values.province);
+      if (!countyRecord) {
+        toast.error("Please select a valid county from the delivery list.");
+        return;
+      }
+      const isPlaceValid = countyRecord.places.some(
+        (place) =>
+          place.name.trim().toLowerCase() === values.city.trim().toLowerCase()
+      );
+      if (!isPlaceValid) {
+        toast.error("Please select a valid delivery place for the selected county.");
+        return;
+      }
+
       await setShippingAddress(values);
 
       if (saveAddressToAccount && session) {
@@ -272,7 +293,7 @@ const CheckoutForm = ({
             ? {
                 ...currentCoupon,
                 code: result.coupon.code,
-                discountType: result.coupon.discountType,
+                discountType: toDiscountType(result.coupon.discountType),
                 discountAmount: result.discount,
                 _id: result.coupon._id,
               }
@@ -299,9 +320,9 @@ const CheckoutForm = ({
         items,
         shippingAddress,
         expectedDeliveryDate: calculateFutureDate(
-          availableDeliveryDates[deliveryDateIndex!].daysToDeliver
+          selectedDeliveryDate.daysToDeliver
         ),
-        deliveryDateIndex,
+        deliveryDateIndex: effectiveDeliveryDateIndex,
         paymentMethod,
         itemsPrice,
         shippingPrice,
@@ -355,6 +376,12 @@ const CheckoutForm = ({
   );
 
   const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
+  const selectedCounty = shippingAddressForm.watch("province");
+  const selectedPlace = shippingAddressForm.watch("city");
+  const selectedCountyRecord = useMemo(
+    () => findDeliveryCounty(deliveryCounties, selectedCounty),
+    [deliveryCounties, selectedCounty]
+  );
 
   useEffect(() => {
     getUserCoins().then((coins) => {
@@ -765,29 +792,72 @@ const CheckoutForm = ({
                         <div className="flex flex-col gap-5 md:flex-row">
                           <FormField
                             control={shippingAddressForm.control}
-                            name="city"
+                            name="province"
                             render={({ field }) => (
                               <FormItem className="w-full">
-                                <FormLabel>City</FormLabel>
+                                <FormLabel>County</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Enter city" {...field} />
+                                  <Input
+                                    {...field}
+                                    list="delivery-county-options"
+                                    placeholder="Search and select a county"
+                                    onChange={(event) => {
+                                      field.onChange(event.target.value);
+                                      shippingAddressForm.setValue("city", "");
+                                    }}
+                                  />
                                 </FormControl>
+                                <datalist id="delivery-county-options">
+                                  {deliveryCounties.map((county) => (
+                                    <option
+                                      key={county.county}
+                                      value={county.county}
+                                    />
+                                  ))}
+                                </datalist>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <FormField
                             control={shippingAddressForm.control}
-                            name="province"
+                            name="city"
                             render={({ field }) => (
                               <FormItem className="w-full">
-                                <FormLabel>Province</FormLabel>
+                                <FormLabel>Delivery place</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Enter province"
-                                    {...field}
-                                  />
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={!selectedCountyRecord}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select delivery place" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {(selectedCountyRecord?.places ?? []).map(
+                                        (place) => (
+                                          <SelectItem
+                                            key={place.name}
+                                            value={place.name}
+                                          >
+                                            {place.name} (
+                                            <ProductPrice
+                                              price={place.rate}
+                                              plain
+                                            />
+                                            )
+                                          </SelectItem>
+                                        )
+                                      )}
+                                    </SelectContent>
+                                  </Select>
                                 </FormControl>
+                                {!selectedCountyRecord && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Select a county first to load delivery places.
+                                  </p>
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -954,12 +1024,11 @@ const CheckoutForm = ({
                   <p>
                     Delivery date:{" "}
                     {
-                      formatDateTime(
-                        calculateFutureDate(
-                          availableDeliveryDates[deliveryDateIndex]
-                            .daysToDeliver
-                        )
-                      ).dateOnly
+                          formatDateTime(
+                            calculateFutureDate(
+                              selectedDeliveryDate.daysToDeliver
+                            )
+                          ).dateOnly
                     }
                   </p>
                   <ul>
@@ -996,8 +1065,7 @@ const CheckoutForm = ({
                         {
                           formatDateTime(
                             calculateFutureDate(
-                              availableDeliveryDates[deliveryDateIndex!]
-                                .daysToDeliver
+                              selectedDeliveryDate.daysToDeliver
                             )
                           ).dateOnly
                         }
@@ -1121,11 +1189,15 @@ const CheckoutForm = ({
                       <div>
                         <div className=" font-bold">
                           <p className="mb-2"> Choose a shipping speed:</p>
+                          <p className="mb-3 text-xs font-normal text-muted-foreground">
+                            Rates combine the selected delivery place base rate
+                            and the shipping speed charge.
+                          </p>
 
                           <ul>
                             <RadioGroup
                               value={
-                                availableDeliveryDates[deliveryDateIndex!].name
+                                selectedDeliveryDate.name
                               }
                               onValueChange={(value) =>
                                 setDeliveryDateIndex(
@@ -1154,15 +1226,26 @@ const CheckoutForm = ({
                                       }
                                     </div>
                                     <div>
-                                      {(dd.freeShippingMinPrice > 0 &&
-                                      itemsPrice >= dd.freeShippingMinPrice
-                                        ? 0
-                                        : dd.shippingPrice) === 0 ? (
+                                      {(calculateShippingPrice({
+                                        deliveryDate: dd,
+                                        itemsPrice,
+                                        deliveryCounties,
+                                        county: selectedCounty,
+                                        place: selectedPlace,
+                                      }) ?? 0) === 0 ? (
                                         "FREE Shipping"
                                       ) : (
                                         <span>
                                           <ProductPrice
-                                            price={dd.shippingPrice}
+                                            price={
+                                              calculateShippingPrice({
+                                                deliveryDate: dd,
+                                                itemsPrice,
+                                                deliveryCounties,
+                                                county: selectedCounty,
+                                                place: selectedPlace,
+                                              }) ?? dd.shippingPrice
+                                            }
                                             plain
                                           />
                                         </span>
