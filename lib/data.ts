@@ -395,6 +395,8 @@ Please note that certain items, such as socks and insoles, are not eligible for 
       common: {
         freeShippingMinPrice: 5000,
         isMaintenanceMode: false,
+        coinsRewardRate: 4,
+        taxRate: 0,
         defaultTheme: "light",
         defaultColor: "gold",
         pageSize: 12,

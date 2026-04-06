@@ -387,6 +387,14 @@ export const SettingInputSchema = z.object({
       .number()
       .min(0, "Free shipping min price must be at least 0")
       .default(0),
+    coinsRewardRate: z.coerce
+      .number()
+      .min(0, "Coins reward rate must be at least 0")
+      .default(4),
+    taxRate: z.coerce
+      .number()
+      .min(0, "Tax rate must be at least 0")
+      .default(0),
     defaultTheme: z
       .string()
       .min(1, "Default theme is required")

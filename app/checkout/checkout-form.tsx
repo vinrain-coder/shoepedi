@@ -149,6 +149,7 @@ const CheckoutForm = ({
   const {
     setting: {
       site,
+      common,
       availablePaymentMethods,
       defaultPaymentMethod,
       availableDeliveryDates,
@@ -581,7 +582,7 @@ const CheckoutForm = ({
 
   const { data: session } = authClient.useSession();
   const userCoins = liveUserCoins !== null ? liveUserCoins : ((session?.user as any)?.coins || 0);
-  const coinsToEarn = Math.round(itemsPrice * 0.04 * 100) / 100;
+  const coinsToEarn = Math.round(itemsPrice * (common.coinsRewardRate / 100) * 100) / 100;
 
   const finalAvailablePaymentMethods = useMemo(() => {
     const methods = [...availablePaymentMethods];
