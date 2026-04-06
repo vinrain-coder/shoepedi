@@ -105,7 +105,7 @@ const CheckoutForm = ({
     discountType: "percentage" | "fixed";
     discountAmount: number;
   } | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -134,7 +134,7 @@ const CheckoutForm = ({
 
   const handleApplyCoupon = async (code?: string) => {
     if (isPlacingOrder || isApplyingCoupon) return;
-    const targetCode = (code || couponCode || "").trim();
+    const targetCode = (typeof code === "string" ? code : couponCode || "").trim();
     if (!targetCode) return;
 
     setIsApplyingCoupon(true);
@@ -215,7 +215,6 @@ const CheckoutForm = ({
     fetchProducts();
   }, [items]);
 
-  const appliedCouponCode = appliedCoupon?.code;
   const effectiveDeliveryDateIndex =
     deliveryDateIndex ?? availableDeliveryDates.length - 1;
   const selectedDeliveryDate = availableDeliveryDates[effectiveDeliveryDateIndex];
@@ -497,7 +496,9 @@ const CheckoutForm = ({
               />
               <Button
                 type="button"
-                onClick={handleApplyCoupon}
+                onClick={() => {
+                  void handleApplyCoupon();
+                }}
                 disabled={isApplyingCoupon || paymentMethod === "Coins"}
               >
                 {isApplyingCoupon ? "Applying..." : "Apply"}
@@ -618,7 +619,10 @@ const CheckoutForm = ({
   );
 
   const { data: session } = authClient.useSession();
-  const userCoins = liveUserCoins !== null ? liveUserCoins : ((session?.user as any)?.coins || 0);
+  const userCoins =
+    liveUserCoins !== null
+      ? liveUserCoins
+      : Number((session?.user as { coins?: number } | undefined)?.coins ?? 0);
   const coinsToEarn = Math.round(itemsPrice * (common.coinsRewardRate / 100) * 100) / 100;
 
   const finalAvailablePaymentMethods = useMemo(() => {
@@ -638,10 +642,6 @@ const CheckoutForm = ({
       setCouponError(null);
     }
   }, [paymentMethod]);
-
-  const isMobileMoneyPayment =
-    paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card";
-  const paystackLaunchingState = isMobileMoneyPayment && isPlacingOrder;
 
   useEffect(() => {
     if (!session) return;
