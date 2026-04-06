@@ -83,7 +83,7 @@ export default function CommonForm({
                   />
                 </FormControl>
                 <p className="text-[0.8rem] text-muted-foreground">
-                  Percentage of gross items price awarded as coins (e.g. 4 for 4%).
+                  Percentage of net items price (after coupon discounts) awarded as coins (e.g. 4 for 4%).
                 </p>
                 <FormMessage />
               </FormItem>

@@ -60,7 +60,7 @@ export default function AffiliateSettingForm({
                   <Input type="number" placeholder="10" {...field} />
                 </FormControl>
                 <p className="text-[0.8rem] text-muted-foreground">
-                  Global percentage earned by affiliates on the gross price of items sold.
+                  Global percentage earned by affiliates on the net items price (after coupon discounts).
                 </p>
                 <FormMessage />
               </FormItem>
