@@ -111,6 +111,7 @@ export const ShippingAddressSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   street: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
+  county: z.string().min(1, "County is required").or(z.literal("")),
   postalCode: z.string().min(1, "Postal code is required"),
   province: z.string().min(1, "Province is required"),
   phone: z.string().min(1, "Phone number is required"),
@@ -641,4 +642,22 @@ export const AffiliatePayoutInputSchema = z.object({
   paymentDetails: z.object({
     recipient: z.string().min(1, "Recipient details are required"),
   }),
+});
+
+// Delivery Location
+export const DeliveryLocationInputSchema = z.object({
+  county: z.string().min(1, "County is required"),
+  city: z.string().min(1, "City is required"),
+  rates: z
+    .array(
+      z.object({
+        deliveryDateName: z.string().min(1, "Delivery date name is required"),
+        price: Price("Price"),
+      })
+    )
+    .min(1, "At least one rate is required"),
+});
+
+export const DeliveryLocationUpdateSchema = DeliveryLocationInputSchema.extend({
+  _id: MongoId,
 });

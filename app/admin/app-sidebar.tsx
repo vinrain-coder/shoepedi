@@ -69,6 +69,11 @@ const data = {
       url: "/admin/users",
       icon: IconUsers,
     },
+    {
+      title: "Delivery Locations",
+      url: "/admin/delivery-locations",
+      icon: IconChecklist,
+    },
   ],
   finance: [
     {
