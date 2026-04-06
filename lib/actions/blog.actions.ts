@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, updateTag, revalidateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { notFound } from "next/navigation";
