@@ -62,9 +62,9 @@ const UserEditForm = ({ user }: { user: IUser }) => {
       <form
         method="post"
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8"
+        className="space-y-5"
       >
-        <div className="flex flex-col gap-5 md:flex-row">
+        <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
@@ -92,12 +92,12 @@ const UserEditForm = ({ user }: { user: IUser }) => {
             )}
           />
         </div>
-        <div>
+        <div className="rounded-lg border bg-muted/20 p-4">
           <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
-              <FormItem className="space-x-2 items-center">
+              <FormItem className="space-y-2">
                 <FormLabel>Role</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -122,11 +122,11 @@ const UserEditForm = ({ user }: { user: IUser }) => {
             )}
           />
         </div>
-        <div className="flex-between">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <SubmitButton
             type="submit"
             isLoading={form.formState.isSubmitting}
-            className="w-full"
+            className="w-full sm:w-auto"
           >
             {form.formState.isSubmitting ? "Submitting..." : `Update User `}
           </SubmitButton>

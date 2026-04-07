@@ -66,7 +66,7 @@ export default async function AdminUserPage(props: {
         <div>
           <h1 className="h1-bold text-3xl">Users</h1>
           <p className="text-muted-foreground">
-            Manage customer accounts, roles, and administrative access
+            Manage customer accounts, roles, and open full user insights
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -126,7 +126,7 @@ export default async function AdminUserPage(props: {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/users/${user._id}`}>Edit</Link>
+                        <Link href={`/admin/users/${user._id}`}>View</Link>
                       </Button>
                       <DeleteDialog id={user._id.toString()} action={deleteUser} />
                     </div>
