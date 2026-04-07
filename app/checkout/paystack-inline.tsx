@@ -137,12 +137,13 @@ export default function PaystackInline({
   if (hideButton) {
     return (
       <Dialog open={true} modal={false}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-full sm:max-w-[425px]">
           <DialogHeader className="flex flex-col items-center justify-center space-y-4 py-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 bg-animate-pulse">
               <ShieldCheck className="h-10 w-10 text-primary" />
             </div>
-            <DialogTitle className="text-2xl font-bold">
+            <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+              <Loader2 className="w-8 h-8 animate-spin"/>
               Completing Your Order...
             </DialogTitle>
             <DialogDescription className="text-center text-base">
