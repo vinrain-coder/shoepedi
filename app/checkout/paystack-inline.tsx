@@ -142,10 +142,16 @@ export default function PaystackInline({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 bg-animate-pulse">
               <ShieldCheck className="h-10 w-10 text-primary" />
             </div>
-            <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
-              <Loader2 className="w-8 h-8 animate-spin"/>
-              Completing Your Order...
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
+  <span className="relative flex items-center justify-center">
+    <Loader2 className="w-7 h-7 animate-spin text-primary" />
+    <span className="absolute inline-flex h-10 w-10 rounded-full bg-primary/20 blur-md"></span>
+  </span>
+
+  <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+    Completing your order...
+  </span>
+</DialogTitle>
             <DialogDescription className="text-center text-base">
               We&apos;re connecting you to Paystack&apos;s secure checkout.
               Please keep this window open.
