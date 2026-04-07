@@ -4,10 +4,6 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   Clock3,
-  Heart,
-  Receipt,
-  ShoppingBag,
-  Truck,
   UserCircle,
 } from "lucide-react";
 
@@ -34,6 +30,8 @@ import { formatDateTime, formatId } from "@/lib/utils";
 
 import UserEditForm from "./user-edit-form";
 import UserOrderHistoryChart from "./user-order-history-chart";
+import UserInsightStatsCards from "./user-insight-stats-cards";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "User Insights",
@@ -59,35 +57,9 @@ export default async function UserEditPage(props: {
 
   const { user, metrics, monthlyOrders, recentOrders, navigationHistory } = data;
 
-  const statCards = [
-    {
-      label: "Total Orders",
-      value: metrics.totalOrders,
-      icon: ShoppingBag,
-      tone: "text-blue-600",
-    },
-    {
-      label: "Total Spend",
-      value: <ProductPrice price={metrics.totalSpent} plain />,
-      icon: Receipt,
-      tone: "text-emerald-600",
-    },
-    {
-      label: "Wishlist Items",
-      value: metrics.wishlistCount,
-      icon: Heart,
-      tone: "text-rose-600",
-    },
-    {
-      label: "Delivered Orders",
-      value: metrics.deliveredOrders,
-      icon: Truck,
-      tone: "text-violet-600",
-    },
-  ];
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 p-4">
+    <main className="mx-auto w-full max-w-7xl space-y-4 px-0 sm:px-2">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -110,22 +82,14 @@ export default async function UserEditPage(props: {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.label}>
-              <CardHeader className="pb-2">
-                <CardDescription>{card.label}</CardDescription>
-                <CardTitle className="text-2xl">{card.value}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Icon className={`size-4 ${card.tone}`} />
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <UserInsightStatsCards
+        stats={{
+          totalOrders: metrics.totalOrders,
+          totalSpent: metrics.totalSpent,
+          wishlistCount: metrics.wishlistCount,
+          deliveredOrders: metrics.deliveredOrders,
+        }}
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
@@ -225,11 +189,22 @@ export default async function UserEditPage(props: {
           </CardHeader>
           <CardContent className="space-y-3">
             {Array.isArray(user.wishlist) && user.wishlist.length > 0 ? (
-              user.wishlist.map((product: { _id: string; name: string; category: string; slug: string }) => (
-                <div key={product._id} className="flex items-center justify-between rounded-md border p-3">
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.category}</p>
+              user.wishlist.map((product: { _id: string; name: string; category: string; slug: string; images?: string[] }) => (
+                <div key={product._id} className="flex items-center justify-between rounded-md border p-2">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-10 w-10 overflow-hidden rounded border">
+                      <Image
+                        src={product.images?.[0] || "/images/placeholder.jpg"}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium leading-tight">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                    </div>
                   </div>
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/product/${product.slug}`}>Open</Link>
@@ -283,7 +258,7 @@ export default async function UserEditPage(props: {
             <UserCircle className="size-5" />
             Edit User Details
           </CardTitle>
-          <CardDescription>Update account information and access role.</CardDescription>
+          <CardDescription>Update profile and role with immediate admin control.</CardDescription>
         </CardHeader>
         <CardContent>
           <UserEditForm user={user} />

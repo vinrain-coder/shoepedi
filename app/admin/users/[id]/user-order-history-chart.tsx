@@ -1,62 +1,63 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import React from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from "recharts";
 
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatDateTime } from "@/lib/utils";
 
-const chartConfig = {
-  orders: {
-    label: "Orders",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
+interface UserOrderTooltipProps extends TooltipProps<number, string> {
+  active?: boolean;
+  payload?: Array<{ value?: number }>;
+  label?: string;
+}
+
+function UserOrderTooltip({ active, payload, label }: UserOrderTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const value = payload[0]?.value ?? 0;
+  return (
+    <Card>
+      <CardContent className="p-2">
+        <p className="text-xs text-muted-foreground">{label ? formatDateTime(new Date(label)).dateOnly : "-"}</p>
+        <p className="text-lg font-semibold text-primary">{value} orders</p>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function UserOrderHistoryChart({
   data,
 }: {
   data: Array<{ month: string; orders: number }>;
 }) {
+  const chartData = data.map((item) => ({
+    date: `${item.month}-01T00:00:00.000Z`,
+    orders: item.orders,
+  }));
+
   return (
-    <ChartContainer config={chartConfig} className="h-[280px] w-full">
-      <AreaChart accessibilityLayer data={data} margin={{ left: 10, right: 10 }}>
-        <CartesianGrid vertical={false} />
+    <ResponsiveContainer width="100%" height={280}>
+      <AreaChart data={chartData}>
+        <CartesianGrid horizontal vertical={false} stroke="var(--border)" />
         <XAxis
-          dataKey="month"
+          dataKey="date"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
-          tickFormatter={(value) => {
-            const [year, month] = String(value).split("-");
-            const date = new Date(Number(year), Number(month) - 1, 1);
-            return date.toLocaleString("en-US", { month: "short", year: "2-digit" });
-          }}
+          minTickGap={20}
+          tickFormatter={(value: string) => formatDateTime(new Date(value)).dateOnly}
         />
-        <ChartTooltip
-          cursor={false}
-          content={
-            <ChartTooltipContent
-              labelFormatter={(value) => {
-                const [year, month] = String(value).split("-");
-                const date = new Date(Number(year), Number(month) - 1, 1);
-                return date.toLocaleString("en-US", { month: "long", year: "numeric" });
-              }}
-            />
-          }
-        />
+        <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={30} />
+        <Tooltip content={<UserOrderTooltip />} />
         <Area
-          dataKey="orders"
           type="monotone"
-          fill="var(--color-orders)"
-          fillOpacity={0.2}
-          stroke="var(--color-orders)"
+          dataKey="orders"
+          stroke="var(--primary)"
           strokeWidth={2}
+          fill="var(--primary)"
+          fillOpacity={0.2}
         />
       </AreaChart>
-    </ChartContainer>
+    </ResponsiveContainer>
   );
 }
