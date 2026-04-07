@@ -6,6 +6,8 @@ import { UserSignUpSchema, UserUpdateSchema } from "../validator";
 import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
 import Order from "../db/models/order.model";
+import Product from "../db/models/product.model";
+import { Types } from "mongoose";
 import { formatError, escapeRegExp } from "../utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -175,16 +177,22 @@ export async function getAdminUserInsights(userId: string) {
 
   const user = await User.findById(userId)
     .select("name email role createdAt wishlist coins navigationHistory")
-    .populate({
-      path: "wishlist",
-      select: "name slug images category price isPublished",
-      options: { sort: { updatedAt: -1 }, limit: 12 },
-    })
     .lean();
 
   if (!user) throw new Error("User not found");
 
-  const [orders, orderStats] = await Promise.all([
+  const wishlistIds = (Array.isArray(user.wishlist) ? user.wishlist : [])
+    .map((id) => String(id))
+    .filter((id) => Types.ObjectId.isValid(id));
+
+  const [wishlistProducts, orders, orderStats] = await Promise.all([
+    wishlistIds.length > 0
+      ? Product.find({ _id: { $in: wishlistIds } })
+          .select("name slug images category price isPublished")
+          .sort({ updatedAt: -1 })
+          .limit(12)
+          .lean()
+      : [],
     Order.find({ user: user._id })
       .select("_id createdAt totalPrice status isPaid isDelivered items")
       .sort({ createdAt: -1 })
@@ -222,7 +230,6 @@ export async function getAdminUserInsights(userId: string) {
                   month: { $month: "$createdAt" },
                 },
                 orders: { $sum: 1 },
-                revenue: { $sum: "$totalPrice" },
               },
             },
             { $sort: { "_id.year": 1, "_id.month": 1 } },
@@ -245,24 +252,29 @@ export async function getAdminUserInsights(userId: string) {
     (item: {
       _id: { year: number; month: number };
       orders: number;
-      revenue: number;
     }) => ({
       month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
       orders: item.orders,
-      revenue: Number(item.revenue?.toFixed(2) ?? 0),
     })
   );
 
   const navigationHistory = (user.navigationHistory ?? [])
-    .sort((a, b) => new Date(b.visitedAt).getTime() - new Date(a.visitedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(String(b.visitedAt)).getTime() -
+        new Date(String(a.visitedAt)).getTime()
+    )
     .slice(0, 15);
 
   return JSON.parse(
     JSON.stringify({
-      user,
+      user: {
+        ...user,
+        wishlist: wishlistProducts,
+      },
       metrics: {
         ...totals,
-        wishlistCount: user.wishlist?.length ?? 0,
+        wishlistCount: wishlistIds.length,
       },
       monthlyOrders,
       recentOrders: orders,

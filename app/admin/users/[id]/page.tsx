@@ -36,7 +36,7 @@ import UserEditForm from "./user-edit-form";
 import UserOrderHistoryChart from "./user-order-history-chart";
 
 export const metadata: Metadata = {
-  title: "User Details",
+  title: "User Insights",
 };
 
 export default async function UserEditPage(props: {
@@ -47,14 +47,15 @@ export default async function UserEditPage(props: {
   const params = await props.params;
   const { id } = params;
 
-  let data: Awaited<ReturnType<typeof getAdminUserInsights>> | null = null;
+  let data: Awaited<ReturnType<typeof getAdminUserInsights>>;
   try {
     data = await getAdminUserInsights(id);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof Error && error.message === "User not found") {
+      notFound();
+    }
+    throw error;
   }
-
-  if (!data) notFound();
 
   const { user, metrics, monthlyOrders, recentOrders, navigationHistory } = data;
 
