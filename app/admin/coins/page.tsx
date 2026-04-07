@@ -19,6 +19,12 @@ import { formatDateTime, formatId } from "@/lib/utils";
 import CoinStatsCards from "./coin-stats-cards";
 import CoinAdjustDialog from "./coin-adjust-dialog";
 
+const formatCoinAmount = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 export const metadata: Metadata = {
   title: "Admin Coins",
 };
@@ -90,7 +96,7 @@ export default async function AdminCoinsPage({
                     <div className="font-medium">{user.name}</div>
                     <div className="text-xs text-muted-foreground">{user.email}</div>
                   </TableCell>
-                  <TableCell className="font-semibold">{Number(user.coins || 0).toFixed(2)}</TableCell>
+                  <TableCell className="font-semibold">{formatCoinAmount(Number(user.coins || 0))}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {user.createdAt ? formatDateTime(user.createdAt).dateOnly : "-"}
                   </TableCell>

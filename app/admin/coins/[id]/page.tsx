@@ -22,6 +22,12 @@ import { getServerSession } from "@/lib/get-session";
 import { formatDateTime } from "@/lib/utils";
 import CoinAdjustDialog from "../coin-adjust-dialog";
 
+const formatCoinAmount = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 export const metadata: Metadata = {
   title: "User Coin History",
 };
@@ -82,7 +88,7 @@ export default async function AdminUserCoinHistoryPage({
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-2xl font-bold">
             <Wallet className="size-5 text-muted-foreground" />
-            {data.user.coins.toFixed(2)}
+            {formatCoinAmount(data.user.coins)}
           </CardContent>
         </Card>
         <Card>
@@ -128,7 +134,7 @@ export default async function AdminUserCoinHistoryPage({
                     <TableCell className="capitalize">{String(event.type).replaceAll("_", " ")}</TableCell>
                     <TableCell className={isNegative ? "text-destructive font-medium" : "text-emerald-600 font-medium"}>
                       {isNegative ? "-" : "+"}
-                      {event.amount.toFixed(2)}
+                      {formatCoinAmount(event.amount)}
                     </TableCell>
                     <TableCell>{event.reason}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
@@ -140,7 +146,7 @@ export default async function AdminUserCoinHistoryPage({
                         <span>By {event.admin.name || event.admin.email}</span>
                       ) : event.balanceAfter !== undefined ? (
                         <span>
-                          {(event.balanceBefore ?? 0).toFixed(2)} → {(event.balanceAfter ?? 0).toFixed(2)}
+                          {formatCoinAmount(event.balanceBefore ?? 0)} → {formatCoinAmount(event.balanceAfter ?? 0)}
                         </span>
                       ) : (
                         <span>-</span>

@@ -281,51 +281,46 @@ export async function adjustUserCoinsAdmin({
       throw new Error("Reason must be at least 3 characters");
     }
 
-    const mongoSession = await mongoose.startSession();
-
-    try {
-      let newBalance = 0;
-
-      await mongoSession.withTransaction(async () => {
-        const user = await User.findById(userId).session(mongoSession);
-        if (!user) throw new Error("User not found");
-
-        const balanceBefore = round2(user.coins || 0);
-        newBalance = round2(balanceBefore + normalizedAmount);
-
-        if (newBalance < 0) {
-          throw new Error("Deduction exceeds user's available balance");
-        }
-
-        user.coins = newBalance;
-        await user.save({ session: mongoSession });
-
-        await CoinTransaction.create(
-          [
-            {
-              user: user._id,
-              admin: sessionUser.user.id,
-              amount: normalizedAmount,
-              reason: normalizedReason,
-              source: "admin_adjustment",
-              balanceBefore,
-              balanceAfter: newBalance,
-            },
-          ],
-          { session: mongoSession }
-        );
-      });
-
-      revalidatePath("/admin/coins");
-      revalidatePath(`/admin/coins/${userId}`);
-
-      return {
-        success: true,
-        message: `User balance updated successfully. New balance: ${newBalance.toFixed(2)} coins`,
-      };
-    } finally {
-      await mongoSession.endSession();
+    const query: Record<string, unknown> = { _id: userId };
+    if (normalizedAmount < 0) {
+      query.coins = { $gte: Math.abs(normalizedAmount) };
     }
+
+    const updatedUser = await User.findOneAndUpdate(
+      query,
+      { $inc: { coins: normalizedAmount } },
+      { new: true }
+    ).select("_id coins");
+
+    if (!updatedUser) {
+      if (normalizedAmount < 0) {
+        throw new Error("Deduction exceeds user's available balance");
+      }
+      throw new Error("User not found");
+    }
+
+    const newBalance = round2(updatedUser.coins || 0);
+    const balanceBefore = round2(newBalance - normalizedAmount);
+
+    await CoinTransaction.create({
+      user: updatedUser._id,
+      admin: sessionUser.user.id,
+      amount: normalizedAmount,
+      reason: normalizedReason,
+      source: "admin_adjustment",
+      balanceBefore,
+      balanceAfter: newBalance,
+    });
+
+    revalidatePath("/admin/coins");
+    revalidatePath(`/admin/coins/${userId}`);
+    revalidatePath("/account/coins");
+    revalidatePath("/checkout");
+
+    return {
+      success: true,
+      message: `User balance updated successfully. New balance: ${newBalance.toFixed(2)} coins`,
+    };
   } catch (error) {
     return {
       success: false,

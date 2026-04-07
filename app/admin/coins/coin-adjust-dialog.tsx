@@ -19,6 +19,12 @@ import { adjustUserCoinsAdmin } from "@/lib/actions/coin.actions";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const formatCoinAmount = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 export default function CoinAdjustDialog({
   userId,
   currentCoins,
@@ -70,7 +76,7 @@ export default function CoinAdjustDialog({
           <DialogTitle>Adjust User Coins</DialogTitle>
           <DialogDescription>
             Add coins with a positive value (e.g. 25) or deduct with a negative value (e.g. -10).
-            Current balance: {currentCoins.toFixed(2)} coins.
+            Current balance: {formatCoinAmount(currentCoins)} coins.
           </DialogDescription>
         </DialogHeader>
 
