@@ -8,6 +8,7 @@ import AppInitializer from "./app-initializer";
 import { ClientSetting } from "@/types";
 import { Toaster } from "../ui/sonner";
 import NavigationHistoryTracker from "./navigation-history-tracker";
+import WebAnalyticsTracker from "./web-analytics-tracker";
 
 interface Props {
   setting: ClientSetting;
@@ -20,6 +21,7 @@ export default function ClientProviders({ setting, children }: Props) {
   return (
     <AppInitializer setting={setting}>
       <NavigationHistoryTracker />
+      <WebAnalyticsTracker />
       <ThemeProvider
         attribute="class"
         defaultTheme={setting.common.defaultTheme.toLocaleLowerCase()}
