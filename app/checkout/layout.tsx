@@ -11,9 +11,9 @@ export default async function CheckoutLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { common } = await getSetting();
+  const { site } = await getSetting();
 
-  if (common.isMaintenanceMode) {
+  if (site.isMaintenanceMode) {
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") {
       redirect("/maintenance");
@@ -26,10 +26,10 @@ export default async function CheckoutLayout({
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-2 py-1 sm:px-4">
           <Link href="/">
             <Image
-              src="/icons/logo.svg"
+              src={site.logo}
               alt="logo"
-              width={70}
-              height={70}
+              width={80}
+              height={80}
               style={{
                 maxWidth: "100%",
                 height: "auto",
