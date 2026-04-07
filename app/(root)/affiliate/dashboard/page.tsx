@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { CopyIcon, ExternalLinkIcon, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import CopyButton from "./copy-button";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export default async function AffiliateDashboardPage() {
   const { success, data, message } = await getAffiliateDashboardData();
@@ -29,6 +30,7 @@ export default async function AffiliateDashboardPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-8">
+      <Breadcrumb />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Affiliate Dashboard</h1>
         <div className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SupportTicketForm from "@/components/shared/support/support-ticket-form";
 import { getServerSession } from "@/lib/get-session";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export const metadata: Metadata = {
   title: "Support",
@@ -13,6 +14,7 @@ export default async function PublicSupportPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-4 py-4">
+      <Breadcrumb />
       <h1 className="text-3xl font-semibold">Customer support</h1>
       <p className="text-sm text-muted-foreground">
         Need help? Submit a support ticket and we&apos;ll reply by email.

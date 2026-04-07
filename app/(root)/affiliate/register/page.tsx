@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
 import { Loader2 } from "lucide-react";
@@ -75,7 +76,8 @@ export default function RegisterAffiliatePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl py-10">
+    <div className="container mx-auto max-w-2xl py-10 space-y-4">
+      <Breadcrumb />
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Become an Affiliate</CardTitle>

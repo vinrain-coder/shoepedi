@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle, MailX } from "lucide-react";
 import Link from "next/link";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 import { unsubscribeFromNewsletter } from "@/lib/actions/newsletter.actions";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,9 @@ export default function UnsubscribePage() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
+      <div className="mb-6 self-start">
+        <Breadcrumb />
+      </div>
       <div className="mx-auto max-w-md space-y-6 rounded-2xl border bg-card p-8 shadow-sm">
         <div className="flex justify-center">
           <div className="rounded-full bg-primary/10 p-4 text-primary">

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"]; // Primary-aligned gold/yellow palette
 
@@ -53,7 +54,10 @@ export default function OrderPlacedPage() {
   }));
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background">
+    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background">
+      <div className="absolute top-4 left-4 z-20">
+        <Breadcrumb />
+      </div>
 
       {/* Confetti */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
