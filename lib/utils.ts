@@ -122,7 +122,7 @@ export function timeUntilMidnight(): { hours: number; minutes: number } {
   return { hours, minutes };
 }
 
-export const formatDateTime = (dateString: Date) => {
+export const formatDateTime = (dateInput: Date | string | number) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
     month: "short", // abbreviated month name (e.g., 'Oct')
     year: "numeric", // abbreviated month name (e.g., 'Oct')
@@ -130,33 +130,31 @@ export const formatDateTime = (dateString: Date) => {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-    timeZone: "UTC",
   };
   const dateOptions: Intl.DateTimeFormatOptions = {
     // weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
     month: "short", // abbreviated month name (e.g., 'Oct')
     year: "numeric", // abbreviated month name (e.g., '2023')
     day: "numeric", // numeric day of the month (e.g., '25')
-    timeZone: "UTC",
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-    timeZone: "UTC",
   };
-  const formattedDateTime: string = new Date(dateString).toLocaleString(
-    "en-US",
-    dateTimeOptions
-  );
-  const formattedDate: string = new Date(dateString).toLocaleString(
-    "en-US",
-    dateOptions
-  );
-  const formattedTime: string = new Date(dateString).toLocaleString(
-    "en-US",
-    timeOptions
-  );
+  const parsedDate = new Date(dateInput);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return {
+      dateTime: "-",
+      dateOnly: "-",
+      timeOnly: "-",
+    };
+  }
+
+  const formattedDateTime: string = parsedDate.toLocaleString("en-US", dateTimeOptions);
+  const formattedDate: string = parsedDate.toLocaleString("en-US", dateOptions);
+  const formattedTime: string = parsedDate.toLocaleString("en-US", timeOptions);
   return {
     dateTime: formattedDateTime,
     dateOnly: formattedDate,
