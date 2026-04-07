@@ -7,6 +7,7 @@ import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import PayoutRequestForm from "@/components/affiliate/payout-request-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Pagination from "@/components/shared/pagination";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export default async function AffiliatePayoutsPage({
   searchParams,
@@ -24,6 +25,7 @@ export default async function AffiliatePayoutsPage({
 
   return (
     <div className="container mx-auto py-10 space-y-8">
+      <Breadcrumb />
       <h1 className="text-3xl font-bold">Payouts Management</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

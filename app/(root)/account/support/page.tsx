@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/get-session";
 import { getMySupportTickets } from "@/lib/actions/support.actions";
 import SupportTicketForm from "@/components/shared/support/support-ticket-form";
+import Breadcrumb from "@/components/shared/breadcrumb";
 
 export default async function AccountSupportPage() {
   const session = await getServerSession();
@@ -9,6 +10,7 @@ export default async function AccountSupportPage() {
 
   return (
     <div className="space-y-4">
+      <Breadcrumb />
       <div>
         <h1 className="text-2xl font-semibold">Customer Support</h1>
         <p className="text-sm text-muted-foreground">Submit complaints, queries, or recommendations and track replies.</p>
