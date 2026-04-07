@@ -40,7 +40,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { NavDocuments } from "./nav-documents";
 import { NavContent } from "./nav-content";
-import { getSetting } from "@/lib/actions/setting-actions";
 
 const data = {
   navMain: [
@@ -158,8 +157,7 @@ const data = {
   ],
 };
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { site } = await getSetting();
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -171,7 +169,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
             >
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src={site.logo}
+                  src="/icons/logo.svg"
                   alt="Logo"
                   width={36}
                   height={36}
