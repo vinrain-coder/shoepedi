@@ -22,6 +22,7 @@ import {
   IconAffiliate,
   IconCash,
   IconMapPin,
+  IconCoin,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -86,6 +87,11 @@ const data = {
       title: "Payouts",
       url: "/admin/payouts",
       icon: IconCash,
+    },
+    {
+      title: "Coins",
+      url: "/admin/coins",
+      icon: IconCoin,
     },
   ],
   storefront: [
