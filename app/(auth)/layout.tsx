@@ -15,15 +15,15 @@ export default async function AuthLayout({
   const { site } = await getSetting();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-center">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/icons/logo.svg"
+            src={site.logo}
             alt="logo"
-            width={40}
-            height={40}
+            width={60}
+            height={60}
             priority
           />
           <h1 className="text-xl font-semibold hover:text-primary">
