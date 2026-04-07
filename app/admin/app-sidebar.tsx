@@ -151,9 +151,8 @@ const data = {
   navSecondary: [
     {
       title: "Analytics",
-      url: "#",
+      url: "/admin/analytics",
       icon: IconClipboardList,
-      comingSoon: true,
     },
     {
       title: "Settings",
