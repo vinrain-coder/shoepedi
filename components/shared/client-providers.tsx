@@ -7,7 +7,7 @@ import { ThemeProvider } from "./theme-provider";
 import AppInitializer from "./app-initializer";
 import { ClientSetting } from "@/types";
 import { Toaster } from "../ui/sonner";
-import { NextIntlClientProvider } from "next-intl";
+import NavigationHistoryTracker from "./navigation-history-tracker";
 
 interface Props {
   setting: ClientSetting;
@@ -19,6 +19,7 @@ export default function ClientProviders({ setting, children }: Props) {
 
   return (
     <AppInitializer setting={setting}>
+      <NavigationHistoryTracker />
       <ThemeProvider
         attribute="class"
         defaultTheme={setting.common.defaultTheme.toLocaleLowerCase()}
