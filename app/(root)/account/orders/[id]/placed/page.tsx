@@ -19,12 +19,13 @@ export default function OrderPlacedPage() {
     if (!orderId) return;
 
     const interval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 1, 100)); // Slower progress for 5s
-    }, 50);
+  setProgress((prev) => Math.min(prev + (100 / 60), 100)); 
+  // 3000ms / 50ms = 60 steps → reach 100 in 3s
+   }, 50);
 
     const timeout = setTimeout(() => {
-      router.replace(`/account/orders/${orderId}`);
-    }, 5000);
+    router.replace(`/account/orders/${orderId}`);
+    }, 3000);
 
     return () => {
       clearInterval(interval);
