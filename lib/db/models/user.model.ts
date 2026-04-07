@@ -1,6 +1,12 @@
 import { IUserInput } from "@/types";
 import { Document, Model, model, models, Schema, Types } from "mongoose";
 
+export interface IUserNavigationEntry {
+  path: string;
+  title?: string;
+  visitedAt: Date;
+}
+
 export interface IUser extends Document, IUserInput {
   _id: string;
   createdAt: Date;
@@ -8,6 +14,7 @@ export interface IUser extends Document, IUserInput {
   wishlist: Types.ObjectId[];
   addresses: unknown[];
   coins: number;
+  navigationHistory: IUserNavigationEntry[];
 }
 
 const userSchema = new Schema<IUser>(
@@ -21,6 +28,13 @@ const userSchema = new Schema<IUser>(
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     addresses: { type: [Schema.Types.Mixed], default: [] },
     coins: { type: Number, default: 0 },
+    navigationHistory: [
+      {
+        path: { type: String, required: true },
+        title: { type: String },
+        visitedAt: { type: Date, required: true, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
