@@ -19,6 +19,7 @@ import {
   ShieldIcon,
   Star,
   Users,
+  History,
 } from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
@@ -94,6 +95,12 @@ export default function UserButton() {
                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                   <MessageCircle className="h-4 w-4" />
                   My Comments
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/browsing-history" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                  <History className="h-4 w-4" />
+                  Browsing History
                 </DropdownMenuItem>
               </Link>
               {isAffiliate && (

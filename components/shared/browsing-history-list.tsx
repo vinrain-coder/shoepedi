@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import useBrowsingHistory from "@/hooks/use-browsing-history";
 import ProductSlider from "./product/product-slider";
 import { Separator } from "../ui/separator";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 // Client-side memory cache
@@ -95,12 +96,22 @@ export default function BrowsingHistoryList({
 
   return (
     <div className="bg-background">
+      <div className="flex justify-between items-end mb-2 px-1">
+        <h2 className="h2-bold">Related to items you&apos;ve viewed</h2>
+        <Link
+          href="/browsing-history"
+          className="text-sm text-blue-600 hover:underline"
+        >
+          View or edit your browsing history
+        </Link>
+      </div>
+
       {/* RELATED SECTION */}
       {showRelated && (
         <>
           <Separator className={cn("mb-4", className)} />
           <ProductSection
-            title="Related to items that you've viewed"
+            title=""
             products={relatedProducts}
             loading={loading}
           />
