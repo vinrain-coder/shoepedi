@@ -13,6 +13,7 @@ import SiteInfoForm from "./site-info-form";
 import CommonForm from "./common-form";
 import CarouselForm from "./carousel-form";
 import AffiliateForm from "./affiliate-form";
+import HeaderMenuForm from "./header-menu-form";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";
 
@@ -48,6 +49,7 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
         <SiteInfoForm id="setting-site-info" form={form} />
         <CommonForm id="setting-common" form={form} />
         <CarouselForm id="setting-carousels" form={form} />
+        <HeaderMenuForm id="setting-header-menus" form={form} />
 
         <PaymentMethodForm id="setting-payment-methods" form={form} />
 

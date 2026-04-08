@@ -4,6 +4,7 @@ import {
   CreditCard,
   ImageIcon,
   Info,
+  ListTree,
   Package,
   SettingsIcon,
 } from "lucide-react";
@@ -51,6 +52,11 @@ const SettingNav = () => {
             name: "Carousels",
             hash: "setting-carousels",
             icon: <ImageIcon className="h-4 w-4" />,
+          },
+          {
+            name: "Header Menus",
+            hash: "setting-header-menus",
+            icon: <ListTree className="h-4 w-4" />,
           },
           {
             name: "Payments",

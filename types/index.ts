@@ -69,6 +69,10 @@ export type Data = {
   headerMenus: {
     name: string;
     href: string;
+    subMenus?: {
+      name: string;
+      href: string;
+    }[];
   }[];
   carousels: {
     image: string;
