@@ -98,9 +98,14 @@ export async function getBrandById(id: string) {
   try {
     await connectToDatabase();
 
-    const brand = await Brand.findById(id).populate("name").lean();
+    const brand = await Brand.findById(id).lean();
 
-    return brand || null;
+    if (!brand) return null;
+
+    return {
+      ...brand,
+      _id: brand._id.toString(),
+    } as IBrand;
   } catch (error) {
     console.error("Error fetching brand by ID:", error);
     return null;
@@ -144,11 +149,15 @@ export async function getAllBrandsForAdmin({
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("name")
       .lean();
 
+    const normalizedBrands = brands.map((brand) => ({
+      ...brand,
+      _id: brand._id.toString(),
+    }));
+
     return {
-      brands,
+      brands: normalizedBrands,
       totalBrands,
       totalPages,
       from: skip + 1,
