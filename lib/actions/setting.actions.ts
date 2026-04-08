@@ -7,7 +7,7 @@ import { connectToDatabase } from "../db";
 import { formatError } from "../utils";
 import { cacheLife } from "next/cache";
 import { cacheTag } from "next/cache";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 const withSettingDefaults = (
   setting?: Partial<ISettingInput> | null
@@ -73,7 +73,7 @@ export async function updateSetting(newSetting: ISettingInput) {
     }).lean();
 
     // Revalidate cached settings
-    updateTag("settings");
+    revalidateTag("settings");
 
     return { success: true, message: "Setting updated successfully" };
   } catch (error) {

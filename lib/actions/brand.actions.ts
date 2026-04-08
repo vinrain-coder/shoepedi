@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import { formatError, escapeRegExp } from "@/lib/utils";
 import { BrandInputSchema, BrandUpdateSchema } from "../validator";
@@ -27,7 +27,7 @@ export async function createBrand(data: z.infer<typeof BrandInputSchema>) {
 
     await Brand.create(brand);
     revalidatePath("/admin/brands");
-    updateTag("brands");
+    revalidateTag("brands");
 
     return { success: true, message: "Brand created successfully" };
   } catch (error) {
@@ -55,7 +55,7 @@ export async function updateBrand(data: z.infer<typeof BrandUpdateSchema>) {
     }
 
     revalidatePath("/admin/brands");
-    updateTag("brands");
+    revalidateTag("brands");
     return { success: true, message: "Brand updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -98,9 +98,9 @@ export async function getBrandById(id: string) {
   try {
     await connectToDatabase();
 
-    const brand = await Brand.findById(id).populate("name").lean();
+    const brand = await Brand.findById(id).lean();
 
-    return brand || null;
+    return brand ? (JSON.parse(JSON.stringify(brand)) as IBrand) : null;
   } catch (error) {
     console.error("Error fetching brand by ID:", error);
     return null;
@@ -144,7 +144,6 @@ export async function getAllBrandsForAdmin({
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("name")
       .lean();
 
     return {
@@ -189,9 +188,9 @@ export async function getAllBrandsForAdminProductInput() {
   cacheTag("brands");
   await connectToDatabase();
 
-  const brands = await Brand.find().sort({ name: 1 }).populate("name").lean();
+  const brands = await Brand.find().sort({ name: 1 }).lean();
 
-  return brands;
+  return JSON.parse(JSON.stringify(brands));
 }
 
 /* ---------------------------------

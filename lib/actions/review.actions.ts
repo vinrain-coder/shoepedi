@@ -1,7 +1,7 @@
 "use server";
 
 import mongoose from "mongoose";
-import { cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { connectToDatabase } from "../db";
 import Product from "../db/models/product.model";
@@ -350,7 +350,7 @@ export async function replyToReview({
       ? await Product.findById(existingReview.product).select("slug").lean()
       : null;
 
-    updateTag("reviews");
+    revalidateTag("reviews");
     revalidatePath("/admin/reviews");
     if (product?.slug) {
       revalidatePath(`/product/${product.slug}`);
@@ -388,7 +388,7 @@ export async function deleteReview(id: string) {
 
     const product = await Product.findById(review.product).select("slug").lean();
 
-    updateTag("reviews");
+    revalidateTag("reviews");
     revalidatePath("/admin/reviews");
     if (product?.slug) {
       revalidatePath(`/product/${product.slug}`);
