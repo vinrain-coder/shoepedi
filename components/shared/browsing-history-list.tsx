@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import useBrowsingHistory from "@/hooks/use-browsing-history";
 import ProductSlider from "./product/product-slider";
 import { Separator } from "../ui/separator";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 // Client-side memory cache
@@ -98,9 +99,18 @@ export default function BrowsingHistoryList({
       {/* RELATED SECTION */}
       {showRelated && (
         <>
+          <div className="flex justify-between items-end mb-2 px-1">
+            <h2 className="h2-bold">Related to items you&apos;ve viewed</h2>
+            <Link
+              href="/browsing-history"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View or edit your browsing history
+            </Link>
+          </div>
           <Separator className={cn("mb-4", className)} />
           <ProductSection
-            title="Related to items that you've viewed"
+            showTitle={false}
             products={relatedProducts}
             loading={loading}
           />
@@ -128,11 +138,13 @@ function ProductSection({
   products,
   loading,
   hideDetails = false,
+  showTitle = true,
 }: {
-  title: string;
+  title?: string;
   products: any[];
   loading: boolean;
   hideDetails?: boolean;
+  showTitle?: boolean;
 }) {
   if (loading) {
     return (
@@ -154,6 +166,7 @@ function ProductSection({
       title={title}
       products={products}
       hideDetails={hideDetails}
+      showTitle={showTitle}
     />
   );
       }

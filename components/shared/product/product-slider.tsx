@@ -15,14 +15,16 @@ export default function ProductSlider({
   title,
   products,
   hideDetails = false,
+  showTitle = true,
 }: {
   title?: string;
   products: IProduct[];
   hideDetails?: boolean;
+  showTitle?: boolean;
 }) {
   return (
     <div className="w-full bg-background">
-      <h2 className="h2-bold mb-5">{title}</h2>
+      {showTitle && <h2 className="h2-bold mb-5">{title}</h2>}
       <Carousel opts={{ align: "start" }} className="w-full">
         <CarouselContent className="-ml-4">
           {products.map((product) => (
