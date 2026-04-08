@@ -65,6 +65,7 @@ export default function Footer() {
         { label: "Orders", href: "/account/orders" },
         { label: "Wishlist", href: "/wishlist" },
         { label: "Cart", href: "/cart" },
+        { label: "Browsing History", href: "/browsing-history" },
         ...(isAdmin
           ? [{ label: "Admin Dashboard", href: "/admin/overview" }]
           : []),
