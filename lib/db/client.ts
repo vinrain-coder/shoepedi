@@ -1,11 +1,11 @@
 // lib/mongodb.ts
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+const uri = process.env.MONGODB_URI!;
 const dbName = process.env.MONGODB_DB || "shoestar";
 
 if (!uri) {
-  throw new Error("Please set MONGODB_URI (or MONGO_URI) in your environment.");
+  throw new Error("Please add your Mongo URI to .env");
 }
 
 let client: MongoClient;

@@ -66,15 +66,14 @@ export default async function AdminUserCoinHistoryPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Coin History</h1>
-          <p className="text-muted-foreground">Inspect user coin events and apply manual adjustments.</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground">
             {data.user.name} ({data.user.email})
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/coins">Back to Coin List</Link>
           </Button>
@@ -82,7 +81,7 @@ export default async function AdminUserCoinHistoryPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Current Balance</CardTitle>
