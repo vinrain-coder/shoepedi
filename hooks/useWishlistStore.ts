@@ -8,6 +8,7 @@ export interface WishlistState {
 
   setProducts: (products: IProduct[]) => void;
   addProduct: (product: IProduct) => void;
+  addProductById: (productId: string) => void;
   removeProduct: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   setCount: (count: number) => void;
@@ -42,15 +43,24 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     });
   },
 
+  addProductById: (productId) => {
+    if (get().ids.includes(productId)) return;
+    set((state) => ({
+      ids: [...state.ids, productId],
+      count: state.count + 1,
+    }));
+  },
+
   removeProduct: (productId) => {
     set((state) => {
-      const updated = state.products.filter(
+      const updatedProducts = state.products.filter(
         (p) => p._id.toString() !== productId
       );
+      const updatedIds = state.ids.filter((id) => id !== productId);
       return {
-        products: updated,
-        ids: updated.map((p) => p._id.toString()),
-        count: updated.length,
+        products: updatedProducts,
+        ids: updatedIds,
+        count: updatedIds.length,
       };
     });
   },

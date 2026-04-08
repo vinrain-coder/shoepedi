@@ -101,19 +101,21 @@ export default function AnalyticsReport() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <MetricCard title="Visitors" value={formatNumber(data.totals.visitors)} icon={Users} />
-        <MetricCard title="Page Views" value={formatNumber(data.totals.pageViews)} icon={Eye} />
-        <MetricCard title="Sessions" value={formatNumber(data.totals.sessions)} icon={Activity} />
+        <MetricCard title="Visitors" value={formatNumber(data.totals.visitors)} icon={Users} tone="purple" />
+        <MetricCard title="Page Views" value={formatNumber(data.totals.pageViews)} icon={Eye} tone="sky" />
+        <MetricCard title="Sessions" value={formatNumber(data.totals.sessions)} icon={Activity} tone="indigo" />
         <MetricCard
           title="Realtime (5m)"
           value={formatNumber(data.totals.realtimeVisitors)}
           icon={TimerReset}
+          tone="amber"
         />
-        <MetricCard title="Bounce Rate" value={`${data.totals.bounceRate}%`} icon={Gauge} />
+        <MetricCard title="Bounce Rate" value={`${data.totals.bounceRate}%`} icon={Gauge} tone="rose" />
         <MetricCard
           title="Avg Session Duration"
           value={formatDuration(data.totals.avgDurationSeconds)}
           icon={Clock3}
+          tone="emerald"
         />
       </div>
 
@@ -265,13 +267,42 @@ function MetricCard({
   title,
   value,
   icon: Icon,
+  tone,
 }: {
   title: string;
   value: string;
   icon: React.ComponentType<{ className?: string }>;
+  tone: "emerald" | "sky" | "indigo" | "purple" | "amber" | "rose";
 }) {
+  const toneClasses = {
+    emerald: {
+      border: "border-l-emerald-500",
+      icon: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+    },
+    sky: {
+      border: "border-l-sky-500",
+      icon: "bg-sky-100 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400",
+    },
+    indigo: {
+      border: "border-l-indigo-500",
+      icon: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
+    },
+    purple: {
+      border: "border-l-purple-500",
+      icon: "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400",
+    },
+    amber: {
+      border: "border-l-amber-500",
+      icon: "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
+    },
+    rose: {
+      border: "border-l-rose-500",
+      icon: "bg-rose-100 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400",
+    },
+  }[tone];
+
   return (
-    <Card className="border-border/70 shadow-none">
+    <Card className={`relative overflow-hidden border-l-4 shadow-sm transition-all hover:shadow-md ${toneClasses.border}`}>
       <CardContent className="flex items-center justify-between p-4">
         <div className="space-y-1">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -279,10 +310,13 @@ function MetricCard({
           </p>
           <p className="text-2xl font-semibold tracking-tight">{value}</p>
         </div>
-        <div className="rounded-full border border-border/80 bg-muted/35 p-2.5">
-          <Icon className="size-4 text-muted-foreground" />
+        <div className={`rounded-full p-2.5 ${toneClasses.icon}`}>
+          <Icon className="size-4" />
         </div>
       </CardContent>
+      <div className="absolute bottom-0 right-0 p-2 opacity-5">
+        <Icon className="size-12" />
+      </div>
     </Card>
   );
 }

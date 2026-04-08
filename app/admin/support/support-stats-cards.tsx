@@ -104,23 +104,27 @@ export default function SupportStatsCards({
               <Card
                 key={stat.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:ring-2 hover:ring-primary/20",
+                  "cursor-pointer border-dashed shadow-none transition-colors",
                   isActive
                     ? "ring-2 ring-primary"
-                    : "opacity-80 shadow-none border-dashed"
+                   : "opacity-80 border-dashed shadow-none"
                 )}
                 onClick={() => handleStatusClick(stat.id)}
               >
-                <CardContent className="flex flex-col items-center justify-center p-3 text-center">
-                  <div className={cn("rounded-full p-1.5 mb-1", stat.color)}>
-                    <Icon className="size-3" />
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        {stat.label}
+                      </p>
+                      <p className="text-base sm:text-xl font-bold leading-tight">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={cn("rounded-full p-1.5", stat.color)}>
+                      <Icon className="size-3.5" />
+                    </div>
                   </div>
-                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-tight line-clamp-1">
-                    {stat.label}
-                  </span>
-                  <span className="text-lg font-bold leading-tight">
-                    {stat.value}
-                  </span>
                 </CardContent>
               </Card>
             );

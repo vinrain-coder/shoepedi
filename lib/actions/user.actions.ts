@@ -35,6 +35,39 @@ export async function registerUser(userSignUp: IUserSignUp) {
   }
 }
 
+export async function createUserByAdmin(
+  userData: IUserSignUp & { role?: "ADMIN" | "USER" }
+) {
+  try {
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      throw new Error("Unauthorized");
+    }
+
+    const user = await UserSignUpSchema.parseAsync({
+      name: userData.name,
+      email: userData.email,
+      password: userData.password,
+      confirmPassword: userData.confirmPassword,
+    });
+
+    await connectToDatabase();
+    const existingUser = await User.findOne({ email: user.email });
+    if (existingUser) throw new Error("Email already exists");
+
+    await User.create({
+      ...user,
+      role: userData.role || "USER",
+      password: await bcrypt.hash(user.password, 5),
+    });
+    revalidatePath("/admin/users");
+
+    return { success: true, message: "User created successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
 // DELETE
 
 export async function deleteUser(id: string) {

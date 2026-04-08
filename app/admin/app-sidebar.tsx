@@ -162,7 +162,11 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  siteLogo,
+  siteName,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { siteLogo: string; siteName: string }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -174,13 +178,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src="/icons/logo.svg"
+                  src={siteLogo}
                   alt="Logo"
                   width={36}
                   height={36}
                   className="rounded"
                 />
-                <span className="text-base font-semibold">ShoePedi</span>
+                <span className="text-base font-semibold">{siteName}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

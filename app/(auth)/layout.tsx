@@ -15,9 +15,9 @@ export default async function AuthLayout({
   const { site } = await getSetting();
 
   return (
-    <div className="flex flex-col">
+    <div className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-center">
+      <div className="mb-4 flex items-center justify-center">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src={site.logo}
@@ -33,12 +33,10 @@ export default async function AuthLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex justify-center px-1">
-        <div className="w-full max-w-md p-1">{children}</div>
-      </div>
+      <div className="w-full">{children}</div>
 
       {/* Footer */}
-      <div className="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-1">
+      <div className="mt-4 rounded-md bg-gray-900 py-6 text-center text-xs text-gray-400">
         <div className="flex justify-center space-x-6 mb-2">
           <Link href="/page/conditions-of-use" className="hover:underline">
             Conditions of Use

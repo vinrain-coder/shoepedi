@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useCompareStore } from "@/hooks/useCompareStore";
 import { IProduct } from "@/lib/db/models/product.model";
 import { cn } from "@/lib/utils";
-import { Scale } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 
 type CompareButtonProps = {
@@ -57,7 +57,7 @@ export default function CompareButton({
         )}
         onClick={toggleCompare}
       >
-        <Scale size={16} />
+        <ArrowLeftRight size={16} />
       </button>
     );
   }
@@ -69,7 +69,7 @@ export default function CompareButton({
       className={cn("flex items-center gap-2 w-full rounded-full", className)}
       onClick={toggleCompare}
     >
-      <Scale className="h-4 w-4" />
+      <ArrowLeftRight className="h-4 w-4" />
       {inCompare ? "Remove from Compare" : "Add to Compare"}
     </Button>
   );

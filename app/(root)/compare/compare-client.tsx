@@ -7,7 +7,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { useCompareStore } from "@/hooks/useCompareStore";
 import { formatNumber, generateId, round2 } from "@/lib/utils";
-import { ArrowRight, Scale, Star, X } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Star, X } from "lucide-react";
 import AddToCart from "@/components/shared/product/add-to-cart";
 
 const fallback = "—";
@@ -18,7 +18,7 @@ export default function CompareClient() {
   if (!products.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-        <Scale className="h-12 w-12 text-muted-foreground/40 mb-4" />
+        <ArrowLeftRight className="h-12 w-12 text-muted-foreground/40 mb-4" />
         <h2 className="text-xl font-semibold mb-2">Compare Products</h2>
         <p className="text-sm text-muted-foreground text-center max-w-md mb-6">
           Add up to {maxItems} products to compare specs side by side

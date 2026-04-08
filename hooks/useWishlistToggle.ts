@@ -9,7 +9,6 @@ import {
 } from "@/lib/actions/wishlist.actions";
 import { useSession } from "@/lib/auth-client";
 import { useWishlistStore } from "@/hooks/useWishlistStore";
-import { getProductById } from "@/lib/actions/product.actions";
 
 export function useWishlistToggle(
   productId: string,
@@ -19,7 +18,7 @@ export function useWishlistToggle(
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  const { isInWishlist, addProduct, removeProduct } = useWishlistStore();
+  const { isInWishlist, addProductById, removeProduct } = useWishlistStore();
   const inWishlist = isInWishlist(productId) || initialInWishlist;
 
   const toggleWishlist = () => {
@@ -30,9 +29,8 @@ export function useWishlistToggle(
       return;
     }
 
-    if (inWishlist) {
-      removeProduct(productId);
-    }
+    if (inWishlist) removeProduct(productId);
+    else addProductById(productId);
 
     startTransition(async () => {
       try {
@@ -40,16 +38,13 @@ export function useWishlistToggle(
           await removeFromWishlist(productId);
           toast.success("Removed from wishlist");
         } else {
-          const product = await getProductById(productId);
-          if (product) addProduct(product);
           await addToWishlist(productId);
           toast.success("Added to wishlist♥️");
         }
       } catch {
         // revert if API fails
         if (inWishlist) {
-          const product = await getProductById(productId);
-          if (product) addProduct(product);
+          addProductById(productId);
         } else {
           removeProduct(productId);
         }

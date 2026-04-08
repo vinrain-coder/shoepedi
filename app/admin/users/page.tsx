@@ -70,6 +70,9 @@ export default async function AdminUserPage(props: {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button asChild>
+            <Link href="/admin/users/create">Create User</Link>
+          </Button>
           <Form action="/admin/users" className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

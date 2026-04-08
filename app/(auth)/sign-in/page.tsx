@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function SignIn() {
   return (
-    <main className="flex min-h-svh items-center justify-center">
+    <main>
       <SignInForm />
     </main>
   );
