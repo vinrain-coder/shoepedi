@@ -99,7 +99,11 @@ export default async function CategoryPage({
     rating = "all",
     sort = "best-selling",
     page = "1",
+    layout = DEFAULT_PRODUCT_CARD_LAYOUT,
   } = sp;
+  const selectedLayout = isProductCardLayout(layout)
+    ? layout
+    : DEFAULT_PRODUCT_CARD_LAYOUT;
 
   const filterParams = {
     q,
@@ -112,6 +116,7 @@ export default async function CategoryPage({
     rating,
     sort,
     page,
+    layout: selectedLayout,
   };
 
   // Fetch all data (IDENTICAL to brand page)

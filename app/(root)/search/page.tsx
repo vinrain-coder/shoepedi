@@ -72,7 +72,11 @@ export default async function SearchPage(props: {
     rating = "all",
     sort = "best-selling",
     page = "1",
+    layout = DEFAULT_PRODUCT_CARD_LAYOUT,
   } = searchParams;
+  const selectedLayout = isProductCardLayout(layout)
+    ? layout
+    : DEFAULT_PRODUCT_CARD_LAYOUT;
   const params = {
     q,
     category,
@@ -84,6 +88,7 @@ export default async function SearchPage(props: {
     rating,
     sort,
     page,
+    layout: selectedLayout,
   };
 
   const [categories, tags, brands, colors, sizes, data] = await Promise.all([
