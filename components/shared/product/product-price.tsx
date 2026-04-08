@@ -10,6 +10,7 @@ const ProductPrice = ({
   isDeal = false,
   forListing = true,
   plain = false,
+  align = "center",
 }: {
   price: number;
   isDeal?: boolean;
@@ -17,9 +18,16 @@ const ProductPrice = ({
   className?: string;
   forListing?: boolean;
   plain?: boolean;
+  align?: "start" | "center" | "end";
 }) => {
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
+  const justifyClass =
+    align === "start"
+      ? "justify-start"
+      : align === "end"
+        ? "justify-end"
+        : "justify-center";
 
   // Logic to calculate discount remains the same
   const discountPercent = Math.round(100 - (price / listPrice) * 100);
@@ -66,7 +74,7 @@ const ProductPrice = ({
           </span>
         </div>
         <div
-          className={`flex ${forListing ? "justify-center" : "justify-start"} items-center gap-2 flex-wrap`}
+          className={`flex ${forListing ? justifyClass : "justify-start"} items-center gap-2 flex-wrap`}
         >
           <div className={cn("text-2xl sm:text-3xl break-words", className)}>
             <span className="text-xs align-super">{currency.symbol}</span>
@@ -84,7 +92,7 @@ const ProductPrice = ({
   // Standard discount layout
   return (
     <div className="">
-      <div className="flex justify-center gap-2 flex-wrap items-center">
+      <div className={cn("flex gap-2 flex-wrap items-center", justifyClass)}>
         <div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
           -{discountPercent}%
         </div>

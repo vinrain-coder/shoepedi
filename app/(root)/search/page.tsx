@@ -1,4 +1,3 @@
-import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
 import {
@@ -14,6 +13,7 @@ import FiltersClient from "@/components/shared/search/filters-client";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
+import ProductLayoutSwitcher from "@/components/shared/product/product-layout-switcher";
 
 export async function generateMetadata(props: {
   searchParams: Promise<any>;
@@ -129,15 +129,7 @@ export default async function SearchPage(props: {
           sizes={sizes}
         />
         <div className="md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-4">
-            {data.products.length === 0 ? (
-              <div>No product found</div>
-            ) : (
-              data.products.map((p: IProduct) => (
-                <ProductCard key={p._id.toString()} product={p} />
-              ))
-            )}
-          </div>
+          <ProductLayoutSwitcher products={data.products as IProduct[]} />
           {data.totalPages > 1 && (
             <Pagination page={page} totalPages={data.totalPages} />
           )}
