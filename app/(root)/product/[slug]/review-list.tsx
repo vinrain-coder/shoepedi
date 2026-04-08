@@ -17,6 +17,7 @@ import { z } from "zod";
 import RatingSummary from "@/components/shared/product/rating-summary";
 import ReviewImageUploader from "@/components/shared/review-image-uploader";
 import DeleteDialog from "@/components/shared/delete-dialog";
+import { LoadingButton } from "@/components/shared/loading-button";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -159,6 +160,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
   const [page, setPage] = useState(2);
   const [totalPages, setTotalPages] = useState(0);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
   const { ref, inView } = useInView({ triggerOnce: true });
@@ -200,17 +202,25 @@ export default function ReviewList({ product }: { product: IProduct }) {
   };
 
   const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
-    const res = await submitReviewAction(
-      { ...values, product: product._id.toString() },
-      `/product/${product.slug}`
-    );
+    setIsSubmitting(true);
+    try {
+      const res = await submitReviewAction(
+        { ...values, product: product._id.toString() },
+        `/product/${product.slug}`
+      );
 
-    if (!res.success) return toast.error(res.message);
+      if (!res.success) {
+        toast.error(res.message);
+        return;
+      }
 
-    toast.success(res.message);
-    form.reset(reviewFormDefaultValues);
-    setOpen(false);
-    loadInitial();
+      toast.success(res.message);
+      form.reset(reviewFormDefaultValues);
+      setOpen(false);
+      loadInitial();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const reviewForm = (
@@ -220,15 +230,25 @@ export default function ReviewList({ product }: { product: IProduct }) {
 
         {isMobile ? (
           <DrawerFooter className="px-0">
-            <Button className="w-full rounded-full" type="submit">
+            <LoadingButton
+              className="w-full rounded-full"
+              type="submit"
+              loading={isSubmitting}
+              loadingText="Submitting..."
+            >
               Submit review
-            </Button>
+            </LoadingButton>
           </DrawerFooter>
         ) : (
           <DialogFooter>
-            <Button className="w-full rounded-full" type="submit">
+            <LoadingButton
+              className="w-full rounded-full"
+              type="submit"
+              loading={isSubmitting}
+              loadingText="Submitting..."
+            >
               Submit review
-            </Button>
+            </LoadingButton>
           </DialogFooter>
         )}
       </form>

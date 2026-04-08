@@ -40,17 +40,7 @@ type ParamsShape = {
   lockTag?: boolean;
 };
 
-type FilterKey =
-  | "category"
-  | "brand"
-  | "tag"
-  | "color"
-  | "size"
-  | "price"
-  | "rating";
-
 export default function FiltersClient({
-  initialParams,
   categories,
   tags,
   brands,
@@ -91,7 +81,6 @@ export default function FiltersClient({
   };
 
   const [open, setOpen] = useState(false);
-
 
   const [categorySearch, setCategorySearch] = useState("");
   const [brandSearch, setBrandSearch] = useState("");
@@ -143,7 +132,6 @@ export default function FiltersClient({
     defaultAccordionValues
   );
 
-
   // --- Helpers ---
   function buildSearchUrl(params: ParamsShape) {
     const p = new URLSearchParams();
@@ -188,7 +176,6 @@ export default function FiltersClient({
     updateParam(key, undefined);
   }
 
-
   function clearAllLocal() {
     startTransition(() => {
       router.push("/search");
@@ -212,156 +199,144 @@ export default function FiltersClient({
 
   // --- Filters content (desktop + mobile scroll) ---
 
-  const renderFiltersContent = () => {
-    return (
-      
-        
-      <Accordion
-        type="multiple"
-        value={openAccordions}
-        onValueChange={setOpenAccordions}
-        className="space-y-4"
-      >
-        {/* ================= Categories ================= */}
-        {!lockCategory && !lockBrand && (
-          <AccordionItem value="categories">
-            <AccordionTrigger className="font-bold">
-              Categories
-            </AccordionTrigger>
-            <AccordionContent>
-              <input
-                placeholder="Search categories…"
-                value={categorySearch}
-                onChange={(e) => setCategorySearch(e.target.value)}
-                className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
-              />
-
-              <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
-                <FilterButton
-                  disabled={current.category === "all"}
-                  active={current.category === "all"}
-                  onClick={() => updateParam("category", "all")}
-                >
-                  All
-                </FilterButton>
-
-                {filteredCategories.map((c) => (
-                  <FilterButton
-                    key={c}
-                    active={current.category === c}
-                    onClick={() => updateParam("category", c)}
-                  >
-                    {c}
-                  </FilterButton>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {/* ================= Price ================= */}
-        <AccordionItem value="price">
-          <AccordionTrigger className="font-bold">Price</AccordionTrigger>
-          <AccordionContent>
-            <PriceControl
-              initialPrice={current.price ?? "all"}
-              onApply={applyPriceFromControl}
+  const renderFiltersContent = (isDesktop = false) => {
+    const sections = [
+      {
+        id: "categories",
+        title: "Categories",
+        visible: !lockCategory && !lockBrand,
+        content: (
+          <>
+            <input
+              placeholder="Search categories…"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
             />
-          </AccordionContent>
-        </AccordionItem>
 
-        {/* ================= Rating ================= */}
-        <AccordionItem value="rating">
-          <AccordionTrigger className="font-bold">
-            Customer Review
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="flex flex-wrap gap-2">
+            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
               <FilterButton
-                disabled={current.rating === "all"}
-                active={current.rating === "all"}
-                onClick={() => updateParam("rating", "all")}
+                disabled={current.category === "all"}
+                active={current.category === "all"}
+                onClick={() => updateParam("category", "all")}
               >
                 All
               </FilterButton>
 
-              <FilterButton
-                active={current.rating === "4"}
-                onClick={() => updateParam("rating", "4")}
-              >
-                4 & Up
-              </FilterButton>
+              {filteredCategories.map((c) => (
+                <FilterButton
+                  key={c}
+                  active={current.category === c}
+                  onClick={() => updateParam("category", c)}
+                >
+                  {c}
+                </FilterButton>
+              ))}
             </div>
-          </AccordionContent>
-        </AccordionItem>
+          </>
+        ),
+      },
+      {
+        id: "price",
+        title: "Price",
+        visible: true,
+        content: (
+          <PriceControl
+            initialPrice={current.price ?? "all"}
+            onApply={applyPriceFromControl}
+          />
+        ),
+      },
+      {
+        id: "rating",
+        title: "Customer Review",
+        visible: true,
+        content: (
+          <div className="flex flex-wrap gap-2">
+            <FilterButton
+              disabled={current.rating === "all"}
+              active={current.rating === "all"}
+              onClick={() => updateParam("rating", "all")}
+            >
+              All
+            </FilterButton>
 
-        {/* ================= Tags ================= */}
-        {!lockTag && (
-          <AccordionItem value="tags">
-            <AccordionTrigger className="font-bold">Tags</AccordionTrigger>
-            <AccordionContent>
-              <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <FilterButton
+              active={current.rating === "4"}
+              onClick={() => updateParam("rating", "4")}
+            >
+              4 & Up
+            </FilterButton>
+          </div>
+        ),
+      },
+      {
+        id: "tags",
+        title: "Tags",
+        visible: !lockTag,
+        content: (
+          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <FilterButton
+              disabled={current.tag === "all"}
+              active={current.tag === "all"}
+              onClick={() => updateParam("tag", "all")}
+            >
+              All
+            </FilterButton>
+
+            {tags.map((t) => (
+              <FilterButton
+                key={t}
+                active={current.tag === t}
+                onClick={() => updateParam("tag", t)}
+              >
+                {t}
+              </FilterButton>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: "brands",
+        title: "Brands",
+        visible: !lockBrand,
+        content: (
+          <>
+            <input
+              placeholder="Search brands…"
+              value={brandSearch}
+              onChange={(e) => setBrandSearch(e.target.value)}
+              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+            />
+
+            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+              <FilterButton
+                disabled={current.brand === "all"}
+                active={current.brand === "all"}
+                onClick={() => updateParam("brand", "all")}
+              >
+                All
+              </FilterButton>
+
+              {filteredBrands.map((b) => (
                 <FilterButton
-                  disabled={current.tag === "all"}
-                  active={current.tag === "all"}
-                  onClick={() => updateParam("tag", "all")}
+                  key={b}
+                  active={current.brand === b}
+                  onClick={() => updateParam("brand", b)}
                 >
-                  All
+                  {b}
                 </FilterButton>
-
-                {tags.map((t) => (
-                  <FilterButton
-                    key={t}
-                    active={current.tag === t}
-                    onClick={() => updateParam("tag", t)}
-                  >
-                    {t}
-                  </FilterButton>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {/* ================= Brands ================= */}
-        {!lockBrand && (
-          <AccordionItem value="brands">
-            <AccordionTrigger className="font-bold">Brands</AccordionTrigger>
-            <AccordionContent>
-              <input
-                placeholder="Search brands…"
-                value={brandSearch}
-                onChange={(e) => setBrandSearch(e.target.value)}
-                className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
-              />
-
-              <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
-                <FilterButton
-                  disabled={current.brand === "all"}
-                  active={current.brand === "all"}
-                  onClick={() => updateParam("brand", "all")}
-                >
-                  All
-                </FilterButton>
-
-                {filteredBrands.map((b) => (
-                  <FilterButton
-                    key={b}
-                    active={current.brand === b}
-                    onClick={() => updateParam("brand", b)}
-                  >
-                    {b}
-                  </FilterButton>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {/* ================= Colors (WITH SEARCH) ================= */}
-        <AccordionItem value="colors">
-          <AccordionTrigger className="font-bold">Colors</AccordionTrigger>
-          <AccordionContent>
+              ))}
+            </div>
+          </>
+        ),
+      },
+      {
+        id: "colors",
+        title: "Colors",
+        visible: true,
+        content: (
+          <>
             <input
               placeholder="Search colors…"
               value={colorSearch}
@@ -384,64 +359,100 @@ export default function FiltersClient({
                   active={current.color === c}
                   onClick={() => updateParam("color", c)}
                   className="flex items-center gap-2"
+                  title={c}
                 >
                   <span
                     className="h-4 w-4 rounded-full border border-muted-foreground"
                     style={{ backgroundColor: c }}
                   />
-                  <span>{c}</span>
+                  {/* We only use backgrounds for colors as requested */}
                 </FilterButton>
               ))}
             </div>
-          </AccordionContent>
-        </AccordionItem>
+          </>
+        ),
+      },
+      {
+        id: "sizes",
+        title: "Sizes",
+        visible: true,
+        content: (
+          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <FilterButton
+              disabled={current.size === "all"}
+              active={current.size === "all"}
+              onClick={() => updateParam("size", "all")}
+            >
+              All
+            </FilterButton>
 
-        {/* ================= Sizes ================= */}
-        <AccordionItem value="sizes">
-          <AccordionTrigger className="font-bold">Sizes</AccordionTrigger>
-          <AccordionContent>
-            <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            {sizes.map((s) => (
               <FilterButton
-                disabled={current.size === "all"}
-                active={current.size === "all"}
-                onClick={() => updateParam("size", "all")}
+                key={s}
+                active={current.size === s}
+                onClick={() => updateParam("size", s)}
               >
-                All
+                {s}
               </FilterButton>
+            ))}
+          </div>
+        ),
+      },
+    ];
 
-              {sizes.map((s) => (
-                <FilterButton
-                  key={s}
-                  active={current.size === s}
-                  onClick={() => updateParam("size", s)}
-                >
-                  {s}
-                </FilterButton>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+    if (isDesktop) {
+      return (
+        <div className="space-y-8">
+          {sections
+            .filter((s) => s.visible)
+            .map((s) => (
+              <div key={s.id} className="space-y-3">
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
+                  {s.title}
+                </h3>
+                {s.content}
+              </div>
+            ))}
+        </div>
+      );
+    }
+
+    return (
+      <Accordion
+        type="multiple"
+        value={openAccordions}
+        onValueChange={setOpenAccordions}
+        className="space-y-4"
+      >
+        {sections
+          .filter((s) => s.visible)
+          .map((s) => (
+            <AccordionItem key={s.id} value={s.id}>
+              <AccordionTrigger className="font-bold">
+                {s.title}
+              </AccordionTrigger>
+              <AccordionContent>{s.content}</AccordionContent>
+            </AccordionItem>
+          ))}
       </Accordion>
-    
-          
     );
   };
 
   return (
     <>
-      
-      {/* Mobile */}
-     {isPending && (
-  <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-sm flex items-center justify-center">
-    <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
-      <Loader className="h-6 w-6 animate-spin text-primary" />
-      <span className="text-sm text-muted-foreground">
-        Updating results…
-      </span>
-    </div>
-  </div>
-)}
+      {/* Loading overlay during transition */}
+      {isPending && (
+        <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-sm flex items-center justify-center">
+          <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
+            <Loader className="h-6 w-6 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">
+              Updating results…
+            </span>
+          </div>
+        </div>
+      )}
 
+      {/* Mobile */}
       <div className="md:hidden mb-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
@@ -479,7 +490,7 @@ export default function FiltersClient({
                 className="overflow-auto p-0"
                 style={{ maxHeight: "calc(100vh - 180px)" }}
               >
-                {renderFiltersContent()}
+                {renderFiltersContent(false)}
               </div>
 
               {/* Footer buttons */}
@@ -510,13 +521,9 @@ export default function FiltersClient({
           <div className="mb-3">
             <SelectedFiltersPills params={current} onRemove={handleRemove} />
           </div>
-          {renderFiltersContent()}
+          {renderFiltersContent(true)}
         </div>
       </aside>
     </>
   );
 }
-
-
-
-

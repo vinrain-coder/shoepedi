@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-interface FilterButtonProps {
+interface FilterButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
@@ -15,6 +15,7 @@ export default function FilterButton({
   onClick,
   children,
   className,
+  ...props
 }: FilterButtonProps) {
   return (
     <button
@@ -29,6 +30,7 @@ export default function FilterButton({
         },
         className
       )}
+      {...props}
     >
       {children}
     </button>
