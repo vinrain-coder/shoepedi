@@ -367,6 +367,17 @@ export const DeliveryCountySchema = z.object({
     .min(1, "At least one delivery place is required"),
 });
 
+export const HeaderSubMenuSchema = z.object({
+  name: z.string().trim().min(1, "Sub-menu name is required"),
+  href: z.string().trim().min(1, "Sub-menu URL is required"),
+});
+
+export const HeaderMenuSchema = z.object({
+  name: z.string().trim().min(1, "Menu name is required"),
+  href: z.string().trim().min(1, "Menu URL is required"),
+  subMenus: z.array(HeaderSubMenuSchema).default([]),
+});
+
 
 const SmsNotificationSchema = z.object({
   enabled: z.boolean().default(true),
@@ -428,6 +439,7 @@ export const SettingInputSchema = z.object({
   carousels: z
     .array(CarouselSchema)
     .min(1, "At least one language is required"),
+  headerMenus: z.array(HeaderMenuSchema).default([]),
   defaultLanguage: z.string().min(1, "Language is required"),
   availableCurrencies: z
     .array(SiteCurrencySchema)

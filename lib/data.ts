@@ -374,10 +374,32 @@ Please note that certain items, such as socks and insoles, are not eligible for 
     },
   ],
   headerMenus: [
-    { name: "New Arrivals", href: "/search?tag=new-arrival" },
+    {
+      name: "New Arrivals",
+      href: "/search?tag=new-arrival",
+      subMenus: [
+        { name: "Running", href: "/search?tag=new-arrival&category=Running%20Shoes" },
+        { name: "Basketball", href: "/search?tag=new-arrival&category=Basketball%20Shoes" },
+      ],
+    },
     { name: "Best Sellers", href: "/search?tag=best-seller" },
-    { name: "Brands", href: "/brands" },
-    { name: "Categories", href: "/categories" },
+    {
+      name: "Brands",
+      href: "/brands",
+      subMenus: [
+        { name: "Nike", href: "/search?brand=Nike" },
+        { name: "Adidas", href: "/search?brand=Adidas" },
+        { name: "Jordan", href: "/search?brand=Jordan" },
+      ],
+    },
+    {
+      name: "Categories",
+      href: "/categories",
+      subMenus: [
+        { name: "Running Shoes", href: "/categories/running-shoes" },
+        { name: "Casual Sneakers", href: "/categories/casual-sneakers" },
+      ],
+    },
     { name: "Blog", href: "/blog" },
     { name: "Customer Service", href: "/page/customer-service" },
   ],
@@ -430,6 +452,36 @@ Please note that certain items, such as socks and insoles, are not eligible for 
           image: "/images/banners/hero-2.jpg",
           url: "/categories/running-shoes",
         },
+      ],
+      headerMenus: [
+        {
+          name: "New Arrivals",
+          href: "/search?tag=new-arrival",
+          subMenus: [
+            { name: "Running", href: "/search?tag=new-arrival&category=Running%20Shoes" },
+            { name: "Basketball", href: "/search?tag=new-arrival&category=Basketball%20Shoes" },
+          ],
+        },
+        { name: "Best Sellers", href: "/search?tag=best-seller", subMenus: [] },
+        {
+          name: "Brands",
+          href: "/brands",
+          subMenus: [
+            { name: "Nike", href: "/search?brand=Nike" },
+            { name: "Adidas", href: "/search?brand=Adidas" },
+            { name: "Jordan", href: "/search?brand=Jordan" },
+          ],
+        },
+        {
+          name: "Categories",
+          href: "/categories",
+          subMenus: [
+            { name: "Running Shoes", href: "/categories/running-shoes" },
+            { name: "Casual Sneakers", href: "/categories/casual-sneakers" },
+          ],
+        },
+        { name: "Blog", href: "/blog", subMenus: [] },
+        { name: "Customer Service", href: "/page/customer-service", subMenus: [] },
       ],
       availableLanguages: [{ name: "English", code: "en-US" }],
       defaultLanguage: "en-US",
