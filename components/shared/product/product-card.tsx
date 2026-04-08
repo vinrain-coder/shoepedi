@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Card,
@@ -44,10 +44,16 @@ const ProductCard = ({
   layout?: ProductCardLayout;
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const router = useRouter();
-  const primaryImage = product.images?.[0] ?? "/placeholder.png";
-  const hoverImage = product.images?.[1] ?? primaryImage;
   const productPath = `/product/${product.slug}`;
+
+  const images = useMemo(
+    () => (product.images?.length ? product.images : ["/placeholder.png"]),
+    [product.images]
+  );
+  const primaryImage = images[selectedImageIndex] ?? images[0];
+  const hoverImage = images[1] ?? primaryImage;
 
   const prefetchProductDetails = () => {
     router.prefetch(productPath);
@@ -73,12 +79,7 @@ const ProductCard = ({
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
-    <div
-      className={cn(
-        "relative w-full overflow-hidden",
-        layout === "amazon" ? "aspect-[4/5] h-56 sm:h-64" : "aspect-[3/4] h-52 sm:h-56"
-      )}
-    >
+    <div className="relative h-52 w-full overflow-hidden sm:h-56">
       {tagStyle && firstTag && (
         <Link
           href={`/tags/${encodeURIComponent(firstTag)}`}
@@ -86,7 +87,7 @@ const ProductCard = ({
         >
           <Badge
             className={cn(
-              "rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-0.5 border-none text-white cursor-pointer",
+              "rounded-none rounded-br-md border-none px-2 py-0.5 text-[10px] font-bold uppercase text-white cursor-pointer",
               tagStyle.className
             )}
           >
@@ -95,7 +96,7 @@ const ProductCard = ({
         </Link>
       )}
       {withFloatingIcons && (
-        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
+        <div className="absolute right-2 top-2 z-10 flex flex-col gap-1.5">
           <WishlistIcon
             productId={product._id.toString()}
             initialInWishlist={isInWishlist}
@@ -113,8 +114,18 @@ const ProductCard = ({
         href={productPath}
         onMouseEnter={prefetchProductDetails}
         onFocus={prefetchProductDetails}
+        className="relative block h-full w-full"
       >
-        {product.images?.length > 1 ? (
+        {layout === "split" || selectedImageIndex > 0 ? (
+          <Image
+            src={primaryImage}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 40vw, 25vw"
+            className="object-cover"
+            priority
+          />
+        ) : product.images?.length > 1 ? (
           <ImageHover
             src={primaryImage}
             hoverSrc={hoverImage}
@@ -198,9 +209,10 @@ const ProductCard = ({
   };
 
   const AddButton = () => (
-    <div className={cn("w-full", layout === "classic" ? "text-center" : "text-left")}>
+    <div className={cn("w-full", layout === "split" ? "text-left" : "text-center")}>
       <AddToCart
         minimal
+        enableVariantSelector
         item={{
           clientId: generateId(),
           product: product._id.toString(),
@@ -214,62 +226,148 @@ const ProductCard = ({
           quantity: 1,
           image: product.images[0],
         }}
+        availableColors={product.colors}
+        availableSizes={product.sizes}
+        image={primaryImage}
       />
     </div>
   );
 
+  if (layout === "split" && !hideBorder) {
+    return (
+      <>
+        <Card className="relative overflow-hidden rounded-lg border p-3 transition-shadow hover:shadow-md">
+          <div className="grid grid-cols-[108px_1fr] gap-3 sm:grid-cols-[140px_1fr] sm:gap-4">
+            <div className="space-y-2">
+              <ProductImage withFloatingIcons />
+              {images.length > 1 && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                  {images.slice(0, 4).map((img, index) => (
+                    <button
+                      key={`${product._id.toString()}-${index}`}
+                      type="button"
+                      className={cn(
+                        "relative h-12 w-12 shrink-0 overflow-hidden rounded border",
+                        index === selectedImageIndex
+                          ? "border-primary"
+                          : "border-muted"
+                      )}
+                      onClick={() => setSelectedImageIndex(index)}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} view ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-2">
+              <Link
+                href={productPath}
+                className="line-clamp-2 text-sm font-semibold leading-5 hover:text-primary sm:text-base"
+                onMouseEnter={prefetchProductDetails}
+                onFocus={prefetchProductDetails}
+              >
+                {product.name}
+              </Link>
+
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Rating rating={product.avgRating} size={4} />
+                <span>({formatNumber(product.numReviews)})</span>
+              </div>
+
+              <ProductPrice price={product.price} listPrice={product.listPrice} />
+
+              <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+                {product.description || "Premium quality product with fast delivery and easy returns."}
+              </p>
+
+              <div className="space-y-1 text-[11px] text-muted-foreground sm:text-xs">
+                <p className="font-medium">
+                  Stock: {product.countInStock > 0 ? `${product.countInStock} available` : "Out of stock"}
+                </p>
+                <p className="line-clamp-1">Sizes: {product.sizes.slice(0, 4).join(", ") || "N/A"}</p>
+                <p className="line-clamp-1">Colors: {product.colors.slice(0, 4).join(", ") || "N/A"}</p>
+              </div>
+
+              {!hideAddToCart && <AddButton />}
+            </div>
+          </div>
+        </Card>
+
+        <ProductQuickView
+          product={product}
+          isOpen={showQuickView}
+          onClose={() => setShowQuickView(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       {hideBorder ? (
-        <div className="group relative flex flex-col">
+        <div className="relative flex flex-col">
           <ProductImage withFloatingIcons />
           {!hideDetails && (
             <>
-              <div className={cn("flex-1 p-3", layout === "classic" ? "text-center" : "text-left")}>
-                <ProductDetails />
+              <div className="flex-1 p-3 text-center">
+                <div className="space-y-0.5 text-center">
+                  <Link
+                    href={productPath}
+                    className="line-clamp-2 text-sm font-medium transition hover:text-primary sm:text-base"
+                    onMouseEnter={prefetchProductDetails}
+                    onFocus={prefetchProductDetails}
+                  >
+                    {product.name}
+                  </Link>
+                  <div className="flex justify-center gap-1 text-xs text-gray-500">
+                    <Rating rating={product.avgRating} size={4} />
+                    <span>({formatNumber(product.numReviews)})</span>
+                  </div>
+                  <ProductPrice price={product.price} listPrice={product.listPrice} />
+                </div>
               </div>
               {!hideAddToCart && <AddButton />}
             </>
           )}
         </div>
       ) : (
-        <Card
-          className={cn(
-            "group relative flex h-full flex-col rounded-sm border p-0 transition-all duration-200 hover:shadow-lg",
-            layout === "amazon" && "overflow-hidden rounded-lg",
-            layout === "minimal" && "border-muted/70"
-          )}
-        >
+        <Card className="relative flex flex-col rounded-sm p-0 hover:shadow-lg">
           <CardHeader className="p-0">
             <ProductImage withFloatingIcons />
           </CardHeader>
           {!hideDetails && (
             <>
-              <CardContent
-                className={cn(
-                  "flex-1 px-3 pb-3 pt-3",
-                  layout === "classic" && "px-0 text-center -mt-6",
-                  layout === "amazon" && "pt-4",
-                  layout === "minimal" && "pb-2"
-                )}
-              >
-                <ProductDetails />
+              <CardContent className="-mt-6 flex-1 px-0 text-center">
+                <div className="space-y-0.5 text-center">
+                  <Link
+                    href={productPath}
+                    className="line-clamp-2 text-sm font-medium transition hover:text-primary sm:text-base"
+                    onMouseEnter={prefetchProductDetails}
+                    onFocus={prefetchProductDetails}
+                  >
+                    {product.name}
+                  </Link>
+                  <div className="flex justify-center gap-1 text-xs text-gray-500">
+                    <Rating rating={product.avgRating} size={4} />
+                    <span>({formatNumber(product.numReviews)})</span>
+                  </div>
+                  <ProductPrice price={product.price} listPrice={product.listPrice} />
+                </div>
               </CardContent>
 
-              <CardFooter
-                className={cn(
-                  "px-3 pb-3",
-                  layout === "classic" && "mb-2 -mt-5",
-                  layout !== "classic" && "pt-0"
-                )}
-              >
+              <CardFooter className="-mt-5 mb-2">
                 {product.countInStock === 0 ? (
                   <Badge
                     variant="destructive"
-                    className={cn(
-                      "px-3 py-2 text-sm font-semibold",
-                      layout === "classic" ? "mx-auto hidden rounded-full" : "rounded-md"
-                    )}
+                    className="mx-auto hidden rounded-full px-3 py-2 text-sm font-semibold"
                   >
                     Out of Stock
                   </Badge>

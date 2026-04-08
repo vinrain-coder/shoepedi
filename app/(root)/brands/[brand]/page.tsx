@@ -216,11 +216,9 @@ export default async function BrandPage({
         <div className="md:col-span-4 space-y-4">
           <div
             className={
-              selectedLayout === "amazon"
-                ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4"
-                : selectedLayout === "minimal"
-                  ? "grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3"
-                  : "grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4"
+              selectedLayout === "split"
+                ? "grid grid-cols-1 gap-3 md:gap-4"
+                : "grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4"
             }
           >
             {data.products.length === 0 ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, List, Rows3 } from "lucide-react";
+import { LayoutGrid, PanelLeft } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
@@ -14,8 +14,7 @@ const LAYOUT_OPTIONS: Array<{
   icon: typeof LayoutGrid;
 }> = [
   { value: "classic", label: "Classic", icon: LayoutGrid },
-  { value: "amazon", label: "Amazon", icon: Rows3 },
-  { value: "minimal", label: "Minimal", icon: List },
+  { value: "split", label: "Detailed", icon: PanelLeft },
 ];
 
 export default function ProductLayoutSelector({

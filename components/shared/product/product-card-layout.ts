@@ -1,4 +1,4 @@
-export const PRODUCT_CARD_LAYOUTS = ["classic", "amazon", "minimal"] as const;
+export const PRODUCT_CARD_LAYOUTS = ["classic", "split"] as const;
 
 export type ProductCardLayout = (typeof PRODUCT_CARD_LAYOUTS)[number];
 
