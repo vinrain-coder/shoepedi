@@ -68,9 +68,9 @@ export default function BrowsingHistoryPage() {
   }, [ids, categories]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto">
       <Breadcrumb />
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Browsing History</h1>
           <p className="text-muted-foreground mt-1">
@@ -95,7 +95,7 @@ export default function BrowsingHistoryPage() {
       <Separator className="mb-8" />
 
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
           {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
@@ -117,10 +117,10 @@ export default function BrowsingHistoryPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
           {data.map((product) => (
             <div key={product._id} className="group relative flex flex-col">
-              <ProductCard product={product} />
+              <ProductCard product={product} hideDetails />
               <Button
                 variant="ghost"
                 size="sm"
