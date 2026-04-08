@@ -19,9 +19,6 @@ import ProductPrice from "./product-price";
 import ImageHover from "./image-hover";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
-import ProductQuickView from "./quick-view";
-import CompareButton from "./compare-button";
 import CardAddToCartSelector from "./card-add-to-cart-selector";
 
 const ProductCard = ({
@@ -39,10 +36,10 @@ const ProductCard = ({
   isInWishlist?: boolean;
   layout?: "classic" | "detailed";
 }) => {
-  const [showQuickView, setShowQuickView] = useState(false);
+  const [mainImage, setMainImage] = useState(product.images?.[0] ?? "/placeholder.png");
   const router = useRouter();
-  const primaryImage = product.images?.[0] ?? "/placeholder.png";
-  const hoverImage = product.images?.[1] ?? primaryImage;
+  const primaryImage = mainImage;
+  const hoverImage = product.images?.[1] ?? mainImage;
   const productPath = `/product/${product.slug}`;
 
   const prefetchProductDetails = () => {
@@ -96,13 +93,6 @@ const ProductCard = ({
             productId={product._id.toString()}
             initialInWishlist={isInWishlist}
           />
-          <button
-            className="rounded-full bg-background p-1.5 shadow hover:bg-muted"
-            onClick={() => setShowQuickView(true)}
-          >
-            <Eye size={16} />
-          </button>
-          <CompareButton product={product} variant="icon" />
         </div>
       )}
       <Link
@@ -160,20 +150,23 @@ const ProductCard = ({
         <Card className="relative overflow-hidden rounded-2xl border bg-card p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3.5">
           <div className="absolute right-2 top-2 z-20 flex flex-col items-center gap-1.5 sm:right-3 sm:top-3">
             <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
-            <button className="rounded-full bg-background p-1.5 shadow hover:bg-muted" onClick={() => setShowQuickView(true)}>
-              <Eye size={16} />
-            </button>
-            <CompareButton product={product} variant="icon" />
           </div>
           <div className="grid grid-cols-[104px_1fr] gap-2.5 sm:grid-cols-[144px_1fr] sm:gap-3.5 lg:grid-cols-[220px_1fr] lg:gap-5">
             <div className="w-full">
               <ProductImage />
               {!!product.images?.length && (
-                <div className="mt-1.5 flex gap-1 sm:mt-2 sm:gap-1.5">
-                  {product.images.slice(0, 4).map((image, index) => (
-                    <div key={`${image}-${index}`} className="relative h-9 w-9 overflow-hidden rounded-md border bg-muted/40 sm:h-12 sm:w-12">
+                <div className="mt-1.5 flex gap-1 overflow-x-auto pb-1 sm:mt-2 sm:gap-1.5">
+                  {product.images.map((image, index) => (
+                    <button
+                      key={`${image}-${index}`}
+                      onClick={() => setMainImage(image)}
+                      className={cn(
+                        "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border bg-muted/40 transition-all sm:h-12 sm:w-12",
+                        mainImage === image ? "border-primary ring-1 ring-primary" : "border-transparent",
+                      )}
+                    >
                       <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -231,7 +224,6 @@ const ProductCard = ({
             </div>
           </div>
         </Card>
-        <ProductQuickView product={product} isOpen={showQuickView} onClose={() => setShowQuickView(false)} />
       </>
     );
   }
@@ -277,11 +269,6 @@ const ProductCard = ({
         )}
       </Card>
       )}
-      <ProductQuickView
-        product={product}
-        isOpen={showQuickView}
-        onClose={() => setShowQuickView(false)}
-      />
     </>
   );
 };
