@@ -148,8 +148,8 @@ const ProductCard = ({
     </div>
   );
 
-  const AddButton = () => (
-    <div className="w-full text-center">
+  const AddButton = ({ className }: { className?: string }) => (
+    <div className={cn("w-full text-center", className)}>
       <CardAddToCartSelector product={product} />
     </div>
   );
@@ -157,14 +157,21 @@ const ProductCard = ({
   if (layout === "detailed") {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-2xl border bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-4">
-          <div className="grid grid-cols-[110px_1fr] gap-3 sm:grid-cols-[160px_1fr] sm:gap-4 lg:grid-cols-[220px_1fr_auto] lg:gap-6">
+        <Card className="relative overflow-hidden rounded-2xl border bg-card p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3.5">
+          <div className="absolute right-2 top-2 z-20 flex flex-col items-center gap-1.5 sm:right-3 sm:top-3">
+            <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
+            <button className="rounded-full bg-background p-1.5 shadow hover:bg-muted" onClick={() => setShowQuickView(true)}>
+              <Eye size={16} />
+            </button>
+            <CompareButton product={product} variant="icon" />
+          </div>
+          <div className="grid grid-cols-[104px_1fr] gap-2.5 sm:grid-cols-[144px_1fr] sm:gap-3.5 lg:grid-cols-[220px_1fr] lg:gap-5">
             <div className="w-full">
               <ProductImage />
               {!!product.images?.length && (
-                <div className="mt-2 flex gap-1.5 sm:mt-3 sm:gap-2">
+                <div className="mt-1.5 flex gap-1 sm:mt-2 sm:gap-1.5">
                   {product.images.slice(0, 4).map((image, index) => (
-                    <div key={`${image}-${index}`} className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted/40 sm:h-14 sm:w-14">
+                    <div key={`${image}-${index}`} className="relative h-9 w-9 overflow-hidden rounded-md border bg-muted/40 sm:h-12 sm:w-12">
                       <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
                     </div>
                   ))}
@@ -172,24 +179,22 @@ const ProductCard = ({
               )}
             </div>
 
-            <div className="min-w-0 space-y-2.5 sm:space-y-3">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex min-w-0 flex-col gap-1.5 sm:gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 pr-9 sm:pr-10">
                 {tagStyle && firstTag && (
                   <Link href={`/tags/${encodeURIComponent(firstTag)}`}>
-                    <Badge className={cn("text-[10px] text-white", tagStyle.className)}>{tagStyle.label}</Badge>
+                    <Badge className={cn("h-4 px-1.5 text-[9px] text-white", tagStyle.className)}>{tagStyle.label}</Badge>
                   </Link>
                 )}
-                <Badge variant="outline" className="text-[10px]">{product.category}</Badge>
-                {product.brand && <Badge variant="secondary" className="text-[10px]">{product.brand}</Badge>}
               </div>
 
-              <Link href={productPath} className="line-clamp-2 text-sm font-semibold hover:text-primary sm:text-base">
+              <Link href={productPath} className="line-clamp-2 text-sm font-semibold leading-tight hover:text-primary sm:text-base">
                 {product.name}
               </Link>
 
-              <p className="line-clamp-2 text-sm text-muted-foreground">{product.description || "Premium quality product designed for comfort and style."}</p>
+              <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{product.description || "Premium quality product designed for comfort and style."}</p>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
                 <Rating rating={product.avgRating} size={4} />
                 <span>({formatNumber(product.numReviews)})</span>
                 <span>•</span>
@@ -198,39 +203,31 @@ const ProductCard = ({
                 </span>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sizes</p>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sizes</p>
+                <div className="flex flex-wrap gap-1">
                   {product.sizes.slice(0, 5).map((size) => (
-                    <span key={size} className="rounded-md border px-2 py-1 text-xs">{size}</span>
+                    <span key={size} className="rounded border px-1.5 py-0.5 text-[10px] sm:text-[11px]">{size}</span>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Colors</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Colors</p>
+                <div className="flex flex-wrap gap-1.5">
                   {product.colors.slice(0, 6).map((color) => (
-                    <span key={color} title={color} className="h-5 w-5 rounded-full ring-1 ring-border" style={{ backgroundColor: color }} />
+                    <span key={color} title={color} className="h-4 w-4 rounded-full ring-1 ring-border sm:h-[18px] sm:w-[18px]" style={{ backgroundColor: color }} />
                   ))}
                 </div>
               </div>
 
-              <ProductPrice price={product.price} listPrice={product.listPrice} align="start" className="text-xl sm:text-2xl" />
+              <div className="mt-auto space-y-2 pt-0.5 sm:pt-1">
+                <ProductPrice price={product.price} listPrice={product.listPrice} align="start" className="text-lg sm:text-xl" />
 
-              {!hideAddToCart && (
-                <div className="pt-1">
-                  <AddButton />
-                </div>
-              )}
-            </div>
-
-            <div className="col-span-2 flex items-start justify-end gap-2 lg:col-span-1 lg:flex-col lg:items-end">
-              <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
-              <button className="rounded-full bg-background p-1.5 shadow hover:bg-muted" onClick={() => setShowQuickView(true)}>
-                <Eye size={16} />
-              </button>
-              <CompareButton product={product} variant="icon" />
+                {!hideAddToCart && (
+                  <AddButton className="text-left [&>button]:w-full [&>button]:sm:w-auto" />
+                )}
+              </div>
             </div>
           </div>
         </Card>
