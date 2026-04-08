@@ -61,6 +61,18 @@ const settingSchema = new Schema<ISetting>(
         },
       },
     ],
+    headerMenus: [
+      {
+        name: { type: String, required: true },
+        href: { type: String, required: true },
+        subMenus: [
+          {
+            name: { type: String, required: true },
+            href: { type: String, required: true },
+          },
+        ],
+      },
+    ],
     availableLanguages: [
       {
         name: {
