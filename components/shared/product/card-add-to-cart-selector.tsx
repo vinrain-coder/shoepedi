@@ -73,13 +73,13 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
     <div className="space-y-4">
       <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Size</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {product.sizes.map((size) => (
             <Button
               key={size}
               type="button"
               size="sm"
-              className="rounded-full px-3"
+              className="h-8 rounded-full px-2.5 text-xs"
               variant={selectedSize === size ? "default" : "outline"}
               onClick={() => setSelectedSize(size)}
             >
@@ -139,7 +139,7 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
 
   return (
     <>
-      <Button className="rounded-full w-auto shadow-sm" onClick={() => setOpen(true)} disabled={product.countInStock < 1}>
+      <Button className="w-auto rounded-full shadow-sm text-sm" onClick={() => setOpen(true)} disabled={product.countInStock < 1}>
         <ShoppingCart className="size-4" />
         {product.countInStock > 0 ? "Add to Cart" : "Out of stock"}
       </Button>
