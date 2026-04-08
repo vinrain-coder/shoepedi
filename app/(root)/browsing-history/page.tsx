@@ -70,7 +70,7 @@ export default function BrowsingHistoryPage() {
   return (
     <div className="container mx-auto">
       <Breadcrumb />
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Browsing History</h1>
           <p className="text-muted-foreground mt-1">
@@ -96,7 +96,7 @@ export default function BrowsingHistoryPage() {
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
               className="aspect-[3/4] w-full bg-muted animate-pulse rounded-lg"
