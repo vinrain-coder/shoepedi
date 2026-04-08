@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/app/admin/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getServerSession } from "@/lib/get-session";
+import { getSetting } from "@/lib/actions/setting.actions";
 import { toSignInPath } from "@/lib/redirects";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "./site-header";
@@ -11,6 +12,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession();
+  const { site } = await getSetting();
 
   if (!session?.user) {
     redirect(toSignInPath("/admin"));
@@ -29,7 +31,7 @@ export default async function AdminLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" siteLogo={site.logo} siteName={site.name} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

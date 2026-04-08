@@ -83,19 +83,31 @@ const useCartStore = create(
             )
           : [...items, { ...item, quantity }];
 
-        const result = await calcDeliveryDateAndPrice({
-          items: updatedCartItems,
-          shippingAddress,
-          deliveryDateIndex,
-          discount,
-        });
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...result,
           },
         });
+
+        try {
+          const result = await calcDeliveryDateAndPrice({
+            items: updatedCartItems,
+            shippingAddress,
+            deliveryDateIndex,
+            discount,
+          });
+          set({
+            cart: {
+              ...get().cart,
+              items: updatedCartItems,
+              ...result,
+            },
+          });
+        } catch {
+          // keep optimistic item update even if price recomputation fails
+        }
+
         const foundItem = updatedCartItems.find(
           (x) =>
             x.product === item.product &&

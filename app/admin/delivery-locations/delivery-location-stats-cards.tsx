@@ -83,16 +83,20 @@ export default function DeliveryLocationStatsCards({
                 key={idx}
                 className="opacity-80 shadow-none border-dashed"
               >
-                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
-                  <div className={cn("rounded-full p-2 mb-2", stat.color)}>
-                    <Icon className="size-4" />
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        {stat.label}
+                      </p>
+                      <p className="text-base sm:text-xl font-bold leading-tight">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={cn("rounded-full p-1.5", stat.color)}>
+                      <Icon className="size-3.5" />
+                    </div>
                   </div>
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight line-clamp-1">
-                    {stat.label}
-                  </span>
-                  <span className="text-xl font-bold leading-tight">
-                    {stat.value}
-                  </span>
                 </CardContent>
               </Card>
             );

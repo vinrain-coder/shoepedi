@@ -39,8 +39,15 @@ export default function AddToCart({
   const handleAddToCart = async () => {
     setIsLoading(true);
     try {
-      const itemId = await addItem(item, quantity);
-      router.push(`/cart/${itemId}`);
+      await addItem(item, quantity);
+      toast.success("Item added to cart 🛒", {
+        action: (
+          <Button onClick={() => router.push("/cart")}>
+            <ArrowRight className="w-4 h-4 mr-2" />
+            Go to Cart
+          </Button>
+        ),
+      });
     } catch (error: any) {
       toast.error(`ERROR! ${error.message}`);
     } finally {
