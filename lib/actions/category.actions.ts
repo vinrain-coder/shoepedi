@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Category, { ICategory } from "@/lib/db/models/category.model";
 import { formatError, escapeRegExp } from "@/lib/utils";
@@ -31,7 +31,7 @@ export async function createCategory(
     await Category.create(category);
 
     revalidatePath("/admin/categories");
-    updateTag("categories");
+    revalidateTag("categories");
 
     return { success: true, message: "Category created successfully" };
   } catch (error) {
@@ -61,7 +61,7 @@ export async function updateCategory(
     }
 
     revalidatePath("/admin/categories");
-    updateTag("categories");
+    revalidateTag("categories");
 
     return { success: true, message: "Category updated successfully" };
   } catch (error) {
@@ -101,7 +101,7 @@ export async function getCategoryById(id: string) {
 
     const category = await Category.findById(id).lean();
 
-    return category || null;
+    return category ? (JSON.parse(JSON.stringify(category)) as ICategory) : null;
   } catch (error) {
     console.error("Error fetching category by ID:", error);
     return null;

@@ -1,12 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeftRight, Undo2, Wallet } from "lucide-react";
+import { ArrowLeftRight, Undo2, Wallet, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Table,
@@ -19,7 +17,7 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getUserCoinHistoryAdmin } from "@/lib/actions/coin.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import CoinAdjustDialog from "../coin-adjust-dialog";
 
 const formatCoinAmount = (value: number) =>
@@ -64,109 +62,152 @@ export default async function AdminUserCoinHistoryPage({
     balanceAfter?: number;
   }>;
 
+  const statCards = [
+    {
+      label: "Current Balance",
+      value: formatCoinAmount(data.user.coins),
+      icon: Wallet,
+      color: "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+    },
+    {
+      label: "Total Events",
+      value: data.totalEvents,
+      icon: ArrowLeftRight,
+      color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+    },
+    {
+      label: "History Scope",
+      value: "Full",
+      icon: Undo2,
+      color: "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Coin History</h1>
-          <p className="text-muted-foreground">
-            {data.user.name} ({data.user.email})
-          </p>
+    <main className="max-w-4xl mx-auto p-4 space-y-6">
+      <div className="flex flex-col gap-4">
+        {/* Breadcrumbs */}
+        <div className="flex text-sm text-muted-foreground">
+          <Link href="/admin/coins" className="hover:underline">
+            Coins
+          </Link>
+          <span className="mx-1">›</span>
+          <span className="text-foreground">{data.user.name}</span>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/admin/coins">Back to Coin List</Link>
-          </Button>
-          <CoinAdjustDialog userId={id} currentCoins={data.user.coins} />
+
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="h1-bold text-3xl tracking-tight">Coin History</h1>
+            <p className="text-muted-foreground">
+              {data.user.name} ({data.user.email})
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/admin/coins">Back to List</Link>
+            </Button>
+            <CoinAdjustDialog userId={id} currentCoins={data.user.coins} />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Current Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-2 text-2xl font-bold">
-            <Wallet className="size-5 text-muted-foreground" />
-            {formatCoinAmount(data.user.coins)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Total Events</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-2 text-2xl font-bold">
-            <ArrowLeftRight className="size-5 text-muted-foreground" />
-            {data.totalEvents}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">History Scope</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Undo2 className="size-5" />
-            Includes order-based and admin adjustment events.
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card
+              key={stat.label}
+              className="border-dashed shadow-none"
+            >
+              <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                <div className={cn("rounded-full p-2 mb-2", stat.color)}>
+                  <Icon className="size-4" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">
+                  {stat.label}
+                </span>
+                <span className="text-xl font-bold leading-tight">
+                  {stat.value}
+                </span>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Reason</TableHead>
-              <TableHead>Details</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {events.length > 0 ? (
-              events.map((event) => {
-                const isNegative = ["redeemed", "adjustment_deduct"].includes(event.type);
-                return (
-                  <TableRow key={event.id}>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {formatDateTime(event.date).dateTime}
-                    </TableCell>
-                    <TableCell className="capitalize">{String(event.type).replaceAll("_", " ")}</TableCell>
-                    <TableCell className={isNegative ? "text-destructive font-medium" : "text-emerald-600 font-medium"}>
-                      {isNegative ? "-" : "+"}
-                      {formatCoinAmount(event.amount)}
-                    </TableCell>
-                    <TableCell>{event.reason}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {event.orderId ? (
-                        <Link href={`/admin/orders/${event.orderId}`} className="underline">
-                          View Order
-                        </Link>
-                      ) : event.admin ? (
-                        <span>By {event.admin.name || event.admin.email}</span>
-                      ) : event.balanceAfter !== undefined ? (
-                        <span>
-                          {formatCoinAmount(event.balanceBefore ?? 0)} → {formatCoinAmount(event.balanceAfter ?? 0)}
-                        </span>
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <History className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold">Transaction Logs</h2>
+        </div>
+        <div className="rounded-md border bg-card">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  No coin history found for this user.
-                </TableCell>
+                <TableHead>Date</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Details</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {events.length > 0 ? (
+                events.map((event) => {
+                  const isNegative = ["redeemed", "adjustment_deduct"].includes(event.type);
+                  return (
+                    <TableRow key={event.id}>
+                      <TableCell className="text-xs text-muted-foreground font-mono">
+                        {formatDateTime(event.date).dateTime}
+                      </TableCell>
+                      <TableCell className="capitalize text-xs">
+                        {String(event.type).replaceAll("_", " ")}
+                      </TableCell>
+                      <TableCell className={cn(
+                        "font-medium",
+                        isNegative ? "text-destructive" : "text-emerald-600"
+                      )}>
+                        {isNegative ? "-" : "+"}
+                        {formatCoinAmount(event.amount)}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate text-sm">
+                        {event.reason}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {event.orderId ? (
+                          <Link href={`/admin/orders/${event.orderId}`} className="underline hover:text-primary">
+                            View Order
+                          </Link>
+                        ) : event.admin ? (
+                          <span>By {event.admin.name || event.admin.email}</span>
+                        ) : event.balanceAfter !== undefined ? (
+                          <span>
+                            {formatCoinAmount(event.balanceBefore ?? 0)} → {formatCoinAmount(event.balanceAfter ?? 0)}
+                          </span>
+                        ) : (
+                          <span>-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    No coin history found for this user.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      {data.totalPages > 1 && <Pagination page={String(currentPage)} totalPages={data.totalPages} />}
-    </div>
+      {data.totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination page={String(currentPage)} totalPages={data.totalPages} />
+        </div>
+      )}
+    </main>
   );
 }

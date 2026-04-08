@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import { formatError, escapeRegExp } from "@/lib/utils";
 import { TagInputSchema, TagUpdateSchema } from "../validator";
@@ -27,7 +27,7 @@ export async function createTag(data: z.infer<typeof TagInputSchema>) {
     await Tag.create(tag);
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag created successfully" };
   } catch (error) {
@@ -54,7 +54,7 @@ export async function updateTagAction(data: z.infer<typeof TagUpdateSchema>) {
     }
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag updated successfully" };
   } catch (error) {
@@ -75,7 +75,7 @@ export async function deleteTag(id: string) {
     await Tag.findByIdAndDelete(id);
 
     revalidatePath("/admin/tags");
-    updateTag("tags");
+    revalidateTag("tags");
 
     return { success: true, message: "Tag deleted successfully" };
   } catch (error) {
@@ -94,7 +94,7 @@ export async function getTagById(id: string) {
   try {
     await connectToDatabase();
     const tag = await Tag.findById(id).lean();
-    return tag || null;
+    return tag ? (JSON.parse(JSON.stringify(tag)) as ITag) : null;
   } catch (error) {
     console.error("Error fetching tag by ID:", error);
     return null;

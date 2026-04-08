@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/db";
 import Product, { IProduct } from "@/lib/db/models/product.model";
-import { cacheTag, revalidatePath, updateTag } from "next/cache";
+import { cacheTag, revalidatePath, revalidateTag } from "next/cache";
 import { formatError, escapeRegExp } from "../utils";
 import { ProductInputSchema, ProductUpdateSchema } from "../validator";
 import { IProductInput } from "@/types";
@@ -22,7 +22,7 @@ export async function createProduct(data: IProductInput) {
     await connectToDatabase();
     await Product.create(product);
     revalidatePath("/admin/products");
-    updateTag("products");
+    revalidateTag("products");
     return {
       success: true,
       message: "Product created successfully",
@@ -39,7 +39,7 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
     await connectToDatabase();
     await Product.findByIdAndUpdate(product._id, product);
     revalidatePath("/admin/products");
-    updateTag("products");
+    revalidateTag("products");
     return {
       success: true,
       message: "Product updated successfully",
@@ -73,7 +73,7 @@ export async function deleteProduct(id: string) {
     await Product.findByIdAndDelete(id);
 
     revalidatePath("/admin/products");
-    updateTag("products");
+    revalidateTag("products");
 
     return {
       success: true,
