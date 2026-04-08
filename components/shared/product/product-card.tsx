@@ -72,7 +72,7 @@ const ProductCard = ({
     {tagStyle && firstTag && (
         <Link
           href={`/tags/${encodeURIComponent(firstTag)}`}
-          className="absolute -top-1 left-0 z-10"
+          className="absolute -top-1.5 left-0 z-10"
         >
           <Badge
             className={cn(
