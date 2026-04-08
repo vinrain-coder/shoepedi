@@ -15,11 +15,15 @@ export default function ProductLayoutSwitcher({ products }: { products: IProduct
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <div className="inline-flex rounded-lg border bg-background p-1">
+        <div className="inline-flex rounded-full border bg-muted/30 p-1 shadow-sm backdrop-blur">
           <Button
             type="button"
             size="sm"
             variant={layout === "classic" ? "default" : "ghost"}
+            className={cn(
+              "rounded-full px-3.5 text-xs sm:text-sm",
+              layout !== "classic" && "text-muted-foreground",
+            )}
             onClick={() => setLayout("classic")}
           >
             <Grid2X2 className="size-4" />
@@ -29,6 +33,10 @@ export default function ProductLayoutSwitcher({ products }: { products: IProduct
             type="button"
             size="sm"
             variant={layout === "detailed" ? "default" : "ghost"}
+            className={cn(
+              "rounded-full px-3.5 text-xs sm:text-sm",
+              layout !== "detailed" && "text-muted-foreground",
+            )}
             onClick={() => setLayout("detailed")}
           >
             <RectangleHorizontal className="size-4" />

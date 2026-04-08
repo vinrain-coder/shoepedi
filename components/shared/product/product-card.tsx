@@ -73,7 +73,9 @@ const ProductCard = ({
     <div
       className={cn(
         "relative w-full overflow-hidden",
-        layout === "detailed" ? "aspect-square h-56 sm:h-64 rounded-xl bg-muted/30 p-3" : "aspect-[3/4] h-52 sm:h-56",
+        layout === "detailed"
+          ? "aspect-square min-h-[110px] rounded-xl bg-muted/30 p-2.5 sm:min-h-[160px] sm:p-3"
+          : "aspect-[3/4] h-52 sm:h-56",
       )}
     >
       {layout === "classic" && tagStyle && firstTag && (
@@ -155,14 +157,14 @@ const ProductCard = ({
   if (layout === "detailed") {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-2xl border bg-card/70 p-4 shadow-sm transition hover:shadow-md">
-          <div className="flex gap-4 md:gap-6">
-            <div className="w-36 shrink-0 sm:w-44">
+        <Card className="relative overflow-hidden rounded-2xl border bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-4">
+          <div className="grid grid-cols-[110px_1fr] gap-3 sm:grid-cols-[160px_1fr] sm:gap-4 lg:grid-cols-[220px_1fr_auto] lg:gap-6">
+            <div className="w-full">
               <ProductImage />
               {!!product.images?.length && (
-                <div className="mt-3 flex gap-2">
+                <div className="mt-2 flex gap-1.5 sm:mt-3 sm:gap-2">
                   {product.images.slice(0, 4).map((image, index) => (
-                    <div key={`${image}-${index}`} className="relative h-14 w-14 overflow-hidden rounded-md border bg-muted/40">
+                    <div key={`${image}-${index}`} className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted/40 sm:h-14 sm:w-14">
                       <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
                     </div>
                   ))}
@@ -170,8 +172,8 @@ const ProductCard = ({
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0 space-y-2.5 sm:space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 {tagStyle && firstTag && (
                   <Link href={`/tags/${encodeURIComponent(firstTag)}`}>
                     <Badge className={cn("text-[10px] text-white", tagStyle.className)}>{tagStyle.label}</Badge>
@@ -181,7 +183,7 @@ const ProductCard = ({
                 {product.brand && <Badge variant="secondary" className="text-[10px]">{product.brand}</Badge>}
               </div>
 
-              <Link href={productPath} className="line-clamp-2 text-base font-semibold hover:text-primary">
+              <Link href={productPath} className="line-clamp-2 text-sm font-semibold hover:text-primary sm:text-base">
                 {product.name}
               </Link>
 
@@ -215,15 +217,20 @@ const ProductCard = ({
               </div>
 
               <ProductPrice price={product.price} listPrice={product.listPrice} align="start" className="text-xl sm:text-2xl" />
+
+              {!hideAddToCart && (
+                <div className="pt-1">
+                  <AddButton />
+                </div>
+              )}
             </div>
 
-            <div className="ml-auto flex shrink-0 flex-col items-end gap-2">
+            <div className="col-span-2 flex items-start justify-end gap-2 lg:col-span-1 lg:flex-col lg:items-end">
               <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
               <button className="rounded-full bg-background p-1.5 shadow hover:bg-muted" onClick={() => setShowQuickView(true)}>
                 <Eye size={16} />
               </button>
               <CompareButton product={product} variant="icon" />
-              {!hideAddToCart && <AddButton />}
             </div>
           </div>
         </Card>

@@ -153,7 +153,7 @@ export default async function BrandPage({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
@@ -162,7 +162,7 @@ export default async function BrandPage({
       <Breadcrumb />
 
       {/* Header */}
-      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
+      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex-between flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">
             {brandData.name
@@ -188,7 +188,7 @@ export default async function BrandPage({
       </div>
 
       {/* Content */}
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
+      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-2 md:py-3">
         <FiltersClient
           initialParams={filterParams}
           categories={categories}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Check, Loader2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
 
   const content = (
     <div className="space-y-4">
-      <div className="space-y-2">
+      <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Size</p>
         <div className="flex flex-wrap gap-2">
           {product.sizes.map((size) => (
@@ -79,6 +79,7 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
               key={size}
               type="button"
               size="sm"
+              className="rounded-full px-3"
               variant={selectedSize === size ? "default" : "outline"}
               onClick={() => setSelectedSize(size)}
             >
@@ -88,7 +89,7 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Color</p>
         <div className="flex flex-wrap gap-2">
           {product.colors.map((color) => (
@@ -97,21 +98,23 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
               type="button"
               onClick={() => setSelectedColor(color)}
               className={cn(
-                "h-7 w-7 rounded-full border-2 border-background ring-1 ring-border transition",
-                selectedColor === color && "ring-2 ring-primary",
+                "relative h-8 w-8 rounded-full border-2 border-background ring-1 ring-border transition",
+                selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-background",
               )}
               style={{ background: color }}
               aria-label={color}
               title={color}
-            />
+            >
+              {selectedColor === color && <Check className="absolute inset-0 m-auto size-3.5 text-white drop-shadow" />}
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quantity</p>
         <Select value={quantity} onValueChange={setQuantity}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -124,11 +127,11 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
         </Select>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-xl border bg-background p-3">
         <Badge variant="outline">{product.countInStock} in stock</Badge>
-        <Button onClick={addToCart} disabled={isLoading || product.countInStock < 1}>
+        <Button onClick={addToCart} disabled={isLoading || product.countInStock < 1} className="rounded-full">
           {isLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingCart className="size-4" />}
-          Add
+          Add to cart
         </Button>
       </div>
     </div>
@@ -136,7 +139,7 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
 
   return (
     <>
-      <Button className="rounded-full w-auto" onClick={() => setOpen(true)} disabled={product.countInStock < 1}>
+      <Button className="rounded-full w-auto shadow-sm" onClick={() => setOpen(true)} disabled={product.countInStock < 1}>
         <ShoppingCart className="size-4" />
         {product.countInStock > 0 ? "Add to Cart" : "Out of stock"}
       </Button>
@@ -144,15 +147,15 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent className="px-4 pb-5">
             <DrawerHeader className="px-0">
-              <DrawerTitle>Select options</DrawerTitle>
-              <DrawerDescription>{product.name}</DrawerDescription>
+              <DrawerTitle className="text-left">Select options</DrawerTitle>
+              <DrawerDescription className="text-left">{product.name}</DrawerDescription>
             </DrawerHeader>
             {content}
           </DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Select options</DialogTitle>
               <DialogDescription>{product.name}</DialogDescription>
