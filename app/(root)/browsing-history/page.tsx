@@ -52,7 +52,7 @@ export default function BrowsingHistoryPage() {
         const result = await res.json();
         if (!mounted) return;
 
-        setData(result);
+        setData(result.history ?? result ?? []);
       } catch (err) {
         console.error("Browsing history fetch failed:", err);
       } finally {
@@ -81,7 +81,10 @@ export default function BrowsingHistoryPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={clear}
+            onClick={() => {
+              clear();
+              setData([]);
+            }}
             className="text-destructive hover:text-destructive"
           >
             Clear all items

@@ -96,22 +96,21 @@ export default function BrowsingHistoryList({
 
   return (
     <div className="bg-background">
-      <div className="flex justify-between items-end mb-2 px-1">
-        <h2 className="h2-bold">Related to items you&apos;ve viewed</h2>
-        <Link
-          href="/browsing-history"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          View or edit your browsing history
-        </Link>
-      </div>
-
       {/* RELATED SECTION */}
       {showRelated && (
         <>
+          <div className="flex justify-between items-end mb-2 px-1">
+            <h2 className="h2-bold">Related to items you&apos;ve viewed</h2>
+            <Link
+              href="/browsing-history"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View or edit your browsing history
+            </Link>
+          </div>
           <Separator className={cn("mb-4", className)} />
           <ProductSection
-            title=""
+            showTitle={false}
             products={relatedProducts}
             loading={loading}
           />
@@ -139,11 +138,13 @@ function ProductSection({
   products,
   loading,
   hideDetails = false,
+  showTitle = true,
 }: {
-  title: string;
+  title?: string;
   products: any[];
   loading: boolean;
   hideDetails?: boolean;
+  showTitle?: boolean;
 }) {
   if (loading) {
     return (
@@ -165,6 +166,7 @@ function ProductSection({
       title={title}
       products={products}
       hideDetails={hideDetails}
+      showTitle={showTitle}
     />
   );
       }
