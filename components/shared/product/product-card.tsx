@@ -130,7 +130,7 @@ const ProductCard = ({
             src={primaryImage}
             hoverSrc={hoverImage}
             alt={product.name}
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <Image
@@ -138,13 +138,75 @@ const ProductCard = ({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 80vw, 20vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             priority
           />
         )}
       </Link>
     </div>
   );
+
+  const ProductDetails = () => {
+    if (layout === "amazon") {
+      return (
+        <div className="space-y-2 text-left">
+          <Link
+            href={productPath}
+            className="line-clamp-2 text-sm font-semibold leading-5 hover:text-primary transition"
+            onMouseEnter={prefetchProductDetails}
+            onFocus={prefetchProductDetails}
+          >
+            {product.name}
+          </Link>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Rating rating={product.avgRating} size={4} />
+            <span>({formatNumber(product.numReviews)})</span>
+          </div>
+          <ProductPrice price={product.price} listPrice={product.listPrice} />
+          <p className="line-clamp-2 text-xs text-muted-foreground">
+            {product.description || `${product.brand} • ${product.category}`}
+          </p>
+          <div className="text-[11px] text-muted-foreground">
+            {product.countInStock > 0 ? "In stock" : "Out of stock"}
+          </div>
+        </div>
+      );
+    }
+
+    if (layout === "minimal") {
+      return (
+        <div className="space-y-1 text-left">
+          <Link
+            href={productPath}
+            className="line-clamp-1 text-sm font-medium hover:text-primary transition"
+            onMouseEnter={prefetchProductDetails}
+            onFocus={prefetchProductDetails}
+          >
+            {product.name}
+          </Link>
+          <ProductPrice price={product.price} listPrice={product.listPrice} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-0.5 text-center">
+        <Link
+          href={productPath}
+          className="font-medium text-sm sm:text-base line-clamp-2 hover:text-primary transition"
+          onMouseEnter={prefetchProductDetails}
+          onFocus={prefetchProductDetails}
+        >
+          {product.name}
+        </Link>
+        <div className="flex gap-1 justify-center text-xs text-gray-500">
+          <Rating rating={product.avgRating} size={4} />
+          <span>({formatNumber(product.numReviews)})</span>
+        </div>
+        <ProductPrice price={product.price} listPrice={product.listPrice} />
+      </div>
+    );
+  };
 
   const AddButton = () => (
     <div className={cn("w-full", layout === "split" ? "text-left" : "text-center")}>
