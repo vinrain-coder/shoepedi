@@ -1,4 +1,3 @@
-import ProductCard from "@/components/shared/product/product-card";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
 import {
@@ -14,6 +13,7 @@ import FiltersClient from "@/components/shared/search/filters-client";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
+import ProductLayoutSwitcher from "@/components/shared/product/product-layout-switcher";
 
 export async function generateMetadata(props: {
   searchParams: Promise<any>;
@@ -103,9 +103,9 @@ export default async function SearchPage(props: {
   ]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       <Breadcrumb />
-      <div className="my-2 bg-card md:border-b flex-between flex-col md:flex-row items-start md:items-center py-3 gap-3">
+      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex-between flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-3">
         <div>
           {data.totalProducts === 0
             ? "No results"
@@ -119,7 +119,7 @@ export default async function SearchPage(props: {
         />
       </div>
 
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-3">
+      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-2 md:py-3">
         <FiltersClient
           initialParams={params}
           categories={categories}
@@ -129,15 +129,7 @@ export default async function SearchPage(props: {
           sizes={sizes}
         />
         <div className="md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-4">
-            {data.products.length === 0 ? (
-              <div>No product found</div>
-            ) : (
-              data.products.map((p: IProduct) => (
-                <ProductCard key={p._id.toString()} product={p} />
-              ))
-            )}
-          </div>
+          <ProductLayoutSwitcher products={data.products as IProduct[]} />
           {data.totalPages > 1 && (
             <Pagination page={page} totalPages={data.totalPages} />
           )}
