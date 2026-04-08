@@ -105,6 +105,7 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
                           { href: "/account/orders", label: "Orders" },
                           { href: "/wishlist", label: "Wishlist" },
                           { href: "/compare", label: "Compare" },
+                          { href: "/browsing-history", label: "Browsing History" },
                           { href: "/account/reviews", label: "My reviews" },
                           { href: "/account/comments", label: "My comments" },
                         ].map((item) => (
