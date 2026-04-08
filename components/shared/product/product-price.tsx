@@ -10,6 +10,7 @@ const ProductPrice = ({
   isDeal = false,
   forListing = true,
   plain = false,
+  align = "center",
 }: {
   price: number;
   isDeal?: boolean;
@@ -17,6 +18,7 @@ const ProductPrice = ({
   className?: string;
   forListing?: boolean;
   plain?: boolean;
+  align?: "center" | "start";
 }) => {
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
@@ -27,6 +29,7 @@ const ProductPrice = ({
   // Formatting logic for prices using Intl.NumberFormat for commas
   const formattedPrice = new Intl.NumberFormat().format(price);
   const formattedListPrice = new Intl.NumberFormat().format(listPrice);
+  const alignmentClass = align === "start" ? "justify-start text-left" : "justify-center text-center";
   
   const stringValue = formattedPrice.toString();
   const [intValue, floatValue] = stringValue.includes(".")
@@ -66,7 +69,7 @@ const ProductPrice = ({
           </span>
         </div>
         <div
-          className={`flex ${forListing ? "justify-center" : "justify-start"} items-center gap-2 flex-wrap`}
+          className={`flex ${forListing ? alignmentClass : "justify-start text-left"} items-center gap-2 flex-wrap`}
         >
           <div className={cn("text-2xl sm:text-3xl break-words", className)}>
             <span className="text-xs align-super">{currency.symbol}</span>
@@ -84,7 +87,7 @@ const ProductPrice = ({
   // Standard discount layout
   return (
     <div className="">
-      <div className="flex justify-center gap-2 flex-wrap items-center">
+      <div className={cn("flex gap-2 flex-wrap items-center", alignmentClass)}>
         <div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
           -{discountPercent}%
         </div>
@@ -94,7 +97,7 @@ const ProductPrice = ({
           <span className="text-xs align-super">{floatValue}</span>
         </div>
       </div>
-      <div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
+      <div className={cn("text-muted-foreground text-xs py-2 whitespace-nowrap", align === "start" && "text-left")}>
         List price: <span className="line-through">{currency.code} {formattedListPrice}</span>
       </div>
     </div>
