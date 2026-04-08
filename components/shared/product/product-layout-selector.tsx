@@ -1,12 +1,14 @@
 "use client";
 
 import { LayoutGrid, PanelLeft } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
-  DEFAULT_PRODUCT_CARD_LAYOUT,
+  isProductCardLayout,
   ProductCardLayout,
 } from "./product-card-layout";
+
+const PRODUCT_LAYOUT_STORAGE_KEY = "product_card_layout";
 
 const LAYOUT_OPTIONS: Array<{
   value: ProductCardLayout;
@@ -22,25 +24,25 @@ export default function ProductLayoutSelector({
 }: {
   layout: ProductCardLayout;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const [selectedLayout, setSelectedLayout] = useState<ProductCardLayout>(layout);
+
+  useEffect(() => {
+    const savedLayout = window.localStorage.getItem(PRODUCT_LAYOUT_STORAGE_KEY);
+    if (savedLayout && isProductCardLayout(savedLayout)) {
+      setSelectedLayout(savedLayout);
+      window.dispatchEvent(
+        new CustomEvent("product-layout-change", { detail: savedLayout })
+      );
+    }
+  }, []);
 
   const onLayoutChange = (nextLayout: string) => {
-    if (!nextLayout || nextLayout === layout) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (nextLayout === DEFAULT_PRODUCT_CARD_LAYOUT) {
-      params.delete("layout");
-    } else {
-      params.set("layout", nextLayout);
-    }
-
-    params.delete("page");
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    if (!nextLayout || !isProductCardLayout(nextLayout)) return;
+    setSelectedLayout(nextLayout);
+    window.localStorage.setItem(PRODUCT_LAYOUT_STORAGE_KEY, nextLayout);
+    window.dispatchEvent(
+      new CustomEvent("product-layout-change", { detail: nextLayout })
+    );
   };
 
   return (
@@ -48,7 +50,7 @@ export default function ProductLayoutSelector({
       <span className="text-xs text-muted-foreground">View</span>
       <ToggleGroup
         type="single"
-        value={layout}
+        value={selectedLayout}
         onValueChange={onLayoutChange}
         className="rounded-md border bg-background p-1"
         aria-label="Choose product card layout"

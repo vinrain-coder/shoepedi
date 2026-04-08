@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Card,
@@ -45,6 +45,7 @@ const ProductCard = ({
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [activeLayout, setActiveLayout] = useState<ProductCardLayout>(layout);
   const router = useRouter();
   const productPath = `/product/${product.slug}`;
 
@@ -54,6 +55,22 @@ const ProductCard = ({
   );
   const primaryImage = images[selectedImageIndex] ?? images[0];
   const hoverImage = images[1] ?? primaryImage;
+
+  useEffect(() => {
+    const savedLayout = window.localStorage.getItem("product_card_layout");
+    if (savedLayout === "classic" || savedLayout === "split") {
+      setActiveLayout(savedLayout);
+    }
+    const onLayoutChange = (event: Event) => {
+      const nextLayout = (event as CustomEvent<string>).detail;
+      if (nextLayout === "classic" || nextLayout === "split") {
+        setActiveLayout(nextLayout);
+      }
+    };
+    window.addEventListener("product-layout-change", onLayoutChange);
+    return () =>
+      window.removeEventListener("product-layout-change", onLayoutChange);
+  }, []);
 
   const prefetchProductDetails = () => {
     router.prefetch(productPath);
@@ -79,8 +96,13 @@ const ProductCard = ({
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
-    <div className="relative h-52 w-full overflow-hidden sm:h-56">
-      {tagStyle && firstTag && (
+    <div
+      className={cn(
+        "relative w-full overflow-hidden rounded-md",
+        activeLayout === "split" ? "h-36 sm:h-40" : "h-52 sm:h-56"
+      )}
+    >
+      {tagStyle && firstTag && activeLayout !== "split" && (
         <Link
           href={`/tags/${encodeURIComponent(firstTag)}`}
           className="absolute -top-1.5 left-0 z-10"
@@ -116,7 +138,7 @@ const ProductCard = ({
         onFocus={prefetchProductDetails}
         className="relative block h-full w-full"
       >
-        {layout === "split" || selectedImageIndex > 0 ? (
+        {activeLayout === "split" || selectedImageIndex > 0 ? (
           <Image
             src={primaryImage}
             alt={product.name}
@@ -209,7 +231,7 @@ const ProductCard = ({
   };
 
   const AddButton = () => (
-    <div className={cn("w-full", layout === "split" ? "text-left" : "text-center")}>
+    <div className={cn("w-full", activeLayout === "split" ? "text-left" : "text-center")}>
       <AddToCart
         minimal
         enableVariantSelector
@@ -233,13 +255,13 @@ const ProductCard = ({
     </div>
   );
 
-  if (layout === "split" && !hideBorder) {
+  if (activeLayout === "split" && !hideBorder) {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-lg border p-3 transition-shadow hover:shadow-md">
-          <div className="grid grid-cols-[108px_1fr] gap-3 sm:grid-cols-[140px_1fr] sm:gap-4">
+        <Card className="relative overflow-hidden rounded-xl border p-3 transition-shadow hover:shadow-md sm:p-4">
+          <div className="grid grid-cols-[120px_1fr] gap-3 sm:grid-cols-[160px_1fr] sm:gap-5">
             <div className="space-y-2">
-              <ProductImage withFloatingIcons />
+              <ProductImage />
               {images.length > 1 && (
                 <div className="flex gap-1.5 overflow-x-auto pb-1">
                   {images.slice(0, 4).map((img, index) => (
@@ -268,21 +290,56 @@ const ProductCard = ({
             </div>
 
             <div className="flex min-w-0 flex-col gap-2">
-              <Link
-                href={productPath}
-                className="line-clamp-2 text-sm font-semibold leading-5 hover:text-primary sm:text-base"
-                onMouseEnter={prefetchProductDetails}
-                onFocus={prefetchProductDetails}
-              >
-                {product.name}
-              </Link>
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={productPath}
+                  className="line-clamp-2 text-sm font-semibold leading-5 hover:text-primary sm:text-base"
+                  onMouseEnter={prefetchProductDetails}
+                  onFocus={prefetchProductDetails}
+                >
+                  {product.name}
+                </Link>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <WishlistIcon
+                    productId={product._id.toString()}
+                    initialInWishlist={isInWishlist}
+                  />
+                  <button
+                    className="rounded-full border bg-background p-1.5 hover:bg-muted"
+                    onClick={() => setShowQuickView(true)}
+                  >
+                    <Eye size={15} />
+                  </button>
+                  <CompareButton product={product} variant="icon" />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {firstTag && tagStyle && (
+                  <Badge variant="outline" className="h-5 px-2 text-[10px] uppercase">
+                    {tagStyle.label}
+                  </Badge>
+                )}
+                <Badge variant="secondary" className="h-5 px-2 text-[10px]">
+                  {product.category}
+                </Badge>
+                {product.brand && (
+                  <Badge variant="secondary" className="h-5 px-2 text-[10px]">
+                    {product.brand}
+                  </Badge>
+                )}
+              </div>
 
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Rating rating={product.avgRating} size={4} />
                 <span>({formatNumber(product.numReviews)})</span>
               </div>
 
-              <ProductPrice price={product.price} listPrice={product.listPrice} />
+              <ProductPrice
+                price={product.price}
+                listPrice={product.listPrice}
+                align="start"
+              />
 
               <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
                 {product.description || "Premium quality product with fast delivery and easy returns."}
@@ -293,7 +350,19 @@ const ProductCard = ({
                   Stock: {product.countInStock > 0 ? `${product.countInStock} available` : "Out of stock"}
                 </p>
                 <p className="line-clamp-1">Sizes: {product.sizes.slice(0, 4).join(", ") || "N/A"}</p>
-                <p className="line-clamp-1">Colors: {product.colors.slice(0, 4).join(", ") || "N/A"}</p>
+                <div className="flex items-center gap-1.5">
+                  <span>Colors:</span>
+                  <div className="flex gap-1.5">
+                    {product.colors.slice(0, 5).map((color) => (
+                      <span
+                        key={color}
+                        style={{ backgroundColor: color.toLowerCase() }}
+                        className="h-3.5 w-3.5 rounded-full border border-border"
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {!hideAddToCart && <AddButton />}
