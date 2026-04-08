@@ -14,15 +14,15 @@ import {
 import { IProduct } from "@/lib/db/models/product.model";
 
 import Rating from "./rating";
-import { cn, formatNumber, generateId, round2 } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import ProductPrice from "./product-price";
 import ImageHover from "./image-hover";
-import AddToCart from "./add-to-cart";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import ProductQuickView from "./quick-view";
 import CompareButton from "./compare-button";
+import CardAddToCartSelector from "./card-add-to-cart-selector";
 
 const ProductCard = ({
   product,
@@ -30,12 +30,14 @@ const ProductCard = ({
   hideDetails = false,
   hideAddToCart = false,
   isInWishlist = false,
+  layout = "classic",
 }: {
   product: IProduct;
   hideDetails?: boolean;
   hideBorder?: boolean;
   hideAddToCart?: boolean;
   isInWishlist?: boolean;
+  layout?: "classic" | "detailed";
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
   const router = useRouter();
@@ -68,16 +70,18 @@ const ProductCard = ({
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
-    <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
-    {tagStyle && firstTag && (
-        <Link
-          href={`/tags/${encodeURIComponent(firstTag)}`}
-          className="absolute -top-1.5 left-0 z-10"
-        >
+    <div
+      className={cn(
+        "relative w-full overflow-hidden",
+        layout === "detailed" ? "aspect-square h-56 sm:h-64 rounded-xl bg-muted/30 p-3" : "aspect-[3/4] h-52 sm:h-56",
+      )}
+    >
+      {layout === "classic" && tagStyle && firstTag && (
+        <Link href={`/tags/${encodeURIComponent(firstTag)}`} className="absolute -top-1.5 left-0 z-10">
           <Badge
             className={cn(
               "rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-0.5 border-none text-white cursor-pointer",
-              tagStyle.className
+              tagStyle.className,
             )}
           >
             {tagStyle.label}
@@ -109,7 +113,7 @@ const ProductCard = ({
             src={primaryImage}
             hoverSrc={hoverImage}
             alt={product.name}
-            className="object-cover"
+            className={cn("object-cover", layout === "detailed" && "rounded-lg")}
           />
         ) : (
           <Image
@@ -117,7 +121,7 @@ const ProductCard = ({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 80vw, 20vw"
-            className="object-cover"
+            className={cn("object-cover", layout === "detailed" && "rounded-lg")}
             priority
           />
         )}
@@ -138,30 +142,95 @@ const ProductCard = ({
         <Rating rating={product.avgRating} size={4} />
         <span>({formatNumber(product.numReviews)})</span>
       </div>
-      <ProductPrice price={product.price} listPrice={product.listPrice} />
+      <ProductPrice price={product.price} listPrice={product.listPrice} align="center" />
     </div>
   );
 
   const AddButton = () => (
     <div className="w-full text-center">
-      <AddToCart
-        minimal
-        item={{
-          clientId: generateId(),
-          product: product._id.toString(),
-          size: product.sizes[0],
-          color: product.colors[0],
-          countInStock: product.countInStock,
-          name: product.name,
-          slug: product.slug,
-          category: product.category,
-          price: round2(product.price),
-          quantity: 1,
-          image: product.images[0],
-        }}
-      />
+      <CardAddToCartSelector product={product} />
     </div>
   );
+
+  if (layout === "detailed") {
+    return (
+      <>
+        <Card className="relative overflow-hidden rounded-2xl border bg-card/70 p-4 shadow-sm transition hover:shadow-md">
+          <div className="flex gap-4 md:gap-6">
+            <div className="w-36 shrink-0 sm:w-44">
+              <ProductImage />
+              {!!product.images?.length && (
+                <div className="mt-3 flex gap-2">
+                  {product.images.slice(0, 4).map((image, index) => (
+                    <div key={`${image}-${index}`} className="relative h-14 w-14 overflow-hidden rounded-md border bg-muted/40">
+                      <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {tagStyle && firstTag && (
+                  <Link href={`/tags/${encodeURIComponent(firstTag)}`}>
+                    <Badge className={cn("text-[10px] text-white", tagStyle.className)}>{tagStyle.label}</Badge>
+                  </Link>
+                )}
+                <Badge variant="outline" className="text-[10px]">{product.category}</Badge>
+                {product.brand && <Badge variant="secondary" className="text-[10px]">{product.brand}</Badge>}
+              </div>
+
+              <Link href={productPath} className="line-clamp-2 text-base font-semibold hover:text-primary">
+                {product.name}
+              </Link>
+
+              <p className="line-clamp-2 text-sm text-muted-foreground">{product.description || "Premium quality product designed for comfort and style."}</p>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Rating rating={product.avgRating} size={4} />
+                <span>({formatNumber(product.numReviews)})</span>
+                <span>•</span>
+                <span className={cn(product.countInStock > 0 ? "text-emerald-600" : "text-red-500")}>
+                  {product.countInStock > 0 ? `${product.countInStock} in stock` : "Out of stock"}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sizes</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {product.sizes.slice(0, 5).map((size) => (
+                    <span key={size} className="rounded-md border px-2 py-1 text-xs">{size}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Colors</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.slice(0, 6).map((color) => (
+                    <span key={color} title={color} className="h-5 w-5 rounded-full ring-1 ring-border" style={{ backgroundColor: color }} />
+                  ))}
+                </div>
+              </div>
+
+              <ProductPrice price={product.price} listPrice={product.listPrice} align="start" className="text-xl sm:text-2xl" />
+            </div>
+
+            <div className="ml-auto flex shrink-0 flex-col items-end gap-2">
+              <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
+              <button className="rounded-full bg-background p-1.5 shadow hover:bg-muted" onClick={() => setShowQuickView(true)}>
+                <Eye size={16} />
+              </button>
+              <CompareButton product={product} variant="icon" />
+              {!hideAddToCart && <AddButton />}
+            </div>
+          </div>
+        </Card>
+        <ProductQuickView product={product} isOpen={showQuickView} onClose={() => setShowQuickView(false)} />
+      </>
+    );
+  }
 
   return (
     <>
