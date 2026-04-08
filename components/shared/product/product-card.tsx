@@ -23,6 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import ProductQuickView from "./quick-view";
 import CompareButton from "./compare-button";
+import {
+  DEFAULT_PRODUCT_CARD_LAYOUT,
+  ProductCardLayout,
+} from "./product-card-layout";
 
 const ProductCard = ({
   product,
@@ -30,12 +34,14 @@ const ProductCard = ({
   hideDetails = false,
   hideAddToCart = false,
   isInWishlist = false,
+  layout = DEFAULT_PRODUCT_CARD_LAYOUT,
 }: {
   product: IProduct;
   hideDetails?: boolean;
   hideBorder?: boolean;
   hideAddToCart?: boolean;
   isInWishlist?: boolean;
+  layout?: ProductCardLayout;
 }) => {
   const [showQuickView, setShowQuickView] = useState(false);
   const router = useRouter();
@@ -47,7 +53,6 @@ const ProductCard = ({
     router.prefetch(productPath);
   };
 
-  // Helper to determine tag color and label
   const getTagStyles = (tag: string) => {
     const normalizedTag = tag.toLowerCase();
     switch (normalizedTag) {
@@ -68,8 +73,13 @@ const ProductCard = ({
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
-    <div className="relative w-full aspect-[3/4] overflow-hidden h-52 sm:h-56">
-    {tagStyle && firstTag && (
+    <div
+      className={cn(
+        "relative w-full overflow-hidden",
+        layout === "amazon" ? "aspect-[4/5] h-56 sm:h-64" : "aspect-[3/4] h-52 sm:h-56"
+      )}
+    >
+      {tagStyle && firstTag && (
         <Link
           href={`/tags/${encodeURIComponent(firstTag)}`}
           className="absolute -top-1.5 left-0 z-10"
@@ -109,7 +119,7 @@ const ProductCard = ({
             src={primaryImage}
             hoverSrc={hoverImage}
             alt={product.name}
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <Image
@@ -117,33 +127,78 @@ const ProductCard = ({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 80vw, 20vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             priority
           />
         )}
-      </Link>{" "}
-    </div>
-  );
-  const ProductDetails = () => (
-    <div className="space-y-0.5 text-center">
-      <Link
-        href={productPath}
-        className="font-medium text-sm sm:text-base line-clamp-2 hover:text-primary transition"
-        onMouseEnter={prefetchProductDetails}
-        onFocus={prefetchProductDetails}
-      >
-        {product.name}
       </Link>
-      <div className="flex gap-1 justify-center text-xs text-gray-500">
-        <Rating rating={product.avgRating} size={4} />
-        <span>({formatNumber(product.numReviews)})</span>
-      </div>
-      <ProductPrice price={product.price} listPrice={product.listPrice} />
     </div>
   );
 
+  const ProductDetails = () => {
+    if (layout === "amazon") {
+      return (
+        <div className="space-y-2 text-left">
+          <Link
+            href={productPath}
+            className="line-clamp-2 text-sm font-semibold leading-5 hover:text-primary transition"
+            onMouseEnter={prefetchProductDetails}
+            onFocus={prefetchProductDetails}
+          >
+            {product.name}
+          </Link>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Rating rating={product.avgRating} size={4} />
+            <span>({formatNumber(product.numReviews)})</span>
+          </div>
+          <ProductPrice price={product.price} listPrice={product.listPrice} />
+          <p className="line-clamp-2 text-xs text-muted-foreground">
+            {product.description || `${product.brand} • ${product.category}`}
+          </p>
+          <div className="text-[11px] text-muted-foreground">
+            {product.countInStock > 0 ? "In stock" : "Out of stock"}
+          </div>
+        </div>
+      );
+    }
+
+    if (layout === "minimal") {
+      return (
+        <div className="space-y-1 text-left">
+          <Link
+            href={productPath}
+            className="line-clamp-1 text-sm font-medium hover:text-primary transition"
+            onMouseEnter={prefetchProductDetails}
+            onFocus={prefetchProductDetails}
+          >
+            {product.name}
+          </Link>
+          <ProductPrice price={product.price} listPrice={product.listPrice} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-0.5 text-center">
+        <Link
+          href={productPath}
+          className="font-medium text-sm sm:text-base line-clamp-2 hover:text-primary transition"
+          onMouseEnter={prefetchProductDetails}
+          onFocus={prefetchProductDetails}
+        >
+          {product.name}
+        </Link>
+        <div className="flex gap-1 justify-center text-xs text-gray-500">
+          <Rating rating={product.avgRating} size={4} />
+          <span>({formatNumber(product.numReviews)})</span>
+        </div>
+        <ProductPrice price={product.price} listPrice={product.listPrice} />
+      </div>
+    );
+  };
+
   const AddButton = () => (
-    <div className="w-full text-center">
+    <div className={cn("w-full", layout === "classic" ? "text-center" : "text-left")}>
       <AddToCart
         minimal
         item={{
@@ -166,11 +221,11 @@ const ProductCard = ({
   return (
     <>
       {hideBorder ? (
-        <div className="flex flex-col relative">
+        <div className="group relative flex flex-col">
           <ProductImage withFloatingIcons />
           {!hideDetails && (
             <>
-              <div className="p-3 flex-1 text-center">
+              <div className={cn("flex-1 p-3", layout === "classic" ? "text-center" : "text-left")}>
                 <ProductDetails />
               </div>
               {!hideAddToCart && <AddButton />}
@@ -178,31 +233,53 @@ const ProductCard = ({
           )}
         </div>
       ) : (
-      <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
-        <CardHeader className="p-0">
-          <ProductImage withFloatingIcons />
-        </CardHeader>
-        {!hideDetails && (
-          <>
-            <CardContent className="px-0 flex-1 text-center -mt-6">
-              <ProductDetails />
-            </CardContent>
+        <Card
+          className={cn(
+            "group relative flex h-full flex-col rounded-sm border p-0 transition-all duration-200 hover:shadow-lg",
+            layout === "amazon" && "overflow-hidden rounded-lg",
+            layout === "minimal" && "border-muted/70"
+          )}
+        >
+          <CardHeader className="p-0">
+            <ProductImage withFloatingIcons />
+          </CardHeader>
+          {!hideDetails && (
+            <>
+              <CardContent
+                className={cn(
+                  "flex-1 px-3 pb-3 pt-3",
+                  layout === "classic" && "px-0 text-center -mt-6",
+                  layout === "amazon" && "pt-4",
+                  layout === "minimal" && "pb-2"
+                )}
+              >
+                <ProductDetails />
+              </CardContent>
 
-            <CardFooter className="mb-2 -mt-5">
-              {product.countInStock === 0 ? (
-                <Badge
-                  variant="destructive"
-                  className="mx-auto px-3 py-2 text-sm font-semibold rounded-full hidden"
-                >
-                  Out of Stock
-                </Badge>
-              ) : (
-                !hideAddToCart && <AddButton />
-              )}
-            </CardFooter>
-          </>
-        )}
-      </Card>
+              <CardFooter
+                className={cn(
+                  "px-3 pb-3",
+                  layout === "classic" && "mb-2 -mt-5",
+                  layout !== "classic" && "pt-0"
+                )}
+              >
+                {product.countInStock === 0 ? (
+                  <Badge
+                    variant="destructive"
+                    className={cn(
+                      "px-3 py-2 text-sm font-semibold",
+                      layout === "classic" ? "mx-auto hidden rounded-full" : "rounded-md"
+                    )}
+                  >
+                    Out of Stock
+                  </Badge>
+                ) : (
+                  !hideAddToCart && <AddButton />
+                )}
+              </CardFooter>
+            </>
+          )}
+        </Card>
       )}
       <ProductQuickView
         product={product}
