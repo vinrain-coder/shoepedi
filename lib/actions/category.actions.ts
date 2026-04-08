@@ -101,7 +101,12 @@ export async function getCategoryById(id: string) {
 
     const category = await Category.findById(id).lean();
 
-    return category || null;
+    if (!category) return null;
+
+    return {
+      ...category,
+      _id: category._id.toString(),
+    } as ICategory;
   } catch (error) {
     console.error("Error fetching category by ID:", error);
     return null;
@@ -153,8 +158,13 @@ export async function getAllCategoriesForAdmin({
       .limit(limit)
       .lean();
 
+    const normalizedCategories = categories.map((category) => ({
+      ...category,
+      _id: category._id.toString(),
+    }));
+
     return {
-      categories,
+      categories: normalizedCategories,
       totalCategories,
       totalPages,
       from: skip + 1,

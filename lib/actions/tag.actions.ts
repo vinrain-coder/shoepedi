@@ -94,7 +94,11 @@ export async function getTagById(id: string) {
   try {
     await connectToDatabase();
     const tag = await Tag.findById(id).lean();
-    return tag || null;
+    if (!tag) return null;
+    return {
+      ...tag,
+      _id: tag._id.toString(),
+    } as ITag;
   } catch (error) {
     console.error("Error fetching tag by ID:", error);
     return null;
@@ -141,8 +145,13 @@ export async function getAllTagsForAdmin({
       .limit(limit)
       .lean();
 
+    const normalizedTags = tags.map((tag) => ({
+      ...tag,
+      _id: tag._id.toString(),
+    }));
+
     return {
-      tags,
+      tags: normalizedTags,
       totalTags,
       totalPages,
       from: skip + 1,
