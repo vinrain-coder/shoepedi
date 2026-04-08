@@ -1,4 +1,5 @@
 import ProductCard from "@/components/shared/product/product-card";
+import ProductLayoutSelector from "@/components/shared/product/product-layout-selector";
 import Pagination from "@/components/shared/pagination";
 import ProductSortSelector from "@/components/shared/product/product-sort-selector";
 import {
@@ -16,6 +17,9 @@ import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getTagBySlug } from "@/lib/actions/tag.actions";
 import { notFound, redirect } from "next/navigation";
+import {
+  DEFAULT_PRODUCT_CARD_LAYOUT,
+} from "@/components/shared/product/product-card-layout";
 
 /* Metadata */
 export async function generateMetadata({
@@ -185,11 +189,14 @@ export default async function TagPage({
           products
         </div>
 
-        <ProductSortSelector
-          sortOrders={sortOrders}
-          sort={sort}
-          params={filterParams}
-        />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <ProductLayoutSelector layout={DEFAULT_PRODUCT_CARD_LAYOUT} />
+          <ProductSortSelector
+            sortOrders={sortOrders}
+            sort={sort}
+            params={filterParams}
+          />
+        </div>
       </div>
 
       {/* Content */}
@@ -206,12 +213,17 @@ export default async function TagPage({
         />
 
         <div className="md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4"
+          >
             {data.products.length === 0 ? (
               <div>No product found</div>
             ) : (
               data.products.map((p: IProduct) => (
-                <ProductCard key={p._id.toString()} product={p} />
+                <ProductCard
+                  key={p._id.toString()}
+                  product={p}
+                />
               ))
             )}
           </div>
