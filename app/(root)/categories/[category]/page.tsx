@@ -15,7 +15,6 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getCategoryBySlug } from "@/lib/actions/category.actions";
 import { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
 
 /* ------------------------- Metadata ------------------------- */
 export async function generateMetadata({
@@ -111,6 +110,7 @@ export default async function CategoryPage({
     page,
   };
 
+  // Fetch all data (IDENTICAL to brand page)
   const [categories, tags, brands, colors, sizes, data, categoryData] =
     await Promise.all([
       getAllCategories(),
@@ -158,7 +158,7 @@ export default async function CategoryPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
@@ -166,62 +166,52 @@ export default async function CategoryPage({
 
       <Breadcrumb />
 
-      {/* Modern Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-secondary/10 p-8 md:p-12">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider">
-              Category
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight capitalize">
-              {categoryData.name.replace(/-/g, " ")}
-            </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              {categoryData.description || `Explore our premium collection of ${categoryData.name.replace(/-/g, " ")} products. Find the best deals and latest styles.`}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-start md:items-end gap-2">
-            <div className="bg-background/80 backdrop-blur-sm border rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm">
-              {data.totalProducts} Products Available
-            </div>
-            <ProductSortSelector
-              sortOrders={sortOrders}
-              sort={sort}
-              params={filterParams}
-            />
-          </div>
+      {/* Header */}
+      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex-between flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-3">
+        <div>
+          <h1 className="text-xl font-bold capitalize">
+            {categoryData.name
+              .split("-")
+              .map((w) => w[0].toUpperCase() + w.slice(1))
+              .join(" ")}
+          </h1>
+          <p>
+            Shop products in {categoryData.name.replace(/-/g, " ")}. Filter by
+            brand, price, color, size, rating, and more.
+          </p>
+          {data.totalProducts === 0
+            ? "No results"
+            : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
+          products
         </div>
+
+        <ProductSortSelector
+          sortOrders={sortOrders}
+          sort={sort}
+          params={filterParams}
+        />
       </div>
 
       {/* Content */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-        <aside className="md:col-span-1">
-          <div className="sticky top-20">
-            <FiltersClient
-              initialParams={filterParams}
-              categories={categories}
-              tags={tags}
-              brands={brands}
-              colors={colors}
-              sizes={sizes}
-              basePath={`/categories/${categoryData.slug}`}
-              lockCategory
-            />
-          </div>
-        </aside>
+      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-2 md:py-3">
+        <FiltersClient
+          initialParams={filterParams}
+          categories={categories}
+          tags={tags}
+          brands={brands}
+          colors={colors}
+          sizes={sizes}
+          basePath={`/categories/${categoryData.slug}`}
+          lockCategory
+        />
 
-        <main className="md:col-span-4 space-y-8">
-          <div className="rounded-2xl border bg-card p-1">
-            <ProductLayoutSwitcher products={data.products as IProduct[]} />
-          </div>
+        <div className="md:col-span-4 space-y-4">
+          <ProductLayoutSwitcher products={data.products as IProduct[]} />
 
           {data.totalPages > 1 && (
-            <div className="flex justify-center pt-4">
-              <Pagination page={page} totalPages={data.totalPages} />
-            </div>
+            <Pagination page={page} totalPages={data.totalPages} />
           )}
-        </main>
+        </div>
       </div>
     </div>
   );
