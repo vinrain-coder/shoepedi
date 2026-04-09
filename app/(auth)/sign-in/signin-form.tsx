@@ -79,6 +79,8 @@ export function SignInForm() {
     if (error) {
       setError(error.message || "Something went wrong");
     } else {
+      localStorage.setItem("auth:known-user", "1");
+      localStorage.removeItem("auth:signup-prompt:dismissed");
       toast.success("Signed in successfully");
       router.replace(redirect);
     }
@@ -87,6 +89,7 @@ export function SignInForm() {
   async function handleSocialSignIn(provider: "google" | "github") {
     setError(null);
     setLoadingProvider(provider);
+    localStorage.setItem("auth:known-user", "1");
 
     const { error } = await authClient.signIn.social({
       provider,

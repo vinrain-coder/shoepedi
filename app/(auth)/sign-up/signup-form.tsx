@@ -78,6 +78,8 @@ export function SignUpForm() {
     if (error) {
       setError(error.message || "Something went wrong");
     } else {
+      localStorage.setItem("auth:known-user", "1");
+      localStorage.removeItem("auth:signup-prompt:dismissed");
       toast.success(
         "Signed up successfully. Please check your email to verify."
       );

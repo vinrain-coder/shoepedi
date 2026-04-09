@@ -12,6 +12,7 @@ import { getAdminSmsRecipients, sendAfricasTalkingSms } from "../sms/africas-tal
 import { SENDER_EMAIL, SENDER_NAME } from "../constants";
 import NewsletterConfirmationEmail from "./templates/transactional/newsletter-confirmation";
 import SupportTicketReplyEmail from "./templates/transactional/support-ticket-reply";
+import WelcomeNewUserEmail from "./templates/transactional/welcome-new-user";
 
 const toAdminSmsMessage = ({
   title,
@@ -193,6 +194,37 @@ export const sendNewsletterConfirmationEmail = async ({
   return {
     success: true,
     message: "Newsletter confirmation email sent successfully",
+  };
+};
+
+
+export const sendWelcomeNewUserEmail = async ({
+  email,
+  name,
+}: {
+  email: string;
+  name?: string | null;
+}) => {
+  const { site } = await getSetting();
+
+  await sendEmail({
+    to: email,
+    subject: `Welcome to ${site.name}!`,
+    react: (
+      <WelcomeNewUserEmail
+        name={name}
+        siteName={site.name}
+        siteUrl={site.url}
+        siteCopyright={site.copyright}
+      />
+    ),
+  });
+
+  console.log(`✅ Welcome email sent to ${email}`);
+
+  return {
+    success: true,
+    message: "Welcome email sent successfully",
   };
 };
 

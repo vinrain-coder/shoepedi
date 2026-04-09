@@ -34,6 +34,8 @@ export const SignOutButton = () => {
           toast.error(ctx.error.message);
         },
         onSuccess: () => {
+          localStorage.setItem("auth:known-user", "1");
+          localStorage.setItem("auth:signup-prompt:dismissed", "1");
           toast.success("You’ve logged out. See you soon!");
           router.replace(callbackURL);
         },
