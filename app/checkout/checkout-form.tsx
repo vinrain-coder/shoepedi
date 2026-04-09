@@ -162,12 +162,20 @@ const CheckoutForm = ({
       try {
         const result = await validateCoupon(targetCode, itemsPrice);
 
-        setCouponCode(result.coupon.code);
-        const couponDiscountAmount = result.discount;
+        if (!result.success || !result.data) {
+          setAppliedCoupon(null);
+          setCouponError(result.message || "Invalid coupon");
+          toast.error(result.message || "Invalid coupon");
+          return;
+        }
+
+        const { coupon, discount: couponDiscountAmount } = result.data;
+
+        setCouponCode(coupon.code);
         const nextAppliedCoupon = {
-          _id: result.coupon._id,
-          code: result.coupon.code,
-          discountType: toDiscountType(result.coupon.discountType),
+          _id: coupon._id,
+          code: coupon.code,
+          discountType: toDiscountType(coupon.discountType),
           discountAmount: couponDiscountAmount,
         };
         setAppliedCoupon(nextAppliedCoupon);
@@ -190,7 +198,7 @@ const CheckoutForm = ({
             "Coupon applied, but your first-purchase discount gives better savings and remains active."
           );
         } else {
-          toast.success("Coupon applied successfully");
+          toast.success(result.message || "Coupon applied successfully");
         }
       } catch (error: unknown) {
         setAppliedCoupon(null);
