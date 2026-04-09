@@ -173,6 +173,7 @@ export async function validateCoupon(code: string, itemsTotal: number) {
       const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
 
       return {
+        success: true,
         coupon: {
           _id: (coupon._id || "").toString(),
           code: coupon.code || "",
@@ -206,6 +207,7 @@ export async function validateCoupon(code: string, itemsTotal: number) {
       const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
 
       return {
+        success: true,
         coupon: {
           _id: (affiliate._id || "").toString(),
           code: affiliate.affiliateCode || "",
@@ -222,7 +224,7 @@ export async function validateCoupon(code: string, itemsTotal: number) {
     throw new Error(`The coupon code "${code}" is invalid or expired.`);
   } catch (error) {
     console.error("validateCoupon error:", error);
-    throw error;
+    return { success: false, message: formatError(error) };
   }
 }
 

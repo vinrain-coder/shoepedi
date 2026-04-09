@@ -162,12 +162,19 @@ const CheckoutForm = ({
       try {
         const result = await validateCoupon(targetCode, itemsPrice);
 
-        setCouponCode(result.coupon.code);
-        const couponDiscountAmount = result.discount;
+        if (!result.success) {
+          setAppliedCoupon(null);
+          setCouponError(result.message!);
+          toast.error(result.message);
+          return;
+        }
+
+        setCouponCode(result.coupon!.code);
+        const couponDiscountAmount = result.discount!;
         const nextAppliedCoupon = {
-          _id: result.coupon._id,
-          code: result.coupon.code,
-          discountType: toDiscountType(result.coupon.discountType),
+          _id: result.coupon!._id,
+          code: result.coupon!.code,
+          discountType: toDiscountType(result.coupon!.discountType),
           discountAmount: couponDiscountAmount,
         };
         setAppliedCoupon(nextAppliedCoupon);

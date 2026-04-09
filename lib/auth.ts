@@ -146,28 +146,33 @@ export const auth = betterAuth({
             },
           };
         },
-        after: async (user) => {
-          if (user.role === "ADMIN") return;
+      },
+    },
+  },
 
-          await sendAdminEventNotification({
-            title: "New customer account",
-            description: `${user.name || user.email} created an account${user.email ? ` with ${user.email}` : ""}.`,
-            href: "/admin/users",
-            meta: user.emailVerified ? "Email verified" : "Needs verification",
-            createdAt: new Date().toISOString(),
-          });
+  events: {
+    user: {
+      created: async ({ user }) => {
+        if (user.role === "ADMIN") return;
 
-          if (user.email) {
-            try {
-              await sendWelcomeNewUserEmail({
-                email: user.email,
-                name: user.name,
-              });
-            } catch (error) {
-              console.error("Non-critical: Failed to send welcome email:", error);
-            }
+        await sendAdminEventNotification({
+          title: "New customer account",
+          description: `${user.name || user.email} created an account${user.email ? ` with ${user.email}` : ""}.`,
+          href: "/admin/users",
+          meta: user.emailVerified ? "Email verified" : "Needs verification",
+          createdAt: new Date().toISOString(),
+        });
+
+        if (user.email) {
+          try {
+            await sendWelcomeNewUserEmail({
+              email: user.email,
+              name: user.name,
+            });
+          } catch (error) {
+            console.error("Non-critical: Failed to send welcome email:", error);
           }
-        },
+        }
       },
     },
   },
