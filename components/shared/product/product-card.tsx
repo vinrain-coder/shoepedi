@@ -147,7 +147,7 @@ const ProductCard = ({
   if (layout === "detailed") {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-2xl border bg-card p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3.5">
+        <Card className="relative overflow-hidden rounded-md border border-[0.5px] p-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
           <div className="absolute right-2 top-2 z-20 flex flex-col items-center gap-1.5 sm:right-3 sm:top-3">
             <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
           </div>
@@ -161,7 +161,7 @@ const ProductCard = ({
                       key={`${image}-${index}`}
                       onClick={() => setMainImage(image)}
                       className={cn(
-                        "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border bg-muted/40 transition-all sm:h-12 sm:w-12",
+                        "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border transition-all sm:h-12 sm:w-12",
                         mainImage === image ? "border-primary ring-1 ring-primary" : "border-transparent",
                       )}
                     >
@@ -200,7 +200,7 @@ const ProductCard = ({
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sizes</p>
                 <div className="flex flex-wrap gap-1">
                   {product.sizes.slice(0, 5).map((size) => (
-                    <span key={size} className="rounded border px-1.5 py-0.5 text-[10px] sm:text-[11px]">{size}</span>
+                    <span key={size} className="rounded-full border px-1.5 py-0.5 text-[10px] sm:text-[11px]">{size}</span>
                   ))}
                 </div>
               </div>
