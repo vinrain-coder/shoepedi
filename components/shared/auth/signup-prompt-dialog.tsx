@@ -67,7 +67,7 @@ export default function SignUpPromptDialog() {
     const timer = window.setTimeout(() => {
       localStorage.setItem(PROMPT_LAST_SHOWN_KEY, String(Date.now()));
       setOpen(true);
-    }, 1800);
+    }, 10000);
 
     return () => window.clearTimeout(timer);
   }, [isPending, pathname, session?.user?.id]);

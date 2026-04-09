@@ -479,20 +479,28 @@ export const createOrderFromCart = async (
 
   if (couponCodeToUse) {
     try {
-      const validatedCoupon = await validateCoupon(couponCodeToUse, itemsPriceRaw);
+      const result = await validateCoupon(couponCodeToUse, itemsPriceRaw);
 
-      appliedCoupon = {
-        _id: validatedCoupon.coupon._id,
-        code: validatedCoupon.coupon.code,
-        discountType: validatedCoupon.coupon.discountType as "percentage" | "fixed",
-        discountAmount: validatedCoupon.discount,
-        isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
-        isFirstPurchase: false,
-      };
+      if (result.success) {
+        const validatedCoupon = result;
+        appliedCoupon = {
+          _id: validatedCoupon.coupon!._id,
+          code: validatedCoupon.coupon!.code,
+          discountType: validatedCoupon.coupon!.discountType as "percentage" | "fixed",
+          discountAmount: validatedCoupon.discount!,
+          isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
+          isFirstPurchase: false,
+        };
 
-      if (appliedCoupon.isAffiliate) {
-        affiliateId = appliedCoupon._id;
-        affiliateCode = appliedCoupon.code;
+        if (appliedCoupon.isAffiliate) {
+          affiliateId = appliedCoupon._id;
+          affiliateCode = appliedCoupon.code;
+        }
+      } else {
+        if (coupon?.code) {
+          throw new Error(result.message);
+        }
+        console.error("Auto-coupon application failed:", result.message);
       }
     } catch (error) {
        console.error("Auto-coupon application failed:", error);
