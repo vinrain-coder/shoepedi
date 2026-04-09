@@ -12,9 +12,10 @@ import {
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";
-import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getBrandBySlug } from "@/lib/actions/brand.actions";
+import { Metadata } from "next";
+import { Badge } from "@/components/ui/badge";
 
 /* ------------------------- Metadata ------------------------- */
 export async function generateMetadata({
@@ -26,11 +27,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { brand: brandSlug } = await params;
   const sp = await searchParams;
+
   const brandData = await getBrandBySlug(brandSlug);
   const { site } = await getSetting();
 
   const titleBase =
     brandData?.seoTitle || brandData?.name || brandSlug.replace(/-/g, " ");
+
   const descriptionBase =
     brandData?.seoDescription ||
     brandData?.description ||
@@ -53,7 +56,7 @@ export async function generateMetadata({
       title: titleBase,
       description: descriptionBase,
       url: `${site.url}/brands/${brandSlug}`,
-      images: brandData?.image ? [brandData.image] : [],
+      images: brandData?.logo ? [brandData.logo] : [],
       type: "website",
     },
   };
@@ -105,7 +108,6 @@ export default async function BrandPage({
     page,
   };
 
-  // Fetch all data
   const [categories, tags, brands, colors, sizes, data, brandData] =
     await Promise.all([
       getAllCategories(),
@@ -153,7 +155,7 @@ export default async function BrandPage({
   };
 
   return (
-    <div className="space-y-2 md:space-y-4">
+    <div className="space-y-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
@@ -161,52 +163,62 @@ export default async function BrandPage({
 
       <Breadcrumb />
 
-      {/* Header */}
-      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex-between flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-3">
-        <div>
-          <h1 className="text-xl font-bold capitalize">
-            {brandData.name
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")}
-          </h1>
-          <p className="">
-            Shop products from {brandData.name.replace(/-/g, " ")}. Filter by
-            category, price, color, size, rating, and more.
-          </p>
-          {data.totalProducts === 0
-            ? "No results"
-            : `${data.from}-${data.to} of ${data.totalProducts}`}{" "}
-          products
-        </div>
+      {/* Modern Hero Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-secondary/10 p-8 md:p-12">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider">
+              Brand Store
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight capitalize">
+              {brandData.name.replace(/-/g, " ")}
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              {brandData.description || `Browse our official collection of ${brandData.name.replace(/-/g, " ")} products. Find the best quality and latest styles from your favorite brand.`}
+            </p>
+          </div>
 
-        <ProductSortSelector
-          sortOrders={sortOrders}
-          sort={sort}
-          params={filterParams}
-        />
+          <div className="flex flex-col items-start md:items-end gap-2">
+            <div className="bg-background/80 backdrop-blur-sm border rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm text-center">
+              {data.totalProducts} Products from {brandData.name}
+            </div>
+            <ProductSortSelector
+              sortOrders={sortOrders}
+              sort={sort}
+              params={filterParams}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-2 md:py-3">
-        <FiltersClient
-          initialParams={filterParams}
-          categories={categories}
-          tags={tags}
-          brands={brands}
-          colors={colors}
-          sizes={sizes}
-          basePath={`/brands/${brandData.slug}`}
-          lockBrand
-        />
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <aside className="md:col-span-1">
+          <div className="sticky top-20">
+            <FiltersClient
+              initialParams={filterParams}
+              categories={categories}
+              tags={tags}
+              brands={brands}
+              colors={colors}
+              sizes={sizes}
+              basePath={`/brands/${brandData.slug}`}
+              lockBrand
+            />
+          </div>
+        </aside>
 
-        <div className="md:col-span-4 space-y-4">
-          <ProductLayoutSwitcher products={data.products as IProduct[]} />
+        <main className="md:col-span-4 space-y-8">
+          <div className="rounded-2xl border bg-card p-1">
+            <ProductLayoutSwitcher products={data.products as IProduct[]} />
+          </div>
 
           {data.totalPages > 1 && (
-            <Pagination page={page} totalPages={data.totalPages} />
+            <div className="flex justify-center pt-4">
+              <Pagination page={page} totalPages={data.totalPages} />
+            </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
