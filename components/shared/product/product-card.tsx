@@ -71,7 +71,7 @@ const ProductCard = ({
       className={cn(
         "relative w-full overflow-hidden",
         layout === "detailed"
-          ? "aspect-square min-h-[110px] rounded-xl bg-muted/30 p-2.5 sm:min-h-[160px] sm:p-3"
+          ? "aspect-square min-h-[110px] rounded-xl p-2.5 sm:min-h-[160px] sm:p-3"
           : "aspect-[3/4] h-52 sm:h-56",
       )}
     >
