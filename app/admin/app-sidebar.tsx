@@ -178,8 +178,8 @@ export function AppSidebar({
             >
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src={siteLogo}
-                  alt="Logo"
+                  src={siteLogo || "/icons/logo.svg"}
+                  alt={`${siteName} logo`}
                   width={36}
                   height={36}
                   className="rounded"

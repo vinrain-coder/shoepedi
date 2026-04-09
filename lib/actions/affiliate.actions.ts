@@ -14,6 +14,8 @@ import {
   sendAdminEventNotification,
   sendAffiliateApprovalNotification,
   sendAffiliatePayoutNotification,
+  sendAffiliateRejectedNotification,
+  sendAffiliateResubmittedNotification,
 } from "@/lib/email/transactional";
 import { formatCurrency } from "../utils";
 
@@ -24,21 +26,66 @@ export async function registerAffiliate(data: any) {
     if (!session) throw new Error("User not authenticated");
 
     const validatedData = AffiliateInputSchema.parse(data);
+    const normalizedCode = validatedData.affiliateCode.trim().toUpperCase();
 
-    const existingAffiliate = await Affiliate.findOne({
-      $or: [{ user: session.user.id }, { affiliateCode: validatedData.affiliateCode }],
-    });
+    const existingAffiliate = await Affiliate.findOne({ user: session.user.id });
 
     if (existingAffiliate) {
-      if (existingAffiliate.user.toString() === session.user.id) {
+      if (existingAffiliate.status !== "rejected") {
         throw new Error("You are already registered as an affiliate");
       }
+
+      const conflictingCode = await Affiliate.findOne({
+        affiliateCode: normalizedCode,
+        _id: { $ne: existingAffiliate._id },
+      });
+
+      if (conflictingCode) {
+        throw new Error("Affiliate code is already taken");
+      }
+
+      existingAffiliate.affiliateCode = normalizedCode;
+      existingAffiliate.paymentDetails = validatedData.paymentDetails;
+      existingAffiliate.status = "pending";
+      existingAffiliate.adminNote = "";
+      await existingAffiliate.save();
+
+      const resubmittedAt = existingAffiliate.updatedAt.toISOString();
+
+      await sendAdminEventNotification({
+        title: "Affiliate application resubmitted",
+        description: `${session.user.name || "An affiliate"} resubmitted their affiliate application (Code: ${existingAffiliate.affiliateCode}).`,
+        href: "/admin/affiliates",
+        meta: "Review required",
+        createdAt: resubmittedAt,
+      });
+
+      if (session.user.email) {
+        await sendAffiliateResubmittedNotification({
+          email: session.user.email,
+          name: session.user.name || "Affiliate",
+          affiliateCode: existingAffiliate.affiliateCode,
+        });
+      }
+
+      revalidatePath("/affiliate/dashboard");
+      revalidatePath("/affiliate/register");
+
+      return {
+        success: true,
+        message: "Application resubmitted successfully",
+        data: JSON.parse(JSON.stringify(existingAffiliate)),
+      };
+    }
+
+    const existingCode = await Affiliate.findOne({ affiliateCode: normalizedCode });
+    if (existingCode) {
       throw new Error("Affiliate code is already taken");
     }
 
     const affiliate = await Affiliate.create({
       user: session.user.id,
-      affiliateCode: validatedData.affiliateCode.trim().toUpperCase(),
+      affiliateCode: normalizedCode,
       paymentDetails: validatedData.paymentDetails,
       status: "pending",
     });
@@ -128,6 +175,9 @@ export async function getAffiliateStatus() {
     return {
       exists: true,
       status: affiliate.status,
+      affiliateCode: affiliate.affiliateCode,
+      paymentDetails: affiliate.paymentDetails,
+      adminNote: affiliate.adminNote || "",
     };
   } catch (error) {
     console.error("Error getting affiliate status:", error);
@@ -414,13 +464,24 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
 
+    const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
+    const phone = user.addresses?.[0]?.phone;
+
     if (status === "approved") {
-      const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
-      const phone = user.addresses?.[0]?.phone;
       await sendAffiliateApprovalNotification({
         email: user.email,
         name: user.name,
         affiliateCode: affiliate.affiliateCode,
+        phone,
+      });
+    }
+
+    if (status === "rejected") {
+      await sendAffiliateRejectedNotification({
+        email: user.email,
+        name: user.name,
+        affiliateCode: affiliate.affiliateCode,
+        reason: update.adminNote,
         phone,
       });
     }

@@ -336,6 +336,91 @@ export const sendAffiliatePayoutNotification = async ({
   return { success: true };
 };
 
+export const sendAffiliateRejectedNotification = async ({
+  email,
+  name,
+  affiliateCode,
+  reason,
+  phone,
+}: {
+  email: string;
+  name: string;
+  affiliateCode: string;
+  reason: string;
+  phone?: string;
+}) => {
+  const { site } = await getSetting();
+
+  await sendEmail({
+    to: email,
+    subject: `Update on your ${site.name} affiliate application`,
+    react: (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+      <p>Hello ${name},</p>
+      <p>Thank you for applying to the <strong>${site.name}</strong> Affiliate Program.</p>
+      <p>At this time, your application for code <strong>${affiliateCode}</strong> was not approved.</p>
+      <p><strong>Reason:</strong> ${reason}</p>
+      <p>You can update your details and reapply here:</p>
+      <p><a href="${site.url}/affiliate/register">${site.url}/affiliate/register</a></p>
+      <p>We appreciate your interest and encourage you to submit again.</p>
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `,
+        }}
+      />
+    ),
+  });
+
+  if (phone) {
+    await sendAfricasTalkingSms({
+      to: phone,
+      message: toUserSmsMessage({
+        siteName: site.name,
+        message: `Your affiliate application was not approved. Reason: ${reason}. Update details and reapply from your dashboard.`,
+      }),
+    });
+  }
+
+  console.log(`✅ Affiliate rejection notification sent to ${email}`);
+  return { success: true };
+};
+
+export const sendAffiliateResubmittedNotification = async ({
+  email,
+  name,
+  affiliateCode,
+}: {
+  email: string;
+  name: string;
+  affiliateCode: string;
+}) => {
+  const { site } = await getSetting();
+
+  await sendEmail({
+    to: email,
+    subject: `Affiliate application resubmitted - ${site.name}`,
+    react: (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+      <p>Hello ${name},</p>
+      <p>Your affiliate application has been successfully resubmitted.</p>
+      <p>Application code: <strong>${affiliateCode}</strong></p>
+      <p>Our team will review it and notify you when a decision is made.</p>
+      <p>Track status: <a href="${site.url}/affiliate/dashboard">${site.url}/affiliate/dashboard</a></p>
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `,
+        }}
+      />
+    ),
+  });
+
+  console.log(`✅ Affiliate resubmission confirmation sent to ${email}`);
+  return { success: true };
+};
+
+
 export const sendSupportTicketReplyEmail = async ({
   to,
   customerName,
