@@ -10,7 +10,7 @@ import {
   sendResetPasswordEmail,
   sendVerifyEmail,
 } from "./email/auth-emails";
-import { sendAdminEventNotification } from "@/lib/email/transactional";
+import { sendAdminEventNotification, sendWelcomeNewUserEmail } from "@/lib/email/transactional";
 
 const db = await getDb();
 
@@ -156,6 +156,17 @@ export const auth = betterAuth({
             meta: user.emailVerified ? "Email verified" : "Needs verification",
             createdAt: new Date().toISOString(),
           });
+
+          if (user.email) {
+            try {
+              await sendWelcomeNewUserEmail({
+                email: user.email,
+                name: user.name,
+              });
+            } catch (error) {
+              console.error("Non-critical: Failed to send welcome email:", error);
+            }
+          }
         },
       },
     },
