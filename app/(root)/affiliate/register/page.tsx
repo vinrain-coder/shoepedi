@@ -21,38 +21,57 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
 import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+
+const defaultValues = {
+  affiliateCode: "",
+  paymentDetails: {
+    bankName: "",
+    accountName: "",
+    accountNumber: "",
+    payPalEmail: "",
+    mPesaNumber: "",
+  },
+};
 
 export default function RegisterAffiliatePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-
-  useEffect(() => {
-    async function checkStatus() {
-      const { exists } = await getAffiliateStatus();
-      if (exists) {
-        router.push("/affiliate/dashboard");
-      } else {
-        setCheckingStatus(false);
-      }
-    }
-    checkStatus();
-  }, [router]);
+  const [rejectionNote, setRejectionNote] = useState("");
 
   const form = useForm({
     resolver: zodResolver(AffiliateInputSchema),
-    defaultValues: {
-      affiliateCode: "",
-      paymentDetails: {
-        bankName: "",
-        accountName: "",
-        accountNumber: "",
-        payPalEmail: "",
-        mPesaNumber: "",
-      },
-    },
+    defaultValues,
   });
+
+  useEffect(() => {
+    async function checkStatus() {
+      const status = await getAffiliateStatus();
+
+      if (!status.exists) {
+        setCheckingStatus(false);
+        return;
+      }
+
+      if (status.status !== "rejected") {
+        router.push("/affiliate/dashboard");
+        return;
+      }
+
+      form.reset({
+        affiliateCode: status.affiliateCode || "",
+        paymentDetails: {
+          ...defaultValues.paymentDetails,
+          ...(status.paymentDetails || {}),
+        },
+      });
+      setRejectionNote(status.adminNote || "");
+      setCheckingStatus(false);
+    }
+
+    checkStatus();
+  }, [form, router]);
 
   async function onSubmit(values: any) {
     setIsSubmitting(true);
@@ -84,6 +103,14 @@ export default function RegisterAffiliatePage() {
           <p className="text-muted-foreground">
             Join our affiliate program and start earning commissions today.
           </p>
+          {rejectionNote && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 flex gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>
+                <strong>Previous application feedback:</strong> {rejectionNote}
+              </p>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -137,7 +164,7 @@ export default function RegisterAffiliatePage() {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-md bg-muted/50">
-                   <div className="col-span-full font-medium">Bank Details (Optional)</div>
+                  <div className="col-span-full font-medium">Bank Details (Optional)</div>
                   <FormField
                     control={form.control}
                     name="paymentDetails.bankName"

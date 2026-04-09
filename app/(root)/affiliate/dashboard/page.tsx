@@ -46,6 +46,22 @@ export default async function AffiliateDashboardPage() {
         </div>
       </div>
 
+      {affiliate.status === "rejected" && (
+        <Card className="border-red-200 bg-red-50/70">
+          <CardContent className="pt-6 space-y-3">
+            <p className="text-sm font-semibold text-red-700">Your application was rejected.</p>
+            {affiliate.adminNote ? (
+              <p className="text-sm text-red-700/90">Reason: {affiliate.adminNote}</p>
+            ) : (
+              <p className="text-sm text-red-700/90">Please review your application details and submit again.</p>
+            )}
+            <Button asChild size="sm" variant="destructive">
+              <Link href="/affiliate/register">Update & Reapply</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
