@@ -70,6 +70,29 @@ export default function CommonForm({
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={control}
+            name="common.firstPurchaseDiscountRate"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>First Purchase Discount Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="20.00"
+                    {...field}
+                  />
+                </FormControl>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Automatically applied once to first-time buyers (e.g. 20 for 20% off items price).
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
             name="common.coinsRewardRate"
             render={({ field }) => (
               <FormItem className="w-full">

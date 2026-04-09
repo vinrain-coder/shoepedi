@@ -233,6 +233,7 @@ export const OrderInputSchema = z.object({
       discountType: z.enum(["percentage", "fixed"]),
       discountAmount: Price("Discount amount"),
       isAffiliate: z.boolean().optional(),
+      isFirstPurchase: z.boolean().optional(),
     })
     .optional(),
   affiliate: MongoId.optional(),
@@ -399,6 +400,11 @@ export const SettingInputSchema = z.object({
       .number()
       .min(0, "Free shipping min price must be at least 0")
       .default(5000),
+    firstPurchaseDiscountRate: z.coerce
+      .number()
+      .min(0, "First purchase discount rate must be at least 0")
+      .max(100, "First purchase discount rate cannot exceed 100")
+      .default(20),
     coinsRewardRate: z.coerce
       .number()
       .min(0, "Coins reward rate must be at least 0")

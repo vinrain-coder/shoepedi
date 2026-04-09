@@ -10,6 +10,7 @@ export interface ICouponInfo {
   discountType: "percentage" | "fixed";
   discountAmount: number;
   isAffiliate?: boolean;
+  isFirstPurchase?: boolean;
 }
 
 export interface IOrderTrackingHistoryEvent {
@@ -210,6 +211,7 @@ const orderSchema = new Schema<IOrder>(
       discountType: { type: String, enum: ["percentage", "fixed"] },
       discountAmount: { type: Number },
       isAffiliate: { type: Boolean },
+      isFirstPurchase: { type: Boolean },
     },
     affiliate: {
       type: Schema.Types.ObjectId,

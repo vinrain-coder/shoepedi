@@ -205,7 +205,7 @@ export const sendWelcomeNewUserEmail = async ({
   email: string;
   name?: string | null;
 }) => {
-  const { site } = await getSetting();
+  const { site, common } = await getSetting();
 
   await sendEmail({
     to: email,
@@ -216,6 +216,7 @@ export const sendWelcomeNewUserEmail = async ({
         siteName={site.name}
         siteUrl={site.url}
         siteCopyright={site.copyright}
+        firstPurchaseDiscountRate={common.firstPurchaseDiscountRate}
       />
     ),
   });

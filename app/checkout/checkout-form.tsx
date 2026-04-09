@@ -19,7 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createOrder, SerializedOrder } from "@/lib/actions/order.actions";
+import {
+  createOrder,
+  getFirstPurchaseDiscountQuote,
+  SerializedOrder,
+} from "@/lib/actions/order.actions";
 import {
   calculateFutureDate,
   formatDateTime,
@@ -118,6 +122,20 @@ const CheckoutForm = ({
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
+  const [firstPurchaseDiscount, setFirstPurchaseDiscount] = useState<{
+    eligible: boolean;
+    rate: number;
+    discountAmount: number;
+  }>({
+    eligible: false,
+    rate: 0,
+    discountAmount: 0,
+  });
+
+  const effectiveDiscountAmount = Math.max(
+    firstPurchaseDiscount.discountAmount || 0,
+    appliedCoupon?.discountAmount || 0
+  );
 
   const resetCoupon = async (message?: string) => {
     setAppliedCoupon(null);
@@ -127,7 +145,7 @@ const CheckoutForm = ({
       items,
       shippingAddress,
       deliveryDateIndex,
-      0
+      firstPurchaseDiscount.discountAmount || 0
     );
     if (message) toast.info(message);
   };
@@ -145,22 +163,35 @@ const CheckoutForm = ({
         const result = await validateCoupon(targetCode, itemsPrice);
 
         setCouponCode(result.coupon.code);
-        setAppliedCoupon({
+        const couponDiscountAmount = result.discount;
+        const nextAppliedCoupon = {
           _id: result.coupon._id,
           code: result.coupon.code,
           discountType: toDiscountType(result.coupon.discountType),
-          discountAmount: result.discount,
-        });
+          discountAmount: couponDiscountAmount,
+        };
+        setAppliedCoupon(nextAppliedCoupon);
+
+        const effectiveDiscount = Math.max(
+          firstPurchaseDiscount.discountAmount || 0,
+          couponDiscountAmount || 0
+        );
 
         // Update cart prices with new discount
         await setCartPrices(
           items,
           shippingAddress,
           deliveryDateIndex,
-          result.discount
+          effectiveDiscount
         );
 
-        toast.success("Coupon applied successfully");
+        if ((firstPurchaseDiscount.discountAmount || 0) > (couponDiscountAmount || 0)) {
+          toast.info(
+            "Coupon applied, but your first-purchase discount gives better savings and remains active."
+          );
+        } else {
+          toast.success("Coupon applied successfully");
+        }
       } catch (error: unknown) {
         setAppliedCoupon(null);
         const message = getErrorMessage(error);
@@ -325,6 +356,7 @@ const CheckoutForm = ({
         itemsPrice,
         shippingPrice,
         taxPrice,
+        discount: discountAmount,
         totalPrice,
         coupon: appliedCoupon
           ? {
@@ -418,6 +450,44 @@ const CheckoutForm = ({
       if (coins !== null) setLiveUserCoins(coins);
     });
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchFirstPurchaseDiscount = async () => {
+      const quote = await getFirstPurchaseDiscountQuote(itemsPrice);
+      if (cancelled) return;
+      setFirstPurchaseDiscount(quote);
+
+      const effectiveDiscount = Math.max(
+        quote.discountAmount || 0,
+        appliedCoupon?.discountAmount || 0
+      );
+      await setCartPrices(
+        items,
+        shippingAddress,
+        deliveryDateIndex,
+        effectiveDiscount
+      );
+    };
+
+    if (itemsPrice <= 0) {
+      setFirstPurchaseDiscount({ eligible: false, rate: 0, discountAmount: 0 });
+      return;
+    }
+
+    void fetchFirstPurchaseDiscount();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    appliedCoupon?.discountAmount,
+    deliveryDateIndex,
+    items,
+    itemsPrice,
+    setCartPrices,
+    shippingAddress,
+  ]);
 
   const hasAutoApplied = useRef(false);
   useEffect(() => {
@@ -519,9 +589,19 @@ const CheckoutForm = ({
                 <p>
                   Coupon{" "}
                   <span className="font-medium">{appliedCoupon.code}</span>{" "}
-                  applied — you saved{" "}
+                  applied{" "}
+                  {(appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
+                    ? "(first-purchase discount gives better savings)"
+                    : "— you saved"}{" "}
                   <span className="text-green-600">
-                    <ProductPrice price={discountAmount} plain />
+                    <ProductPrice
+                      price={
+                        (appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
+                          ? firstPurchaseDiscount.discountAmount
+                          : discountAmount
+                      }
+                      plain
+                    />
                   </span>
                 </p>
                 <Button
@@ -532,6 +612,15 @@ const CheckoutForm = ({
                 >
                   Remove
                 </Button>
+              </div>
+            )}
+            {firstPurchaseDiscount.eligible && !appliedCoupon && effectiveDiscountAmount > 0 && (
+              <div className="mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700">
+                First purchase offer applied ({firstPurchaseDiscount.rate}% off items): you save{" "}
+                <span className="font-semibold">
+                  <ProductPrice price={firstPurchaseDiscount.discountAmount} plain />
+                </span>
+                .
               </div>
             )}
             <div className="text-lg font-bold">Order Summary</div>
@@ -575,7 +664,12 @@ const CheckoutForm = ({
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between">
-                <span>Coupon Discount:</span>
+                <span>
+                  {effectiveDiscountAmount === (firstPurchaseDiscount.discountAmount || 0)
+                    ? `First Purchase Discount (${firstPurchaseDiscount.rate}%)`
+                    : "Coupon Discount"}
+                  :
+                </span>
                 <span>
                   -<ProductPrice price={discountAmount} plain />
                 </span>

@@ -416,6 +416,7 @@ Please note that certain items, such as socks and insoles, are not eligible for 
     {
       common: {
         freeShippingMinPrice: 5000,
+        firstPurchaseDiscountRate: 20,
         coinsRewardRate: 4,
         taxRate: 0,
         isMaintenanceMode: false,
