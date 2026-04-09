@@ -148,19 +148,19 @@ export async function validateCoupon(code: string, itemsTotal: number) {
     await connectToDatabase();
 
     const normalizedCode = normalizeCouponCode(code || "");
-    if (!normalizedCode) throw new Error("Enter a coupon code.");
+    if (!normalizedCode) return { success: false, message: "Enter a coupon code." };
 
     const coupon = await Coupon.findOne({ code: normalizedCode, isActive: true });
 
     if (coupon) {
       if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
-        throw new Error(`The coupon code "${code}" has expired.`);
+        return { success: false, message: `The coupon code "${code}" has expired.` };
       }
       if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-        throw new Error(`The coupon code "${code}" has reached its maximum usage limit.`);
+        return { success: false, message: `The coupon code "${code}" has reached its maximum usage limit.` };
       }
       if (coupon.minPurchase && itemsTotal < coupon.minPurchase) {
-        throw new Error(`Minimum purchase of ${coupon.minPurchase} is required for this coupon.`);
+        return { success: false, message: `Minimum purchase of ${coupon.minPurchase} is required for this coupon.` };
       }
 
       let discount = 0;
@@ -173,15 +173,19 @@ export async function validateCoupon(code: string, itemsTotal: number) {
       const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
 
       return {
-        coupon: {
-          _id: (coupon._id || "").toString(),
-          code: coupon.code || "",
-          discountType: coupon.discountType || "percentage",
-          discountValue: Number(coupon.discountValue) || 0,
-          discountAmount: Number(normalizedDiscount) || 0,
+        success: true,
+        message: "Coupon applied successfully",
+        data: {
+          coupon: {
+            _id: (coupon._id || "").toString(),
+            code: coupon.code || "",
+            discountType: coupon.discountType || "percentage",
+            discountValue: Number(coupon.discountValue) || 0,
+            discountAmount: Number(normalizedDiscount) || 0,
+          },
+          discount: Number(normalizedDiscount) || 0,
+          newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
         },
-        discount: Number(normalizedDiscount) || 0,
-        newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
       };
     }
 
@@ -194,7 +198,7 @@ export async function validateCoupon(code: string, itemsTotal: number) {
     if (affiliate) {
       const settings = await getSetting();
       if (!settings?.affiliate?.enabled) {
-        throw new Error("Affiliate program is currently disabled.");
+        return { success: false, message: "Affiliate program is currently disabled." };
       }
 
       const discountRate =
@@ -206,23 +210,27 @@ export async function validateCoupon(code: string, itemsTotal: number) {
       const normalizedDiscount = Math.min(Number(Number(discount).toFixed(2)), itemsTotal || 0);
 
       return {
-        coupon: {
-          _id: (affiliate._id || "").toString(),
-          code: affiliate.affiliateCode || "",
-          discountType: "percentage",
-          discountValue: Number(discountRate) || 0,
-          discountAmount: Number(normalizedDiscount) || 0,
-          isAffiliate: true,
+        success: true,
+        message: "Affiliate code applied successfully",
+        data: {
+          coupon: {
+            _id: (affiliate._id || "").toString(),
+            code: affiliate.affiliateCode || "",
+            discountType: "percentage",
+            discountValue: Number(discountRate) || 0,
+            discountAmount: Number(normalizedDiscount) || 0,
+            isAffiliate: true,
+          },
+          discount: Number(normalizedDiscount) || 0,
+          newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
         },
-        discount: Number(normalizedDiscount) || 0,
-        newTotal: Math.max(Number(Number((itemsTotal || 0) - normalizedDiscount).toFixed(2)), 0),
       };
     }
 
-    throw new Error(`The coupon code "${code}" is invalid or expired.`);
+    return { success: false, message: `The coupon code "${code}" is invalid or expired.` };
   } catch (error) {
     console.error("validateCoupon error:", error);
-    throw error;
+    return { success: false, message: formatError(error) };
   }
 }
 
