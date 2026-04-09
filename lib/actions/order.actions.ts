@@ -49,6 +49,63 @@ type OrderCouponInput = {
   discountType: "percentage" | "fixed";
   discountAmount?: number;
   isAffiliate?: boolean;
+  isFirstPurchase?: boolean;
+};
+
+type FirstPurchaseDiscountQuote = {
+  eligible: boolean;
+  rate: number;
+  discountAmount: number;
+};
+
+const getFirstPurchaseDiscountQuoteForUser = async (
+  userId: string,
+  itemsPrice: number,
+): Promise<FirstPurchaseDiscountQuote> => {
+  const {
+    common: { firstPurchaseDiscountRate = 0 },
+  } = await getSetting();
+  const normalizedRate = Math.max(0, Math.min(100, Number(firstPurchaseDiscountRate) || 0));
+  const normalizedItemsPrice = Math.max(0, Number(itemsPrice) || 0);
+
+  if (!userId || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
+    return { eligible: false, rate: normalizedRate, discountAmount: 0 };
+  }
+
+  const [user, existingOrdersCount] = await Promise.all([
+    User.findById(userId).select("firstPurchaseDiscountUsed").lean(),
+    Order.countDocuments({ user: userId }),
+  ]);
+
+  if (!user || user.firstPurchaseDiscountUsed || existingOrdersCount > 0) {
+    return { eligible: false, rate: normalizedRate, discountAmount: 0 };
+  }
+
+  const discountAmount = Math.min(
+    round2((normalizedItemsPrice * normalizedRate) / 100),
+    normalizedItemsPrice,
+  );
+
+  return {
+    eligible: discountAmount > 0,
+    rate: normalizedRate,
+    discountAmount,
+  };
+};
+
+export const getFirstPurchaseDiscountQuote = async (itemsPrice: number) => {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session?.user?.id) {
+      return { eligible: false, rate: 0, discountAmount: 0 };
+    }
+
+    return await getFirstPurchaseDiscountQuoteForUser(session.user.id, itemsPrice);
+  } catch (error) {
+    console.error("Failed to fetch first purchase discount quote:", error);
+    return { eligible: false, rate: 0, discountAmount: 0 };
+  }
 };
 
 const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
@@ -404,6 +461,7 @@ export const createOrderFromCart = async (
         discountType: "percentage" | "fixed";
         discountAmount: number;
         isAffiliate?: boolean;
+        isFirstPurchase?: boolean;
       }
     | undefined;
 
@@ -429,6 +487,7 @@ export const createOrderFromCart = async (
         discountType: validatedCoupon.coupon.discountType as "percentage" | "fixed",
         discountAmount: validatedCoupon.discount,
         isAffiliate: (validatedCoupon.coupon as any).isAffiliate,
+        isFirstPurchase: false,
       };
 
       if (appliedCoupon.isAffiliate) {
@@ -438,6 +497,23 @@ export const createOrderFromCart = async (
     } catch (error) {
        console.error("Auto-coupon application failed:", error);
     }
+  }
+
+  const firstPurchaseDiscount = await getFirstPurchaseDiscountQuoteForUser(
+    userId,
+    itemsPriceRaw,
+  );
+  if (
+    firstPurchaseDiscount.eligible &&
+    firstPurchaseDiscount.discountAmount > (appliedCoupon?.discountAmount || 0)
+  ) {
+    appliedCoupon = {
+      code: `FIRST-${firstPurchaseDiscount.rate}%`,
+      discountType: "percentage",
+      discountAmount: firstPurchaseDiscount.discountAmount,
+      isAffiliate: false,
+      isFirstPurchase: true,
+    };
   }
 
   const pricing = await calcDeliveryDateAndPrice({
@@ -504,6 +580,12 @@ export const createOrderFromCart = async (
     ],
   });
   const createdOrder = await Order.create(order);
+
+  if (appliedCoupon?.isFirstPurchase) {
+    await User.findByIdAndUpdate(userId, {
+      $set: { firstPurchaseDiscountUsed: true },
+    });
+  }
 
   if (cart.paymentMethod === "Coins") {
     const userUpdate = await User.findOneAndUpdate(

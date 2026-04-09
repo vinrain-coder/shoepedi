@@ -16,6 +16,7 @@ type WelcomeNewUserEmailProps = {
   siteName: string;
   siteUrl: string;
   siteCopyright: string;
+  firstPurchaseDiscountRate?: number;
 };
 
 export default function WelcomeNewUserEmail({
@@ -23,6 +24,7 @@ export default function WelcomeNewUserEmail({
   siteName,
   siteUrl,
   siteCopyright,
+  firstPurchaseDiscountRate = 20,
 }: WelcomeNewUserEmailProps) {
   const customerName = name?.trim() || "there";
 
@@ -40,6 +42,9 @@ export default function WelcomeNewUserEmail({
             <Text className="text-base text-slate-700 mb-4">Hi {customerName},</Text>
             <Text className="text-slate-600 leading-relaxed mb-6">
               Thanks for joining {siteName}. Your account is all set—start exploring our collection, save favorites, and track your orders from one place.
+            </Text>
+            <Text className="text-slate-700 leading-relaxed mb-6">
+              🎉 As a new customer, you can get up to {firstPurchaseDiscountRate}% off your first purchase at checkout.
             </Text>
 
             <Section className="text-center my-8">

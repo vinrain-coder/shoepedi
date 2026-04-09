@@ -8,13 +8,14 @@ export interface IUserNavigationEntry {
 }
 
 export interface IUser extends Document, IUserInput {
-  _id: string;
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   wishlist: Types.ObjectId[];
   addresses: unknown[];
   coins: number;
   navigationHistory: IUserNavigationEntry[];
+  firstPurchaseDiscountUsed?: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -28,6 +29,7 @@ const userSchema = new Schema<IUser>(
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     addresses: { type: [Schema.Types.Mixed], default: [] },
     coins: { type: Number, default: 0 },
+    firstPurchaseDiscountUsed: { type: Boolean, default: false },
     navigationHistory: [
       {
         path: { type: String, required: true },

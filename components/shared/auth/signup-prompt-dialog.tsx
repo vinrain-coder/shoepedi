@@ -91,7 +91,7 @@ export default function SignUpPromptDialog() {
           </div>
           <DialogTitle className="text-center">Unlock a better shopping experience</DialogTitle>
           <DialogDescription className="text-center text-sm leading-6">
-            Create a free account to save your wishlist, track orders faster, and checkout more smoothly.
+            Create a free account to save your wishlist, track orders faster, checkout more smoothly, and get up to 20% off your first purchase.
           </DialogDescription>
         </DialogHeader>
 

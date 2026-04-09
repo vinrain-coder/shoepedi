@@ -94,7 +94,7 @@ export function SignUpForm() {
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Enter your details to create a new account
+          Enter your details to create a new account and unlock up to 20% off your first purchase
         </CardDescription>
       </CardHeader>
       <CardContent>
