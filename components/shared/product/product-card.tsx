@@ -147,7 +147,7 @@ const ProductCard = ({
   if (layout === "detailed") {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-md border border-[0.5px] p-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
+        <Card className="relative overflow-hidden rounded-md border border-[0.5px] p-1 pb-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
           <div className="absolute right-2 top-2 z-20 flex flex-col items-center gap-1.5 sm:right-3 sm:top-3">
             <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
           </div>
