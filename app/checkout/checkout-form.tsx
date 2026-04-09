@@ -165,6 +165,12 @@ const CheckoutForm = ({
         if (!result.success) {
           setAppliedCoupon(null);
           setCouponError(result.message!);
+          await setCartPrices(
+            items,
+            shippingAddress,
+            deliveryDateIndex,
+            firstPurchaseDiscount.discountAmount || 0
+          );
           toast.error(result.message);
           return;
         }

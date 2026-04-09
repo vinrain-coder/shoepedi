@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   cacheComponents: true,
+  experimental: {
+    turbo: undefined,
+  },
   images: {
     remotePatterns: [
       {
@@ -31,6 +34,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ["react-markdown-editor-lite"],
   // typedRoutes: true,
 };
 

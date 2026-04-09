@@ -155,13 +155,17 @@ export const auth = betterAuth({
       created: async ({ user }) => {
         if (user.role === "ADMIN") return;
 
-        await sendAdminEventNotification({
-          title: "New customer account",
-          description: `${user.name || user.email} created an account${user.email ? ` with ${user.email}` : ""}.`,
-          href: "/admin/users",
-          meta: user.emailVerified ? "Email verified" : "Needs verification",
-          createdAt: new Date().toISOString(),
-        });
+        try {
+          await sendAdminEventNotification({
+            title: "New customer account",
+            description: `${user.name || user.email} created an account${user.email ? ` with ${user.email}` : ""}.`,
+            href: "/admin/users",
+            meta: user.emailVerified ? "Email verified" : "Needs verification",
+            createdAt: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error("Non-critical: Failed to send admin notification:", error);
+        }
 
         if (user.email) {
           try {

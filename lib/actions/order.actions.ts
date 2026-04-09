@@ -497,6 +497,9 @@ export const createOrderFromCart = async (
           affiliateCode = appliedCoupon.code;
         }
       } else {
+        if (coupon?.code) {
+          throw new Error(result.message);
+        }
         console.error("Auto-coupon application failed:", result.message);
       }
     } catch (error) {
