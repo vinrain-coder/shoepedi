@@ -568,16 +568,25 @@ const CheckoutForm = ({
                 placeholder={
                   paymentMethod === "Coins"
                     ? "Coupons not allowed with Coins"
+                    : firstPurchaseDiscount.eligible && !appliedCoupon
+                    ? "First discount applied"
                     : "Enter coupon code"
                 }
-                disabled={paymentMethod === "Coins"}
+                disabled={
+                  paymentMethod === "Coins" ||
+                  (firstPurchaseDiscount.eligible && !appliedCoupon)
+                }
               />
               <Button
                 type="button"
                 onClick={() => {
                   void handleApplyCoupon();
                 }}
-                disabled={isApplyingCoupon || paymentMethod === "Coins"}
+                disabled={
+                  isApplyingCoupon ||
+                  paymentMethod === "Coins" ||
+                  (firstPurchaseDiscount.eligible && !appliedCoupon)
+                }
               >
                 {isApplyingCoupon ? "Applying..." : "Apply"}
               </Button>

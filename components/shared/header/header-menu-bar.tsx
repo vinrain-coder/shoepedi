@@ -45,15 +45,47 @@ export default function HeaderMenuBar({ headerMenus }: { headerMenus: HeaderMenu
 
 function HeaderDropdownMenu({ menu }: { menu: HeaderMenu }) {
   const [open, setOpen] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleMouseEnter = () => {
+    // Only open on hover on desktop-like devices (not touch-primary)
+    if (window.matchMedia("(hover: hover)").matches) {
+      setOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isClicked) {
+      setOpen(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (isClicked) {
+      setIsClicked(false);
+      setOpen(false);
+    } else {
+      setIsClicked(true);
+      setOpen(true);
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setIsClicked(false);
+    }
+  };
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="header-button !p-2 shrink-0 text-sm inline-flex items-center gap-1"
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
+          className="header-button !p-2 shrink-0 text-sm inline-flex items-center gap-1 outline-none"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
         >
           <span>{menu.name}</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -63,8 +95,8 @@ function HeaderDropdownMenu({ menu }: { menu: HeaderMenu }) {
       <DropdownMenuContent
         align="start"
         className="w-60 rounded-xl border-border/70 p-1.5"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <DropdownMenuLabel className="text-xs uppercase tracking-wide text-muted-foreground">
           {menu.name}

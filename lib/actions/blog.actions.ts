@@ -1,9 +1,8 @@
 "use server";
 
-import { revalidatePath, updateTag, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
-import { notFound } from "next/navigation";
 import mongoose from "mongoose";
 
 import { connectToDatabase } from "../db";
@@ -430,8 +429,8 @@ export async function getBlogBySlug(slug: string) {
 
   await connectToDatabase();
   const blog = await Blog.findOne({ slug, isPublished: true }).lean();
-  if (!blog) notFound();
-  return serializeBlog(blog) as unknown as IBlog;
+  if (!blog) return null;
+  return serializeBlog(blog as any) as unknown as IBlog;
 }
 
 export async function getBlogById(blogId: string) {

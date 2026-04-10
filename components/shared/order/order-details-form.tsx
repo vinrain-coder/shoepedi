@@ -279,7 +279,8 @@ export default function OrderDetailsForm({
               </a>
             </Button>
             {!isPaid &&
-              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" && (
+              (paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" ||
+                paymentMethod === "Cash On Delivery") && (
                 <PaystackInline
                   email={session?.user.email as string}
                   amount={Math.round(totalPrice * 100)}
