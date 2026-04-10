@@ -7,6 +7,11 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
   await connection();
   const { slug } = await params;
   const blog = await getBlogBySlug(slug);
+
+  if (!blog) {
+    return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+  }
+
   return NextResponse.json({
     likesCount: blog.likesCount || 0,
     comments: blog.comments || [],

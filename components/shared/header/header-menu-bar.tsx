@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
@@ -60,13 +60,18 @@ function HeaderDropdownMenu({ menu }: { menu: HeaderMenu }) {
     }
   };
 
-  const handleClick = () => {
-    if (isClicked) {
-      setIsClicked(false);
-      setOpen(false);
-    } else {
-      setIsClicked(true);
-      setOpen(true);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only toggle sticky state on desktop (hover-capable)
+    if (window.matchMedia("(hover: hover)").matches) {
+      if (isClicked) {
+        setIsClicked(false);
+        setOpen(false);
+      } else {
+        setIsClicked(true);
+        setOpen(true);
+      }
+      // Prevent Radix from doing its own toggle which might race
+      e.preventDefault();
     }
   };
 
@@ -85,7 +90,7 @@ function HeaderDropdownMenu({ menu }: { menu: HeaderMenu }) {
           className="header-button !p-2 shrink-0 text-sm inline-flex items-center gap-1 outline-none"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          onClick={handleClick}
+          onPointerDown={handlePointerDown}
         >
           <span>{menu.name}</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
