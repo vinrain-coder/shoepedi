@@ -1,13 +1,12 @@
 "use server";
 
-import { revalidatePath, updateTag, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
-import { notFound } from "next/navigation";
 import mongoose from "mongoose";
 
 import { connectToDatabase } from "../db";
-import Blog, { IBlog, IBlogComment, IBlogReply } from "../db/models/blog.model";
+import Blog, { IBlogComment, IBlogReply } from "../db/models/blog.model";
 import { BlogCommentInputSchema, BlogInputSchema, BlogLikeInputSchema, BlogUpdateSchema } from "../validator";
 import { formatError } from "../utils";
 import { getSetting } from "./setting.actions";
@@ -423,26 +422,26 @@ export async function getPublishedBlogs({ page = 1, limit = 9 }: { page?: number
   return getAllBlogs({ page, limit, onlyPublished: true });
 }
 
-export async function getBlogBySlug(slug: string) {
+export async function getBlogBySlug(slug: string): Promise<SerializedBlog | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
 
   await connectToDatabase();
-  const blog = await Blog.findOne({ slug, isPublished: true }).lean();
-  if (!blog) notFound();
-  return serializeBlog(blog) as unknown as IBlog;
+  const blog = await Blog.findOne({ slug, isPublished: true }).lean<Parameters<typeof serializeBlog>[0]>();
+  if (!blog) return null;
+  return serializeBlog(blog);
 }
 
-export async function getBlogById(blogId: string) {
+export async function getBlogById(blogId: string): Promise<SerializedBlog | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("blogs");
 
   await connectToDatabase();
-  const blog = await Blog.findById(blogId).lean();
+  const blog = await Blog.findById(blogId).lean<Parameters<typeof serializeBlog>[0]>();
   if (!blog) return null;
-  return serializeBlog(blog) as unknown as IBlog;
+  return serializeBlog(blog);
 }
 
 export async function getAllBlogCategories() {

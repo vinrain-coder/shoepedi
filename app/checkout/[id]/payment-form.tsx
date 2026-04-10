@@ -103,7 +103,8 @@ export default function OrderDetailsForm({
               </span>
             </div>
 
-            {order.paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+            {(order.paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" ||
+              order.paymentMethod === "Cash On Delivery") &&
               !order.isPaid && (
                 <div className="mt-4">
                   <PaystackInline

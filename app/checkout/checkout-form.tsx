@@ -126,10 +126,12 @@ const CheckoutForm = ({
     eligible: boolean;
     rate: number;
     discountAmount: number;
+    loading: boolean;
   }>({
     eligible: false,
     rate: 0,
     discountAmount: 0,
+    loading: true,
   });
 
   const effectiveDiscountAmount = Math.max(
@@ -463,9 +465,10 @@ const CheckoutForm = ({
     let cancelled = false;
 
     const fetchFirstPurchaseDiscount = async () => {
+      setFirstPurchaseDiscount((prev) => ({ ...prev, loading: true }));
       const quote = await getFirstPurchaseDiscountQuote(itemsPrice);
       if (cancelled) return;
-      setFirstPurchaseDiscount(quote);
+      setFirstPurchaseDiscount({ ...quote, loading: false });
 
       const effectiveDiscount = Math.max(
         quote.discountAmount || 0,
@@ -499,8 +502,14 @@ const CheckoutForm = ({
 
   const hasAutoApplied = useRef(false);
   useEffect(() => {
-    // Only attempt auto-application once when itemsPrice is available
-    if (itemsPrice > 0 && !appliedCoupon && !isApplyingCoupon && !hasAutoApplied.current) {
+    // Only attempt auto-application once when itemsPrice is available and eligibility is checked
+    if (
+      itemsPrice > 0 &&
+      !firstPurchaseDiscount.loading &&
+      !appliedCoupon &&
+      !isApplyingCoupon &&
+      !hasAutoApplied.current
+    ) {
       const affiliateCode = Cookies.get("affiliate_code");
       if (affiliateCode) {
         hasAutoApplied.current = true;
@@ -508,7 +517,7 @@ const CheckoutForm = ({
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemsPrice, appliedCoupon]);
+  }, [itemsPrice, appliedCoupon, firstPurchaseDiscount.loading]);
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
     [addressBook, selectedSavedAddressId]
@@ -568,16 +577,29 @@ const CheckoutForm = ({
                 placeholder={
                   paymentMethod === "Coins"
                     ? "Coupons not allowed with Coins"
+                    : firstPurchaseDiscount.loading
+                    ? "Checking eligibility..."
+                    : firstPurchaseDiscount.eligible
+                    ? "First discount applied"
                     : "Enter coupon code"
                 }
-                disabled={paymentMethod === "Coins"}
+                disabled={
+                  paymentMethod === "Coins" ||
+                  firstPurchaseDiscount.loading ||
+                  firstPurchaseDiscount.eligible
+                }
               />
               <Button
                 type="button"
                 onClick={() => {
                   void handleApplyCoupon();
                 }}
-                disabled={isApplyingCoupon || paymentMethod === "Coins"}
+                disabled={
+                  isApplyingCoupon ||
+                  paymentMethod === "Coins" ||
+                  firstPurchaseDiscount.loading ||
+                  firstPurchaseDiscount.eligible
+                }
               >
                 {isApplyingCoupon ? "Applying..." : "Apply"}
               </Button>

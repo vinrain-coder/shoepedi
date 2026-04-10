@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import ShareBlog from "@/components/shared/blog/share-blog";
 import { getSetting } from "@/lib/actions/setting.actions";
 import Breadcrumb from "@/components/shared/breadcrumb";
-import { cacheLife } from "next/cache";
 import MarkdownRenderer from "@/components/shared/markdown-renderer";
 import BlogSocial from "@/components/shared/blog/blog-social";
 
@@ -68,8 +67,6 @@ export default async function BlogPage({
 }: {
   params: { slug: string } | Promise<{ slug: string }>;
 }) {
-  "use cache";
-  cacheLife("days");
   const p = await params;
   const { site } = await getSetting();
 
