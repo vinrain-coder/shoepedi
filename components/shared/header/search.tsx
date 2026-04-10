@@ -120,8 +120,8 @@ export default function Search({
             setActiveIndex(-1);
           }}
         >
-          <SelectTrigger className="w-auto h-full dark:border-gray-200 bg-gray-100 border-r rounded-r-none rounded-l-md rtl:rounded-r-md rtl:rounded-l-none cursor-pointer focus:ring-0">
-            <SelectValue placeholder="All" />
+          <SelectTrigger className="w-auto h-full dark:border-gray-200 bg-gray-100 text-black dark:text-white border-r rounded-r-none rounded-l-md rtl:rounded-r-md rtl:rounded-l-none cursor-pointer focus:ring-0">
+            <SelectValue placeholder="All" className="text-black dark:text-white"/>
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectItem value="all">All</SelectItem>
