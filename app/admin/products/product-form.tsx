@@ -54,6 +54,7 @@ const productDefaultValues: IProductInput =
         category: "Sample Category",
         subcategory: "Men",
         minicategory: "Sneakers",
+        gender: "unisex",
         images: ["/images/p11-1.jpg"],
         brand: "Sample Brand",
         videoLink: "https://youtube.com",
@@ -77,7 +78,7 @@ const productDefaultValues: IProductInput =
         category: "",
         subcategory: "",
         minicategory: "",
-
+        gender: "",
         images: [],
         brand: "",
         videoLink: "",
@@ -250,6 +251,35 @@ const ProductForm = ({
                   </SelectContent>
                 </Select>
 
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Gender (optional)</FormLabel>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={(val) =>
+                    field.onChange(val === "none" ? "" : val)
+                  }
+                >
+                  <FormControl className="w-full">
+                    <SelectTrigger className="w-full cursor-pointer">
+                      <SelectValue placeholder="Select gender (optional)" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">— No gender —</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="unisex">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

@@ -115,6 +115,7 @@ export async function getAllProductsForAdmin({
   category,
   brand,
   tag,
+  gender,
   isPublished,
   from,
   to,
@@ -126,6 +127,7 @@ export async function getAllProductsForAdmin({
   category?: string;
   brand?: string;
   tag?: string;
+  gender?: string;
   isPublished?: string;
   from?: string;
   to?: string;
@@ -165,6 +167,11 @@ export async function getAllProductsForAdmin({
       ? { tags: { $regex: new RegExp(`^${tag}$`, "i") } }
       : {};
 
+  const genderFilter =
+    gender && gender !== "all"
+      ? { gender: { $regex: new RegExp(`^${gender}$`, "i") } }
+      : {};
+
   let publishedFilter = {};
   if (isPublished === "true") {
     publishedFilter = { isPublished: true };
@@ -199,6 +206,7 @@ export async function getAllProductsForAdmin({
     ...categoryFilter,
     ...brandFilter,
     ...tagFilter,
+    ...genderFilter,
     ...publishedFilter,
     ...dateFilter,
   };
@@ -236,6 +244,7 @@ export async function getProductAdminStats(params: {
   category?: string;
   brand?: string;
   tag?: string;
+  gender?: string;
   from?: string;
   to?: string;
 }) {
@@ -269,6 +278,11 @@ export async function getProductAdminStats(params: {
       ? { tags: { $regex: new RegExp(`^${params.tag}$`, "i") } }
       : {};
 
+  const genderFilter =
+    params.gender && params.gender !== "all"
+      ? { gender: { $regex: new RegExp(`^${params.gender}$`, "i") } }
+      : {};
+
   const dateFilter =
     params.from || params.to
       ? {
@@ -292,6 +306,7 @@ export async function getProductAdminStats(params: {
     ...categoryFilter,
     ...brandFilter,
     ...tagFilter,
+    ...genderFilter,
     ...dateFilter,
   };
 
@@ -452,6 +467,7 @@ export async function getAllProducts({
   category,
   tag,
   brand,
+  gender,
   color,
   size,
   price,
@@ -462,6 +478,7 @@ export async function getAllProducts({
   category: string;
   tag: string;
   brand: string;
+  gender: string;
   color: string;
   size: string;
   limit?: number;
@@ -549,6 +566,16 @@ export async function getAllProducts({
         }
       : {};
 
+  const genderFilter =
+    gender && gender !== "all"
+      ? {
+          gender: {
+            $regex: `^${gender}$`,
+            $options: "i",
+          },
+        }
+      : {};
+
   const ratingFilter =
     rating && rating !== "all"
       ? {
@@ -587,6 +614,7 @@ export async function getAllProducts({
     ...categoryFilter,
     ...tagFilter,
     ...brandFilter,
+    ...genderFilter,
     ...colorFilter,
     ...sizeFilter,
     ...priceFilter,

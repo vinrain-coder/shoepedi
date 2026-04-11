@@ -34,6 +34,10 @@ const productSchema = new Schema<IProduct>(
       type: String,
       default: null,
     },
+    gender: {
+      type: String,
+      default: null,
+    },
     images: [String],
     brand: {
       type: String,
