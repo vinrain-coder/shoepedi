@@ -25,6 +25,7 @@ export default async function AdminProductPage(props: {
     category?: string;
     brand?: string;
     tag?: string;
+    gender?: string;
     isPublished?: string;
     from?: string;
     to?: string;
@@ -38,6 +39,7 @@ export default async function AdminProductPage(props: {
     category = "all",
     brand = "all",
     tag = "all",
+    gender = "all",
     isPublished = "all",
     from,
     to,
@@ -51,6 +53,7 @@ export default async function AdminProductPage(props: {
       category,
       brand,
       tag,
+      gender,
       isPublished,
       from,
       to,
@@ -61,6 +64,7 @@ export default async function AdminProductPage(props: {
       category,
       brand,
       tag,
+      gender,
       from,
       to,
     }),

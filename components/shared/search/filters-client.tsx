@@ -28,6 +28,7 @@ type ParamsShape = {
   category?: string;
   tag?: string;
   brand?: string;
+  gender?: string;
   color?: string;
   size?: string;
   price?: string;
@@ -72,6 +73,7 @@ export default function FiltersClient({
     category: searchParams.get("category") ?? "all",
     tag: searchParams.get("tag") ?? "all",
     brand: searchParams.get("brand") ?? "all",
+    gender: searchParams.get("gender") ?? "all",
     color: searchParams.get("color") ?? "all",
     size: searchParams.get("size") ?? "all",
     price: searchParams.get("price") ?? "all",
@@ -122,6 +124,7 @@ export default function FiltersClient({
         current.rating !== "all" && "rating",
         current.tag !== "all" && "tags",
         current.brand !== "all" && "brands",
+        current.gender !== "all" && "gender",
         current.color !== "all" && "colors",
         current.size !== "all" && "sizes",
       ].filter(Boolean) as string[],
@@ -146,6 +149,7 @@ export default function FiltersClient({
       p.set("tag", params.tag);
     }
 
+    if (params.gender && params.gender !== "all") p.set("gender", params.gender);
     if (params.color && params.color !== "all") p.set("color", params.color);
     if (params.size && params.size !== "all") p.set("size", params.size);
     if (params.price && params.price !== "all") p.set("price", params.price);
@@ -234,6 +238,40 @@ export default function FiltersClient({
               ))}
             </div>
           </>
+        ),
+      },
+      {
+        id: "gender",
+        title: "Gender",
+        visible: true,
+        content: (
+          <div className="flex flex-wrap gap-2">
+            <FilterButton
+              disabled={current.gender === "all"}
+              active={current.gender === "all"}
+              onClick={() => updateParam("gender", "all")}
+            >
+              All
+            </FilterButton>
+            <FilterButton
+              active={current.gender === "male"}
+              onClick={() => updateParam("gender", "male")}
+            >
+              Male
+            </FilterButton>
+            <FilterButton
+              active={current.gender === "female"}
+              onClick={() => updateParam("gender", "female")}
+            >
+              Female
+            </FilterButton>
+            <FilterButton
+              active={current.gender === "unisex"}
+              onClick={() => updateParam("gender", "unisex")}
+            >
+              Unisex
+            </FilterButton>
+          </div>
         ),
       },
       {

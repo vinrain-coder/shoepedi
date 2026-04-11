@@ -5,6 +5,7 @@ type ParamsShape = {
   category?: string;
   tag?: string;
   brand?: string;
+  gender?: string;
   color?: string;
   size?: string;
   price?: string;
@@ -30,6 +31,8 @@ export default function SelectedFiltersPills({
     pills.push({ key: "tag", label: `Tag: ${params.tag}` });
   if (params.brand && params.brand !== "all")
     pills.push({ key: "brand", label: `Brand: ${params.brand}` });
+  if (params.gender && params.gender !== "all")
+    pills.push({ key: "gender", label: `Gender: ${params.gender}` });
   if (params.color && params.color !== "all")
     pills.push({ key: "color", label: `Color: ${params.color}` });
   if (params.size && params.size !== "all")

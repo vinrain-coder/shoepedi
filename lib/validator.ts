@@ -44,6 +44,7 @@ const ProductInputBase = z.object({
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().optional(), // optional, will be required if parent category has subs
   minicategory: z.string().optional(), // optional, will be required if subcategory has minis
+  gender: z.enum(["male", "female", "unisex"]).nullable().optional(),
   images: z.array(z.string()).min(1, "Product must have at least one image"),
   brand: z.string().optional().or(z.literal("")),
   videoLink: z

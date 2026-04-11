@@ -103,6 +103,21 @@ export default function ProductFilters({
       </Select>
 
       <Select
+        value={searchParams.get("gender") || "all"}
+        onValueChange={(v) => handleFilterChange("gender", v)}
+      >
+        <SelectTrigger className="w-[160px]">
+          <SelectValue placeholder="Gender" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Genders</SelectItem>
+          <SelectItem value="male">Male</SelectItem>
+          <SelectItem value="female">Female</SelectItem>
+          <SelectItem value="unisex">Unisex</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
         value={searchParams.get("brand") || "all"}
         onValueChange={(v) => handleFilterChange("brand", v)}
       >
