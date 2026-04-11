@@ -64,6 +64,7 @@ export default async function AdminProductPage(props: {
       category,
       brand,
       tag,
+      gender,
       from,
       to,
     }),

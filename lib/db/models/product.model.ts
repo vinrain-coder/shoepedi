@@ -36,6 +36,7 @@ const productSchema = new Schema<IProduct>(
     },
     gender: {
       type: String,
+      enum: ["male", "female", "unisex", null],
       default: null,
     },
     images: [String],

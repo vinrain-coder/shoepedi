@@ -156,20 +156,20 @@ export async function getAllProductsForAdmin({
 
   const categoryFilter =
     category && category !== "all"
-      ? { category: { $regex: new RegExp(`^${category}$`, "i") } }
+      ? { category: { $regex: new RegExp(`^${escapeRegExp(category)}$`, "i") } }
       : {};
   const brandFilter =
     brand && brand !== "all"
-      ? { brand: { $regex: new RegExp(`^${brand}$`, "i") } }
+      ? { brand: { $regex: new RegExp(`^${escapeRegExp(brand)}$`, "i") } }
       : {};
   const tagFilter =
     tag && tag !== "all"
-      ? { tags: { $regex: new RegExp(`^${tag}$`, "i") } }
+      ? { tags: { $regex: new RegExp(`^${escapeRegExp(tag)}$`, "i") } }
       : {};
 
   const genderFilter =
     gender && gender !== "all"
-      ? { gender: { $regex: new RegExp(`^${gender}$`, "i") } }
+      ? { gender: { $regex: new RegExp(`^${escapeRegExp(gender)}$`, "i") } }
       : {};
 
   let publishedFilter = {};
@@ -267,20 +267,28 @@ export async function getProductAdminStats(params: {
 
   const categoryFilter =
     params.category && params.category !== "all"
-      ? { category: { $regex: new RegExp(`^${params.category}$`, "i") } }
+      ? {
+          category: {
+            $regex: new RegExp(`^${escapeRegExp(params.category)}$`, "i"),
+          },
+        }
       : {};
   const brandFilter =
     params.brand && params.brand !== "all"
-      ? { brand: { $regex: new RegExp(`^${params.brand}$`, "i") } }
+      ? {
+          brand: { $regex: new RegExp(`^${escapeRegExp(params.brand)}$`, "i") },
+        }
       : {};
   const tagFilter =
     params.tag && params.tag !== "all"
-      ? { tags: { $regex: new RegExp(`^${params.tag}$`, "i") } }
+      ? { tags: { $regex: new RegExp(`^${escapeRegExp(params.tag)}$`, "i") } }
       : {};
 
   const genderFilter =
     params.gender && params.gender !== "all"
-      ? { gender: { $regex: new RegExp(`^${params.gender}$`, "i") } }
+      ? {
+          gender: { $regex: new RegExp(`^${escapeRegExp(params.gender)}$`, "i") },
+        }
       : {};
 
   const dateFilter =
@@ -514,7 +522,7 @@ export async function getAllProducts({
     category && category !== "all"
       ? {
           category: {
-            $regex: `^${category}$`,
+            $regex: `^${escapeRegExp(category)}$`,
             $options: "i",
           },
         }
@@ -525,7 +533,7 @@ export async function getAllProducts({
       ? {
           tags: {
             $elemMatch: {
-              $regex: `^${tag}$`,
+              $regex: `^${escapeRegExp(tag)}$`,
               $options: "i",
             },
           },
@@ -536,7 +544,7 @@ export async function getAllProducts({
     brand && brand !== "all"
       ? {
           brand: {
-            $regex: `^${brand}$`,
+            $regex: `^${escapeRegExp(brand)}$`,
             $options: "i",
           },
         }
@@ -547,7 +555,7 @@ export async function getAllProducts({
       ? {
           colors: {
             $elemMatch: {
-              $regex: `^${color}$`,
+              $regex: `^${escapeRegExp(color)}$`,
               $options: "i",
             },
           },
@@ -559,7 +567,7 @@ export async function getAllProducts({
       ? {
           sizes: {
             $elemMatch: {
-              $regex: `^${size}$`,
+              $regex: `^${escapeRegExp(size)}$`,
               $options: "i",
             },
           },
@@ -570,7 +578,7 @@ export async function getAllProducts({
     gender && gender !== "all"
       ? {
           gender: {
-            $regex: `^${gender}$`,
+            $regex: `^${escapeRegExp(gender)}$`,
             $options: "i",
           },
         }

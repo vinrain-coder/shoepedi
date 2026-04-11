@@ -78,7 +78,7 @@ const productDefaultValues: IProductInput =
         category: "",
         subcategory: "",
         minicategory: "",
-        gender: "",
+        gender: null,
         images: [],
         brand: "",
         videoLink: "",
@@ -230,7 +230,7 @@ const ProductForm = ({
                 <Select
                   value={field.value || ""}
                   onValueChange={(val) =>
-                    field.onChange(val === "none" ? "" : val)
+                    field.onChange(val === "none" ? null : val)
                   }
                 >
                   <FormControl className="w-full">
