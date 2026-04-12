@@ -55,6 +55,9 @@ export default function StockSubList({ data }: StockSubListProps) {
                       >
                         {sub.product.name}
                       </Link>
+                      {!sub.product.isPublished && (
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 uppercase">Draft</Badge>
+                      )}
                     </div>
                   ) : (
                     <span className="text-muted-foreground italic">
@@ -85,7 +88,10 @@ export default function StockSubList({ data }: StockSubListProps) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {!sub.isNotified && sub.product && (
-                      <NotifyButton productId={sub.product._id} />
+                      <NotifyButton
+                        subscriptionId={sub._id}
+                        productId={sub.product._id}
+                      />
                     )}
                     <DeleteDialog
                       id={sub._id}

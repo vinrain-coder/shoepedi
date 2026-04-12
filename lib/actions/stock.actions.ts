@@ -2,12 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
-import StockSubscription from "../db/models/stock-subscription.model";
-import Product from "../db/models/product.model";
+import StockSubscription, { IStockSubscription } from "../db/models/stock-subscription.model";
+import Product, { IProduct } from "../db/models/product.model";
 import {
   sendAdminEventNotification,
   sendStockSubscriptionNotification,
 } from "@/lib/email/transactional";
+import crypto from "crypto";
+
+export interface IStockSubscriptionPopulated extends Omit<IStockSubscription, 'product'> {
+  product: IProduct;
+}
 import { getSetting } from "./setting.actions";
 import { escapeRegExp, normalizeDateRange } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
@@ -40,10 +45,11 @@ export const subscribeToStock = async (data: {
       };
 
     const subscription = await StockSubscription.create({
-      email,
+      email: email.toLowerCase().trim(),
       product: productId,
       subscribedAt: new Date(),
       isNotified: false, // Reset notified status for new subscriptions
+      unsubscribeToken: crypto.randomBytes(32).toString("hex"),
     });
 
     await sendAdminEventNotification({
@@ -176,44 +182,104 @@ export async function getStockSubscriptionStats(params?: {
 }
 
 /**
- * Notify all subscribers about product restock.
+ * Notify subscribers about product restock.
+ * Supports notifying either a specific subscription or all pending for a product.
  */
-export const notifySubscribers = async (productId: string) => {
+export const notifySubscribers = async ({
+  productId,
+  subscriptionId,
+}: {
+  productId?: string;
+  subscriptionId?: string;
+}) => {
   try {
-    await connectToDatabase();
-
-    const product = await Product.findById(productId);
-    if (!product) return { success: false, message: "Product not found." };
-
-    if (product.countInStock > 0) {
-      const subscriptions = await StockSubscription.find({
-        product: productId,
-        isNotified: false,
-      });
-
-      if (subscriptions.length === 0)
-        return { success: true, message: "No subscribers to notify." };
-
-      await Promise.all(
-        subscriptions.map((sub) =>
-          sendStockSubscriptionNotification({ email: sub.email, product })
-        )
-      );
-
-      // Mark them as notified
-      await StockSubscription.updateMany(
-        { product: productId, isNotified: false },
-        { $set: { isNotified: true, notifiedAt: new Date() } }
-      );
-
-      revalidatePath("/admin/stockSubs");
-      return { success: true, message: `Successfully notified ${subscriptions.length} subscribers.` };
+    const session = await getServerSession();
+    if (session?.user.role !== "ADMIN") {
+      return { success: false, message: "Admin permission required" };
     }
 
-    return { success: false, message: "Product is still out of stock." };
-  } catch (error) {
+    await connectToDatabase();
+
+    // 1. Identify subscriptions to notify
+    let query: any = { isNotified: false };
+    if (subscriptionId) {
+      query._id = subscriptionId;
+    } else if (productId) {
+      query.product = productId;
+    } else {
+      return { success: false, message: "Product ID or Subscription ID is required." };
+    }
+
+    const subscriptions = (await StockSubscription.find(query).populate(
+      "product"
+    )) as unknown as IStockSubscriptionPopulated[];
+
+    if (subscriptions.length === 0) {
+      return { success: true, message: "No pending subscriptions to notify." };
+    }
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    // 2. Process notifications individually for robustness
+    const results = await Promise.allSettled(
+      subscriptions.map(async (sub) => {
+        const product = sub.product; // Strong typed
+
+        if (!product) {
+          throw new Error(`Product not found for subscription ${sub._id}`);
+        }
+
+        if (product.countInStock <= 0) {
+          throw new Error(`Product "${product.name}" is still out of stock.`);
+        }
+
+        if (!product.isPublished) {
+          throw new Error(`Product "${product.name}" is not published.`);
+        }
+
+        // Attempt to send email
+        await sendStockSubscriptionNotification(sub.email, product, sub.unsubscribeToken);
+
+        // Update specific subscription upon success
+        await StockSubscription.findByIdAndUpdate(sub._id, {
+          $set: { isNotified: true, notifiedAt: new Date() },
+        });
+
+        return sub.email;
+      })
+    );
+
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        successCount++;
+      } else {
+        failureCount++;
+        console.error("❌ Notification failed:", result.reason);
+      }
+    });
+
+    revalidatePath("/admin/stockSubs");
+
+    if (successCount > 0 && failureCount === 0) {
+      return {
+        success: true,
+        message: `Successfully notified ${successCount} subscriber(s).`,
+      };
+    } else if (successCount > 0 && failureCount > 0) {
+      return {
+        success: true,
+        message: `Notified ${successCount} subscriber(s), but ${failureCount} failed. Check logs.`,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Failed to notify subscribers. ${failureCount} error(s) occurred.`,
+      };
+    }
+  } catch (error: any) {
     console.error("❌ Stock notification error:", error);
-    return { success: false, message: "An error occurred." };
+    return { success: false, message: error.message || "An error occurred." };
   }
 };
 
@@ -235,5 +301,35 @@ export const deleteStockSubscription = async (id: string) => {
   } catch (error) {
     console.error("Error deleting subscription:", error);
     return { success: false, message: "An error occurred." };
+  }
+};
+
+/**
+ * Unsubscribe from stock notifications using a token.
+ */
+export const unsubscribeFromStock = async (token: string) => {
+  try {
+    if (!token) return { success: false, message: "Token is required." };
+    await connectToDatabase();
+
+    const result = await StockSubscription.findOneAndDelete({
+      unsubscribeToken: token,
+    });
+
+    if (!result) {
+      return {
+        success: false,
+        message: "No active subscription found or invalid token.",
+      };
+    }
+
+    revalidatePath("/admin/stockSubs");
+    return {
+      success: true,
+      message: "You have been successfully unsubscribed.",
+    };
+  } catch (error) {
+    console.error("❌ Unsubscribe error:", error);
+    return { success: false, message: "An error occurred while unsubscribing." };
   }
 };

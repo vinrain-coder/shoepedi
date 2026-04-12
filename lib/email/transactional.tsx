@@ -148,6 +148,7 @@ export const sendAskReviewOrderItems = async (order: IOrder) => {
 export const sendStockSubscriptionNotification = async (
   email: string,
   product: IProduct,
+  unsubscribeToken: string,
 ) => {
   const { site } = await getSetting();
 
@@ -160,7 +161,7 @@ export const sendStockSubscriptionNotification = async (
         siteUrl={site.url}
         siteName={site.name}
         siteCopyright={site.copyright}
-        email=""
+        unsubscribeToken={unsubscribeToken}
       />
     ),
   });
