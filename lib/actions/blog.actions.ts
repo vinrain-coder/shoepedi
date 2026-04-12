@@ -488,8 +488,9 @@ export async function incrementBlogViews(slug: string) {
       { $inc: { views: 1 } },
       { new: true }
     );
+    if (!blog) return { success: false, message: "Blog not found" };
     revalidateTag("blogs");
-    return { success: true, views: blog?.views ?? 0 };
+    return { success: true, views: blog.views };
   } catch {
     return { success: false, message: "Failed to update views" };
   }
