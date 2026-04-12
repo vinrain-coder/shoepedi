@@ -516,6 +516,7 @@ export const StockSubscriptionSchema = z.object({
   email: z.string().email("Invalid email address"),
   subscribedAt: z.date().default(() => new Date()),
   isNotified: z.boolean().default(false),
+  notifiedAt: z.date().optional(),
 });
 
 // password schema

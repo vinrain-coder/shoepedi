@@ -36,6 +36,11 @@ const stockSubscriptionSchema = new Schema<IStockSubscription>(
   { timestamps: true }
 );
 
+// Indexes for performance
+stockSubscriptionSchema.index({ product: 1, isNotified: 1 });
+stockSubscriptionSchema.index({ email: 1 });
+stockSubscriptionSchema.index({ subscribedAt: -1 });
+
 const StockSubscription =
   (models.StockSubscription as Model<IStockSubscription> | undefined) ||
   model<IStockSubscription>("StockSubscription", stockSubscriptionSchema);

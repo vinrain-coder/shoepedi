@@ -9,6 +9,7 @@ import StockSubStatsCards from "./stock-sub-stats-cards";
 import StockSubFilters from "./stock-sub-filters";
 import StockSubList from "./stock-sub-list";
 import { StockSubDateRangePicker } from "./date-range-picker";
+import NotifyButton from "./notify-button";
 
 export const metadata: Metadata = {
   title: "Admin Stock Subscriptions",
@@ -51,6 +52,16 @@ export default async function StockSubscriptionsPage(props: {
     }),
   ]);
 
+  // Determine if we are filtering by a specific product to show "Notify All"
+  // If query is present and only returns one unique product, or if we have results.
+  const uniqueProductIds = [
+    ...new Set(
+      data.data
+        .filter((sub: any) => !sub.isNotified && sub.product)
+        .map((sub: any) => sub.product._id.toString())
+    ),
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -67,8 +78,15 @@ export default async function StockSubscriptionsPage(props: {
 
       <StockSubStatsCards stats={stats} currentFilter={filter} />
 
-      <div className="rounded-md border bg-card p-4">
+      <div className="rounded-md border bg-card p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <StockSubFilters />
+        {uniqueProductIds.length === 1 && (
+          <NotifyButton
+            productId={uniqueProductIds[0] as string}
+            label="Notify All Pending"
+            variant="default"
+          />
+        )}
       </div>
 
       <StockSubList data={data.data} />

@@ -176,44 +176,102 @@ export async function getStockSubscriptionStats(params?: {
 }
 
 /**
- * Notify all subscribers about product restock.
+ * Notify subscribers about product restock.
+ * Supports notifying either a specific subscription or all pending for a product.
  */
-export const notifySubscribers = async (productId: string) => {
+export const notifySubscribers = async ({
+  productId,
+  subscriptionId,
+}: {
+  productId?: string;
+  subscriptionId?: string;
+}) => {
   try {
-    await connectToDatabase();
-
-    const product = await Product.findById(productId);
-    if (!product) return { success: false, message: "Product not found." };
-
-    if (product.countInStock > 0) {
-      const subscriptions = await StockSubscription.find({
-        product: productId,
-        isNotified: false,
-      });
-
-      if (subscriptions.length === 0)
-        return { success: true, message: "No subscribers to notify." };
-
-      await Promise.all(
-        subscriptions.map((sub) =>
-          sendStockSubscriptionNotification({ email: sub.email, product })
-        )
-      );
-
-      // Mark them as notified
-      await StockSubscription.updateMany(
-        { product: productId, isNotified: false },
-        { $set: { isNotified: true, notifiedAt: new Date() } }
-      );
-
-      revalidatePath("/admin/stockSubs");
-      return { success: true, message: `Successfully notified ${subscriptions.length} subscribers.` };
+    const session = await getServerSession();
+    if (session?.user.role !== "ADMIN") {
+      return { success: false, message: "Admin permission required" };
     }
 
-    return { success: false, message: "Product is still out of stock." };
-  } catch (error) {
+    await connectToDatabase();
+
+    // 1. Identify subscriptions to notify
+    let query: any = { isNotified: false };
+    if (subscriptionId) {
+      query._id = subscriptionId;
+    } else if (productId) {
+      query.product = productId;
+    } else {
+      return { success: false, message: "Product ID or Subscription ID is required." };
+    }
+
+    const subscriptions = await StockSubscription.find(query).populate("product");
+
+    if (subscriptions.length === 0) {
+      return { success: true, message: "No pending subscriptions to notify." };
+    }
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    // 2. Process notifications individually for robustness
+    const results = await Promise.allSettled(
+      subscriptions.map(async (sub) => {
+        const product = sub.product as any; // Populated product
+
+        if (!product) {
+          throw new Error(`Product not found for subscription ${sub._id}`);
+        }
+
+        if (product.countInStock <= 0) {
+          throw new Error(`Product "${product.name}" is still out of stock.`);
+        }
+
+        if (!product.isPublished) {
+          throw new Error(`Product "${product.name}" is not published.`);
+        }
+
+        // Attempt to send email
+        await sendStockSubscriptionNotification(sub.email, product);
+
+        // Update specific subscription upon success
+        await StockSubscription.findByIdAndUpdate(sub._id, {
+          $set: { isNotified: true, notifiedAt: new Date() },
+        });
+
+        return sub.email;
+      })
+    );
+
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        successCount++;
+      } else {
+        failureCount++;
+        console.error("❌ Notification failed:", result.reason);
+      }
+    });
+
+    revalidatePath("/admin/stockSubs");
+
+    if (successCount > 0 && failureCount === 0) {
+      return {
+        success: true,
+        message: `Successfully notified ${successCount} subscriber(s).`,
+      };
+    } else if (successCount > 0 && failureCount > 0) {
+      return {
+        success: true,
+        message: `Notified ${successCount} subscriber(s), but ${failureCount} failed. Check logs.`,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Failed to notify subscribers. ${failureCount} error(s) occurred.`,
+      };
+    }
+  } catch (error: any) {
     console.error("❌ Stock notification error:", error);
-    return { success: false, message: "An error occurred." };
+    return { success: false, message: error.message || "An error occurred." };
   }
 };
 
@@ -235,5 +293,29 @@ export const deleteStockSubscription = async (id: string) => {
   } catch (error) {
     console.error("Error deleting subscription:", error);
     return { success: false, message: "An error occurred." };
+  }
+};
+
+/**
+ * Unsubscribe from stock notifications.
+ */
+export const unsubscribeFromStock = async (email: string, productId: string) => {
+  try {
+    await connectToDatabase();
+
+    const result = await StockSubscription.deleteMany({
+      email: email.toLowerCase().trim(),
+      product: productId,
+    });
+
+    if (result.deletedCount === 0) {
+      return { success: false, message: "No active subscription found for this email and product." };
+    }
+
+    revalidatePath("/admin/stockSubs");
+    return { success: true, message: "You have been successfully unsubscribed." };
+  } catch (error) {
+    console.error("❌ Unsubscribe error:", error);
+    return { success: false, message: "An error occurred while unsubscribing." };
   }
 };

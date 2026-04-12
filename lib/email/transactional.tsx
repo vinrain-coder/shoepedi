@@ -160,7 +160,7 @@ export const sendStockSubscriptionNotification = async (
         siteUrl={site.url}
         siteName={site.name}
         siteCopyright={site.copyright}
-        email=""
+        email={email}
       />
     ),
   });

@@ -7,14 +7,26 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 
-export default function NotifyButton({ productId }: { productId: string }) {
+export default function NotifyButton({
+  productId,
+  subscriptionId,
+  variant = "outline",
+  size = "sm",
+  label = "Notify"
+}: {
+  productId?: string;
+  subscriptionId?: string;
+  variant?: "outline" | "default" | "secondary" | "destructive" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  label?: string;
+}) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleNotify = () => {
     startTransition(async () => {
       try {
-        const res = await notifySubscribers(productId);
+        const res = await notifySubscribers({ productId, subscriptionId });
         if (res.success) {
           toast.success(res.message);
           router.refresh();
@@ -30,14 +42,14 @@ export default function NotifyButton({ productId }: { productId: string }) {
 
   return (
     <Button
-      size="sm"
-      variant="outline"
+      size={size}
+      variant={variant}
       onClick={handleNotify}
       disabled={isPending}
       className="cursor-pointer"
     >
       <Bell className="mr-2 h-4 w-4" />
-      {isPending ? "Notifying..." : "Notify"}
+      {isPending ? "Notifying..." : label}
     </Button>
   );
 }
