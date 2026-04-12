@@ -59,7 +59,8 @@ type FirstPurchaseDiscountQuote = {
 };
 
 const getFirstPurchaseDiscountQuoteForUser = async (
-  userId: string,
+  userId: string | undefined,
+  email: string | undefined,
   itemsPrice: number,
 ): Promise<FirstPurchaseDiscountQuote> => {
   const {
@@ -68,16 +69,25 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   const normalizedRate = Math.max(0, Math.min(100, Number(firstPurchaseDiscountRate) || 0));
   const normalizedItemsPrice = Math.max(0, Number(itemsPrice) || 0);
 
-  if (!userId || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
+  if ((!userId && !email) || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
     return { eligible: false, rate: normalizedRate, discountAmount: 0 };
   }
 
-  const [user, existingOrdersCount] = await Promise.all([
-    User.findById(userId).select("firstPurchaseDiscountUsed").lean(),
-    Order.countDocuments({ user: userId }),
-  ]);
+  let existingOrdersCount = 0;
+  let firstPurchaseDiscountUsed = false;
 
-  if (!user || user.firstPurchaseDiscountUsed || existingOrdersCount > 0) {
+  if (userId) {
+    const [user, userOrdersCount] = await Promise.all([
+      User.findById(userId).select("firstPurchaseDiscountUsed").lean(),
+      Order.countDocuments({ user: userId }),
+    ]);
+    firstPurchaseDiscountUsed = user?.firstPurchaseDiscountUsed || false;
+    existingOrdersCount = userOrdersCount;
+  } else if (email) {
+    existingOrdersCount = await Order.countDocuments({ userEmail: email });
+  }
+
+  if (firstPurchaseDiscountUsed || existingOrdersCount > 0) {
     return { eligible: false, rate: normalizedRate, discountAmount: 0 };
   }
 
@@ -93,15 +103,16 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   };
 };
 
-export const getFirstPurchaseDiscountQuote = async (itemsPrice: number) => {
+export const getFirstPurchaseDiscountQuote = async (itemsPrice: number, email?: string) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
-    if (!session?.user?.id) {
-      return { eligible: false, rate: 0, discountAmount: 0 };
-    }
 
-    return await getFirstPurchaseDiscountQuoteForUser(session.user.id, itemsPrice);
+    return await getFirstPurchaseDiscountQuoteForUser(
+      session?.user?.id,
+      email,
+      itemsPrice
+    );
   } catch (error) {
     console.error("Failed to fetch first purchase discount quote:", error);
     return { eligible: false, rate: 0, discountAmount: 0 };
@@ -189,9 +200,9 @@ const notifyCustomerOrderStatus = async (
 ) => {
   if (!shouldSendStatusNotification(status)) return;
 
-  let email = (order.user as unknown as { email?: string })?.email;
+  let email = order.userEmail || (order.user as unknown as { email?: string })?.email;
 
-  if (!email) {
+  if (!email && order.user) {
      const populatedOrder = await Order.findById(order._id).populate("user", "email name");
      email = (populatedOrder?.user as unknown as { email?: string })?.email;
      if (email) {
@@ -415,17 +426,18 @@ const runStatusTransition = async ({
 
 // CREATE
 export const createOrder = async (
-  clientSideCart: Cart & { coupon?: OrderCouponInput },
+  clientSideCart: Cart & { coupon?: OrderCouponInput; userEmail?: string; userName?: string },
 ) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
-    if (!session) throw new Error("User not authenticated");
 
     const createdOrder = await createOrderFromCart(
       clientSideCart,
-      session.user.id!,
+      session?.user?.id,
       clientSideCart.coupon,
+      clientSideCart.userEmail,
+      clientSideCart.userName,
     );
 
     return {
@@ -440,8 +452,10 @@ export const createOrder = async (
 
 export const createOrderFromCart = async (
   clientSideCart: Cart,
-  userId: string,
+  userId: string | undefined,
   coupon?: OrderCouponInput,
+  userEmail?: string,
+  userName?: string,
 ) => {
   const cookieStore = await cookies();
   let affiliateCode = cookieStore.get("affiliate_code")?.value;
@@ -504,6 +518,7 @@ export const createOrderFromCart = async (
 
   const firstPurchaseDiscount = await getFirstPurchaseDiscountQuoteForUser(
     userId,
+    userEmail,
     itemsPriceRaw,
   );
   if (
@@ -532,6 +547,7 @@ export const createOrderFromCart = async (
   };
 
   if (cart.paymentMethod === "Coins") {
+    if (!userId) throw new Error("Authentication required for Coin payments");
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
     if (user.coins < cart.totalPrice) {
@@ -554,6 +570,9 @@ export const createOrderFromCart = async (
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
     user: userId,
+    isGuest: !userId,
+    userEmail: userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email), // assuming shippingAddress might have email
+    userName: userName || clientSideCart.shippingAddress?.fullName,
     items: cart.items,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
@@ -584,7 +603,7 @@ export const createOrderFromCart = async (
   });
   const createdOrder = await Order.create(order);
 
-  if (appliedCoupon?.isFirstPurchase) {
+  if (appliedCoupon?.isFirstPurchase && userId) {
     await User.findByIdAndUpdate(userId, {
       $set: { firstPurchaseDiscountUsed: true },
     });
@@ -611,11 +630,11 @@ export const createOrderFromCart = async (
     message: "Order confirmed and queued for processing.",
     source: "system",
   });
-  const orderUser = await User.findById(userId).select("name email").lean();
+  const orderUser = userId ? await User.findById(userId).select("name email").lean() : null;
 
   await sendAdminEventNotification({
     title: "New order received",
-    description: `${orderUser?.name || "Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
+    description: `${orderUser?.name || userName || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
     href: `/admin/orders/${createdOrder._id.toString()}`,
     meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
     createdAt: createdOrder.createdAt.toISOString(),
@@ -1207,14 +1226,13 @@ export async function getOrderById(
   }
 
   const session = await getServerSession();
-  if (!session?.user?.id) {
-    return null;
-  }
 
   const query =
-    session.user.role === "ADMIN"
+    session?.user?.role === "ADMIN"
       ? { _id: orderId }
-      : { _id: orderId, user: session.user.id };
+      : session?.user?.id
+      ? { _id: orderId, user: session.user.id }
+      : { _id: orderId, isGuest: true, user: { $exists: false } };
 
   const order = await Order.findOne(query);
   if (!order) return null;

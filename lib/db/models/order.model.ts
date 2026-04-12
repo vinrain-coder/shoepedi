@@ -32,7 +32,10 @@ export interface IOrderShipment {
 
 export interface IOrder extends Document {
   _id: Types.ObjectId;
-  user: Types.ObjectId | { email?: string; name?: string };
+  user?: Types.ObjectId;
+  isGuest: boolean;
+  userEmail?: string;
+  userName?: string;
   items: Array<{
     product: Types.ObjectId;
     clientId: string;
@@ -90,9 +93,12 @@ const orderSchema = new Schema<IOrder>(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
+    isGuest: { type: Boolean, default: false },
+    userEmail: { type: String },
+    userName: { type: String },
     trackingNumber: {
       type: String,
       default: generateTrackingNumber,

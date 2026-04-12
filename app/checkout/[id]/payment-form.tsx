@@ -108,7 +108,7 @@ export default function OrderDetailsForm({
               !order.isPaid && (
                 <div className="mt-4">
                   <PaystackInline
-                    email={session?.user.email as string}
+                    email={(session?.user?.email || order.userEmail) as string}
                     amount={Math.round(order.totalPrice * 100)}
                     publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                     orderId={order._id}
