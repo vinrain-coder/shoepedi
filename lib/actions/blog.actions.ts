@@ -428,7 +428,10 @@ export async function getBlogBySlug(slug: string): Promise<SerializedBlog | null
   cacheTag("blogs");
 
   await connectToDatabase();
-  const blog = await Blog.findOne({ slug, isPublished: true }).lean<Parameters<typeof serializeBlog>[0]>();
+  const blog = await Blog.findOne({
+    slug: slug.toLowerCase(),
+    isPublished: true,
+  }).lean<Parameters<typeof serializeBlog>[0]>();
   if (!blog) return null;
   return serializeBlog(blog);
 }
@@ -480,7 +483,11 @@ export async function getAllBlogTags() {
 export async function incrementBlogViews(slug: string) {
   try {
     await connectToDatabase();
-    const blog = await Blog.findOneAndUpdate({ slug, isPublished: true }, { $inc: { views: 1 } }, { new: true });
+    const blog = await Blog.findOneAndUpdate(
+      { slug: slug.toLowerCase(), isPublished: true },
+      { $inc: { views: 1 } },
+      { new: true }
+    );
     revalidateTag("blogs");
     return { success: true, views: blog?.views ?? 0 };
   } catch {
