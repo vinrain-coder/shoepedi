@@ -38,7 +38,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
 import { AddressBookEntry } from "@/types";
+import { toSignInPath } from "@/lib/redirects";
 import useIsMounted from "@/hooks/use-is-mounted";
+import { z } from "zod";
 import Link from "next/link";
 import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
@@ -103,6 +105,7 @@ const CheckoutForm = ({
   savedAddresses: AddressBookEntry[];
   selectedAddressId?: string;
 }) => {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -397,8 +400,12 @@ const CheckoutForm = ({
 
       clearCart();
 
+      const successPath = order.isGuest
+        ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
+        : `/account/orders/${order._id}/placed`;
+
       if (paymentMethod === "Cash On Delivery" || paymentMethod === "Coins") {
-        router.push(`/account/orders/${order._id}/placed`);
+        router.push(successPath);
         return;
       }
 
@@ -751,7 +758,6 @@ const CheckoutForm = ({
     </Card>
   );
 
-  const { data: session } = authClient.useSession();
   const userCoins =
     liveUserCoins !== null
       ? liveUserCoins
@@ -1528,12 +1534,16 @@ const CheckoutForm = ({
                       hideButton={true}
                       onSuccess={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                       onFailure={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                     />
@@ -1553,12 +1563,16 @@ const CheckoutForm = ({
                       hideButton={true}
                       onSuccess={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                       onFailure={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                     />

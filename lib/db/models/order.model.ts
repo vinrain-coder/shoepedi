@@ -36,6 +36,7 @@ export interface IOrder extends Document {
   isGuest: boolean;
   userEmail?: string;
   userName?: string;
+  accessToken?: string;
   items: Array<{
     product: Types.ObjectId;
     clientId: string;
@@ -99,6 +100,7 @@ const orderSchema = new Schema<IOrder>(
     isGuest: { type: Boolean, default: false },
     userEmail: { type: String },
     userName: { type: String },
+    accessToken: { type: String },
     trackingNumber: {
       type: String,
       default: generateTrackingNumber,

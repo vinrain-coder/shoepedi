@@ -84,7 +84,8 @@ const getFirstPurchaseDiscountQuoteForUser = async (
     firstPurchaseDiscountUsed = user?.firstPurchaseDiscountUsed || false;
     existingOrdersCount = userOrdersCount;
   } else if (email) {
-    existingOrdersCount = await Order.countDocuments({ userEmail: email });
+    const normalizedEmail = email.trim().toLowerCase();
+    existingOrdersCount = await Order.countDocuments({ userEmail: normalizedEmail });
   }
 
   if (firstPurchaseDiscountUsed || existingOrdersCount > 0) {
@@ -207,7 +208,10 @@ const notifyCustomerOrderStatus = async (
      email = (populatedOrder?.user as unknown as { email?: string })?.email;
      if (email) {
        (order as any).user = populatedOrder?.user;
+       order.userEmail = email;
      }
+  } else if (email && !order.userEmail) {
+    order.userEmail = email;
   }
 
   if (!email) return;
@@ -567,12 +571,14 @@ export const createOrderFromCart = async (
   const totalPrice = cart.totalPrice;
   coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
 
+  const normalizedUserEmail = (userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email))?.trim().toLowerCase();
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
     user: userId,
     isGuest: !userId,
-    userEmail: userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email), // assuming shippingAddress might have email
+    userEmail: normalizedUserEmail,
     userName: userName || clientSideCart.shippingAddress?.fullName,
+    accessToken: !userId ? crypto.randomUUID() : undefined,
     items: cart.items,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
@@ -731,9 +737,13 @@ const runPostPaymentSideEffects = async (orderId: string) => {
   // 5. Send purchase receipt
   try {
     const populatedOrder = await Order.findById(orderId).populate("user", "name email");
-    const emailUser = populatedOrder?.user as unknown as { email?: string };
+    const emailUser = (populatedOrder?.user as unknown as { email?: string })?.email;
+    const finalEmail = populatedOrder?.userEmail || emailUser;
 
-    if (emailUser?.email) {
+    if (finalEmail) {
+      if (!populatedOrder?.userEmail) {
+        populatedOrder!.userEmail = finalEmail;
+      }
       await sendPurchaseReceipt(populatedOrder as unknown as IOrder);
     }
   } catch (emailError) {
@@ -854,7 +864,9 @@ export async function updateOrderStatus({
     });
 
     if (normalizedStatus === "delivered") {
-      if ((order.user as { email?: string })?.email) {
+      const finalEmail = order.userEmail || (order.user as unknown as { email?: string })?.email;
+      if (finalEmail) {
+        if (!order.userEmail) order.userEmail = finalEmail;
         await sendAskReviewOrderItems(order as unknown as IOrder);
       }
     }
@@ -1217,6 +1229,7 @@ export async function getMyOrders({
 }
 export async function getOrderById(
   orderId: string,
+  accessToken?: string,
 ): Promise<SerializedOrder | null> {
   "use cache: private";
   cacheLife("hours");
@@ -1227,12 +1240,19 @@ export async function getOrderById(
 
   const session = await getServerSession();
 
-  const query =
-    session?.user?.role === "ADMIN"
-      ? { _id: orderId }
-      : session?.user?.id
-      ? { _id: orderId, user: session.user.id }
-      : { _id: orderId, isGuest: true, user: { $exists: false } };
+  const query: any = { _id: orderId };
+
+  if (session?.user?.role !== "ADMIN") {
+    if (session?.user?.id) {
+      query.$or = [
+        { user: session.user.id },
+        { isGuest: true, accessToken: accessToken }
+      ];
+    } else {
+      query.isGuest = true;
+      query.accessToken = accessToken;
+    }
+  }
 
   const order = await Order.findOne(query);
   if (!order) return null;

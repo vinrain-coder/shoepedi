@@ -19,12 +19,15 @@ export async function generateMetadata({
 
 export default async function OrderDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ accessToken?: string }>;
 }) {
   const { id } = await params;
+  const { accessToken } = await searchParams;
 
-  const order = await getOrderById(id);
+  const order = await getOrderById(id, accessToken);
 
   if (!order) notFound();
 

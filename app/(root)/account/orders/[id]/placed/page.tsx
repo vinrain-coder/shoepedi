@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, Truck, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -12,8 +12,10 @@ const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"]; // Prima
 
 export default function OrderPlacedPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
   const orderId = params?.id;
+  const accessToken = searchParams.get("accessToken");
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -25,14 +27,17 @@ export default function OrderPlacedPage() {
    }, 50);
 
     const timeout = setTimeout(() => {
-    router.replace(`/account/orders/${orderId}`);
+    const nextPath = accessToken
+      ? `/account/orders/${orderId}?accessToken=${accessToken}`
+      : `/account/orders/${orderId}`;
+    router.replace(nextPath);
     }, 3000);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [orderId, router]);
+  }, [orderId, router, accessToken]);
 
   // Confetti particles
   const confettiParticles = Array.from({ length: 40 }).map((_, i) => ({
@@ -184,7 +189,9 @@ export default function OrderPlacedPage() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
           >
             <Link
-              href={`/account/orders/${orderId}`}
+              href={accessToken
+                ? `/account/orders/${orderId}?accessToken=${accessToken}`
+                : `/account/orders/${orderId}`}
               className={cn(buttonVariants({ size: "lg", variant: "default" }), "w-full sm:w-auto font-bold gap-2 px-8")}
             >
               View Order Details <ArrowRight className="h-4 w-4" />
