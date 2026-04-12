@@ -19,7 +19,7 @@ import SocialLinks from "./social-links";
 
 type StockSubscriptionEmailProps = {
   product: IProduct;
-  email: string;
+  unsubscribeToken: string;
   siteUrl: string;
   siteName: string;
   siteCopyright: string;
@@ -27,7 +27,7 @@ type StockSubscriptionEmailProps = {
 
 export default function StockSubscriptionNotificationEmail({
   product,
-  email,
+  unsubscribeToken,
   siteUrl,
   siteName,
   siteCopyright,
@@ -110,7 +110,7 @@ export default function StockSubscriptionNotificationEmail({
               <Text className="text-gray-500 text-sm">
                   If you no longer wish to receive these notifications, you can{" "}
                   <Link
-                    href={`${siteUrl}/unsubscribe-stock?email=${email}&productId=${product._id}`}
+                    href={`${siteUrl}/unsubscribe-stock?token=${encodeURIComponent(unsubscribeToken)}`}
                     className="text-blue-600 font-medium underline"
                   >
                     unsubscribe here

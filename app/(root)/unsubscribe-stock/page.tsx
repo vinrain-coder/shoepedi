@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, Suspense } from "react";
+import { useState, useTransition, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle, BellOff } from "lucide-react";
 import Link from "next/link";
@@ -11,25 +11,33 @@ import { Button } from "@/components/ui/button";
 
 function UnsubscribeStockContent() {
   const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-  const productId = searchParams.get("productId");
+  const token = searchParams.get("token");
 
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    if (email && productId) {
-      startTransition(async () => {
-        const res = await unsubscribeFromStock(email, productId);
-        setResult(res);
-      });
-    } else {
-      setResult({
-        success: false,
-        message: "Missing subscription details. Please use the link provided in your email.",
-      });
+  const handleUnsubscribe = () => {
+    if (!token) {
+        setResult({
+            success: false,
+            message: "Missing unsubscribe token. Please use the link provided in your email.",
+        });
+        return;
     }
-  }, [email, productId]);
+
+    startTransition(async () => {
+      try {
+        const res = await unsubscribeFromStock(token);
+        setResult(res);
+      } catch (error) {
+        console.error("Unsubscribe error:", error);
+        setResult({
+            success: false,
+            message: "Failed to unsubscribe. An unexpected error occurred.",
+        });
+      }
+    });
+  };
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
@@ -45,14 +53,27 @@ function UnsubscribeStockContent() {
 
         <h1 className="text-2xl font-bold tracking-tight">Stock Alert Unsubscribe</h1>
 
-        {isPending ? (
+        {!result && !isPending && (
+            <div className="space-y-4 py-4">
+                <p className="text-muted-foreground leading-relaxed">
+                    Are you sure you want to stop receiving restock alerts for this product?
+                </p>
+                <Button onClick={handleUnsubscribe} className="w-full" size="lg">
+                    Confirm Unsubscribe
+                </Button>
+            </div>
+        )}
+
+        {isPending && (
           <div className="flex flex-col items-center gap-4 py-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground text-sm font-medium animate-pulse">
               Processing your request...
             </p>
           </div>
-        ) : result ? (
+        )}
+
+        {result && !isPending && (
           <div className="space-y-4 py-4">
             {result.success ? (
               <div className="flex flex-col items-center gap-3">
@@ -70,10 +91,10 @@ function UnsubscribeStockContent() {
               </div>
             )}
           </div>
-        ) : null}
+        )}
 
         <div className="pt-4 border-t">
-          <Button asChild className="w-full">
+          <Button asChild variant="outline" className="w-full">
             <Link href="/">Return to Store</Link>
           </Button>
         </div>

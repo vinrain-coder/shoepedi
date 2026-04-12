@@ -2,12 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db";
-import StockSubscription from "../db/models/stock-subscription.model";
-import Product from "../db/models/product.model";
+import StockSubscription, { IStockSubscription } from "../db/models/stock-subscription.model";
+import Product, { IProduct } from "../db/models/product.model";
 import {
   sendAdminEventNotification,
   sendStockSubscriptionNotification,
 } from "@/lib/email/transactional";
+import crypto from "crypto";
+
+export interface IStockSubscriptionPopulated extends Omit<IStockSubscription, 'product'> {
+  product: IProduct;
+}
 import { getSetting } from "./setting.actions";
 import { escapeRegExp, normalizeDateRange } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
@@ -40,10 +45,11 @@ export const subscribeToStock = async (data: {
       };
 
     const subscription = await StockSubscription.create({
-      email,
+      email: email.toLowerCase().trim(),
       product: productId,
       subscribedAt: new Date(),
       isNotified: false, // Reset notified status for new subscriptions
+      unsubscribeToken: crypto.randomBytes(32).toString("hex"),
     });
 
     await sendAdminEventNotification({
@@ -204,7 +210,9 @@ export const notifySubscribers = async ({
       return { success: false, message: "Product ID or Subscription ID is required." };
     }
 
-    const subscriptions = await StockSubscription.find(query).populate("product");
+    const subscriptions = (await StockSubscription.find(query).populate(
+      "product"
+    )) as unknown as IStockSubscriptionPopulated[];
 
     if (subscriptions.length === 0) {
       return { success: true, message: "No pending subscriptions to notify." };
@@ -216,7 +224,7 @@ export const notifySubscribers = async ({
     // 2. Process notifications individually for robustness
     const results = await Promise.allSettled(
       subscriptions.map(async (sub) => {
-        const product = sub.product as any; // Populated product
+        const product = sub.product; // Strong typed
 
         if (!product) {
           throw new Error(`Product not found for subscription ${sub._id}`);
@@ -231,7 +239,7 @@ export const notifySubscribers = async ({
         }
 
         // Attempt to send email
-        await sendStockSubscriptionNotification(sub.email, product);
+        await sendStockSubscriptionNotification(sub.email, product, sub.unsubscribeToken);
 
         // Update specific subscription upon success
         await StockSubscription.findByIdAndUpdate(sub._id, {
@@ -297,23 +305,29 @@ export const deleteStockSubscription = async (id: string) => {
 };
 
 /**
- * Unsubscribe from stock notifications.
+ * Unsubscribe from stock notifications using a token.
  */
-export const unsubscribeFromStock = async (email: string, productId: string) => {
+export const unsubscribeFromStock = async (token: string) => {
   try {
+    if (!token) return { success: false, message: "Token is required." };
     await connectToDatabase();
 
-    const result = await StockSubscription.deleteMany({
-      email: email.toLowerCase().trim(),
-      product: productId,
+    const result = await StockSubscription.findOneAndDelete({
+      unsubscribeToken: token,
     });
 
-    if (result.deletedCount === 0) {
-      return { success: false, message: "No active subscription found for this email and product." };
+    if (!result) {
+      return {
+        success: false,
+        message: "No active subscription found or invalid token.",
+      };
     }
 
     revalidatePath("/admin/stockSubs");
-    return { success: true, message: "You have been successfully unsubscribed." };
+    return {
+      success: true,
+      message: "You have been successfully unsubscribed.",
+    };
   } catch (error) {
     console.error("❌ Unsubscribe error:", error);
     return { success: false, message: "An error occurred while unsubscribing." };

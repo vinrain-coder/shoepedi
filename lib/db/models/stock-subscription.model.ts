@@ -6,6 +6,7 @@ export interface IStockSubscription extends Document {
   subscribedAt: Date;
   isNotified: boolean;
   notifiedAt?: Date;
+  unsubscribeToken: string;
 }
 
 const stockSubscriptionSchema = new Schema<IStockSubscription>(
@@ -32,6 +33,11 @@ const stockSubscriptionSchema = new Schema<IStockSubscription>(
     notifiedAt: {
       type: Date,
     },
+    unsubscribeToken: {
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   { timestamps: true }
 );
@@ -39,6 +45,7 @@ const stockSubscriptionSchema = new Schema<IStockSubscription>(
 // Indexes for performance
 stockSubscriptionSchema.index({ product: 1, isNotified: 1 });
 stockSubscriptionSchema.index({ email: 1 });
+stockSubscriptionSchema.index({ unsubscribeToken: 1 });
 stockSubscriptionSchema.index({ subscribedAt: -1 });
 
 const StockSubscription =

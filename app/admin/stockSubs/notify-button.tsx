@@ -24,6 +24,11 @@ export default function NotifyButton({
   const router = useRouter();
 
   const handleNotify = () => {
+    if (!productId && !subscriptionId) {
+      toast.error("Product ID or Subscription ID is required.");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const res = await notifySubscribers({ productId, subscriptionId });
