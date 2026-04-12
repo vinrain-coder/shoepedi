@@ -1,3 +1,6 @@
+import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -30,6 +33,11 @@ type OrdersPageProps = {
 };
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
+  const session = await getServerSession();
+  if (!session?.user) {
+    redirect(toSignInPath("/account"));
+  }
+
   const page = Number(searchParams?.page || 1);
 
   const orders = await getMyOrders({ page });

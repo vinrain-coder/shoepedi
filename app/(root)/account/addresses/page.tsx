@@ -1,10 +1,11 @@
+import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { getUserAddresses } from "@/lib/actions/address.actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import AddressBook from "./address-book";
-import { redirect } from "next/navigation";
-import { toSignInPath } from "@/lib/redirects";
 
 async function page({
   searchParams,

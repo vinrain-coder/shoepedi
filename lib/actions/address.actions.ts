@@ -4,20 +4,16 @@ import { revalidatePath } from "next/cache";
 import { AddressBookEntry, AddressBookInput } from "@/types";
 import { AddressBookInputSchema, AddressBookEntrySchema } from "@/lib/validator";
 import { getServerSession } from "@/lib/get-session";
-import { getDb } from "@/lib/db/client";
+import { connectToDatabase } from "@/lib/db";
+import User from "@/lib/db/models/user.model";
 import { formatError } from "@/lib/utils";
-
-const USERS_COLLECTION = "users";
 
 async function getCurrentUserAddresses() {
   const session = await getServerSession();
   if (!session?.user?.id) throw new Error("You must be signed in");
 
-  const db = await getDb();
-  const user = await db.collection(USERS_COLLECTION).findOne(
-    { id: session.user.id },
-    { projection: { addresses: 1 } }
-  );
+  await connectToDatabase();
+  const user = await User.findById(session.user.id).select("addresses").lean();
 
   const rawAddresses = Array.isArray(user?.addresses) ? user.addresses : [];
   const addresses: AddressBookEntry[] = rawAddresses
@@ -32,7 +28,6 @@ async function getCurrentUserAddresses() {
 
   return {
     session,
-    db,
     addresses,
   };
 }
@@ -51,7 +46,7 @@ export async function upsertUserAddress(
   options?: { addressId?: string }
 ) {
   try {
-    const { session, db, addresses } = await getCurrentUserAddresses();
+    const { session, addresses } = await getCurrentUserAddresses();
     const parsed = AddressBookInputSchema.parse(payload);
 
     const timestamp = new Date().toISOString();
@@ -89,12 +84,10 @@ export async function upsertUserAddress(
       updatedAddresses[0] = { ...updatedAddresses[0], isDefault: true };
     }
 
-    await db
-      .collection(USERS_COLLECTION)
-      .updateOne(
-        { id: session.user.id },
-        { $set: { addresses: updatedAddresses } }
-      );
+    await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { addresses: updatedAddresses } }
+    );
 
     revalidatePath("/account/addresses");
     revalidatePath("/checkout");
@@ -111,7 +104,7 @@ export async function upsertUserAddress(
 
 export async function removeUserAddress(addressId: string) {
   try {
-    const { session, db, addresses } = await getCurrentUserAddresses();
+    const { session, addresses } = await getCurrentUserAddresses();
     const updatedAddresses = addresses.filter((item) => item.id !== addressId);
 
     if (updatedAddresses.length === addresses.length) {
@@ -122,12 +115,10 @@ export async function removeUserAddress(addressId: string) {
       updatedAddresses[0] = { ...updatedAddresses[0], isDefault: true };
     }
 
-    await db
-      .collection(USERS_COLLECTION)
-      .updateOne(
-        { id: session.user.id },
-        { $set: { addresses: updatedAddresses } }
-      );
+    await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { addresses: updatedAddresses } }
+    );
 
     revalidatePath("/account/addresses");
     revalidatePath("/checkout");
@@ -140,7 +131,7 @@ export async function removeUserAddress(addressId: string) {
 
 export async function setDefaultUserAddress(addressId: string) {
   try {
-    const { session, db, addresses } = await getCurrentUserAddresses();
+    const { session, addresses } = await getCurrentUserAddresses();
     if (!addresses.some((item) => item.id === addressId)) {
       throw new Error("Address not found");
     }
@@ -151,12 +142,10 @@ export async function setDefaultUserAddress(addressId: string) {
       updatedAt: item.id === addressId ? new Date().toISOString() : item.updatedAt,
     }));
 
-    await db
-      .collection(USERS_COLLECTION)
-      .updateOne(
-        { id: session.user.id },
-        { $set: { addresses: updatedAddresses } }
-      );
+    await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { addresses: updatedAddresses } }
+    );
 
     revalidatePath("/account/addresses");
     revalidatePath("/checkout");

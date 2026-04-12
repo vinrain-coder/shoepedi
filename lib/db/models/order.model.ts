@@ -100,7 +100,7 @@ const orderSchema = new Schema<IOrder>(
     isGuest: { type: Boolean, default: false },
     userEmail: { type: String },
     userName: { type: String },
-    accessToken: { type: String },
+    accessToken: { type: String, select: false },
     trackingNumber: {
       type: String,
       default: generateTrackingNumber,
@@ -180,6 +180,7 @@ const orderSchema = new Schema<IOrder>(
       },
     ],
     shippingAddress: {
+      email: { type: String },
       fullName: { type: String, required: true },
       street: { type: String, required: true },
       city: { type: String, required: true },

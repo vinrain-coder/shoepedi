@@ -373,3 +373,43 @@ export async function getUserCoins(): Promise<number | null> {
     return null;
   }
 }
+
+export async function convertGuestToUser(orderId: string, accessToken: string) {
+  try {
+    await connectToDatabase();
+    const order = await Order.findOne({ _id: orderId, isGuest: true, accessToken: accessToken });
+    if (!order) throw new Error("Order not found or already linked");
+
+    const session = await getServerSession();
+    if (!session?.user?.id) throw new Error("You must be signed in to link an order");
+
+    const userId = session.user.id;
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    // Link order to user
+    order.user = new Types.ObjectId(userId);
+    order.isGuest = false;
+    order.accessToken = undefined;
+    await order.save();
+
+    // Link address if user has none
+    if (user.addresses.length === 0) {
+       const newAddress = {
+          id: Types.ObjectId.generate().toString(),
+          label: "Home",
+          ...order.shippingAddress,
+          isDefault: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+       };
+       user.addresses.push(newAddress);
+       await user.save();
+    }
+
+    revalidatePath(`/account/orders/${orderId}`);
+    return { success: true, message: "Order successfully linked to your account" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}

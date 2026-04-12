@@ -126,6 +126,7 @@ const CheckoutForm = ({
       ""
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
+  const [showCouponInput, setShowCouponInput] = useState(false);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [firstPurchaseDiscount, setFirstPurchaseDiscount] = useState<{
     eligible: boolean;
@@ -582,44 +583,58 @@ const CheckoutForm = ({
 
         <div>
           <div className="mb-4">
-            <label className="block mb-1 text-sm font-medium">
-              Coupon Code
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                placeholder={
-                  paymentMethod === "Coins"
-                    ? "Coupons not allowed with Coins"
-                    : firstPurchaseDiscount.loading
-                    ? "Checking eligibility..."
-                    : firstPurchaseDiscount.eligible
-                    ? "First discount applied"
-                    : "Enter coupon code"
-                }
-                disabled={
-                  paymentMethod === "Coins" ||
-                  firstPurchaseDiscount.loading ||
-                  firstPurchaseDiscount.eligible
-                }
-              />
-              <Button
+            {!showCouponInput && !appliedCoupon && (
+              <button
                 type="button"
-                onClick={() => {
-                  void handleApplyCoupon();
-                }}
-                disabled={
-                  isApplyingCoupon ||
-                  paymentMethod === "Coins" ||
-                  firstPurchaseDiscount.loading ||
-                  firstPurchaseDiscount.eligible
-                }
+                onClick={() => setShowCouponInput(true)}
+                className="text-sm font-medium text-primary underline hover:text-primary/80 transition-colors"
               >
-                {isApplyingCoupon ? "Applying..." : "Apply"}
-              </Button>
-            </div>
+                Got a coupon?
+              </button>
+            )}
+
+            {(showCouponInput || appliedCoupon) && (
+              <>
+                <label className="block mb-1 text-sm font-medium">
+                  Coupon Code
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder={
+                      paymentMethod === "Coins"
+                        ? "Coupons not allowed with Coins"
+                        : firstPurchaseDiscount.loading
+                        ? "Checking eligibility..."
+                        : firstPurchaseDiscount.eligible
+                        ? "First discount applied"
+                        : "Enter coupon code"
+                    }
+                    disabled={
+                      paymentMethod === "Coins" ||
+                      firstPurchaseDiscount.loading ||
+                      firstPurchaseDiscount.eligible
+                    }
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      void handleApplyCoupon();
+                    }}
+                    disabled={
+                      isApplyingCoupon ||
+                      paymentMethod === "Coins" ||
+                      firstPurchaseDiscount.loading ||
+                      firstPurchaseDiscount.eligible
+                    }
+                  >
+                    {isApplyingCoupon ? "Applying..." : "Apply"}
+                  </Button>
+                </div>
+              </>
+            )}
             {couponError && (
               <div
                 className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive"

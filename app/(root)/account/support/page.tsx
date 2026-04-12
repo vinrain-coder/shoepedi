@@ -1,5 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
+
 import { getMySupportTickets } from "@/lib/actions/support.actions";
 import SupportTicketForm from "@/components/shared/support/support-ticket-form";
 import Breadcrumb from "@/components/shared/breadcrumb";

@@ -124,6 +124,12 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
   if (!order) return null;
 
   const serializedOrder = JSON.parse(JSON.stringify(order)) as SerializedOrder;
+
+  // Security: Always omit accessToken in general serialization
+  if (serializedOrder.accessToken) {
+    delete (serializedOrder as any).accessToken;
+  }
+
   return {
     ...serializedOrder,
     _id: serializedOrder._id.toString(),
@@ -444,10 +450,16 @@ export const createOrder = async (
       clientSideCart.userName,
     );
 
+    // For guest checkout, we need to return the accessToken once upon creation
+    const serialized = serializeOrder(createdOrder);
+    if (createdOrder.isGuest && createdOrder.accessToken && serialized) {
+      (serialized as any).accessToken = createdOrder.accessToken;
+    }
+
     return {
       success: true,
       message: "Order placed successfully",
-      data: serializeOrder(createdOrder),
+      data: serialized,
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

@@ -5,6 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { ProfileDetailsForm } from "./profile-form";
 import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
+
 import { unauthorized } from "next/navigation";
 import Breadcrumb from "@/components/shared/breadcrumb";
 
