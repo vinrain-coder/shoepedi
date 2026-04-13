@@ -38,7 +38,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
 import { AddressBookEntry } from "@/types";
+import { toSignInPath } from "@/lib/redirects";
 import useIsMounted from "@/hooks/use-is-mounted";
+import { z } from "zod";
 import Link from "next/link";
 import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
@@ -50,7 +52,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  Lock,
   MapPin,
+  User,
   XCircle,
 } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
@@ -101,6 +105,7 @@ const CheckoutForm = ({
   savedAddresses: AddressBookEntry[];
   selectedAddressId?: string;
 }) => {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -121,6 +126,7 @@ const CheckoutForm = ({
       ""
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
+  const [showCouponInput, setShowCouponInput] = useState(false);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [firstPurchaseDiscount, setFirstPurchaseDiscount] = useState<{
     eligible: boolean;
@@ -265,8 +271,12 @@ const CheckoutForm = ({
   const isMounted = useIsMounted();
 
   const shippingAddressForm = useForm<ShippingAddress>({
-    resolver: zodResolver(ShippingAddressSchema),
-    defaultValues: shippingAddress || shippingAddressDefaultValues,
+    resolver: zodResolver(
+      ShippingAddressSchema.extend({
+        email: session ? z.string().email().optional() : z.string().email("Email is required for guest checkout"),
+      })
+    ),
+    defaultValues: shippingAddress || { ...shippingAddressDefaultValues, email: "" },
   });
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
     values
@@ -335,6 +345,7 @@ const CheckoutForm = ({
 
   useEffect(() => {
     if (!isMounted || !shippingAddress) return;
+    if (shippingAddress.email) shippingAddressForm.setValue("email", shippingAddress.email);
     shippingAddressForm.setValue("fullName", shippingAddress.fullName);
     shippingAddressForm.setValue("street", shippingAddress.street);
     shippingAddressForm.setValue("city", shippingAddress.city);
@@ -358,6 +369,8 @@ const CheckoutForm = ({
       const res = await createOrder({
         items,
         shippingAddress,
+        userEmail: shippingAddress?.email || (session?.user?.email as string),
+        userName: shippingAddress?.fullName || (session?.user?.name as string),
         expectedDeliveryDate: calculateFutureDate(
           selectedDeliveryDate.daysToDeliver
         ),
@@ -388,8 +401,12 @@ const CheckoutForm = ({
 
       clearCart();
 
+      const successPath = order.isGuest
+        ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
+        : `/account/orders/${order._id}/placed`;
+
       if (paymentMethod === "Cash On Delivery" || paymentMethod === "Coins") {
-        router.push(`/account/orders/${order._id}/placed`);
+        router.push(successPath);
         return;
       }
 
@@ -466,7 +483,7 @@ const CheckoutForm = ({
 
     const fetchFirstPurchaseDiscount = async () => {
       setFirstPurchaseDiscount((prev) => ({ ...prev, loading: true }));
-      const quote = await getFirstPurchaseDiscountQuote(itemsPrice);
+      const quote = await getFirstPurchaseDiscountQuote(itemsPrice, shippingAddress?.email);
       if (cancelled) return;
       setFirstPurchaseDiscount({ ...quote, loading: false });
 
@@ -566,44 +583,58 @@ const CheckoutForm = ({
 
         <div>
           <div className="mb-4">
-            <label className="block mb-1 text-sm font-medium">
-              Coupon Code
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                placeholder={
-                  paymentMethod === "Coins"
-                    ? "Coupons not allowed with Coins"
-                    : firstPurchaseDiscount.loading
-                    ? "Checking eligibility..."
-                    : firstPurchaseDiscount.eligible
-                    ? "First discount applied"
-                    : "Enter coupon code"
-                }
-                disabled={
-                  paymentMethod === "Coins" ||
-                  firstPurchaseDiscount.loading ||
-                  firstPurchaseDiscount.eligible
-                }
-              />
-              <Button
+            {!showCouponInput && !appliedCoupon && (
+              <button
                 type="button"
-                onClick={() => {
-                  void handleApplyCoupon();
-                }}
-                disabled={
-                  isApplyingCoupon ||
-                  paymentMethod === "Coins" ||
-                  firstPurchaseDiscount.loading ||
-                  firstPurchaseDiscount.eligible
-                }
+                onClick={() => setShowCouponInput(true)}
+                className="text-sm font-medium text-primary underline hover:text-primary/80 transition-colors"
               >
-                {isApplyingCoupon ? "Applying..." : "Apply"}
-              </Button>
-            </div>
+                Got a coupon?
+              </button>
+            )}
+
+            {(showCouponInput || appliedCoupon) && (
+              <>
+                <label className="block mb-1 text-sm font-medium">
+                  Coupon Code
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder={
+                      paymentMethod === "Coins"
+                        ? "Coupons not allowed with Coins"
+                        : firstPurchaseDiscount.loading
+                        ? "Checking eligibility..."
+                        : firstPurchaseDiscount.eligible
+                        ? "First discount applied"
+                        : "Enter coupon code"
+                    }
+                    disabled={
+                      paymentMethod === "Coins" ||
+                      firstPurchaseDiscount.loading ||
+                      firstPurchaseDiscount.eligible
+                    }
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      void handleApplyCoupon();
+                    }}
+                    disabled={
+                      isApplyingCoupon ||
+                      paymentMethod === "Coins" ||
+                      firstPurchaseDiscount.loading ||
+                      firstPurchaseDiscount.eligible
+                    }
+                  >
+                    {isApplyingCoupon ? "Applying..." : "Apply"}
+                  </Button>
+                </div>
+              </>
+            )}
             {couponError && (
               <div
                 className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive"
@@ -742,7 +773,6 @@ const CheckoutForm = ({
     </Card>
   );
 
-  const { data: session } = authClient.useSession();
   const userCoins =
     liveUserCoins !== null
       ? liveUserCoins
@@ -786,7 +816,7 @@ const CheckoutForm = ({
                 </div>
                 <div className="col-span-5 ">
                   <p>
-                    {shippingAddress.fullName} <br />
+                    {shippingAddress.fullName} {shippingAddress.email ? `(${shippingAddress.email})` : ""} <br />
                     {shippingAddress.street} <br />
                     {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
                   </p>
@@ -810,7 +840,30 @@ const CheckoutForm = ({
                   <span className="w-8">1 </span>
                   <span>Enter shipping address</span>
                 </div>
-                {addressBook.length > 0 && (
+
+                {!session && (
+                  <Card className="md:ml-8 my-4 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <User className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">Returning customer?</p>
+                          <p className="text-xs text-muted-foreground">Sign in to use your saved addresses and earn rewards.</p>
+                        </div>
+                      </div>
+                      <Link href={toSignInPath("/checkout")}>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Lock className="h-3.5 w-3.5" />
+                          Sign In
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {session && addressBook.length > 0 && (
                   <Card className="md:ml-8 my-4">
                     <CardContent className="p-4 space-y-3">
                       <div className="text-sm font-medium flex items-center gap-2">
@@ -908,18 +961,45 @@ const CheckoutForm = ({
                         <div className="text-lg font-bold mb-2">
                           Your address
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="saveAddressToAccount"
-                            checked={saveAddressToAccount}
-                            onCheckedChange={(value) =>
-                              setSaveAddressToAccount(Boolean(value))
-                            }
-                          />
-                          <Label htmlFor="saveAddressToAccount">
-                            Save this address to my account
-                          </Label>
-                        </div>
+                        {session && (
+                          <div className="flex items-center gap-2 mb-4">
+                            <Checkbox
+                              id="saveAddressToAccount"
+                              checked={saveAddressToAccount}
+                              onCheckedChange={(value) =>
+                                setSaveAddressToAccount(Boolean(value))
+                              }
+                            />
+                            <Label htmlFor="saveAddressToAccount">
+                              Save this address to my account
+                            </Label>
+                          </div>
+                        )}
+
+                        {!session && (
+                          <div className="mb-4">
+                            <FormField
+                              control={shippingAddressForm.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem className="w-full">
+                                  <FormLabel>Email Address</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Enter your email"
+                                      type="email"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              We&apos;ll use this email to send you order updates and tracking information.
+                            </p>
+                          </div>
+                        )}
 
                         <div className="flex flex-col gap-5 md:flex-row">
                           <FormField
@@ -1461,7 +1541,7 @@ const CheckoutForm = ({
                 {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
                   createdOrder && (
                     <PaystackInline
-                      email={session?.user.email as string}
+                      email={(session?.user?.email || shippingAddress?.email) as string}
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
@@ -1469,12 +1549,16 @@ const CheckoutForm = ({
                       hideButton={true}
                       onSuccess={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                       onFailure={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                     />
@@ -1486,7 +1570,7 @@ const CheckoutForm = ({
                   {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
                   createdOrder ? (
                     <PaystackInline
-                      email={session?.user.email as string}
+                      email={(session?.user?.email || shippingAddress?.email) as string}
                       amount={Math.round(finalTotal * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
@@ -1494,12 +1578,16 @@ const CheckoutForm = ({
                       hideButton={true}
                       onSuccess={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                       onFailure={() =>
                         router.push(
-                          `/account/orders/${createdOrder._id}/placed`
+                          createdOrder.isGuest
+                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                            : `/account/orders/${createdOrder._id}/placed`
                         )
                       }
                     />

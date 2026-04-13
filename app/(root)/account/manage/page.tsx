@@ -5,6 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
+
 import Breadcrumb from "@/components/shared/breadcrumb";
 
 const PAGE_TITLE = "Login & Security";

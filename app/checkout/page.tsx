@@ -15,9 +15,7 @@ export default async function CheckoutPage({
   searchParams: Promise<{ selectedAddressId?: string }>;
 }) {
   const session = await getServerSession();
-  if (!session?.user) {
-    redirect(toSignInPath("/checkout"));
-  }
+
   const { selectedAddressId } = await searchParams;
   const addressesResult = await getUserAddresses();
   return (

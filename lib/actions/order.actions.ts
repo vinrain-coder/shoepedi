@@ -59,7 +59,8 @@ type FirstPurchaseDiscountQuote = {
 };
 
 const getFirstPurchaseDiscountQuoteForUser = async (
-  userId: string,
+  userId: string | undefined,
+  email: string | undefined,
   itemsPrice: number,
 ): Promise<FirstPurchaseDiscountQuote> => {
   const {
@@ -68,16 +69,26 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   const normalizedRate = Math.max(0, Math.min(100, Number(firstPurchaseDiscountRate) || 0));
   const normalizedItemsPrice = Math.max(0, Number(itemsPrice) || 0);
 
-  if (!userId || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
+  if ((!userId && !email) || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
     return { eligible: false, rate: normalizedRate, discountAmount: 0 };
   }
 
-  const [user, existingOrdersCount] = await Promise.all([
-    User.findById(userId).select("firstPurchaseDiscountUsed").lean(),
-    Order.countDocuments({ user: userId }),
-  ]);
+  let existingOrdersCount = 0;
+  let firstPurchaseDiscountUsed = false;
 
-  if (!user || user.firstPurchaseDiscountUsed || existingOrdersCount > 0) {
+  if (userId) {
+    const [user, userOrdersCount] = await Promise.all([
+      User.findById(userId).select("firstPurchaseDiscountUsed").lean(),
+      Order.countDocuments({ user: userId }),
+    ]);
+    firstPurchaseDiscountUsed = user?.firstPurchaseDiscountUsed || false;
+    existingOrdersCount = userOrdersCount;
+  } else if (email) {
+    const normalizedEmail = email.trim().toLowerCase();
+    existingOrdersCount = await Order.countDocuments({ userEmail: normalizedEmail });
+  }
+
+  if (firstPurchaseDiscountUsed || existingOrdersCount > 0) {
     return { eligible: false, rate: normalizedRate, discountAmount: 0 };
   }
 
@@ -93,15 +104,16 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   };
 };
 
-export const getFirstPurchaseDiscountQuote = async (itemsPrice: number) => {
+export const getFirstPurchaseDiscountQuote = async (itemsPrice: number, email?: string) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
-    if (!session?.user?.id) {
-      return { eligible: false, rate: 0, discountAmount: 0 };
-    }
 
-    return await getFirstPurchaseDiscountQuoteForUser(session.user.id, itemsPrice);
+    return await getFirstPurchaseDiscountQuoteForUser(
+      session?.user?.id,
+      email,
+      itemsPrice
+    );
   } catch (error) {
     console.error("Failed to fetch first purchase discount quote:", error);
     return { eligible: false, rate: 0, discountAmount: 0 };
@@ -112,6 +124,12 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
   if (!order) return null;
 
   const serializedOrder = JSON.parse(JSON.stringify(order)) as SerializedOrder;
+
+  // Security: Always omit accessToken in general serialization
+  if (serializedOrder.accessToken) {
+    delete (serializedOrder as any).accessToken;
+  }
+
   return {
     ...serializedOrder,
     _id: serializedOrder._id.toString(),
@@ -189,14 +207,17 @@ const notifyCustomerOrderStatus = async (
 ) => {
   if (!shouldSendStatusNotification(status)) return;
 
-  let email = (order.user as unknown as { email?: string })?.email;
+  let email = order.userEmail || (order.user as unknown as { email?: string })?.email;
 
-  if (!email) {
+  if (!email && order.user) {
      const populatedOrder = await Order.findById(order._id).populate("user", "email name");
      email = (populatedOrder?.user as unknown as { email?: string })?.email;
      if (email) {
        (order as any).user = populatedOrder?.user;
+       order.userEmail = email;
      }
+  } else if (email && !order.userEmail) {
+    order.userEmail = email;
   }
 
   if (!email) return;
@@ -415,23 +436,30 @@ const runStatusTransition = async ({
 
 // CREATE
 export const createOrder = async (
-  clientSideCart: Cart & { coupon?: OrderCouponInput },
+  clientSideCart: Cart & { coupon?: OrderCouponInput; userEmail?: string; userName?: string },
 ) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
-    if (!session) throw new Error("User not authenticated");
 
     const createdOrder = await createOrderFromCart(
       clientSideCart,
-      session.user.id!,
+      session?.user?.id,
       clientSideCart.coupon,
+      clientSideCart.userEmail,
+      clientSideCart.userName,
     );
+
+    // For guest checkout, we need to return the accessToken once upon creation
+    const serialized = serializeOrder(createdOrder);
+    if (createdOrder.isGuest && createdOrder.accessToken && serialized) {
+      (serialized as any).accessToken = createdOrder.accessToken;
+    }
 
     return {
       success: true,
       message: "Order placed successfully",
-      data: serializeOrder(createdOrder),
+      data: serialized,
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -440,8 +468,10 @@ export const createOrder = async (
 
 export const createOrderFromCart = async (
   clientSideCart: Cart,
-  userId: string,
+  userId: string | undefined,
   coupon?: OrderCouponInput,
+  userEmail?: string,
+  userName?: string,
 ) => {
   const cookieStore = await cookies();
   let affiliateCode = cookieStore.get("affiliate_code")?.value;
@@ -504,6 +534,7 @@ export const createOrderFromCart = async (
 
   const firstPurchaseDiscount = await getFirstPurchaseDiscountQuoteForUser(
     userId,
+    userEmail,
     itemsPriceRaw,
   );
   if (
@@ -532,6 +563,7 @@ export const createOrderFromCart = async (
   };
 
   if (cart.paymentMethod === "Coins") {
+    if (!userId) throw new Error("Authentication required for Coin payments");
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
     if (user.coins < cart.totalPrice) {
@@ -551,9 +583,14 @@ export const createOrderFromCart = async (
   const totalPrice = cart.totalPrice;
   coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
 
+  const normalizedUserEmail = (userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email))?.trim().toLowerCase();
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
     user: userId,
+    isGuest: !userId,
+    userEmail: normalizedUserEmail,
+    userName: userName || clientSideCart.shippingAddress?.fullName,
+    accessToken: !userId ? crypto.randomUUID() : undefined,
     items: cart.items,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
@@ -584,7 +621,7 @@ export const createOrderFromCart = async (
   });
   const createdOrder = await Order.create(order);
 
-  if (appliedCoupon?.isFirstPurchase) {
+  if (appliedCoupon?.isFirstPurchase && userId) {
     await User.findByIdAndUpdate(userId, {
       $set: { firstPurchaseDiscountUsed: true },
     });
@@ -611,11 +648,11 @@ export const createOrderFromCart = async (
     message: "Order confirmed and queued for processing.",
     source: "system",
   });
-  const orderUser = await User.findById(userId).select("name email").lean();
+  const orderUser = userId ? await User.findById(userId).select("name email").lean() : null;
 
   await sendAdminEventNotification({
     title: "New order received",
-    description: `${orderUser?.name || "Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
+    description: `${orderUser?.name || userName || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
     href: `/admin/orders/${createdOrder._id.toString()}`,
     meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
     createdAt: createdOrder.createdAt.toISOString(),
@@ -712,9 +749,13 @@ const runPostPaymentSideEffects = async (orderId: string) => {
   // 5. Send purchase receipt
   try {
     const populatedOrder = await Order.findById(orderId).populate("user", "name email");
-    const emailUser = populatedOrder?.user as unknown as { email?: string };
+    const emailUser = (populatedOrder?.user as unknown as { email?: string })?.email;
+    const finalEmail = populatedOrder?.userEmail || emailUser;
 
-    if (emailUser?.email) {
+    if (finalEmail) {
+      if (!populatedOrder?.userEmail) {
+        populatedOrder!.userEmail = finalEmail;
+      }
       await sendPurchaseReceipt(populatedOrder as unknown as IOrder);
     }
   } catch (emailError) {
@@ -835,7 +876,9 @@ export async function updateOrderStatus({
     });
 
     if (normalizedStatus === "delivered") {
-      if ((order.user as { email?: string })?.email) {
+      const finalEmail = order.userEmail || (order.user as unknown as { email?: string })?.email;
+      if (finalEmail) {
+        if (!order.userEmail) order.userEmail = finalEmail;
         await sendAskReviewOrderItems(order as unknown as IOrder);
       }
     }
@@ -1198,6 +1241,7 @@ export async function getMyOrders({
 }
 export async function getOrderById(
   orderId: string,
+  accessToken?: string,
 ): Promise<SerializedOrder | null> {
   "use cache: private";
   cacheLife("hours");
@@ -1207,14 +1251,20 @@ export async function getOrderById(
   }
 
   const session = await getServerSession();
-  if (!session?.user?.id) {
-    return null;
-  }
 
-  const query =
-    session.user.role === "ADMIN"
-      ? { _id: orderId }
-      : { _id: orderId, user: session.user.id };
+  const query: any = { _id: orderId };
+
+  if (session?.user?.role !== "ADMIN") {
+    if (session?.user?.id) {
+      query.$or = [
+        { user: session.user.id },
+        { isGuest: true, accessToken: accessToken }
+      ];
+    } else {
+      query.isGuest = true;
+      query.accessToken = accessToken;
+    }
+  }
 
   const order = await Order.findOne(query);
   if (!order) return null;

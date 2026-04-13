@@ -109,6 +109,7 @@ export const OrderItemSchema = z.object({
   color: z.string().optional(),
 });
 export const ShippingAddressSchema = z.object({
+  email: z.string().email().optional(),
   fullName: z.string().min(1, "Full name is required"),
   street: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
@@ -156,13 +157,11 @@ const OrderStatusSchema = z.enum([
 ]);
 
 export const OrderInputSchema = z.object({
-  user: z.union([
-    MongoId,
-    z.object({
-      name: z.string(),
-      email: z.string().email(),
-    }),
-  ]),
+  user: MongoId.optional(),
+  isGuest: z.boolean().default(false),
+  userEmail: z.string().email().optional(),
+  userName: z.string().optional(),
+  accessToken: z.string().optional(),
   items: z
     .array(OrderItemSchema)
     .min(1, "Order must contain at least one item"),
@@ -239,7 +238,13 @@ export const OrderInputSchema = z.object({
     .optional(),
   affiliate: MongoId.optional(),
   affiliateCode: z.string().optional(),
-});
+}).refine(
+  (data) => !data.isGuest || (!!data.userEmail && z.string().email().safeParse(data.userEmail).success),
+  {
+    message: "Email is required and must be valid for guest checkout",
+    path: ["userEmail"],
+  }
+);
 // Cart
 
 export const CartSchema = z.object({

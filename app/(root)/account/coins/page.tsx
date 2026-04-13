@@ -1,4 +1,7 @@
 import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
+
 import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";

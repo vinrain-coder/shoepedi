@@ -13,12 +13,14 @@ const CheckoutPaymentPage = async (props: {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{ accessToken?: string }>;
 }) => {
   const params = await props.params;
+  const { accessToken } = await props.searchParams;
 
   const { id } = params;
 
-  const order = await getOrderById(id);
+  const order = await getOrderById(id, accessToken);
   if (!order) notFound();
 
   const session = await getServerSession();

@@ -1,3 +1,6 @@
+import { getServerSession } from "@/lib/get-session";
+import { redirect } from "next/navigation";
+import { toSignInPath } from "@/lib/redirects";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { AccountOverviewTabs } from "@/components/shared/account/account-overview-tabs";
@@ -9,6 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
+  const session = await getServerSession();
+  if (!session?.user) {
+    redirect(toSignInPath("/account"));
+  }
+
   return (
     <div>
       <Breadcrumb />
