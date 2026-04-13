@@ -1252,6 +1252,8 @@ export async function getOrderById(
   }
 
   const session = await getServerSession();
+  const cookieStore = await cookies();
+  const guestAccessToken = accessToken || cookieStore.get(`guest_order_access_${orderId}`)?.value;
 
   const query: any = { _id: orderId };
 
@@ -1259,11 +1261,11 @@ export async function getOrderById(
     if (session?.user?.id) {
       query.$or = [
         { user: session.user.id },
-        { isGuest: true, accessToken: accessToken }
+        { isGuest: true, accessToken: guestAccessToken }
       ];
     } else {
       query.isGuest = true;
-      query.accessToken = accessToken;
+      query.accessToken = guestAccessToken;
     }
   }
 

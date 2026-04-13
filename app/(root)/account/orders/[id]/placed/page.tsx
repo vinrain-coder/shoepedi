@@ -10,6 +10,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 import { GuestSignUpForm } from "./signup-form";
 import { getOrderById } from "@/lib/actions/order.actions";
 import { SerializedOrder } from "@/lib/actions/order.actions";
+import { formatId } from "@/lib/utils";
 
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"];
 
@@ -112,7 +113,7 @@ export default function OrderPlacedPage() {
         >
           <Package className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-semibold text-foreground">
-            Order #{orderId?.slice(0, 12)}
+            Order #{order ? formatId(order._id) : formatId(orderId || "")}
           </span>
         </motion.div>
 
@@ -145,6 +146,17 @@ export default function OrderPlacedPage() {
                 defaultEmail={order?.userEmail || ""}
                 defaultName={order?.userName || ""}
             />
+        )}
+        {accessToken && orderId && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href={`/sign-in?callbackUrl=${encodeURIComponent(`/account/orders/${orderId}?accessToken=${accessToken}`)}`}
+              className="font-semibold text-primary underline underline-offset-4"
+            >
+              Sign in to link this order
+            </Link>
+          </div>
         )}
 
         <motion.div

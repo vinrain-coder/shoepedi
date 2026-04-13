@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -27,7 +27,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, MapPin, PlusCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CheckCircle2, Loader2, MapPin, PlusCircle } from "lucide-react";
+import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
 
 const emptyAddress: AddressBookInput = {
   label: "",
@@ -36,19 +44,17 @@ const emptyAddress: AddressBookInput = {
   city: "",
   province: "",
   postalCode: "",
-  country: "",
+  country: "Kenya",
   phone: "",
   saveAsDefault: false,
 };
 
 const fieldLabels: Record<
-  "fullName" | "street" | "city" | "province" | "postalCode" | "country" | "phone",
+  "fullName" | "street" | "postalCode" | "country" | "phone",
   string
 > = {
   fullName: "Full name",
   street: "Street address",
-  city: "City",
-  province: "Province / State",
   postalCode: "Postal code",
   country: "Country",
   phone: "Phone number",
@@ -65,11 +71,47 @@ export default function AddressBook({
   const [addresses, setAddresses] = useState(initialAddresses);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [activeDefaultAddressId, setActiveDefaultAddressId] = useState<string | null>(null);
+  const [activeRemoveAddressId, setActiveRemoveAddressId] = useState<string | null>(null);
+
+  const [counties, setCounties] = useState<string[]>([]);
+  const [places, setPlaces] = useState<{ city: string; rate: number }[]>([]);
+  const [isCountiesLoading, setIsCountiesLoading] = useState(false);
+  const [isPlacesLoading, setIsPlacesLoading] = useState(false);
 
   const form = useForm<AddressBookInput>({
     resolver: zodResolver(AddressBookInputSchema),
     defaultValues: emptyAddress,
   });
+
+  const selectedCounty = form.watch("province");
+
+  useEffect(() => {
+    setIsCountiesLoading(true);
+    getAllCounties()
+      .then(setCounties)
+      .catch(() => {
+        setCounties([]);
+        toast.error("Unable to load counties right now.");
+      })
+      .finally(() => setIsCountiesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCounty) {
+      setPlaces([]);
+      return;
+    }
+
+    setIsPlacesLoading(true);
+    getPlacesByCounty(selectedCounty)
+      .then((rows) => setPlaces(rows))
+      .catch(() => {
+        setPlaces([]);
+        toast.error("Unable to load delivery places for the selected county.");
+      })
+      .finally(() => setIsPlacesLoading(false));
+  }, [selectedCounty]);
 
   const editingAddress = useMemo(
     () => addresses.find((item) => item.id === editingAddressId),
@@ -192,17 +234,26 @@ export default function AddressBook({
                       disabled={isPending}
                       onClick={() =>
                         startTransition(async () => {
+                          setActiveDefaultAddressId(address.id);
                           const result = await setDefaultUserAddress(address.id);
                           if (!result.success || !result.data) {
                             toast.error(result.message || "Failed to set default address");
+                            setActiveDefaultAddressId(null);
                             return;
                           }
                           setAddresses(result.data);
+                          setActiveDefaultAddressId(null);
                           toast.success("Default address updated");
                         })
                       }
                     >
-                      Set default
+                      {activeDefaultAddressId === address.id ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating...
+                        </span>
+                      ) : (
+                        "Set default"
+                      )}
                     </Button>
                   )}
                   <Button
@@ -211,18 +262,27 @@ export default function AddressBook({
                     disabled={isPending}
                     onClick={() =>
                       startTransition(async () => {
+                        setActiveRemoveAddressId(address.id);
                         const result = await removeUserAddress(address.id);
                         if (!result.success || !result.data) {
                           toast.error(result.message || "Failed to remove address");
+                          setActiveRemoveAddressId(null);
                           return;
                         }
                         setAddresses(result.data);
                         if (editingAddressId === address.id) clearForm();
+                        setActiveRemoveAddressId(null);
                         toast.success("Address removed");
                       })
                     }
                   >
-                    Remove
+                    {activeRemoveAddressId === address.id ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Removing...
+                      </span>
+                    ) : (
+                      "Remove"
+                    )}
                   </Button>
                   {returnTo && (
                     <Link
@@ -262,9 +322,7 @@ export default function AddressBook({
                 )}
               />
 
-              {(
-                ["fullName", "street", "city", "province", "postalCode", "country", "phone"] as const
-              ).map((fieldName) => (
+              {(["fullName", "street", "postalCode", "country", "phone"] as const).map((fieldName) => (
                 <FormField
                   key={fieldName}
                   control={form.control}
@@ -284,6 +342,76 @@ export default function AddressBook({
                 />
               ))}
 
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>County</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("city", "");
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={isCountiesLoading ? "Loading counties..." : "Select county"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {counties.map((county) => (
+                              <SelectItem key={county} value={county}>
+                                {county}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery place</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!selectedCounty || isPlacesLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                !selectedCounty
+                                  ? "Select county first"
+                                  : isPlacesLoading
+                                    ? "Loading places..."
+                                    : "Select delivery place"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {places.map((place) => (
+                              <SelectItem key={place.city} value={place.city}>
+                                {place.city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="saveAsDefault"
@@ -299,7 +427,15 @@ export default function AddressBook({
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={isPending}>
-                  {editingAddress ? "Update address" : "Save address"}
+                  {isPending ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                    </span>
+                  ) : editingAddress ? (
+                    "Update address"
+                  ) : (
+                    "Save address"
+                  )}
                 </Button>
                 {editingAddress && (
                   <Button type="button" variant="outline" onClick={clearForm}>
