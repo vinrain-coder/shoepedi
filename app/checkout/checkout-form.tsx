@@ -66,6 +66,7 @@ import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { calculateShippingPrice } from "@/lib/delivery";
 import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
+import { normalizeAddressBookEntries } from "@/lib/address-book";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
@@ -118,11 +119,15 @@ const CheckoutForm = ({
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const sessionAddressBook = useMemo(
+    () => normalizeAddressBookEntries((session?.user as { addresses?: unknown[] } | undefined)?.addresses),
+    [session?.user]
+  );
   const [addressBook, setAddressBook] =
-    useState<AddressBookEntry[]>(savedAddresses);
+    useState<AddressBookEntry[]>(sessionAddressBook.length > 0 ? sessionAddressBook : savedAddresses);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>(
     selectedAddressId ||
-      savedAddresses.find((address) => address.isDefault)?.id ||
+      (sessionAddressBook.length > 0 ? sessionAddressBook : savedAddresses).find((address) => address.isDefault)?.id ||
       ""
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
@@ -144,6 +149,26 @@ const CheckoutForm = ({
     firstPurchaseDiscount.discountAmount || 0,
     appliedCoupon?.discountAmount || 0
   );
+
+  useEffect(() => {
+    if (!session) return;
+
+    const nextAddressBook = sessionAddressBook.length > 0 ? sessionAddressBook : savedAddresses;
+    setAddressBook(nextAddressBook);
+
+    setSelectedSavedAddressId((currentId) => {
+      if (currentId && nextAddressBook.some((address) => address.id === currentId)) {
+        return currentId;
+      }
+
+      return (
+        selectedAddressId ||
+        nextAddressBook.find((address) => address.isDefault)?.id ||
+        nextAddressBook[0]?.id ||
+        ""
+      );
+    });
+  }, [savedAddresses, selectedAddressId, session, sessionAddressBook]);
 
   const resetCoupon = async (message?: string) => {
     setAppliedCoupon(null);
