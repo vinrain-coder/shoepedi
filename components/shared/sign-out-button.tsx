@@ -14,7 +14,7 @@ export const SignOutButton = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const protectedPrefixes = ["/account", "/admin", "/checkout", "/wishlist"];
+  const protectedPrefixes = ["/account", "/admin", "/checkout", "/account/wishlist"];
   const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
   const shouldGoToSignIn = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)

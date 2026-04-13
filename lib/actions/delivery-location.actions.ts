@@ -7,6 +7,7 @@ import { escapeRegExp, formatError } from "../utils";
 import { revalidateTag } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { getServerSession } from "../get-session";
+import { getSetting } from "./setting.actions";
 
 export type SerializedDeliveryLocation = Omit<IDeliveryLocation, "_id"> & { _id: string };
 
@@ -16,7 +17,7 @@ const serializeDeliveryLocation = (location: IDeliveryLocation): SerializedDeliv
 
 export async function getAllDeliveryLocations({
   query,
-  limit = 20,
+  limit,
   page = 1,
   county = "all",
 }: {
@@ -30,6 +31,12 @@ export async function getAllDeliveryLocations({
   cacheTag("delivery-locations");
 
   await connectToDatabase();
+
+  const {
+    common: { pageSize },
+  } = await getSetting();
+  limit = limit || pageSize || 20;
+
   const skipAmount = (Number(page) - 1) * limit;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

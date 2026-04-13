@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function Wishlist() {
   const session = await getServerSession();
   if (!session?.user) {
-    redirect(toSignInPath("/wishlist"));
+    redirect(toSignInPath("/account/wishlist"));
   }
 
   const products = await getWishlistProducts();

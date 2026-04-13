@@ -28,25 +28,7 @@ export default function OrderPlacedPage() {
     }
   }, [orderId, accessToken]);
 
-  useEffect(() => {
-    if (!orderId) return;
-
-    // Only auto-redirect if NOT a guest or if they've already started signing up
-    if (!accessToken) {
-        const interval = setInterval(() => {
-            setProgress((prev) => Math.min(prev + (100 / 60), 100));
-        }, 50);
-
-        const timeout = setTimeout(() => {
-            router.replace(`/account/orders/${orderId}`);
-        }, 3000);
-
-        return () => {
-            clearInterval(interval);
-            clearTimeout(timeout);
-        };
-    }
-  }, [orderId, router, accessToken]);
+  // Auto-redirection removed per user request for better UX
 
   const confettiParticles = Array.from({ length: 40 }).map((_, i) => ({
     id: i,
@@ -155,36 +137,6 @@ export default function OrderPlacedPage() {
           ))}
         </motion.div>
 
-        {!accessToken && (
-            <div className="space-y-6">
-                <div className="space-y-2">
-                    <motion.div
-                    className="w-full bg-muted rounded-full h-1.5 overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    >
-                    <motion.div
-                        className="h-full bg-primary rounded-full"
-                        style={{ width: `${progress}%` }}
-                        transition={{ ease: "linear", duration: 0.1 }}
-                    />
-                    </motion.div>
-                    <motion.p
-                    className="text-xs text-muted-foreground font-medium flex items-center justify-center gap-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                    >
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                    </span>
-                    Auto-redirecting in a moment...
-                    </motion.p>
-                </div>
-            </div>
-        )}
 
         {accessToken && orderId && (
             <GuestSignUpForm
