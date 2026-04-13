@@ -1,9 +1,7 @@
 import { Metadata } from "next";
 import CheckoutForm from "./checkout-form";
-import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/get-session";
-import { getUserAddresses } from "@/lib/actions/address.actions";
-import { toSignInPath } from "@/lib/redirects";
+import { normalizeAddressBookEntries } from "@/lib/address-book";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -15,12 +13,11 @@ export default async function CheckoutPage({
   searchParams: Promise<{ selectedAddressId?: string }>;
 }) {
   const session = await getServerSession();
-
   const { selectedAddressId } = await searchParams;
-  const addressesResult = await getUserAddresses();
+
   return (
     <CheckoutForm
-      savedAddresses={addressesResult.success ? addressesResult.data ?? [] : []}
+      savedAddresses={normalizeAddressBookEntries(session?.user?.addresses)}
       selectedAddressId={selectedAddressId}
     />
   );

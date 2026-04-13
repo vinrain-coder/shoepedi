@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { AddressBookEntry, AddressBookInput } from "@/types";
-import { AddressBookInputSchema, AddressBookEntrySchema } from "@/lib/validator";
+import { AddressBookInputSchema } from "@/lib/validator";
+import { normalizeAddressBookEntries } from "@/lib/address-book";
 import { getServerSession } from "@/lib/get-session";
 import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
@@ -17,16 +18,7 @@ async function getCurrentUserAddresses() {
   await connectToDatabase();
   const user = await User.findById(session.user.id).select("addresses").lean();
 
-  const rawAddresses = Array.isArray(user?.addresses) ? user.addresses : [];
-  const addresses: AddressBookEntry[] = rawAddresses
-    .map((entry) => AddressBookEntrySchema.safeParse(entry))
-    .filter((result) => result.success)
-    .map((result) => result.data)
-    .sort((a, b) => {
-      if (a.isDefault && !b.isDefault) return -1;
-      if (!a.isDefault && b.isDefault) return 1;
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
+  const addresses: AddressBookEntry[] = normalizeAddressBookEntries(user?.addresses);
 
   return {
     session,
