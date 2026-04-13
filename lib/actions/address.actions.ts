@@ -10,7 +10,9 @@ import { formatError } from "@/lib/utils";
 
 async function getCurrentUserAddresses() {
   const session = await getServerSession();
-  if (!session?.user?.id) throw new Error("You must be signed in");
+  if (!session?.user?.id) {
+    return { session: null, addresses: [] };
+  }
 
   await connectToDatabase();
   const user = await User.findById(session.user.id).select("addresses").lean();
@@ -47,6 +49,8 @@ export async function upsertUserAddress(
 ) {
   try {
     const { session, addresses } = await getCurrentUserAddresses();
+    if (!session?.user?.id) throw new Error("You must be signed in");
+
     const parsed = AddressBookInputSchema.parse(payload);
 
     const timestamp = new Date().toISOString();
@@ -105,6 +109,8 @@ export async function upsertUserAddress(
 export async function removeUserAddress(addressId: string) {
   try {
     const { session, addresses } = await getCurrentUserAddresses();
+    if (!session?.user?.id) throw new Error("You must be signed in");
+
     const updatedAddresses = addresses.filter((item) => item.id !== addressId);
 
     if (updatedAddresses.length === addresses.length) {
@@ -132,6 +138,8 @@ export async function removeUserAddress(addressId: string) {
 export async function setDefaultUserAddress(addressId: string) {
   try {
     const { session, addresses } = await getCurrentUserAddresses();
+    if (!session?.user?.id) throw new Error("You must be signed in");
+
     if (!addresses.some((item) => item.id === addressId)) {
       throw new Error("Address not found");
     }
