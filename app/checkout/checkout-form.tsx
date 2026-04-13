@@ -77,6 +77,15 @@ const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong";
 const toDiscountType = (value: string): "percentage" | "fixed" =>
   value === "fixed" ? "fixed" : "percentage";
+const REQUIRED_ADDRESS_FIELDS: Array<keyof ShippingAddress> = [
+  "fullName",
+  "street",
+  "city",
+  "province",
+  "phone",
+  "postalCode",
+  "country",
+];
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -96,7 +105,7 @@ const shippingAddressDefaultValues =
         province: "",
         phone: "",
         postalCode: "",
-        country: "",
+        country: "Kenya",
       };
 
 const CheckoutForm = ({
@@ -388,6 +397,23 @@ const CheckoutForm = ({
     useState<boolean>(false);
 
   const handlePlaceOrder = async () => {
+    if (!items.length) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+    if (!shippingAddress || !hasCompleteShippingAddress) {
+      toast.error("Please complete your shipping address before placing the order.");
+      return;
+    }
+    if (!session?.user?.email && !shippingAddress.email) {
+      toast.error("Please provide a valid email address for order updates.");
+      return;
+    }
+    if (!paymentMethod || !isPaymentMethodSelected) {
+      toast.error("Please select and confirm a payment method.");
+      return;
+    }
+
     try {
       setIsPlacingOrder(true);
       // Create the order on the server
@@ -465,8 +491,11 @@ const CheckoutForm = ({
   const [places, setPlaces] = useState<{ city: string; rate: number }[]>([]);
   const [countiesError, setCountiesError] = useState<string | null>(null);
   const [placesError, setPlacesError] = useState<string | null>(null);
+  const [isCountiesLoading, setIsCountiesLoading] = useState(false);
+  const [isPlacesLoading, setIsPlacesLoading] = useState(false);
 
   useEffect(() => {
+    setIsCountiesLoading(true);
     getAllCounties()
       .then((data) => {
         setCounties(data);
@@ -476,11 +505,15 @@ const CheckoutForm = ({
         console.error("Failed to fetch counties:", error);
         setCounties([]);
         setCountiesError("Failed to load counties. Please try again.");
+      })
+      .finally(() => {
+        setIsCountiesLoading(false);
       });
   }, []);
 
   useEffect(() => {
     if (selectedCounty) {
+      setIsPlacesLoading(true);
       getPlacesByCounty(selectedCounty)
         .then((data) => {
           setPlaces(data);
@@ -490,10 +523,14 @@ const CheckoutForm = ({
           console.error("Failed to fetch places for county:", selectedCounty, error);
           setPlaces([]);
           setPlacesError("Failed to load delivery places. Please try again.");
+        })
+        .finally(() => {
+          setIsPlacesLoading(false);
         });
     } else {
       setPlaces([]);
       setPlacesError(null);
+      setIsPlacesLoading(false);
     }
   }, [selectedCounty]);
 
@@ -525,7 +562,7 @@ const CheckoutForm = ({
     };
 
     if (itemsPrice <= 0) {
-      setFirstPurchaseDiscount({ eligible: false, rate: 0, discountAmount: 0 });
+      setFirstPurchaseDiscount({ eligible: false, rate: 0, discountAmount: 0, loading: false });
       return;
     }
 
@@ -771,10 +808,20 @@ const CheckoutForm = ({
           </div>
         </div>
         <div>
+          {placeOrderBlockReason && (
+            <div
+              className="mb-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800"
+              role="status"
+              aria-live="polite"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{placeOrderBlockReason}</span>
+            </div>
+          )}
           <Button
             onClick={handlePlaceOrder}
             className="rounded-full w-full cursor-pointer"
-            disabled={isPlacingOrder}
+            disabled={!canPlaceOrder}
             hidden={
               paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
               !!createdOrder
@@ -827,6 +874,37 @@ const CheckoutForm = ({
     setSaveAddressToAccount(true);
   }, [session]);
 
+  const hasCompleteShippingAddress = useMemo(
+    () =>
+      REQUIRED_ADDRESS_FIELDS.every((field) =>
+        Boolean(shippingAddress?.[field]?.toString().trim())
+      ),
+    [shippingAddress]
+  );
+  const guestEmail = shippingAddress?.email?.trim() || "";
+  const hasGuestEmail = Boolean(session?.user?.email || guestEmail);
+  const canPlaceOrder =
+    !isPlacingOrder &&
+    items.length > 0 &&
+    isAddressSelected &&
+    isPaymentMethodSelected &&
+    hasCompleteShippingAddress &&
+    hasGuestEmail &&
+    Boolean(paymentMethod);
+  const placeOrderBlockReason = !items.length
+    ? "Your cart is empty."
+    : !isAddressSelected
+      ? "Complete shipping details first."
+      : !hasCompleteShippingAddress
+        ? "Please complete all required address fields."
+        : !hasGuestEmail
+          ? "A valid email is required for guest checkout updates."
+          : !isPaymentMethodSelected
+            ? "Select and confirm a payment method."
+            : !paymentMethod
+              ? "Select a payment method."
+              : null;
+
   return (
     <main className="max-w-6xl mx-auto highlight-link">
       <div className="grid md:grid-cols-4 gap-6">
@@ -868,22 +946,40 @@ const CheckoutForm = ({
 
                 {!session && (
                   <Card className="md:ml-8 my-4 bg-primary/5 border-primary/20">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <User className="h-5 w-5 text-primary" />
+                    <CardContent className="p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/10 p-2 rounded-full">
+                            <User className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Returning customer?</p>
+                            <p className="text-xs text-muted-foreground">Sign in to use your saved addresses and earn rewards.</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm">Returning customer?</p>
-                          <p className="text-xs text-muted-foreground">Sign in to use your saved addresses and earn rewards.</p>
-                        </div>
+                        <Link href={toSignInPath("/checkout")}>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <Lock className="h-3.5 w-3.5" />
+                            Sign In
+                          </Button>
+                        </Link>
                       </div>
-                      <Link href={toSignInPath("/checkout")}>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Lock className="h-3.5 w-3.5" />
-                          Sign In
-                        </Button>
-                      </Link>
+                      <div className="rounded-lg border border-primary/20 bg-white/70 p-3 text-xs text-muted-foreground">
+                        <ul className="space-y-1.5">
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                            Secure payment processing
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                            Real-time order updates by email
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                            Checkout without creating an account
+                          </li>
+                        </ul>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -1070,16 +1166,16 @@ const CheckoutForm = ({
                               <FormItem className="w-full">
                                 <FormLabel>County</FormLabel>
                                 <FormControl>
-                                  <Select
-                                    value={field.value}
-                                    onValueChange={(val) => {
-                                      field.onChange(val);
-                                      shippingAddressForm.setValue("city", "");
-                                    }}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select county" />
-                                    </SelectTrigger>
+                                    <Select
+                                      value={field.value}
+                                      onValueChange={(val) => {
+                                        field.onChange(val);
+                                        shippingAddressForm.setValue("city", "");
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={isCountiesLoading ? "Loading counties..." : "Select county"} />
+                                      </SelectTrigger>
                                     <SelectContent>
                                       {counties.map((c) => (
                                         <SelectItem key={c} value={c}>
@@ -1108,10 +1204,10 @@ const CheckoutForm = ({
                                   <Select
                                     value={field.value}
                                     onValueChange={field.onChange}
-                                    disabled={!selectedCounty || places.length === 0}
+                                    disabled={!selectedCounty || places.length === 0 || isPlacesLoading}
                                   >
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Select delivery place" />
+                                      <SelectValue placeholder={isPlacesLoading ? "Loading places..." : "Select delivery place"} />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {places.map(
@@ -1135,6 +1231,11 @@ const CheckoutForm = ({
                                 {!selectedCounty && (
                                   <p className="text-xs text-muted-foreground">
                                     Select a county first to load delivery places.
+                                  </p>
+                                )}
+                                {selectedCounty && isPlacesLoading && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Loading delivery places...
                                   </p>
                                 )}
                                 {placesError && (
@@ -1620,7 +1721,7 @@ const CheckoutForm = ({
                     <Button
                       onClick={handlePlaceOrder}
                       className="rounded-full cursor-pointer flex items-center gap-2"
-                      disabled={isPlacingOrder}
+                      disabled={!canPlaceOrder}
                       hidden={
                         paymentMethod ===
                           "Mobile Money (M-Pesa / Airtel) & Card" &&
