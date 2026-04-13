@@ -43,6 +43,9 @@ const getAdminEmails = () =>
     .map((email) => email.trim())
     .filter(Boolean);
 
+const resolveOrderEmail = (order: IOrder) =>
+  order.userEmail || (order.user as { email?: string } | undefined)?.email;
+
 export const sendAdminEventNotification = async ({
   title,
   description,
@@ -108,7 +111,7 @@ export const sendAdminEventNotification = async ({
 };
 
 export const sendPurchaseReceipt = async (order: IOrder) => {
-  const userEmail = (order.user as { email?: string })?.email;
+  const userEmail = resolveOrderEmail(order);
   if (!userEmail) {
     console.error(`Cannot send purchase receipt for order ${order._id}: User email not found`);
     return;
@@ -132,7 +135,7 @@ export const sendPurchaseReceipt = async (order: IOrder) => {
 };
 
 export const sendAskReviewOrderItems = async (order: IOrder) => {
-  const userEmail = (order.user as { email?: string })?.email;
+  const userEmail = resolveOrderEmail(order);
   if (!userEmail) {
     console.error(`Cannot send review request for order ${order._id}: User email not found`);
     return;
@@ -242,7 +245,7 @@ export const sendOrderTrackingNotification = async ({
   trackingLink: string;
 }) => {
   const { site } = await getSetting();
-  const email = (order.user as { email?: string })?.email;
+  const email = resolveOrderEmail(order);
 
   if (email) {
     await sendEmail({

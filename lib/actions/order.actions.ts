@@ -415,7 +415,11 @@ const runStatusTransition = async ({
 
   if (nextStatus === "returned") {
     const user = order.user as unknown as { email?: string; name?: string };
-    if (user?.email) {
+    const finalEmail = order.userEmail || user?.email;
+    if (finalEmail) {
+      if (!order.userEmail) {
+        order.userEmail = finalEmail;
+      }
       await sendOrderTrackingNotification({
         order: order as unknown as IOrder,
         statusLabel: "Return Approved",
@@ -1131,6 +1135,8 @@ export async function getAllOrders({
     filter.$or = [
       { trackingNumber: { $regex: escapedQuery, $options: "i" } },
       { user: { $in: userIds } },
+      { userName: { $regex: escapedQuery, $options: "i" } },
+      { userEmail: { $regex: escapedQuery, $options: "i" } },
     ];
     if (mongoose.Types.ObjectId.isValid(query)) {
       filter.$or.push({ _id: query });
@@ -1185,6 +1191,8 @@ export async function getOrderStatusStats(
     filter.$or = [
       { trackingNumber: { $regex: escapedQuery, $options: "i" } },
       { user: { $in: userIds } },
+      { userName: { $regex: escapedQuery, $options: "i" } },
+      { userEmail: { $regex: escapedQuery, $options: "i" } },
     ];
     if (mongoose.Types.ObjectId.isValid(searchQuery)) {
       filter.$or.push({ _id: searchQuery });

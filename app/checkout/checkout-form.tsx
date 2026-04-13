@@ -58,7 +58,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
-import { upsertUserAddress } from "@/lib/actions/address.actions";
+import { getUserAddresses, upsertUserAddress } from "@/lib/actions/address.actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import Cookies from "js-cookie";
 import { getUserCoins } from "@/lib/actions/user.actions";
@@ -187,6 +187,35 @@ const CheckoutForm = ({
       );
     });
   }, [savedAddresses, selectedAddressId, session, sessionAddressBook]);
+
+  useEffect(() => {
+    if (!session) return;
+    let disposed = false;
+
+    getUserAddresses()
+      .then((result) => {
+        if (disposed || !result.success || !result.data) return;
+        const nextAddressBook = normalizeAddressBookEntries(result.data);
+        setAddressBook(nextAddressBook);
+        setSelectedSavedAddressId((currentId) => {
+          if (currentId && nextAddressBook.some((address) => address.id === currentId)) {
+            return currentId;
+          }
+          return (
+            nextAddressBook.find((address) => address.isDefault)?.id ||
+            nextAddressBook[0]?.id ||
+            ""
+          );
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to refresh checkout addresses:", error);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [session]);
 
   const resetCoupon = async (message?: string) => {
     setAppliedCoupon(null);
@@ -1005,7 +1034,7 @@ const CheckoutForm = ({
                 )}
 
                 {session && addressBook.length > 0 && (
-                  <Card className="md:ml-8 my-4">
+                  <Card className="md:ml-8 my-4 overflow-hidden">
                     <CardContent className="p-4 space-y-3">
                       <div className="text-sm font-medium flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-primary" />
@@ -1022,7 +1051,7 @@ const CheckoutForm = ({
                             onClick={() =>
                               setSelectedSavedAddressId(address.id)
                             }
-                            className={`flex h-full w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
+                            className={`flex h-full w-full min-w-0 cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
                               selectedSavedAddressId === address.id
                                 ? "border-2 border-primary bg-primary/5 shadow-md"
                                 : "hover:border-primary/40"
@@ -1037,7 +1066,7 @@ const CheckoutForm = ({
                               htmlFor={`saved-address-${address.id}`}
                               className="w-full min-w-0 cursor-pointer text-sm leading-relaxed"
                             >
-                              <span className="font-medium inline-flex items-center gap-2">
+                              <span className="font-medium inline-flex w-full min-w-0 items-center gap-2">
                                 {address.label}
                                 {address.isDefault && (
                                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
@@ -1045,13 +1074,13 @@ const CheckoutForm = ({
                                   </span>
                                 )}
                               </span>
-                              <p className="break-words">{address.fullName}</p>
-                              <p className="break-words">
+                              <p className="break-words text-xs sm:text-sm">{address.fullName}</p>
+                              <p className="break-words text-xs sm:text-sm">
                                 {address.street}, {address.city},{" "}
                                 {address.province}, {address.postalCode},{" "}
                                 {address.country}
                               </p>
-                              <p className="break-words text-muted-foreground">
+                              <p className="break-words text-xs text-muted-foreground">
                                 {address.phone}
                               </p>
                             </Label>

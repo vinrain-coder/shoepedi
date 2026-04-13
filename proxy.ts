@@ -40,6 +40,18 @@ export function proxy(req: NextRequest) {
     (route) => path === route || path.startsWith(`${route}/`)
   );
 
+  const guestOrderMatch = path.match(/^\/account\/orders\/([^/]+)(?:\/placed)?$/);
+  if (guestOrderMatch && !isLoggedIn) {
+    const orderId = guestOrderMatch[1];
+    const hasAccessToken =
+      Boolean(nextUrl.searchParams.get("accessToken")) ||
+      Boolean(req.cookies.get(`guest_order_access_${orderId}`)?.value);
+
+    if (hasAccessToken) {
+      return NextResponse.next();
+    }
+  }
+
   // Not logged in → protected route → redirect to sign-in
   if (isOnProtectedRoute && !isLoggedIn) {
     const signInUrl = new URL("/sign-in", req.url);
