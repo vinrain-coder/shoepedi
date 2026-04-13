@@ -71,12 +71,15 @@ export function GuestSignUpForm({
   async function onSubmit({ email, password, name }: SignUpValues) {
     setError(null);
 
+    const redirectPath = `/account/orders/${orderId}?accessToken=${accessToken}&linkOrder=true`;
+    const encodedRedirect = encodeURIComponent(redirectPath);
+
     const { error: signUpError } = await authClient.signUp.email({
       email,
       password,
       name,
       wishlist: [] as unknown as never,
-      callbackURL: `/verify-email?redirect=/account/orders/${orderId}?accessToken=${accessToken}&linkOrder=true`,
+      callbackURL: `/verify-email?redirect=${encodedRedirect}`,
     });
 
     if (signUpError) {
@@ -86,7 +89,7 @@ export function GuestSignUpForm({
       // We'll let the verify-email page handle the redirect,
       // but we could also store the link intent in localStorage
       localStorage.setItem("link_order_after_verify", JSON.stringify({ orderId, accessToken }));
-      router.push(`/verify-email?redirect=/account/orders/${orderId}`);
+      router.push(`/verify-email?redirect=${encodedRedirect}`);
     }
   }
 

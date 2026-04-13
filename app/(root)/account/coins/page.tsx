@@ -29,7 +29,9 @@ export default async function CoinsPage({
 
   await connectToDatabase();
   const session = await getServerSession();
-  if (!session) return null;
+  if (!session?.user) {
+    redirect(toSignInPath());
+  }
 
   const {
     common: { pageSize },
