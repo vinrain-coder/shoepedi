@@ -86,6 +86,14 @@ const REQUIRED_ADDRESS_FIELDS: Array<keyof ShippingAddress> = [
   "postalCode",
   "country",
 ];
+const isCashOnDeliveryMethod = (method?: string) => {
+  const normalized = (method || "").toLowerCase();
+  return normalized.includes("cash") && normalized.includes("delivery");
+};
+const isCardOrMobileMoneyMethod = (method?: string) => {
+  const normalized = (method || "").toLowerCase();
+  return normalized.includes("mobile money") || normalized.includes("card");
+};
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -126,6 +134,7 @@ const CheckoutForm = ({
   } | null>(null);
   const [, startTransition] = useTransition();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isSubmittingAddress, setIsSubmittingAddress] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const sessionAddressBook = useMemo(
@@ -316,6 +325,7 @@ const CheckoutForm = ({
     values
   ) => {
     try {
+      setIsSubmittingAddress(true);
       if (!values.province) {
         toast.error("Please select a valid county.");
         return;
@@ -347,6 +357,8 @@ const CheckoutForm = ({
       setIsAddressSelected(true);
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsSubmittingAddress(false);
     }
   };
 
@@ -379,6 +391,7 @@ const CheckoutForm = ({
 
   useEffect(() => {
     if (!isMounted || !shippingAddress) return;
+    if (selectedSavedAddressId) return;
     if (shippingAddress.email) shippingAddressForm.setValue("email", shippingAddress.email);
     shippingAddressForm.setValue("fullName", shippingAddress.fullName);
     shippingAddressForm.setValue("street", shippingAddress.street);
@@ -387,7 +400,7 @@ const CheckoutForm = ({
     shippingAddressForm.setValue("postalCode", shippingAddress.postalCode);
     shippingAddressForm.setValue("province", shippingAddress.province);
     shippingAddressForm.setValue("phone", shippingAddress.phone);
-  }, [items, isMounted, router, shippingAddress, shippingAddressForm]);
+  }, [isMounted, selectedSavedAddressId, shippingAddress, shippingAddressForm]);
 
 
   const [isAddressSelected, setIsAddressSelected] = useState<boolean>(false);
@@ -449,6 +462,12 @@ const CheckoutForm = ({
 
       const order = res.data as SerializedOrder;
       toast.success("Order created!");
+      if (order.isGuest && order.accessToken) {
+        Cookies.set(`guest_order_access_${order._id}`, order.accessToken, {
+          expires: 30,
+          sameSite: "lax",
+        });
+      }
 
       clearCart();
 
@@ -456,7 +475,7 @@ const CheckoutForm = ({
         ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
         : `/account/orders/${order._id}/placed`;
 
-      if (paymentMethod === "Cash On Delivery" || paymentMethod === "Coins") {
+      if (isCashOnDeliveryMethod(paymentMethod) || paymentMethod === "Coins") {
         router.push(successPath);
         return;
       }
@@ -617,8 +636,9 @@ const CheckoutForm = ({
             <Button
               className="rounded-full w-full cursor-pointer"
               onClick={handleSelectShippingAddress}
+              disabled={isSubmittingAddress}
             >
-              Ship to this address
+              {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
             </Button>
             <p className="text-xs text-center py-2">
               Choose a shipping address and payment method in order to calculate
@@ -823,7 +843,7 @@ const CheckoutForm = ({
             className="rounded-full w-full cursor-pointer"
             disabled={!canPlaceOrder}
             hidden={
-              paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+              isCardOrMobileMoneyMethod(paymentMethod) &&
               !!createdOrder
             }
           >
@@ -994,7 +1014,7 @@ const CheckoutForm = ({
                       <RadioGroup
                         value={selectedSavedAddressId}
                         onValueChange={setSelectedSavedAddressId}
-                        className="space-y-2"
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-2"
                       >
                         {addressBook.map((address) => (
                           <div
@@ -1002,7 +1022,7 @@ const CheckoutForm = ({
                             onClick={() =>
                               setSelectedSavedAddressId(address.id)
                             }
-                            className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
+                            className={`flex h-full w-full cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
                               selectedSavedAddressId === address.id
                                 ? "border-2 border-primary bg-primary/5 shadow-md"
                                 : "hover:border-primary/40"
@@ -1303,8 +1323,9 @@ const CheckoutForm = ({
                         <Button
                           type="submit"
                           className="rounded-full font-bold cursor-pointer"
+                          disabled={isSubmittingAddress}
                         >
-                          Ship to this address
+                          {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -1664,7 +1685,7 @@ const CheckoutForm = ({
                   paymentMethod,
                   handlePlaceOrder,
                 })}
-                {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+                {isCardOrMobileMoneyMethod(paymentMethod) &&
                   createdOrder && (
                     <PaystackInline
                       email={(session?.user?.email || shippingAddress?.email) as string}
@@ -1693,7 +1714,7 @@ const CheckoutForm = ({
 
               <Card className="hidden md:block ">
                 <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  {paymentMethod === "Mobile Money (M-Pesa / Airtel) & Card" &&
+                  {isCardOrMobileMoneyMethod(paymentMethod) &&
                   createdOrder ? (
                     <PaystackInline
                       email={(session?.user?.email || shippingAddress?.email) as string}
@@ -1723,8 +1744,7 @@ const CheckoutForm = ({
                       className="rounded-full cursor-pointer flex items-center gap-2"
                       disabled={!canPlaceOrder}
                       hidden={
-                        paymentMethod ===
-                          "Mobile Money (M-Pesa / Airtel) & Card" &&
+                        isCardOrMobileMoneyMethod(paymentMethod) &&
                         !!createdOrder
                       }
                     >

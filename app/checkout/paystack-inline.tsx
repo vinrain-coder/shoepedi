@@ -65,6 +65,12 @@ export default function PaystackInline({
       return;
     }
 
+    const existingScript = document.getElementById("paystack-script") as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener("load", () => setIsScriptLoaded(true), { once: true });
+      return;
+    }
+
     const script = document.createElement("script");
     script.id = "paystack-script";
     script.src = "https://js.paystack.co/v1/inline.js";
@@ -72,10 +78,6 @@ export default function PaystackInline({
     script.onload = () => setIsScriptLoaded(true);
     script.onerror = () => toast.error("Failed to load Paystack script");
     document.body.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
   }, []);
 
   const payWithPaystack = useCallback(() => {
