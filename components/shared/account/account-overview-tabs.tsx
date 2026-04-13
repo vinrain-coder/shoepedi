@@ -77,7 +77,7 @@ const tabGroups: {
     label: "Explore",
     links: [
       {
-        href: "/wishlist",
+        href: "/account/wishlist",
         title: "Wishlist",
         description: "Pick up where you left off with saved products",
         icon: User,

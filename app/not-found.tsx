@@ -1,57 +1,74 @@
 "use client";
 
-import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Home, FileQuestion } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-[50vh] items-center justify-center px-2">
-      <div className="w-full max-w-lg rounded-2xl border bg-background p-8 shadow-sm text-center">
-        {/* Icon */}
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-          <AlertTriangle className="h-7 w-7 text-muted-foreground" />
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md text-center"
+      >
+        {/* Animated Icon */}
+        <motion.div
+          initial={{ scale: 0.5, rotate: -10 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+            delay: 0.1
+          }}
+          className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-sm"
+        >
+          <FileQuestion className="h-12 w-12" />
+        </motion.div>
 
-        {/* Heading */}
-        <h1 className="text-4xl font-semibold tracking-tight mb-3">
-          Page not found
+        {/* Text Content */}
+        <h1 className="text-5xl font-extrabold tracking-tight text-foreground mb-4">
+          404
         </h1>
-
-        {/* Description */}
-        <p className="text-muted-foreground text-base">
-          The page you’re trying to access doesn’t exist or may have been moved.
+        <h2 className="text-2xl font-bold text-foreground mb-3">
+          Page Not Found
+        </h2>
+        <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+          The page you’re looking for doesn’t exist or has been moved to a new address.
         </p>
 
-        <p className="text-muted-foreground text-sm mt-2">
-          Please check the URL or use one of the options below.
-        </p>
-
-        {/* Actions */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button
             variant="outline"
+            size="lg"
             onClick={() => router.back()}
-            className="flex items-center gap-2"
+            className="group flex items-center gap-2 rounded-full px-8 transition-all hover:bg-muted"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Go Back
           </Button>
 
           <Button
+            size="lg"
             onClick={() => router.push("/")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-full px-8 shadow-md hover:shadow-lg transition-all"
           >
             <Home className="h-4 w-4" />
-            Back to Home
+            Back Home
           </Button>
         </div>
 
-        <BrowsingHistoryList />
-      </div>
+        {/* Help Link */}
+        <p className="mt-12 text-sm text-muted-foreground">
+          Need help? <a href="/page/support" className="font-medium text-primary hover:underline">Contact Support</a>
+        </p>
+      </motion.div>
     </div>
   );
 }

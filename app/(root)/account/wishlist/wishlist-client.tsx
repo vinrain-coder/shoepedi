@@ -18,7 +18,7 @@ export default function WishlistClient({ products }: { products: IProduct[] }) {
   {
     /*useEffect(() => {
     if (!session) {
-      router.push("/sign-in?callbackUrl=/wishlist");
+      router.push("/sign-in?callbackUrl=/account/wishlist");
     }
   }, [session, router]);
 */

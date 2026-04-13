@@ -78,7 +78,7 @@ export default function UserButton() {
                   <ShoppingCartIcon className="h-4 w-4" /> Orders
                 </DropdownMenuItem>
               </Link>
-              <Link href="/wishlist" className="w-full">
+              <Link href="/account/wishlist" className="w-full">
                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                   <HeartIcon className="h-4 w-4" />
                   Wishlist

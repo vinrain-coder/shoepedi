@@ -133,7 +133,7 @@ export function UserSidebar() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
-                  href="/wishlist"
+                  href="/account/wishlist"
                   className="flex items-center gap-2 w-full"
                 >
                   <HeartIcon className="h-4 w-4" />

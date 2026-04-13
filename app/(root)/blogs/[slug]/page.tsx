@@ -32,9 +32,10 @@ export async function generateMetadata({
   params: { slug: string } | Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const p = await params;
+  const decodedSlug = decodeURIComponent(p.slug);
 
   const [blog, { site }] = await Promise.all([
-    getBlogBySlug(p.slug),
+    getBlogBySlug(decodedSlug),
     getSetting(),
   ]);
 
@@ -68,12 +69,13 @@ export default async function BlogPage({
   params: { slug: string } | Promise<{ slug: string }>;
 }) {
   const p = await params;
+  const decodedSlug = decodeURIComponent(p.slug);
   const { site } = await getSetting();
 
-  const blog = await getBlogBySlug(p.slug);
+  const blog = await getBlogBySlug(decodedSlug);
   if (!blog) return notFound();
 
-  void incrementBlogViews(p.slug);
+  void incrementBlogViews(decodedSlug);
 
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-US", {
