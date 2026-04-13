@@ -39,7 +39,7 @@ export default function NavbarWishlist() {
       return;
     }
 
-    router.push("/wishlist");
+    router.push("/account/wishlist");
   };
 
   return (
