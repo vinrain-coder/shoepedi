@@ -51,6 +51,7 @@ export interface IOrder extends Document {
     color?: string;
   }>;
   shippingAddress: {
+    email?: string;
     fullName: string;
     street: string;
     city: string;

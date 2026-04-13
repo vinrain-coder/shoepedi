@@ -9,6 +9,10 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 
 export default async function AccountSupportPage() {
   const session = await getServerSession();
+  if (!session?.user) {
+    redirect(toSignInPath());
+  }
+
   const tickets = await getMySupportTickets();
 
   return (

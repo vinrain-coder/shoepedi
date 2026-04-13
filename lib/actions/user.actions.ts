@@ -381,9 +381,17 @@ export async function convertGuestToUser(orderId: string, accessToken: string) {
     if (!order) throw new Error("Order not found or already linked");
 
     const session = await getServerSession();
-    if (!session?.user?.id) throw new Error("You must be signed in to link an order");
+    if (!session?.user?.id || !session?.user?.email) throw new Error("You must be signed in to link an order");
 
     const userId = session.user.id;
+    const userEmail = session.user.email.toLowerCase();
+
+    // Verify email matches
+    const orderEmail = order.userEmail?.toLowerCase() || order.shippingAddress.email?.toLowerCase();
+    if (orderEmail && userEmail !== orderEmail) {
+      throw new Error("Signed-in email does not match order email");
+    }
+
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
@@ -391,12 +399,19 @@ export async function convertGuestToUser(orderId: string, accessToken: string) {
     order.user = new Types.ObjectId(userId);
     order.isGuest = false;
     order.accessToken = undefined;
+
+    // Credit coins if order was paid and coins not yet credited
+    if (order.isPaid && order.coinsEarned > 0 && !order.coinsCredited) {
+      user.coins = (user.coins || 0) + order.coinsEarned;
+      order.coinsCredited = true;
+    }
+
     await order.save();
 
     // Link address if user has none
     if (user.addresses.length === 0) {
        const newAddress = {
-          id: Types.ObjectId.generate().toString(),
+          id: new Types.ObjectId().toString(),
           label: "Home",
           ...order.shippingAddress,
           isDefault: true,
@@ -404,8 +419,8 @@ export async function convertGuestToUser(orderId: string, accessToken: string) {
           updatedAt: new Date().toISOString(),
        };
        user.addresses.push(newAddress);
-       await user.save();
     }
+    await user.save();
 
     revalidatePath(`/account/orders/${orderId}`);
     return { success: true, message: "Order successfully linked to your account" };

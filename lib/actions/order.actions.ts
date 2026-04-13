@@ -237,7 +237,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToCoins: boole
   const userId = (order.user as any)?._id || order.user;
 
   // 1. Refund paid amount to coins if paid and not already refunded (Only for cancellations)
-  if (options.refundToCoins && order.isPaid) {
+  if (options.refundToCoins && order.isPaid && userId) {
     const updatedOrder = await Order.findOneAndUpdate(
       { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
       { $set: { refundedToCoins: true } },
@@ -281,7 +281,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToCoins: boole
     { new: true }
   );
 
-  if (updatedOrderForCoins && order.coinsEarned > 0) {
+  if (updatedOrderForCoins && order.coinsEarned > 0 && userId) {
     await User.findByIdAndUpdate(userId, {
       $inc: { coins: -round2(order.coinsEarned) },
     });
@@ -602,6 +602,7 @@ export const createOrderFromCart = async (
     coupon: appliedCoupon,
     coinsEarned,
     coinsRedeemed,
+    coinsCredited: false,
     isPaid,
     paidAt,
     trackingNumber: initialTrackingNumber,
@@ -668,7 +669,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
   // 1. Credit earned coins to user
   try {
     const userId = (order.user as any)?._id || order.user;
-    if (order.coinsEarned > 0 && !order.coinsCredited) {
+    if (userId && order.coinsEarned > 0 && !order.coinsCredited) {
       const updatedOrder = await Order.findOneAndUpdate(
         { _id: order._id, coinsCredited: { $ne: true } },
         { $set: { coinsCredited: true } },
@@ -959,7 +960,7 @@ export async function cancelOrder(orderId: string) {
 
     if (!order) throw new Error("Order not found");
 
-    const isUserOwner = order.user._id.toString() === session.user.id;
+    const isUserOwner = order.user?._id?.toString() === session.user.id;
     const isAdmin = session.user.role === "ADMIN";
 
     if (!isUserOwner && !isAdmin) {
@@ -1008,7 +1009,7 @@ export async function requestReturnOrder(orderId: string) {
 
     if (!order) throw new Error("Order not found");
 
-    if (order.user._id.toString() !== session.user.id) {
+    if (order.user?._id?.toString() !== session.user.id) {
       throw new Error("Unauthorized");
     }
 

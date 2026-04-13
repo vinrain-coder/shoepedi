@@ -19,6 +19,7 @@ export default function LinkOrderHandler({
       const result = await convertGuestToUser(orderId, accessToken);
       if (result.success) {
         toast.success(result.message);
+        router.replace(`/account/orders/${orderId}`);
         router.refresh();
       }
     };
