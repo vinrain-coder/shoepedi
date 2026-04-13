@@ -40,9 +40,12 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
     isPaid,
   } = order;
+  const orderPath = order.isGuest && order.accessToken
+    ? `/account/orders/${order._id}?accessToken=${order.accessToken}`
+    : `/account/orders/${order._id}`;
 
   if (isPaid) {
-    redirect(`/account/orders/${order._id}`);
+    redirect(orderPath);
   }
 
   const CheckoutSummary = () => (
@@ -113,11 +116,11 @@ export default function OrderDetailsForm({
                     publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                     orderId={order._id}
                     onSuccess={() =>
-                      router.push(`/account/orders/${order._id}`)
+                      router.push(orderPath)
                     }
                     onFailure={() => {
                       toast.error("Payment was not completed.");
-                      router.push(`/account/orders/${order._id}`);
+                      router.push(orderPath);
                     }}
                   />
                 </div>
@@ -126,7 +129,7 @@ export default function OrderDetailsForm({
             {!isPaid && paymentMethod === "Cash On Delivery" && (
               <Button
                 className="w-full rounded-full cursor-pointer"
-                onClick={() => router.push(`/account/orders/${order._id}`)}
+                onClick={() => router.push(orderPath)}
               >
                 View Order
               </Button>

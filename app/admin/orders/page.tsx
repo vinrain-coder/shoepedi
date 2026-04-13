@@ -119,7 +119,14 @@ export default async function OrdersPage(props: {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium">{order.user ? order.user.name : "Deleted User"}</span>
+                        <span className="font-medium">
+                          {order.user?.name || order.userName || (order.isGuest ? "Guest Customer" : "Deleted User")}
+                        </span>
+                        {(order.userEmail || order.shippingAddress?.email) && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {order.userEmail || order.shippingAddress?.email}
+                          </span>
+                        )}
                         {order.trackingNumber && (
                           <span className="text-[10px] text-muted-foreground uppercase">
                             {order.trackingNumber}
