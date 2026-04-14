@@ -14,11 +14,17 @@ import { formatId } from "@/lib/utils";
 
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"];
 
+const normalizeOrderIdParam = (value: string | string[] | undefined) => {
+  const candidate = decodeURIComponent(Array.isArray(value) ? value[0] : value || "").trim();
+  const objectIdMatch = candidate.match(/[a-f0-9]{24}/i);
+  return objectIdMatch ? objectIdMatch[0] : candidate;
+};
+
 export default function OrderPlacedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
-  const orderId = params?.id;
+  const orderId = normalizeOrderIdParam(params?.id);
   const accessToken = searchParams.get("accessToken");
   const [progress, setProgress] = useState(0);
   const [order, setOrder] = useState<SerializedOrder | null>(null);
