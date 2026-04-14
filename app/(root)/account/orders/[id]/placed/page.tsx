@@ -49,8 +49,8 @@ export default function OrderPlacedPage() {
   }));
 
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
-      <div className="absolute top-4 left-4 z-20">
+    <div className="min-h-[70vh] flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
+      <div className="absolute top-4 z-20">
         <Breadcrumb />
       </div>
 
@@ -133,7 +133,7 @@ export default function OrderPlacedPage() {
               className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
             >
               {item.icon}
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{item.label}</p>
             </div>
           ))}
         </motion.div>
