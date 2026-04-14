@@ -446,10 +446,13 @@ export async function getAffiliateAdminStats(dateRange?: {
 }
 
 export async function updateAffiliateStatus(id: string, status: "approved" | "rejected", adminNote?: string) {
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
+
   try {
-    await connectToDatabase();
-    const session = await getServerSession();
-    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");
+    const userSession = await getServerSession();
+    if (userSession?.user?.role !== "ADMIN") throw new Error("Unauthorized");
 
     const update: any = { status };
     if (status === "rejected") {
@@ -461,8 +464,19 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
       update.adminNote = ""; // Clear stale notes on approval
     }
 
-    const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
+    const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true, session }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
+
+    // Sync isAffiliate status to User model
+    await User.findByIdAndUpdate(
+      affiliate.user,
+      {
+        isAffiliate: status === "approved",
+      },
+      { session }
+    );
+
+    await session.commitTransaction();
 
     const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
     const phone = user.addresses?.[0]?.phone;
@@ -489,7 +503,10 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     revalidatePath("/admin/affiliates");
     return { success: true, message: `Affiliate ${status}`, data: JSON.parse(JSON.stringify(affiliate)) };
   } catch (error) {
+    await session.abortTransaction();
     return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
   }
 }
 
@@ -625,6 +642,11 @@ export async function deleteAffiliate(id: string) {
 
     const affiliate = await Affiliate.findById(id);
     if (!affiliate) throw new Error("Affiliate not found");
+
+    // Sync isAffiliate status to User model (setting to false as affiliate is deleted)
+    await User.findByIdAndUpdate(affiliate.user, {
+      isAffiliate: false,
+    });
 
     // Optionally check if they have earnings/payouts before deleting or just delete everything
     await AffiliateEarning.deleteMany({ affiliate: id });
