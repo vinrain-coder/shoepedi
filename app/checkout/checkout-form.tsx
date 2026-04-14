@@ -1738,8 +1738,8 @@ const CheckoutForm = ({
                       }}
                       onFailure={() => {
                         window.location.href = createdOrder.isGuest
-                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                          : `/account/orders/${createdOrder._id}/placed`;
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}&paymentStatus=failed`
+                          : `/account/orders/${createdOrder._id}/placed?paymentStatus=failed`;
                       }}
                     />
                   )}
@@ -1763,8 +1763,8 @@ const CheckoutForm = ({
                       }}
                       onFailure={() => {
                         window.location.href = createdOrder.isGuest
-                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                          : `/account/orders/${createdOrder._id}/placed`;
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}&paymentStatus=failed`
+                          : `/account/orders/${createdOrder._id}/placed?paymentStatus=failed`;
                       }}
                     />
                   ) : (

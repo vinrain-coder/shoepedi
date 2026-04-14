@@ -1269,11 +1269,14 @@ export async function getOrderById(
     if (session?.user?.id) {
       query.$or = [
         { user: session.user.id },
-        { isGuest: true, accessToken: guestAccessToken }
+        ...(guestAccessToken ? [{ isGuest: true, accessToken: guestAccessToken }] : [])
       ];
-    } else {
+    } else if (guestAccessToken) {
       query.isGuest = true;
       query.accessToken = guestAccessToken;
+    } else {
+      // No valid session or token - return null immediately
+      return null;
     }
   }
 

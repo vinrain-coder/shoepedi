@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Package, Truck, Clock, ArrowRight } from "lucide-react";
+import { CheckCircle2, Package, Truck, Clock, ArrowRight, AlertCircle, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
@@ -14,18 +14,36 @@ import { formatId } from "@/lib/utils";
 
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"];
 
+type OrderStatus = "loading" | "loaded" | "not-found" | "error";
+
 export default function OrderPlacedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
   const orderId = params?.id;
   const accessToken = searchParams.get("accessToken");
+  const paymentStatus = searchParams.get("paymentStatus");
   const [progress, setProgress] = useState(0);
   const [order, setOrder] = useState<SerializedOrder | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>("loading");
 
   useEffect(() => {
     if (orderId) {
-      getOrderById(orderId, accessToken || undefined).then(setOrder);
+      setOrderStatus("loading");
+      getOrderById(orderId, accessToken || undefined)
+        .then((result) => {
+          if (result === null) {
+            setOrderStatus("not-found");
+            setOrder(null);
+          } else {
+            setOrder(result);
+            setOrderStatus("loaded");
+          }
+        })
+        .catch(() => {
+          setOrderStatus("error");
+          setOrder(null);
+        });
     }
   }, [orderId, accessToken]);
 
@@ -48,6 +66,109 @@ export default function OrderPlacedPage() {
     color: colors[Math.floor(Math.random() * colors.length)],
   }));
 
+  // Show error/not-found states
+  if (orderStatus === "not-found") {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
+        <div className="absolute top-4 left-4 z-20">
+          <Breadcrumb />
+        </div>
+        <div className="relative z-10 text-center max-w-lg mx-auto">
+          <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+            <XCircle className="h-10 w-10 text-destructive" />
+          </div>
+          <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground">Order Not Found</h1>
+          <p className="text-muted-foreground mb-8">
+            This order does not exist or you do not have permission to view it.
+          </p>
+          <Link href="/search" className={cn(buttonVariants({ variant: "default" }))}>
+            Continue Shopping
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (orderStatus === "error") {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
+        <div className="absolute top-4 left-4 z-20">
+          <Breadcrumb />
+        </div>
+        <div className="relative z-10 text-center max-w-lg mx-auto">
+          <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertCircle className="h-10 w-10 text-destructive" />
+          </div>
+          <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground">Something Went Wrong</h1>
+          <p className="text-muted-foreground mb-8">
+            We encountered an error loading this order. Please try again later.
+          </p>
+          <Link href="/search" className={cn(buttonVariants({ variant: "default" }))}>
+            Continue Shopping
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show payment failure state
+  if (paymentStatus === "failed" && orderStatus === "loaded") {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
+        <div className="absolute top-4 left-4 z-20">
+          <Breadcrumb />
+        </div>
+        <div className="relative z-10 text-center max-w-lg mx-auto">
+          <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center">
+            <AlertCircle className="h-10 w-10 text-amber-500" />
+          </div>
+          <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground">Payment Pending</h1>
+          <p className="text-muted-foreground mb-4">
+            Your order has been created, but the payment was not completed.
+          </p>
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted/50 dark:bg-muted/30 border border-muted-foreground/20 mb-8 shadow-sm">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">
+              Order #{order ? formatId(order._id) : formatId(orderId || "")}
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mb-8">
+            Please complete your payment or contact support if you need assistance.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href={accessToken
+                ? `/account/orders/${orderId}?accessToken=${accessToken}`
+                : `/account/orders/${orderId}`}
+              className={cn(buttonVariants({ size: "lg", variant: "default" }), "w-full sm:w-auto")}
+            >
+              View Order Details
+            </Link>
+            <Link
+              href="/search"
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full sm:w-auto")}
+            >
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (orderStatus === "loading") {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading order details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show success state (only when loaded and payment is not failed)
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
       <div className="absolute top-4 left-4 z-20">
