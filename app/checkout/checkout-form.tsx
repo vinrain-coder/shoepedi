@@ -500,17 +500,17 @@ const CheckoutForm = ({
 
       const order = res.data as SerializedOrder;
       toast.success("Order created!", {
-  action: {
-    label: "View Order",
-    onClick: () => {
-      router.push(
-        createdOrder.isGuest
-          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-          : `/account/orders/${createdOrder._id}/placed`
-      );
-    },
-  },
-});
+        action: {
+          label: "View Order",
+          onClick: () => {
+            router.push(
+              order.isGuest
+                ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
+                : `/account/orders/${order._id}/placed`
+            );
+          },
+        },
+      });
       if (order.isGuest && order.accessToken) {
         Cookies.set(`guest_order_access_${order._id}`, order.accessToken, {
           expires: 30,

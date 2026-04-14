@@ -26,11 +26,15 @@ export async function GET(
   }
 
   const { trackingNumber } = await params;
-  if (!/^TRK-[A-Z0-9-]{8,40}$/.test(trackingNumber)) {
+  const normalizedTrackingNumber = decodeURIComponent(trackingNumber)
+    .trim()
+    .toUpperCase();
+
+  if (!/^TRK-[A-Z0-9-]{8,40}$/.test(normalizedTrackingNumber)) {
     return NextResponse.json({ message: "Invalid tracking number." }, { status: 400 });
   }
 
-  const order = await getOrderByTrackingNumber(trackingNumber);
+  const order = await getOrderByTrackingNumber(normalizedTrackingNumber);
   if (!order) {
     return NextResponse.json({ message: "Tracking number not found." }, { status: 404 });
   }
