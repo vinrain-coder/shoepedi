@@ -24,22 +24,10 @@ import {
 import Link from "next/link";
 import { SignOutButton } from "../sign-out-button";
 import { authClient } from "@/lib/auth-client";
-import { useEffect, useState } from "react";
-import { isApprovedAffiliate } from "@/lib/actions/affiliate.actions";
 
 export default function UserButton() {
   const { data: session } = authClient.useSession();
-  const [isAffiliate, setIsAffiliate] = useState(false);
-
-  useEffect(() => {
-    const checkAffiliate = async () => {
-      if (session?.user?.id) {
-        const approved = await isApprovedAffiliate();
-        setIsAffiliate(approved);
-      }
-    };
-    void checkAffiliate();
-  }, [session]);
+  const isAffiliate = (session?.user as any)?.isAffiliate;
 
   return (
     <div className="flex gap-2 items-center">

@@ -464,6 +464,11 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
 
+    // Sync isAffiliate status to User model
+    await User.findByIdAndUpdate(affiliate.user, {
+      isAffiliate: status === "approved",
+    });
+
     const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
     const phone = user.addresses?.[0]?.phone;
 
@@ -625,6 +630,11 @@ export async function deleteAffiliate(id: string) {
 
     const affiliate = await Affiliate.findById(id);
     if (!affiliate) throw new Error("Affiliate not found");
+
+    // Sync isAffiliate status to User model (setting to false as affiliate is deleted)
+    await User.findByIdAndUpdate(affiliate.user, {
+      isAffiliate: false,
+    });
 
     // Optionally check if they have earnings/payouts before deleting or just delete everything
     await AffiliateEarning.deleteMany({ affiliate: id });

@@ -96,6 +96,11 @@ export const auth = betterAuth({
         input: false,
         defaultValue: 0,
       },
+      isAffiliate: {
+        type: "boolean",
+        input: false,
+        defaultValue: false,
+      },
     },
   },
 
@@ -134,6 +139,7 @@ export const auth = betterAuth({
                 role: "ADMIN",
                 wishlist,
                 addresses,
+                isAffiliate: user.isAffiliate || false,
               },
             };
           }
@@ -143,6 +149,7 @@ export const auth = betterAuth({
               ...user,
               wishlist,
               addresses,
+              isAffiliate: user.isAffiliate || false,
             },
           };
         },

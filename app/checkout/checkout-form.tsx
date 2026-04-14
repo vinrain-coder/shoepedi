@@ -92,7 +92,11 @@ const isCashOnDeliveryMethod = (method?: string) => {
 };
 const isCardOrMobileMoneyMethod = (method?: string) => {
   const normalized = (method || "").toLowerCase();
-  return normalized.includes("mobile money") || normalized.includes("card");
+  return (
+    normalized.includes("mobile money") ||
+    normalized.includes("card") ||
+    normalized.includes("mpesa")
+  );
 };
 
 const shippingAddressDefaultValues =
@@ -504,7 +508,10 @@ const CheckoutForm = ({
         ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
         : `/account/orders/${order._id}/placed`;
 
-      if (isCashOnDeliveryMethod(paymentMethod) || paymentMethod === "Coins") {
+      if (
+        isCashOnDeliveryMethod(order.paymentMethod) ||
+        order.paymentMethod === "Coins"
+      ) {
         router.push(successPath);
         return;
       }
