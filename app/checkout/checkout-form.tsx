@@ -88,14 +88,19 @@ const REQUIRED_ADDRESS_FIELDS: Array<keyof ShippingAddress> = [
 ];
 const isCashOnDeliveryMethod = (method?: string) => {
   const normalized = (method || "").toLowerCase();
-  return normalized.includes("cash") && normalized.includes("delivery");
+  return (
+    normalized.includes("cash") ||
+    normalized.includes("delivery") ||
+    normalized.includes("cod")
+  );
 };
 const isCardOrMobileMoneyMethod = (method?: string) => {
   const normalized = (method || "").toLowerCase();
   return (
     normalized.includes("mobile money") ||
     normalized.includes("card") ||
-    normalized.includes("mpesa")
+    normalized.includes("mpesa") ||
+    normalized.includes("paystack")
   );
 };
 
@@ -508,17 +513,13 @@ const CheckoutForm = ({
         ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
         : `/account/orders/${order._id}/placed`;
 
-      if (
-        isCashOnDeliveryMethod(order.paymentMethod) ||
-        order.paymentMethod === "Coins"
-      ) {
+      if (isCardOrMobileMoneyMethod(order.paymentMethod)) {
+        // For Paystack payment, render component and auto-open popup instantly
+        setCreatedOrder(order);
+        toast.success("Opening payment... Please wait.");
+      } else {
         router.push(successPath);
-        return;
       }
-
-      // For Paystack payment, render component and auto-open popup instantly
-      setCreatedOrder(order);
-      toast.success("Opening payment... Please wait.");
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));

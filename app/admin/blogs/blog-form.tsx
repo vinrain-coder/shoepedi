@@ -230,6 +230,7 @@ const BlogForm = ({
                 <MarkdownEditor
                   {...field}
                   style={{ height: "500px" }}
+                  theme={theme === "dark" ? "dark" : "light"}
                   onChange={({ text }) => form.setValue("content", text)}
                   renderHTML={(text) => (
                     <div

@@ -193,3 +193,53 @@
     @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 flex items-center gap-1;
   }
 }
+
+/* React Markdown Editor Lite Dark Mode */
+.dark .rc-md-editor {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+}
+
+.dark .rc-md-editor .editor-container {
+  background-color: var(--card) !important;
+}
+
+.dark .rc-md-editor .editor-container .section {
+  background-color: var(--card) !important;
+}
+
+.dark .rc-md-editor .editor-container .section.section-editor {
+  border-right-color: var(--border) !important;
+}
+
+.dark .rc-md-editor .editor-container .section .section-container {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+}
+
+.dark .rc-md-editor .editor-container .section .section-container textarea {
+  color: var(--foreground) !important;
+  background-color: var(--card) !important;
+}
+
+.dark .rc-md-editor .navigation {
+  background-color: var(--muted) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.dark .rc-md-editor .navigation .button-wrap .button {
+  color: var(--foreground) !important;
+}
+
+.dark .rc-md-editor .navigation .button-wrap .button:hover {
+  background-color: var(--accent) !important;
+}
+
+.dark .rc-md-editor .rc-md-navigation {
+  background-color: var(--muted) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.dark .rc-md-editor .custom-html-style {
+  color: var(--foreground) !important;
+}

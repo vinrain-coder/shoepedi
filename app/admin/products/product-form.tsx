@@ -404,6 +404,7 @@ const ProductForm = ({
                     <MarkdownEditor
                       {...field}
                       style={{ height: "500px" }}
+                      theme={theme === "dark" ? "dark" : "light"}
                       onChange={({ text }) =>
                         form.setValue("description", text)
                       }
