@@ -24,8 +24,8 @@ export default function OrderPlacedPage() {
   const [order, setOrder] = useState<SerializedOrder | null>(null);
 
   useEffect(() => {
-    if (orderId && accessToken) {
-      getOrderById(orderId, accessToken).then(setOrder);
+    if (orderId) {
+      getOrderById(orderId, accessToken || undefined).then(setOrder);
     }
   }, [orderId, accessToken]);
 

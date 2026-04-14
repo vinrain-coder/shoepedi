@@ -529,7 +529,7 @@ const CheckoutForm = ({
         setCreatedOrder(order);
         toast.success("Opening payment... Please wait.");
       } else {
-        router.push(successPath);
+        window.location.href = successPath;
       }
     } catch (error: unknown) {
       console.error("Error placing order:", error);
@@ -1742,20 +1742,16 @@ const CheckoutForm = ({
                       orderId={createdOrder._id}
                       autoStart={true}
                       hideButton={true}
-                      onSuccess={() =>
-                        router.push(
-                          createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`
-                        )
-                      }
-                      onFailure={() =>
-                        router.push(
-                          createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`
-                        )
-                      }
+                      onSuccess={() => {
+                        window.location.href = createdOrder.isGuest
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                          : `/account/orders/${createdOrder._id}/placed`;
+                      }}
+                      onFailure={() => {
+                        window.location.href = createdOrder.isGuest
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                          : `/account/orders/${createdOrder._id}/placed`;
+                      }}
                     />
                   )}
               </div>
@@ -1771,20 +1767,16 @@ const CheckoutForm = ({
                       orderId={createdOrder._id}
                       autoStart={true}
                       hideButton={true}
-                      onSuccess={() =>
-                        router.push(
-                          createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`
-                        )
-                      }
-                      onFailure={() =>
-                        router.push(
-                          createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`
-                        )
-                      }
+                      onSuccess={() => {
+                        window.location.href = createdOrder.isGuest
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                          : `/account/orders/${createdOrder._id}/placed`;
+                      }}
+                      onFailure={() => {
+                        window.location.href = createdOrder.isGuest
+                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+                          : `/account/orders/${createdOrder._id}/placed`;
+                      }}
                     />
                   ) : (
                     <Button
