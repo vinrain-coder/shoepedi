@@ -27,7 +27,7 @@ import { authClient } from "@/lib/auth-client";
 
 export default function UserButton() {
   const { data: session } = authClient.useSession();
-  const isAffiliate = (session?.user as any)?.isAffiliate;
+  const isAffiliate = session?.user?.isAffiliate;
 
   return (
     <div className="flex gap-2 items-center">

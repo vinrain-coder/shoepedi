@@ -31,7 +31,7 @@ import { SignOutButton } from "../sign-out-button";
 
 export function UserSidebar() {
   const { data: session, isPending } = authClient.useSession();
-  const isAffiliate = (session?.user as any)?.isAffiliate;
+  const isAffiliate = session?.user?.isAffiliate;
 
   if (isPending)
     return <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />; // placeholder

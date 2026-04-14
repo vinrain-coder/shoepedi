@@ -26,7 +26,6 @@ import ColorInput from "./colors-input";
 import SizeInput from "./size-input";
 import MarkdownEditor from "react-markdown-editor-lite";
 import ReactMarkdown from "react-markdown";
-import "react-markdown-editor-lite/lib/index.css";
 import { useTheme } from "next-themes";
 import {
   Select,
