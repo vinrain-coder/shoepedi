@@ -3,7 +3,7 @@ import { Star } from "lucide-react";
 
 export default function Rating({
   rating = 0,
-  size = 6,
+  size = 24, // use px instead of Tailwind scale
 }: {
   rating: number;
   size?: number;
@@ -17,27 +17,40 @@ export default function Rating({
       className="flex items-center"
       aria-label={`Rating: ${rating} out of 5 stars`}
     >
+      {/* Full stars */}
       {[...Array(fullStars)].map((_, i) => (
         <Star
           key={`full-${i}`}
-          className={`w-${size} h-${size} fill-primary text-primary`}
+          style={{ width: size, height: size }}
+          className="fill-primary text-primary"
         />
       ))}
+
+      {/* Partial star */}
       {partialStar > 0 && (
-        <div className="relative">
-          <Star className={`w-${size} h-${size} text-primary`} />
+        <div style={{ width: size, height: size }} className="relative">
+          <Star
+            style={{ width: size, height: size }}
+            className="text-primary"
+          />
           <div
             className="absolute top-0 left-0 overflow-hidden"
-            style={{ width: `${partialStar * 100}%` }}
+            style={{ width: `${partialStar * 100}%`, height: "100%" }}
           >
-            <Star className="w-6 h-6 fill-primary text-primary" />
+            <Star
+              style={{ width: size, height: size }}
+              className="fill-primary text-primary"
+            />
           </div>
         </div>
       )}
+
+      {/* Empty stars */}
       {[...Array(emptyStars)].map((_, i) => (
         <Star
           key={`empty-${i}`}
-          className={`w-${size} h-${size}  text-primary`}
+          style={{ width: size, height: size }}
+          className="text-primary"
         />
       ))}
     </div>
