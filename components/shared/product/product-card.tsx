@@ -131,7 +131,7 @@ const ProductCard = ({
         {product.name}
       </Link>
       <div className="flex gap-1 justify-center text-xs text-gray-500">
-        <Rating rating={product.avgRating} size={4} />
+        <Rating rating={product.avgRating} size={10} />
         <span>({formatNumber(product.numReviews)})</span>
       </div>
       <ProductPrice price={product.price} listPrice={product.listPrice} align="center" />
@@ -188,7 +188,7 @@ const ProductCard = ({
               <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{product.description || "Premium quality product designed for comfort and style."}</p>
 
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
-                <Rating rating={product.avgRating} size={4} />
+                <Rating rating={product.avgRating} size={10} />
                 <span>({formatNumber(product.numReviews)})</span>
                 <span>•</span>
                 <span className={cn(product.countInStock > 0 ? "text-emerald-600" : "text-red-500")}>
