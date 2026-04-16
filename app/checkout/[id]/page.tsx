@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import React from "react";
 
-import { getOrderById } from "@/lib/actions/order.actions";
+import { getOrderById } from "@/lib/server/actions/order.actions";
 import PaymentForm from "./payment-form";
 import { getServerSession } from "@/lib/get-session";
 

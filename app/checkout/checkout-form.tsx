@@ -5,7 +5,7 @@ import {
   createOrder,
   getFirstPurchaseDiscountQuote,
   SerializedOrder,
-} from "@/lib/actions/order.actions";
+} from "@/lib/server/actions/order.actions";
 import {
   calculateFutureDate,
 } from "@/lib/utils";

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SubmitButton from "@/components/shared/submit-button";
-import { createUserByAdmin } from "@/lib/actions/user.actions";
+import { createUserByAdmin } from "@/lib/server/actions/user.actions";
 import { USER_ROLES } from "@/lib/constants";
 import { toast } from "sonner";
 

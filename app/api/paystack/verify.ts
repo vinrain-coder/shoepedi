@@ -1,4 +1,4 @@
-import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
+import { markPaystackOrderAsPaid } from "@/lib/server/actions/order.actions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

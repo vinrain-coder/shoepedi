@@ -11,7 +11,7 @@ import {
 } from "../../ui/select";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getAllProducts } from "@/lib/actions/product.actions";
+import { getAllProducts } from "@/lib/server/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";

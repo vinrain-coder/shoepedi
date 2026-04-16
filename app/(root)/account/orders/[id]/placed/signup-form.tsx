@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { passwordSchema } from "@/lib/validator";
-import { convertGuestToUser } from "@/lib/actions/user.actions";
+import { convertGuestToUser } from "@/lib/server/actions/user.actions";
 
 const signUpSchema = z
   .object({

@@ -25,7 +25,7 @@ import {
   SerializedOrder,
   updateOrderStatus,
   updateOrderToPaid,
-} from "@/lib/actions/order.actions";
+} from "@/lib/server/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_TRACKING_STATUSES } from "@/lib/order-tracking";
 import ProductPrice from "../product/product-price";

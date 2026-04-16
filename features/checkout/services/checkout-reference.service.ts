@@ -1,6 +1,6 @@
-import { getProductsByIds } from "@/lib/actions/product.actions";
+import { getProductsByIds } from "@/lib/server/actions/product.actions";
 import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
-import { getUserCoins } from "@/lib/actions/user.actions";
+import { getUserCoins } from "@/lib/server/actions/user.actions";
 
 export const checkoutReferenceService = {
   fetchProductsByIds: async (productIds: string[]) => {

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getAllCategories } from "@/lib/actions/product.actions";
+import { getAllCategories } from "@/lib/server/actions/product.actions";
 import Menu from "./menu";
 import Search from "./search";
 import Sidebar from "./sidebar";

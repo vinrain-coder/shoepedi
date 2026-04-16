@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import React from "react";
 
-import { getOrderById } from "@/lib/actions/order.actions";
+import { getOrderById } from "@/lib/server/actions/order.actions";
 import OrderDetailsForm from "@/components/shared/order/order-details-form";
 import Link from "next/link";
 import { getServerSession } from "@/lib/get-session";

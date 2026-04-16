@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   getProductBySlug,
   getRelatedProductsByCategory,
-} from "@/lib/actions/product.actions";
+} from "@/lib/server/actions/product.actions";
 import ReviewList from "./review-list";
 import { generateId, round2 } from "@/lib/utils";
 import SelectVariant from "@/components/shared/product/select-variant";

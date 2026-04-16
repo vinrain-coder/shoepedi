@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ProductPrice from "@/components/shared/product/product-price";
-import { getAdminUserInsights } from "@/lib/actions/user.actions";
+import { getAdminUserInsights } from "@/lib/server/actions/user.actions";
 import { formatDateTime, formatId } from "@/lib/utils";
 
 import UserEditForm from "./user-edit-form";

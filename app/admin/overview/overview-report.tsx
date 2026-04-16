@@ -35,7 +35,7 @@ import OrderStatusChart from "./order-status-chart";
 
 import { useEffect, useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
-import { getOrderSummary } from "@/lib/actions/order.actions";
+import { getOrderSummary } from "@/lib/server/actions/order.actions";
 import SalesAreaChart from "./sales-area-chart";
 import { CalendarDateRangePicker } from "./date-range-picker";
 import { IOrderList } from "@/types";

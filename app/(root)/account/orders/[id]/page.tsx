@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getOrderById } from "@/lib/actions/order.actions";
+import { getOrderById } from "@/lib/server/actions/order.actions";
 import OrderDetailsForm from "@/components/shared/order/order-details-form";
 import LinkOrderHandler from "./link-order";
 import { formatId } from "@/lib/utils";

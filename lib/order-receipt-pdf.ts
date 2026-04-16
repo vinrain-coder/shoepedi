@@ -1,4 +1,4 @@
-import { SerializedOrder } from "@/lib/actions/order.actions";
+import { SerializedOrder } from "@/lib/server/actions/order.actions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
 /** Escape PDF special characters */

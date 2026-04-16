@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createProduct, updateProduct } from "@/lib/actions/product.actions";
+import { createProduct, updateProduct } from "@/lib/server/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { ProductInputSchema, ProductUpdateSchema } from "@/lib/validator";
 import { Checkbox } from "@/components/ui/checkbox";
