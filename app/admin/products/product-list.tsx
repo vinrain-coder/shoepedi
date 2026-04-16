@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteProduct } from "@/lib/actions/product.actions";
+import { deleteProduct } from "@/lib/server/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { cn, formatDateTime, formatId } from "@/lib/utils";
 import { EyeIcon, PenBox } from "lucide-react";

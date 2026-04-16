@@ -11,7 +11,7 @@ import { getPublishedBlogs } from "@/lib/actions/blog.actions";
 import {
   getProductsForCard,
   getProductsByTag,
-} from "@/lib/actions/product.actions";
+} from "@/lib/server/actions/product.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { cacheLife } from "next/cache";
 import { getAllCategoriesForStore } from "@/lib/actions/category.actions";

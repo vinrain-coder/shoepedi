@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteUser, getAllUsers, getUserStats } from "@/lib/actions/user.actions";
+import { deleteUser, getAllUsers, getUserStats } from "@/lib/server/actions/user.actions";
 import { IUser } from "@/lib/db/models/user.model";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";

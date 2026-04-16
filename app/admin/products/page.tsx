@@ -6,7 +6,7 @@ import {
   getAllProductsForAdmin,
   getAllTags,
   getProductAdminStats,
-} from "@/lib/actions/product.actions";
+} from "@/lib/server/actions/product.actions";
 import ProductStatsCards from "./product-stats-cards";
 import ProductFilters from "./product-filters";
 import { ProductsDateRangePicker } from "./date-range-picker";

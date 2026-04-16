@@ -17,7 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getProductsByIds } from "@/lib/actions/product.actions";
+import { getProductsByIds } from "@/lib/server/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { ChevronLeft, ShoppingBag, Trash2 } from "lucide-react";
 

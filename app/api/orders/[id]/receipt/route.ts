@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connection } from "next/server";
 import { getServerSession } from "@/lib/get-session";
-import { getOrderById } from "@/lib/actions/order.actions";
+import { getOrderById } from "@/lib/server/actions/order.actions";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
 
 export async function GET(

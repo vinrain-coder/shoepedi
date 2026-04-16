@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateUser } from "@/lib/actions/user.actions";
+import { updateUser } from "@/lib/server/actions/user.actions";
 import { USER_ROLES } from "@/lib/constants";
 import { IUser } from "@/lib/db/models/user.model";
 import { UserUpdateSchema } from "@/lib/validator";

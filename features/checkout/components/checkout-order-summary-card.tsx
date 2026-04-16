@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import ProductPrice from "@/components/shared/product/product-price";
-import { SerializedOrder } from "@/lib/actions/order.actions";
+import { SerializedOrder } from "@/lib/server/actions/order.actions";
 import { isCardOrMobileMoneyMethod } from "@/features/checkout/utils/checkout-helpers";
 import { AppliedCoupon, FirstPurchaseDiscountState } from "@/features/checkout/types";
 

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getProductById } from "@/lib/actions/product.actions";
+import { getProductById } from "@/lib/server/actions/product.actions";
 import Link from "next/link";
 import ProductForm from "../product-form";
 import { Metadata } from "next";

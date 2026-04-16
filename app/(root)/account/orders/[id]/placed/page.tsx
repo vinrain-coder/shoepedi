@@ -8,8 +8,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { GuestSignUpForm } from "./signup-form";
-import { getOrderById } from "@/lib/actions/order.actions";
-import { SerializedOrder } from "@/lib/actions/order.actions";
+import { getOrderById } from "@/lib/server/actions/order.actions";
+import { SerializedOrder } from "@/lib/server/actions/order.actions";
 import { formatId } from "@/lib/utils";
 
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"];

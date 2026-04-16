@@ -8,7 +8,7 @@ import {
   getAllBrands,
   getAllColors,
   getAllSizes,
-} from "@/lib/actions/product.actions";
+} from "@/lib/server/actions/product.actions";
 import FiltersClient from "@/components/shared/search/filters-client";
 import { IProduct } from "@/lib/db/models/product.model";
 import Breadcrumb from "@/components/shared/breadcrumb";

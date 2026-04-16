@@ -6,7 +6,7 @@ import { IProduct } from "@/lib/db/models/product.model";
 import { getSetting } from "@/lib/actions/setting.actions";
 import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
-import type { SerializedOrder } from "@/lib/actions/order.actions";
+import type { SerializedOrder } from "@/lib/server/actions/order.actions";
 import AdminEventNotificationEmail from "./templates/transactional/admin-event-notification";
 import { getAdminSmsRecipients, sendAfricasTalkingSms } from "../sms/africas-talking";
 import { SENDER_EMAIL, SENDER_NAME } from "../constants";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { convertGuestToUser } from "@/lib/actions/user.actions";
+import { convertGuestToUser } from "@/lib/server/actions/user.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

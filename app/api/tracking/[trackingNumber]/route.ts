@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
-import { getOrderByTrackingNumber } from "@/lib/actions/order.actions";
+import { getOrderByTrackingNumber } from "@/lib/server/actions/order.actions";
 import { hitTrackingLookupLimit } from "@/lib/tracking-rate-limit";
 
 export async function GET(
