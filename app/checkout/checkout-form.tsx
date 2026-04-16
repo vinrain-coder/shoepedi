@@ -1,24 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   createOrder,
   getFirstPurchaseDiscountQuote,
@@ -26,19 +8,15 @@ import {
 } from "@/lib/actions/order.actions";
 import {
   calculateFutureDate,
-  formatDateTime,
-  timeUntilMidnight,
 } from "@/lib/utils";
 import { ShippingAddressSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition, useRef } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
 import { AddressBookEntry } from "@/types";
-import { toSignInPath } from "@/lib/redirects";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { z } from "zod";
 import Link from "next/link";
@@ -48,82 +26,35 @@ import ProductPrice from "@/components/shared/product/product-price";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import dynamic from "next/dynamic";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  Lock,
-  MapPin,
-  User,
-  XCircle,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { getUserAddresses, upsertUserAddress } from "@/lib/actions/address.actions";
-import { Checkbox } from "@/components/ui/checkbox";
 import Cookies from "js-cookie";
-import { getUserCoins } from "@/lib/actions/user.actions";
-import { getProductsByIds } from "@/lib/actions/product.actions";
-import { IProduct } from "@/lib/db/models/product.model";
-import { calculateShippingPrice } from "@/lib/delivery";
-import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
 import { normalizeAddressBookEntries } from "@/lib/address-book";
+import {
+  CheckoutOrderSummaryCard,
+  CheckoutItemsShippingSection,
+  CheckoutPaymentSection,
+  CheckoutShippingSection,
+} from "@/features/checkout/components";
+import { useCheckoutReferenceData } from "@/features/checkout/hooks";
+import {
+  getErrorMessage,
+  isCardOrMobileMoneyMethod,
+  REQUIRED_ADDRESS_FIELDS,
+  shippingAddressDefaultValues,
+  toDiscountType,
+} from "@/features/checkout/utils";
+import {
+  AppliedCoupon,
+  FirstPurchaseDiscountState,
+} from "@/features/checkout/types";
 
 const PaystackInline = dynamic(
   () => import("./paystack-inline"),
   { ssr: false } // <-- only render on the client
 );
 
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong";
-const toDiscountType = (value: string): "percentage" | "fixed" =>
-  value === "fixed" ? "fixed" : "percentage";
-const REQUIRED_ADDRESS_FIELDS: Array<keyof ShippingAddress> = [
-  "fullName",
-  "street",
-  "city",
-  "province",
-  "phone",
-  "postalCode",
-  "country",
-];
-const isCashOnDeliveryMethod = (method?: string) => {
-  const normalized = (method || "").toLowerCase();
-  return (
-    normalized.includes("cash") ||
-    normalized.includes("delivery") ||
-    normalized.includes("cod")
-  );
-};
-const isCardOrMobileMoneyMethod = (method?: string) => {
-  const normalized = (method || "").toLowerCase();
-  return (
-    normalized.includes("mobile money") ||
-    normalized.includes("card") ||
-    normalized.includes("mpesa") ||
-    normalized.includes("paystack")
-  );
-};
-
-const shippingAddressDefaultValues =
-  process.env.NODE_ENV === "development"
-    ? {
-      fullName: "Basir",
-      street: "1911, 65 Sherbrooke Est",
-      city: "CBD",
-      province: "Nairobi",
-        phone: "4181234567",
-        postalCode: "H2X 1C4",
-        country: "Canada",
-      }
-    : {
-        fullName: "",
-        street: "",
-        city: "",
-        province: "",
-        phone: "",
-        postalCode: "",
-        country: "Kenya",
-      };
 
 const CheckoutForm = ({
   savedAddresses,
@@ -135,12 +66,7 @@ const CheckoutForm = ({
   const { data: session } = authClient.useSession();
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    _id?: string;
-    code: string;
-    discountType: "percentage" | "fixed";
-    discountAmount: number;
-  } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [, startTransition] = useTransition();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [isSubmittingAddress, setIsSubmittingAddress] = useState(false);
@@ -159,13 +85,7 @@ const CheckoutForm = ({
   );
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
   const [showCouponInput, setShowCouponInput] = useState(false);
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [firstPurchaseDiscount, setFirstPurchaseDiscount] = useState<{
-    eligible: boolean;
-    rate: number;
-    discountAmount: number;
-    loading: boolean;
-  }>({
+  const [firstPurchaseDiscount, setFirstPurchaseDiscount] = useState<FirstPurchaseDiscountState>({
     eligible: false,
     rate: 0,
     discountAmount: 0,
@@ -331,18 +251,6 @@ const CheckoutForm = ({
     setCartPrices,
   } = useCartStore();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const productIds = items.map((item) => item.product);
-      const uniqueProductIds = [...new Set(productIds)];
-      if (uniqueProductIds.length > 0) {
-        const fetchedProducts = await getProductsByIds(uniqueProductIds);
-        setProducts(fetchedProducts);
-      }
-    };
-    fetchProducts();
-  }, [items]);
-
   const effectiveDeliveryDateIndex =
     deliveryDateIndex ?? availableDeliveryDates.length - 1;
   const selectedDeliveryDate = availableDeliveryDates[effectiveDeliveryDateIndex];
@@ -358,6 +266,21 @@ const CheckoutForm = ({
       })
     ),
     defaultValues: shippingAddress || { ...shippingAddressDefaultValues, email: "" },
+  });
+  const selectedCounty = shippingAddressForm.watch("province");
+  const selectedPlace = shippingAddressForm.watch("city");
+  const {
+    products,
+    liveUserCoins,
+    counties,
+    places,
+    countiesError,
+    placesError,
+    isCountiesLoading,
+    isPlacesLoading,
+  } = useCheckoutReferenceData({
+    productIds: items.map((item) => item.product),
+    selectedCounty,
   });
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
     values
@@ -550,62 +473,6 @@ const CheckoutForm = ({
     null
   );
 
-  const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
-  const selectedCounty = shippingAddressForm.watch("province");
-  const selectedPlace = shippingAddressForm.watch("city");
-
-  const [counties, setCounties] = useState<string[]>([]);
-  const [places, setPlaces] = useState<{ city: string; rate: number }[]>([]);
-  const [countiesError, setCountiesError] = useState<string | null>(null);
-  const [placesError, setPlacesError] = useState<string | null>(null);
-  const [isCountiesLoading, setIsCountiesLoading] = useState(false);
-  const [isPlacesLoading, setIsPlacesLoading] = useState(false);
-
-  useEffect(() => {
-    setIsCountiesLoading(true);
-    getAllCounties()
-      .then((data) => {
-        setCounties(data);
-        setCountiesError(null);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch counties:", error);
-        setCounties([]);
-        setCountiesError("Failed to load counties. Please try again.");
-      })
-      .finally(() => {
-        setIsCountiesLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (selectedCounty) {
-      setIsPlacesLoading(true);
-      getPlacesByCounty(selectedCounty)
-        .then((data) => {
-          setPlaces(data);
-          setPlacesError(null);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch places for county:", selectedCounty, error);
-          setPlaces([]);
-          setPlacesError("Failed to load delivery places. Please try again.");
-        })
-        .finally(() => {
-          setIsPlacesLoading(false);
-        });
-    } else {
-      setPlaces([]);
-      setPlacesError(null);
-      setIsPlacesLoading(false);
-    }
-  }, [selectedCounty]);
-
-  useEffect(() => {
-    getUserCoins().then((coins) => {
-      if (coins !== null) setLiveUserCoins(coins);
-    });
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -667,250 +534,6 @@ const CheckoutForm = ({
   const selectedSavedAddress = useMemo(
     () => addressBook.find((address) => address.id === selectedSavedAddressId),
     [addressBook, selectedSavedAddressId]
-  );
-  const renderCheckoutSummary = ({
-    createdOrder,
-    paymentMethod,
-    handlePlaceOrder,
-  }: {
-    createdOrder: SerializedOrder | null;
-    paymentMethod: string;
-    handlePlaceOrder: () => void;
-  }) => (
-    <Card>
-      <CardContent className="p-4">
-        {!isAddressSelected && (
-          <div className="border-b mb-4">
-            <Button
-              className="rounded-full w-full cursor-pointer"
-              onClick={handleSelectShippingAddress}
-              disabled={isSubmittingAddress}
-            >
-              {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
-            </Button>
-            <p className="text-xs text-center py-2">
-              Choose a shipping address and payment method in order to calculate
-              shipping, handling, and tax.
-            </p>
-          </div>
-        )}
-        {isAddressSelected && !isPaymentMethodSelected && (
-          <div className=" mb-4">
-            <Button
-              className="rounded-full w-full cursor-pointer"
-              onClick={handleSelectPaymentMethod}
-            >
-              Use this payment method
-            </Button>
-
-            <p className="text-xs text-center py-2">
-              Choose a payment method to continue checking out. You&apos;ll
-              still have a chance to review and edit your order before it&apos;s
-              final.
-            </p>
-          </div>
-        )}
-
-        <div>
-          <div className="mb-4">
-            {!showCouponInput && !appliedCoupon && (
-              <button
-                type="button"
-                onClick={() => setShowCouponInput(true)}
-                className="text-sm font-medium text-primary underline hover:text-primary/80 transition-colors"
-              >
-                Got a coupon?
-              </button>
-            )}
-
-            {(showCouponInput || appliedCoupon) && (
-              <>
-                <label className="block mb-1 text-sm font-medium">
-                  Coupon Code
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder={
-                      paymentMethod === "Coins"
-                        ? "Coupons not allowed with Coins"
-                        : firstPurchaseDiscount.loading
-                        ? "Checking eligibility..."
-                        : firstPurchaseDiscount.eligible
-                        ? "First discount applied"
-                        : "Enter coupon code"
-                    }
-                    disabled={
-                      paymentMethod === "Coins" ||
-                      firstPurchaseDiscount.loading ||
-                      firstPurchaseDiscount.eligible
-                    }
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      void handleApplyCoupon();
-                    }}
-                    disabled={
-                      isApplyingCoupon ||
-                      paymentMethod === "Coins" ||
-                      firstPurchaseDiscount.loading ||
-                      firstPurchaseDiscount.eligible
-                    }
-                  >
-                    {isApplyingCoupon ? "Applying..." : "Apply"}
-                  </Button>
-                </div>
-              </>
-            )}
-            {couponError && (
-              <div
-                className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive"
-                role="alert"
-                aria-live="polite"
-              >
-                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{couponError}</span>
-              </div>
-            )}
-            {appliedCoupon && discountAmount > 0 && (
-              <div className="mt-2 flex items-center justify-between gap-2 text-sm">
-                <p>
-                  Coupon{" "}
-                  <span className="font-medium">{appliedCoupon.code}</span>{" "}
-                  applied{" "}
-                  {(appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
-                    ? "(first-purchase discount gives better savings)"
-                    : "— you saved"}{" "}
-                  <span className="text-green-600">
-                    <ProductPrice
-                      price={
-                        (appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
-                          ? firstPurchaseDiscount.discountAmount
-                          : discountAmount
-                      }
-                      plain
-                    />
-                  </span>
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => resetCoupon()}
-                >
-                  Remove
-                </Button>
-              </div>
-            )}
-            {firstPurchaseDiscount.eligible && !appliedCoupon && effectiveDiscountAmount > 0 && (
-              <div className="mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700">
-                First purchase offer applied ({firstPurchaseDiscount.rate}% off items): you save{" "}
-                <span className="font-semibold">
-                  <ProductPrice price={firstPurchaseDiscount.discountAmount} plain />
-                </span>
-                .
-              </div>
-            )}
-            <div className="text-lg font-bold">Order Summary</div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-orange-600 font-medium">
-                <span>Coins to earn ({common.coinsRewardRate}%):</span>
-                <span>{coinsToEarn} coins</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Items:</span>
-                <span>
-                  <ProductPrice price={itemsPrice} plain />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping & Handling:</span>
-                <span>
-                  {shippingPrice === undefined ? (
-                    "--"
-                  ) : shippingPrice === 0 ? (
-                    "FREE"
-                  ) : (
-                    <span>
-                      <ProductPrice price={shippingPrice} plain />
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span> Tax ({common.taxRate}%):</span>
-                <span>
-                  {taxPrice === undefined ? (
-                    "--"
-                  ) : (
-                    <span>
-                      <ProductPrice price={taxPrice} plain />
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-            {discountAmount > 0 && (
-              <div className="flex justify-between">
-                <span>
-                  {effectiveDiscountAmount === (firstPurchaseDiscount.discountAmount || 0)
-                    ? `First Purchase Discount (${firstPurchaseDiscount.rate}%)`
-                    : "Coupon Discount"}
-                  :
-                </span>
-                <span>
-                  -<ProductPrice price={discountAmount} plain />
-                </span>
-              </div>
-            )}
-
-            <div className="flex justify-between  pt-4 font-bold text-lg">
-              <span> Order Total:</span>
-              <span>
-                <ProductPrice price={finalTotal} plain />
-              </span>
-            </div>
-          </div>
-        </div>
-        <div>
-          {placeOrderBlockReason && (
-            <div
-              className="mb-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800"
-              role="status"
-              aria-live="polite"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{placeOrderBlockReason}</span>
-            </div>
-          )}
-          <Button
-            onClick={handlePlaceOrder}
-            className="rounded-full w-full cursor-pointer"
-            disabled={!canPlaceOrder}
-            hidden={
-              isCardOrMobileMoneyMethod(paymentMethod) &&
-              !!createdOrder
-            }
-          >
-            {isPlacingOrder ? (
-              <>
-                <Loader2 className="animate-spin" /> Placing order...
-              </>
-            ) : (
-              "Place Your Order"
-            )}
-          </Button>
-          <p className="text-xs text-center py-2">
-            By placing your order, you agree to {site.name}&apos;s{" "}
-            <Link href="/page/privacy-policy">privacy notice</Link> and
-            <Link href="/page/conditions-of-use"> conditions of use</Link>.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
   );
 
   const userCoins =
@@ -977,762 +600,103 @@ const CheckoutForm = ({
     <main className="max-w-6xl mx-auto highlight-link">
       <div className="grid md:grid-cols-4 gap-6">
         <div className="md:col-span-3">
-          {/* shipping address */}
           <div>
-            {isAddressSelected && shippingAddress ? (
-              <div className="grid grid-cols-1 md:grid-cols-12    my-3  pb-3">
-                <div className="col-span-5 flex text-lg font-bold ">
-                  <span className="w-8">1 </span>
-                  <span>Shipping address</span>
-                </div>
-                <div className="col-span-5 ">
-                  <p>
-                    {shippingAddress.fullName} {shippingAddress.email ? `(${shippingAddress.email})` : ""} <br />
-                    {shippingAddress.street} <br />
-                    {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
-                  </p>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant={"outline"}
-                    onClick={() => {
-                      setIsAddressSelected(false);
-                      setIsPaymentMethodSelected(true);
-                      setIsDeliveryDateSelected(true);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex text-primary text-lg font-bold my-2">
-                  <span className="w-8">1 </span>
-                  <span>Enter shipping address</span>
-                </div>
-
-                {!session && (
-                  <Card className="md:ml-8 my-4 bg-primary/5 border-primary/20">
-                    <CardContent className="p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-primary/10 p-2 rounded-full">
-                            <User className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm">Returning customer?</p>
-                            <p className="text-xs text-muted-foreground">Sign in to use your saved addresses and earn rewards.</p>
-                          </div>
-                        </div>
-                        <Link href={toSignInPath("/checkout")}>
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Lock className="h-3.5 w-3.5" />
-                            Sign In
-                          </Button>
-                        </Link>
-                      </div>
-                      <div className="rounded-lg border border-primary/20 bg-white/70 p-3 text-xs text-muted-foreground">
-                        <ul className="space-y-1.5">
-                          <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                            Secure payment processing
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                            Real-time order updates by email
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                            Checkout without creating an account
-                          </li>
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {session && addressBook.length > 0 && (
-                  <Card className="md:ml-8 my-4 overflow-hidden">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        Select a saved address
-                      </div>
-                      <RadioGroup
-                        value={selectedSavedAddressId}
-                        onValueChange={setSelectedSavedAddressId}
-                        className="grid grid-cols-1 gap-2 sm:grid-cols-2"
-                      >
-                        {addressBook.map((address) => (
-                          <div
-                            key={address.id}
-                            onClick={() =>
-                              setSelectedSavedAddressId(address.id)
-                            }
-                            className={`flex h-full w-full min-w-0 cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
-                              selectedSavedAddressId === address.id
-                                ? "border-2 border-primary bg-primary/5 shadow-md"
-                                : "hover:border-primary/40"
-                            }`}
-                          >
-                            <RadioGroupItem
-                              value={address.id}
-                              id={`saved-address-${address.id}`}
-                              className="mt-1"
-                            />
-                            <Label
-                              htmlFor={`saved-address-${address.id}`}
-                              className="w-full min-w-0 cursor-pointer text-sm leading-relaxed"
-                            >
-                              <span className="font-medium inline-flex w-full min-w-0 items-center gap-2">
-                                {address.label}
-                                {address.isDefault && (
-                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                                    Default
-                                  </span>
-                                )}
-                              </span>
-                              <p className="break-words text-xs sm:text-sm">{address.fullName}</p>
-                              <p className="break-words text-xs sm:text-sm">
-                                {address.street}, {address.city},{" "}
-                                {address.province}, {address.postalCode},{" "}
-                                {address.country}
-                              </p>
-                              <p className="break-words text-xs text-muted-foreground">
-                                {address.phone}
-                              </p>
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                      {selectedSavedAddress && (
-                        <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
-                          <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
-                          {selectedSavedAddress.label} is selected and will be
-                          used for delivery.
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        <Link href="/account/addresses?returnTo=/checkout">
-                          <Button type="button" variant="outline" size="sm">
-                            Manage/Add addresses
-                          </Button>
-                        </Link>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedSavedAddressId("");
-                            setIsAddressSelected(false);
-                            shippingAddressForm.reset(
-                              shippingAddressDefaultValues
-                            );
-                          }}
-                        >
-                          Enter a new address
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                <Form {...shippingAddressForm}>
-                  <form
-                    method="post"
-                    onSubmit={shippingAddressForm.handleSubmit(
-                      onSubmitShippingAddress
-                    )}
-                    className="space-y-4"
-                  >
-                    <Card className="md:ml-8 my-4">
-                      <CardContent className="p-4 space-y-2">
-                        <div className="text-lg font-bold mb-2">
-                          Your address
-                        </div>
-                        {session && (
-                          <div className="flex items-center gap-2 mb-4">
-                            <Checkbox
-                              id="saveAddressToAccount"
-                              checked={saveAddressToAccount}
-                              onCheckedChange={(value) =>
-                                setSaveAddressToAccount(Boolean(value))
-                              }
-                            />
-                            <Label htmlFor="saveAddressToAccount">
-                              Save this address to my account
-                            </Label>
-                          </div>
-                        )}
-
-                        {!session && (
-                          <div className="mb-4">
-                            <FormField
-                              control={shippingAddressForm.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem className="w-full">
-                                  <FormLabel>Email Address</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Enter your email"
-                                      type="email"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <p className="text-[10px] text-muted-foreground mt-1">
-                              We&apos;ll use this email to send you order updates and tracking information.
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="fullName"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Full Name</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter full name"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="street"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Address</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter address"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="province"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>County</FormLabel>
-                                <FormControl>
-                                    <Select
-                                      value={field.value}
-                                      onValueChange={(val) => {
-                                        field.onChange(val);
-                                        shippingAddressForm.setValue("city", "");
-                                      }}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder={isCountiesLoading ? "Loading counties..." : "Select county"} />
-                                      </SelectTrigger>
-                                    <SelectContent>
-                                      {counties.map((c) => (
-                                        <SelectItem key={c} value={c}>
-                                          {c}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                {countiesError && (
-                                  <p className="text-xs text-destructive mt-1">
-                                    {countiesError}
-                                  </p>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Delivery place</FormLabel>
-                                <FormControl>
-                                  <Select
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                    disabled={!selectedCounty || places.length === 0 || isPlacesLoading}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder={isPlacesLoading ? "Loading places..." : "Select delivery place"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {places.map(
-                                        (p) => (
-                                          <SelectItem
-                                            key={p.city}
-                                            value={p.city}
-                                          >
-                                            {p.city} (
-                                            <ProductPrice
-                                              price={p.rate}
-                                              plain
-                                            />
-                                            )
-                                          </SelectItem>
-                                        )
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                {!selectedCounty && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Select a county first to load delivery places.
-                                  </p>
-                                )}
-                                {selectedCounty && isPlacesLoading && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Loading delivery places...
-                                  </p>
-                                )}
-                                {placesError && (
-                                  <p className="text-xs text-destructive mt-1">
-                                    {placesError}
-                                  </p>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="country"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Country</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter country"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="postalCode"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Postal Code</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter postal code"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Phone number</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter phone number"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </CardContent>
-                      <CardFooter className="  p-4">
-                        <Button
-                          type="submit"
-                          className="rounded-full font-bold cursor-pointer"
-                          disabled={isSubmittingAddress}
-                        >
-                          {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </form>
-                </Form>
-              </>
-            )}
+            <CheckoutShippingSection
+              session={session}
+              isAddressSelected={isAddressSelected}
+              shippingAddress={shippingAddress}
+              setIsAddressSelected={setIsAddressSelected}
+              setIsPaymentMethodSelected={setIsPaymentMethodSelected}
+              setIsDeliveryDateSelected={setIsDeliveryDateSelected}
+              addressBook={addressBook}
+              selectedSavedAddressId={selectedSavedAddressId}
+              setSelectedSavedAddressId={setSelectedSavedAddressId}
+              selectedSavedAddress={selectedSavedAddress}
+              shippingAddressForm={shippingAddressForm}
+              onSubmitShippingAddress={onSubmitShippingAddress}
+              saveAddressToAccount={saveAddressToAccount}
+              setSaveAddressToAccount={setSaveAddressToAccount}
+              isSubmittingAddress={isSubmittingAddress}
+              counties={counties}
+              places={places}
+              selectedCounty={selectedCounty}
+              isCountiesLoading={isCountiesLoading}
+              isPlacesLoading={isPlacesLoading}
+              countiesError={countiesError}
+              placesError={placesError}
+            />
           </div>
-          {/* payment method */}
           <div className="border-y">
-            {isPaymentMethodSelected && paymentMethod ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
-                  <span className="w-8">2 </span>
-                  <span>Payment Method</span>
-                </div>
-                <div className="col-span-5 ">
-                  <p>{paymentMethod}</p>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsPaymentMethodSelected(false);
-                      if (paymentMethod) setIsDeliveryDateSelected(true);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
-            ) : isAddressSelected ? (
-              <>
-                <div className="flex text-primary text-lg font-bold my-2">
-                  <span className="w-8">2 </span>
-                  <span>Choose a payment method</span>
-                </div>
-
-                <Card className="md:ml-8 my-4">
-                  <CardContent className="p-4">
-                    <RadioGroup
-                      value={paymentMethod}
-                      onValueChange={(value) => setPaymentMethod(value)}
-                    >
-                      {finalAvailablePaymentMethods.map((pm) => (
-                        <div key={pm.name} className="flex items-center py-1 ">
-                          <RadioGroupItem
-                            value={pm.name}
-                            id={`payment-${pm.name}`}
-                          />
-                          <Label
-                            className="font-bold pl-2 cursor-pointer flex items-center gap-2"
-                            htmlFor={`payment-${pm.name}`}
-                          >
-                            {pm.name}
-                            {pm.name === "Coins" && (
-                              <span className="text-xs font-normal text-muted-foreground">
-                                (Balance: {userCoins} coins)
-                              </span>
-                            )}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-
-                    <div className="flex items-start gap-2 text-sm text-muted-foreground mt-3">
-                      <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                      <p>
-                        <span className="font-medium">Cash on Delivery</span> is
-                        only available for orders shipped within{" "}
-                        <span className="font-semibold">Nairobi</span>.
-                      </p>
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="p-4">
-                    <Button
-                      onClick={handleSelectPaymentMethod}
-                      className="rounded-full font-bold cursor-pointer"
-                    >
-                      Use this payment method
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </>
-            ) : (
-              <div className="flex text-muted-foreground text-lg font-bold my-4 py-3">
-                <span className="w-8">2 </span>
-                <span>Choose a payment method</span>
-              </div>
-            )}
+            <CheckoutPaymentSection
+              isAddressSelected={isAddressSelected}
+              isPaymentMethodSelected={isPaymentMethodSelected}
+              paymentMethod={paymentMethod}
+              finalAvailablePaymentMethods={finalAvailablePaymentMethods}
+              userCoins={userCoins}
+              setPaymentMethod={setPaymentMethod}
+              handleSelectPaymentMethod={handleSelectPaymentMethod}
+              setIsPaymentMethodSelected={setIsPaymentMethodSelected}
+              setIsDeliveryDateSelected={setIsDeliveryDateSelected}
+            />
           </div>
-          {/* items and delivery date */}
           <div>
-            {isDeliveryDateSelected && deliveryDateIndex != undefined ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
-                  <span className="w-8">3 </span>
-                  <span>Items and shipping</span>
-                </div>
-                <div className="col-span-5">
-                  <p>
-                    Delivery date:{" "}
-                    {
-                          formatDateTime(
-                            calculateFutureDate(
-                              selectedDeliveryDate.daysToDeliver
-                            )
-                          ).dateOnly
-                    }
-                  </p>
-                  <ul>
-                    {items.map((item, _index) => (
-                      <li key={_index}>
-                        {item.name} x {item.quantity} = {item.price}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant={"outline"}
-                    onClick={() => {
-                      setIsPaymentMethodSelected(true);
-                      setIsDeliveryDateSelected(false);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
-            ) : isPaymentMethodSelected && isAddressSelected ? (
-              <>
-                <div className="flex text-primary  text-lg font-bold my-2">
-                  <span className="w-8">3 </span>
-                  <span>Review items and shipping</span>
-                </div>
-                <Card className="md:ml-8">
-                  <CardContent className="p-4">
-                    <p className="mb-2">
-                      <span className="text-lg font-bold text-green-700">
-                        Arriving{" "}
-                        {
-                          formatDateTime(
-                            calculateFutureDate(
-                              selectedDeliveryDate.daysToDeliver
-                            )
-                          ).dateOnly
-                        }
-                      </span>{" "}
-                      If you order in the next {timeUntilMidnight().hours} hours
-                      and {timeUntilMidnight().minutes} minutes.
-                    </p>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        {items.map((item, _index) => (
-                          <div key={_index} className="flex gap-4 py-2">
-                            <div className="relative w-16 h-16">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                sizes="20vw"
-                                style={{
-                                  objectFit: "contain",
-                                }}
-                              />
-                            </div>
-
-                            <div className="flex-1">
-                              <p className="font-semibold">{item.name}</p>
-                              <p className="font-bold">
-                                <ProductPrice price={item.price} plain />
-                              </p>
-
-                              <div className="flex flex-wrap gap-2 my-2">
-                                <Select
-                                  value={item.color}
-                                  onValueChange={(value) =>
-                                    updateItem(
-                                      item,
-                                      item.quantity,
-                                      value,
-                                      item.size
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className="w-auto cursor-pointer">
-                                    <SelectValue>{item.color}</SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent position="popper">
-                                    {(() => {
-                                      const foundProduct = products.find(
-                                        (p) => p._id.toString() === item.product
-                                      );
-                                      return (foundProduct?.colors ?? []).map(
-                                        (color) => (
-                                          <SelectItem key={color} value={color}>
-                                            {color}
-                                          </SelectItem>
-                                        )
-                                      );
-                                    })()}
-                                  </SelectContent>
-                                </Select>
-
-                                <Select
-                                  value={item.size}
-                                  onValueChange={(value) =>
-                                    updateItem(
-                                      item,
-                                      item.quantity,
-                                      item.color,
-                                      value
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className="w-auto cursor-pointer">
-                                    <SelectValue>{item.size}</SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent position="popper">
-                                    {(() => {
-                                      const foundProduct = products.find(
-                                        (p) => p._id.toString() === item.product
-                                      );
-                                      return (foundProduct?.sizes ?? []).map(
-                                        (size) => (
-                                          <SelectItem key={size} value={size}>
-                                            {size}
-                                          </SelectItem>
-                                        )
-                                      );
-                                    })()}
-                                  </SelectContent>
-                                </Select>
-
-                                <Select
-                                  value={item.quantity.toString()}
-                                  onValueChange={(value) => {
-                                    if (value === "0") removeItem(item);
-                                    else updateItem(item, Number(value));
-                                  }}
-                                >
-                                  <SelectTrigger className="w-24 cursor-pointer">
-                                    <SelectValue>
-                                      Qty: {item.quantity}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent position="popper">
-                                    {Array.from({
-                                      length: item.countInStock,
-                                    }).map((_, i) => (
-                                      <SelectItem key={i + 1} value={`${i + 1}`}>
-                                        {i + 1}
-                                      </SelectItem>
-                                    ))}
-                                    <SelectItem key="delete" value="0">
-                                      Delete
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div>
-                        <div className=" font-bold">
-                          <p className="mb-2"> Choose a shipping speed:</p>
-                          <p className="mb-3 text-xs font-normal text-muted-foreground">
-                            Rates combine the selected delivery place base rate
-                            and the shipping speed charge.
-                          </p>
-
-                          <ul>
-                            <RadioGroup
-                              value={
-                                selectedDeliveryDate.name
-                              }
-                              onValueChange={(value) =>
-                                setDeliveryDateIndex(
-                                  availableDeliveryDates.findIndex(
-                                    (address) => address.name === value
-                                    )!,
-                                    discountAmount
-                                )
-                              }
-                            >
-                              {availableDeliveryDates.map((dd) => (
-                                <div key={dd.name} className="flex">
-                                  <RadioGroupItem
-                                    className="cursor-pointer"
-                                    value={dd.name}
-                                    id={`address-${dd.name}`}
-                                  />
-                                  <Label
-                                    className="pl-2 space-y-2 cursor-pointer"
-                                    htmlFor={`address-${dd.name}`}
-                                  >
-                                    <div className="text-green-700 font-semibold">
-                                      {
-                                        formatDateTime(
-                                          calculateFutureDate(dd.daysToDeliver)
-                                        ).dateOnly
-                                      }
-                                    </div>
-                                    <div>
-                                      {(() => {
-                                        const placeRecord = places.find(p => p.city === selectedPlace);
-                                        const locationRate = placeRecord?.rate ?? 0;
-                                        const totalPrice = calculateShippingPrice({
-                                          deliveryDate: dd,
-                                          itemsPrice,
-                                          shippingRate: locationRate,
-                                        }) ?? 0;
-
-                                        if (totalPrice === 0) return "FREE Shipping";
-
-                                        return (
-                                          <div className="flex flex-col">
-                                            <span className="font-bold">
-                                              <ProductPrice price={totalPrice} plain />
-                                            </span>
-                                            {locationRate > 0 && (
-                                              <span className="text-[10px] text-muted-foreground font-normal">
-                                                (Speed: <ProductPrice price={dd.shippingPrice} plain /> + Location: <ProductPrice price={locationRate} plain />)
-                                              </span>
-                                            )}
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-                                  </Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <div className="flex text-muted-foreground text-lg font-bold my-4 py-3">
-                <span className="w-8">3 </span>
-                <span>Items and shipping</span>
-              </div>
-            )}
+            <CheckoutItemsShippingSection
+              isDeliveryDateSelected={isDeliveryDateSelected}
+              deliveryDateIndex={deliveryDateIndex}
+              selectedDeliveryDate={selectedDeliveryDate}
+              isPaymentMethodSelected={isPaymentMethodSelected}
+              isAddressSelected={isAddressSelected}
+              items={items}
+              products={products}
+              updateItem={updateItem}
+              removeItem={removeItem}
+              availableDeliveryDates={availableDeliveryDates}
+              setDeliveryDateIndex={setDeliveryDateIndex}
+              discountAmount={discountAmount}
+              selectedPlace={selectedPlace}
+              places={places}
+              itemsPrice={itemsPrice}
+              setIsPaymentMethodSelected={setIsPaymentMethodSelected}
+              setIsDeliveryDateSelected={setIsDeliveryDateSelected}
+            />
           </div>
           {isPaymentMethodSelected && isAddressSelected && (
             <div className="mt-6">
               {/* Mobile summary */}
               <div className="block md:hidden">
-                {renderCheckoutSummary({
-                  createdOrder,
-                  paymentMethod,
-                  handlePlaceOrder,
-                })}
+                <CheckoutOrderSummaryCard
+                  isAddressSelected={isAddressSelected}
+                  isPaymentMethodSelected={isPaymentMethodSelected}
+                  isSubmittingAddress={isSubmittingAddress}
+                  handleSelectShippingAddress={handleSelectShippingAddress}
+                  handleSelectPaymentMethod={handleSelectPaymentMethod}
+                  showCouponInput={showCouponInput}
+                  setShowCouponInput={setShowCouponInput}
+                  appliedCoupon={appliedCoupon}
+                  paymentMethod={paymentMethod}
+                  couponCode={couponCode}
+                  setCouponCode={setCouponCode}
+                  firstPurchaseDiscount={firstPurchaseDiscount}
+                  isApplyingCoupon={isApplyingCoupon}
+                  handleApplyCoupon={() => void handleApplyCoupon()}
+                  couponError={couponError}
+                  discountAmount={discountAmount}
+                  effectiveDiscountAmount={effectiveDiscountAmount}
+                  resetCoupon={() => void resetCoupon()}
+                  commonCoinsRewardRate={common.coinsRewardRate}
+                  coinsToEarn={coinsToEarn}
+                  itemsPrice={itemsPrice}
+                  shippingPrice={shippingPrice}
+                  taxRate={common.taxRate}
+                  taxPrice={taxPrice}
+                  finalTotal={finalTotal}
+                  placeOrderBlockReason={placeOrderBlockReason}
+                  handlePlaceOrder={handlePlaceOrder}
+                  canPlaceOrder={canPlaceOrder}
+                  isPlacingOrder={isPlacingOrder}
+                  siteName={site.name}
+                  createdOrder={createdOrder}
+                />
                 {isCardOrMobileMoneyMethod(paymentMethod) &&
                   createdOrder && (
                     <PaystackInline
@@ -1824,11 +788,39 @@ const CheckoutForm = ({
           <CheckoutFooter />
         </div>
         <div className="hidden md:block">
-          {renderCheckoutSummary({
-            createdOrder,
-            paymentMethod,
-            handlePlaceOrder,
-          })}
+          <CheckoutOrderSummaryCard
+            isAddressSelected={isAddressSelected}
+            isPaymentMethodSelected={isPaymentMethodSelected}
+            isSubmittingAddress={isSubmittingAddress}
+            handleSelectShippingAddress={handleSelectShippingAddress}
+            handleSelectPaymentMethod={handleSelectPaymentMethod}
+            showCouponInput={showCouponInput}
+            setShowCouponInput={setShowCouponInput}
+            appliedCoupon={appliedCoupon}
+            paymentMethod={paymentMethod}
+            couponCode={couponCode}
+            setCouponCode={setCouponCode}
+            firstPurchaseDiscount={firstPurchaseDiscount}
+            isApplyingCoupon={isApplyingCoupon}
+            handleApplyCoupon={() => void handleApplyCoupon()}
+            couponError={couponError}
+            discountAmount={discountAmount}
+            effectiveDiscountAmount={effectiveDiscountAmount}
+            resetCoupon={() => void resetCoupon()}
+            commonCoinsRewardRate={common.coinsRewardRate}
+            coinsToEarn={coinsToEarn}
+            itemsPrice={itemsPrice}
+            shippingPrice={shippingPrice}
+            taxRate={common.taxRate}
+            taxPrice={taxPrice}
+            finalTotal={finalTotal}
+            placeOrderBlockReason={placeOrderBlockReason}
+            handlePlaceOrder={handlePlaceOrder}
+            canPlaceOrder={canPlaceOrder}
+            isPlacingOrder={isPlacingOrder}
+            siteName={site.name}
+            createdOrder={createdOrder}
+          />
         </div>
       </div>
     </main>
