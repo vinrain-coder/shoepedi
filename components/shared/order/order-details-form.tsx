@@ -35,7 +35,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-const PaystackInline = dynamic(() => import("@/app/checkout/paystack-inline"), {
+const PaystackInline = dynamic(() => import("@/features/checkout/components/paystack-inline"), {
   ssr: false,
 });
 

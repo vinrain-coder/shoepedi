@@ -4,17 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime } from "@/lib/utils";
 
-import CheckoutFooter from "../checkout-footer";
 import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ProductPrice from "@/components/shared/product/product-price";
 import dynamic from "next/dynamic";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { CheckoutFooter } from "@/features/checkout/components";
 
 const PaystackInline = dynamic(
-  () => import("../paystack-inline"),
-  { ssr: false } // <-- only render on the client
+  () => import("@/features/checkout/components/paystack-inline"),
+  { ssr: false }
 );
 
 export default function OrderDetailsForm({
