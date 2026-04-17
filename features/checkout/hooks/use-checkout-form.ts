@@ -17,8 +17,9 @@ import { normalizeAddressBookEntries } from "@/lib/address-book";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { getUserAddresses, upsertUserAddress } from "@/lib/actions/address.actions";
 import { createOrder, getFirstPurchaseDiscountQuote, SerializedOrder } from "@/lib/server/actions/order.actions";
-import { calculateFutureDate, getErrorMessage } from "@/lib/utils";
+import { calculateFutureDate } from "@/lib/utils";
 import {
+  getErrorMessage,
   isCardOrMobileMoneyMethod,
   REQUIRED_ADDRESS_FIELDS,
   shippingAddressDefaultValues,
