@@ -5,19 +5,24 @@
 ▲ Next.js 16.2.2 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 589ms
+✓ Ready in 604ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
 - Cache Components enabled
 
-○ Compiling / ...
+○ Compiling /checkout ...
 ⨯ Error: Please add your Mongo URI to .env
     at module evaluation (lib/db/client.ts:8:9)
     at <unknown> (lib/auth.ts:6:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5650:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4109:30)
     at <unknown> (lib/get-session.ts:3:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5835:30)
-    at <unknown> (app/(home)/layout.tsx:4:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5862:30)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5925:47)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4294:30)
+    at <unknown> (app/checkout/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4321:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4441:47)
    6 |
    7 | if (!uri) {
 >  8 |   throw new Error("Please add your Mongo URI to .env");
@@ -28,12 +33,12 @@
 ⨯ Error: Please add your Mongo URI to .env
     at module evaluation (lib/db/client.ts:8:9)
     at <unknown> (lib/auth.ts:6:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5650:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4109:30)
     at <unknown> (lib/get-session.ts:3:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5835:30)
-    at <unknown> (app/(home)/layout.tsx:4:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5862:30)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5925:47)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4294:30)
+    at <unknown> (app/checkout/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4321:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0kk1os5._.js:4441:47)
    6 |
    7 | if (!uri) {
 >  8 |   throw new Error("Please add your Mongo URI to .env");
@@ -41,73 +46,18 @@
    9 | }
   10 |
   11 | let client: MongoClient; {
-  page: '/'
+  page: '/checkout'
 }
-○ Compiling /_error ...
- GET / 500 in 23.9s (next.js: 23.3s, proxy.ts: 401ms, application-code: 238ms)
+ GET /checkout 500 in 27.8s (next.js: 27.2s, proxy.ts: 409ms, application-code: 174ms)
 [browser] Uncaught Error: Please add your Mongo URI to .env
     at module evaluation (lib/db/client.ts:8:9)
     at <unknown> (lib/auth.ts:6:1)
     at module evaluation (lib/email/transactional.tsx:486:1)
     at <unknown> (lib/get-session.ts:3:1)
     at module evaluation (lib/auth.ts:192:1)
-    at <unknown> (app/(home)/layout.tsx:4:1)
+    at <unknown> (app/checkout/layout.tsx:6:1)
     at module evaluation (lib/get-session.ts:8:1)
-    at module evaluation (app/(home)/layout.tsx:28:1)
-   6 |
-   7 | if (!uri) {
->  8 |   throw new Error("Please add your Mongo URI to .env");
-     |         ^
-   9 | }
-  10 |
-  11 | let client: MongoClient;
-○ Compiling /search ...
-⨯ Error: Please add your Mongo URI to .env
-    at module evaluation (lib/db/client.ts:8:9)
-    at <unknown> (lib/auth.ts:6:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5650:30)
-    at <unknown> (lib/get-session.ts:3:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5835:30)
-    at <unknown> (app/(home)/layout.tsx:4:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5862:30)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5925:47)
-   6 |
-   7 | if (!uri) {
->  8 |   throw new Error("Please add your Mongo URI to .env");
-     |         ^
-   9 | }
-  10 |
-  11 | let client: MongoClient; {
-  page: '/'
-}
-⨯ Error: Please add your Mongo URI to .env
-    at module evaluation (lib/db/client.ts:8:9)
-    at <unknown> (lib/auth.ts:6:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5650:30)
-    at <unknown> (lib/get-session.ts:3:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5835:30)
-    at <unknown> (app/(home)/layout.tsx:4:1)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5862:30)
-    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5925:47)
-   6 |
-   7 | if (!uri) {
->  8 |   throw new Error("Please add your Mongo URI to .env");
-     |         ^
-   9 | }
-  10 |
-  11 | let client: MongoClient; {
-  page: '/search'
-}
- GET /search 500 in 5.1s (next.js: 5.1s, proxy.ts: 8ms, application-code: 16ms)
-[browser] Uncaught Error: Please add your Mongo URI to .env
-    at module evaluation (lib/db/client.ts:8:9)
-    at <unknown> (lib/auth.ts:6:1)
-    at module evaluation (lib/email/transactional.tsx:486:1)
-    at <unknown> (lib/get-session.ts:3:1)
-    at module evaluation (lib/auth.ts:192:1)
-    at <unknown> (app/(home)/layout.tsx:4:1)
-    at module evaluation (lib/get-session.ts:8:1)
-    at module evaluation (app/(home)/layout.tsx:28:1)
+    at module evaluation (app/checkout/layout.tsx:52:1)
    6 |
    7 | if (!uri) {
 >  8 |   throw new Error("Please add your Mongo URI to .env");

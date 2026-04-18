@@ -114,7 +114,7 @@ export default function OrderDetailsForm({
                     email={(session?.user?.email || order.userEmail) as string}
                     amount={Math.round(order.totalPrice * 100)}
                     publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={order._id}
+                    orderId={order._id.toString()}
                     onSuccess={() =>
                       router.push(orderPath)
                     }
