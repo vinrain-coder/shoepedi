@@ -1,13 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -138,69 +131,46 @@ export default function PaystackInline({
 
   if (hideButton) {
     return (
-      <Dialog open={true} modal={false}>
-        <DialogContent className="max-w-full sm:max-w-[425px]">
-          <DialogHeader className="flex flex-col items-center justify-center space-y-4 py-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 bg-animate-pulse">
-              <ShieldCheck className="h-10 w-10 text-primary" />
-            </div>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
-  <span className="relative flex items-center justify-center">
-    <Loader2 className="w-7 h-7 animate-spin text-primary" />
-    <span className="absolute inline-flex h-10 w-10 rounded-full bg-primary/20 blur-md"></span>
-  </span>
-
-  <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-    Completing your order...
-  </span>
-</DialogTitle>
-            <DialogDescription className="text-center text-base">
-              We&apos;re connecting you to Paystack&apos;s secure checkout.
-              Please keep this window open.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center space-y-6 pb-6">
-            <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-              {isPaystackLaunched ? (
-                <div className="flex items-center gap-2 text-emerald-600">
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>Secure checkout window is open</span>
-                </div>
-              ) : (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  {orderId === "initializing"
-                    ? "Creating your order..."
-                    : "Initializing payment..."}
-                </>
-              )}
-            </div>
-            {orderId !== "initializing" && !isPaystackLaunched && (
-              <Button
-                onClick={payWithPaystack}
-                disabled={!isScriptLoaded}
-                className="w-full rounded-full py-6 text-lg font-semibold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Launch Payment Window
-              </Button>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {isPaystackLaunched
-                ? "Switch to the payment window to complete your transaction."
-                : "If the payment window didn't open automatically, click the button above."}
-            </p>
+      <div className="flex flex-col items-center justify-center p-6 space-y-4 text-center border rounded-lg bg-primary/5 border-primary/20 animate-in fade-in zoom-in duration-300">
+        <div className="relative flex items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse blur-xl" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold text-primary">Completing your order...</h3>
+          <p className="text-sm text-muted-foreground">
+            We&apos;re connecting you to Paystack&apos;s secure checkout.
+          </p>
+        </div>
+        {!isPaystackLaunched && orderId !== "initializing" && (
+          <Button
+            onClick={payWithPaystack}
+            disabled={!isScriptLoaded}
+            className="rounded-full px-8 py-6 text-lg font-semibold shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Launch Payment Window
+          </Button>
+        )}
+        {isPaystackLaunched && (
+          <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm">
+            <ShieldCheck className="h-5 w-5" />
+            <span>Secure checkout window is open</span>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+        <p className="text-xs text-muted-foreground italic">
+          Please keep this page open until payment is complete.
+        </p>
+      </div>
     );
   }
+
   return (
     <Button
       onClick={payWithPaystack}
       disabled={!isScriptLoaded}
       className={
         className ??
-        "w-1/3 rounded-full mt-2 px-8 py-3 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+        "w-full rounded-full mt-2 px-8 py-6 bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
       }
     >
       {buttonLabel}
