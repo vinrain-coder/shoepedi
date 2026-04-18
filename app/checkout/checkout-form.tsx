@@ -70,21 +70,21 @@ const CheckoutForm = ({
   );
 
   return (
-    <main className="max-w-6xl mx-auto highlight-link px-4 md:px-0 mb-12">
+    <main className="max-w-6xl mx-auto highlight-link md:px-0 mb-12">
       <div className="grid md:grid-cols-4 gap-6">
         <div className="md:col-span-3 space-y-6">
           {/* Section 1: Shipping Address */}
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="rounded-lg shadow-sm">
             <AddressSection {...form} />
           </div>
 
           {/* Section 2: Payment Method */}
-          <div className="border-y bg-white rounded-lg shadow-sm">
+          <div className="border-y rounded-lg shadow-sm">
             <PaymentMethodSection {...form} />
           </div>
 
           {/* Section 3: Items and Shipping */}
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="rounded-lg shadow-sm">
             {isDeliveryDateSelected && deliveryDateIndex !== undefined ? (
               <div className="grid grid-cols-1 md:grid-cols-12 my-3 pb-3">
                 <div className="flex text-lg font-bold col-span-5">
@@ -99,7 +99,7 @@ const CheckoutForm = ({
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     {items.map((item, index) => (
                       <li key={index}>
-                        {item.name} x {item.quantity} = {item.price}
+                        {item.name} x {item.quantiprice}
                       </li>
                     ))}
                   </ul>
@@ -169,8 +169,8 @@ const CheckoutForm = ({
                       amount={Math.round(totalPrice * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
-                      autoStart={true}
-                      hideButton={true}
+                     // autoStart={true}
+                     // hideButton={true}
                       onSuccess={() => {
                         window.location.href = createdOrder.isGuest
                           ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
