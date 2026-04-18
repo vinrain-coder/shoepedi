@@ -153,87 +153,105 @@ export const AddressSection = ({
         </Card>
       )}
 
-      {session && addressBook.length > 0 && (
-        <Card className="md:ml-8 my-4 overflow-hidden">
-          <CardContent className="p-4 space-y-3">
-            <div className="text-sm font-medium flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              Select a saved address
-            </div>
-            <RadioGroup
-              value={selectedSavedAddressId}
-              onValueChange={setSelectedSavedAddressId}
-              className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+          {session && addressBook.length > 0 && (
+  <Card className="my-4 overflow-hidden md:ml-8">
+    <CardContent className="space-y-3 p-4">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <MapPin className="h-4 w-4 text-primary" />
+        Select a saved address
+      </div>
+
+      <RadioGroup
+        value={selectedSavedAddressId}
+        onValueChange={setSelectedSavedAddressId}
+        className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+      >
+        {addressBook.map((address) => (
+          <div
+            key={address.id}
+            onClick={() => setSelectedSavedAddressId(address.id)}
+            className={`flex w-full items-start gap-3 rounded-lg border p-3 transition-all ${
+              selectedSavedAddressId === address.id
+                ? "border-2 border-primary bg-primary/5 shadow-md"
+                : "hover:border-primary/40"
+            }`}
+          >
+            <RadioGroupItem
+              value={address.id}
+              id={`saved-address-${address.id}`}
+              className="mt-1 shrink-0"
+            />
+
+            <Label
+              htmlFor={`saved-address-${address.id}`}
+              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 text-sm leading-relaxed"
             >
-              {addressBook.map((address) => (
-                <div
-                  key={address.id}
-                  onClick={() => setSelectedSavedAddressId(address.id)}
-                  className={`flex h-full w-full min-w-0 cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all ${
-                    selectedSavedAddressId === address.id
-                      ? "border-2 border-primary bg-primary/5 shadow-md"
-                      : "hover:border-primary/40"
-                  }`}
-                >
-                  <RadioGroupItem
-                    value={address.id}
-                    id={`saved-address-${address.id}`}
-                    className="mt-1"
-                  />
-                  <Label
-                    htmlFor={`saved-address-${address.id}`}
-                    className="w-full min-w-0 cursor-pointer text-sm leading-relaxed"
-                  >
-                    <span className="font-medium inline-flex w-full min-w-0 items-center gap-2">
-                      {address.label}
-                      {address.isDefault && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                          Default
-                        </span>
-                      )}
-                    </span>
-                    <p className="break-words text-xs sm:text-sm">{address.fullName}</p>
-                    <p className="break-words text-xs sm:text-sm">
-                      {address.street}, {address.city},{" "}
-                      {address.province}, {address.postalCode},{" "}
-                      {address.country}
-                    </p>
-                    <p className="break-words text-xs text-muted-foreground">
-                      {address.phone}
-                    </p>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-            {addressBook.find(a => a.id === selectedSavedAddressId) && (
-              <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
-                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
-                {addressBook.find(a => a.id === selectedSavedAddressId)?.label} is selected and will be
-                used for delivery.
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="truncate font-medium">
+                  {address.label}
+                </span>
+
+                {address.isDefault && (
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                    Default
+                  </span>
+                )}
+              </div>
+
+              <p className="break-words text-xs sm:text-sm">
+                {address.fullName}
               </p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <Link href="/account/addresses?returnTo=/checkout">
-                <Button type="button" variant="outline" size="sm">
-                  Manage/Add addresses
-                </Button>
-              </Link>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setSelectedSavedAddressId("");
-                  setIsAddressSelected(false);
-                  shippingAddressForm.reset(shippingAddressDefaultValues);
-                }}
-              >
-                Enter a new address
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
+              <p className="break-words text-xs sm:text-sm">
+                {address.street}, {address.city}, {address.province},{" "}
+                {address.postalCode}, {address.country}
+              </p>
+
+              <p className="break-words text-xs text-muted-foreground">
+                {address.phone}
+              </p>
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+
+      {addressBook.find((a) => a.id === selectedSavedAddressId) && (
+        <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+          <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
+          {
+            addressBook.find(
+              (a) => a.id === selectedSavedAddressId
+            )?.label
+          }{" "}
+          is selected and will be used for delivery.
+        </p>
       )}
+
+      <div className="flex flex-wrap gap-2">
+        <Link href="/account/addresses?returnTo=/checkout">
+          <Button type="button" variant="outline" size="sm">
+            Manage/Add addresses
+          </Button>
+        </Link>
+
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setSelectedSavedAddressId("");
+            setIsAddressSelected(false);
+            shippingAddressForm.reset(
+              shippingAddressDefaultValues
+            );
+          }}
+        >
+          Enter a new address
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+)}
 
       <Form {...shippingAddressForm}>
         <form
