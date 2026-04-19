@@ -83,8 +83,14 @@ export async function getWalletEarnersAdmin({
     User.countDocuments(query),
   ]);
 
+  const sanitizedUsers = (users as any[]).map(u => ({
+    ...u,
+    _id: u._id.toString(),
+    walletBalance: Number(u.walletBalance || 0),
+  }));
+
   return {
-    data: JSON.parse(JSON.stringify(users)) as WalletEarnerRow[],
+    data: JSON.parse(JSON.stringify(sanitizedUsers)) as WalletEarnerRow[],
     totalUsers,
     totalPages: Math.ceil(totalUsers / currentLimit),
   };

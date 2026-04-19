@@ -81,7 +81,7 @@ export default async function AdminWalletPage({
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="text-right font-mono">
-                    {user.walletBalance.toFixed(2)}
+                    {(Number(user.walletBalance) || 0).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-right flex justify-end gap-2">
                     <WalletAdjustDialog userId={user._id} currentBalance={user.walletBalance} />
