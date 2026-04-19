@@ -77,7 +77,7 @@ export default async function AdminUserWalletHistoryPage({
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/wallet">Back to Wallet List</Link>
           </Button>
-          <WalletAdjustDialog userId={id} currentBalance={data.user.walletBalance} />
+          <WalletAdjustDialog userId={id} currentBalance={data.user.walletBalance || 0} />
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export default async function AdminUserWalletHistoryPage({
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-2xl font-bold">
             <Wallet className="size-5 text-muted-foreground" />
-            {formatAmount(data.user.walletBalance)}
+            {formatAmount(data.user.walletBalance || 0)}
           </CardContent>
         </Card>
         <Card>
