@@ -25,6 +25,7 @@ export const PaymentMethodSection = ({
   isAddressSelected,
   availablePaymentMethods,
   userCoins,
+  userWallet,
   handleSelectPaymentMethod,
   setPaymentMethod,
   setIsPaymentMethodSelected,
@@ -87,7 +88,7 @@ export const PaymentMethodSection = ({
                     )}
                     {pm.name === "Wallet" && (
                       <span className="text-xs font-normal text-muted-foreground">
-                        (Balance: {userWallet.toFixed(2)})
+                        (Balance: KSh {userWallet.toFixed(2)})
                       </span>
                     )}
                   </Label>

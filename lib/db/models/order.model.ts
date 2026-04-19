@@ -257,6 +257,8 @@ const orderSchema = new Schema<IOrder>(
 orderSchema.index({ trackingNumber: 1 }, { unique: true });
 orderSchema.index({ status: 1, updatedAt: -1 });
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ user: 1, refundedToWallet: 1 });
+orderSchema.index({ user: 1, walletAmountRedeemed: 1 });
 
 const Order =
   (models.Order as Model<IOrder> | undefined) ||

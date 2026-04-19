@@ -23,7 +23,7 @@ export function WalletStatsCards({ stats }: { stats: StatsProps }) {
     {
       title: "Wallet Holders",
       value: stats.totalWalletHolders,
-      description: `${((stats.totalWalletHolders / stats.totalUsers) * 100).toFixed(1)}% of total users`,
+      description: `${stats.totalUsers > 0 ? ((stats.totalWalletHolders / stats.totalUsers) * 100).toFixed(1) : "0.0"}% of total users`,
       icon: IconUsers,
       color: "text-blue-600",
     },

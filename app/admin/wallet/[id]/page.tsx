@@ -144,10 +144,14 @@ export default async function AdminUserWalletHistoryPage({
                         </Link>
                       ) : event.admin ? (
                         <span>By {event.admin.name || event.admin.email}</span>
-                      ) : event.balanceAfter !== undefined ? (
+                      ) : event.balanceBefore !== undefined && event.balanceAfter !== undefined ? (
                         <span>
-                          {formatAmount(event.balanceBefore ?? 0)} → {formatAmount(event.balanceAfter ?? 0)}
+                          {formatAmount(event.balanceBefore)} → {formatAmount(event.balanceAfter)}
                         </span>
+                      ) : event.balanceBefore !== undefined ? (
+                        <span>{formatAmount(event.balanceBefore)}</span>
+                      ) : event.balanceAfter !== undefined ? (
+                        <span>{formatAmount(event.balanceAfter)}</span>
                       ) : (
                         <span>-</span>
                       )}

@@ -46,6 +46,10 @@ export default function WalletAdjustDialog({
       return toast.error("Please enter a valid positive amount");
     }
 
+    if (type !== "add" && numAmount > currentBalance) {
+      return toast.error("Cannot deduct more than current balance");
+    }
+
     if (!reason || reason.trim().length < 3) {
       return toast.error("Please provide a reason (min 3 chars)");
     }
@@ -74,8 +78,17 @@ export default function WalletAdjustDialog({
     }
   };
 
+  const handleOpenChange = (val: boolean) => {
+    setOpen(val);
+    if (!val) {
+      setAmount("");
+      setReason("");
+      setType("add");
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Wallet className="size-4" />

@@ -4,10 +4,9 @@ import { toSignInPath } from "@/lib/redirects";
 
 import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
-import Order from "@/lib/db/models/order.model";
-import WalletTransaction from "@/lib/db/models/wallet-transaction.model";
+import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import { Metadata } from "next";
-import { formatDateTime, formatId } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet as WalletIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
@@ -37,60 +36,30 @@ export default async function WalletPage({
     common: { pageSize },
   } = await getSetting();
 
-  const user = await User.findById(session.user.id);
+  const user = await User.findById(session.user.id).select("walletBalance");
 
-  // Fetch orders where wallet balance was used or refunded
-  const [walletOrders, manualTransactions] = await Promise.all([
-    Order.find({
-      user: session.user.id,
-      $or: [
-        { walletAmountRedeemed: { $gt: 0 } },
-        { refundedToWallet: true }
-      ],
-    }).lean(),
-    WalletTransaction.find({
-        user: session.user.id,
-        source: "admin_adjustment"
-    }).lean()
-  ]);
-
-  const history = [
-    ...walletOrders.flatMap((order: any) => {
-        const events = [];
-        if (order.walletAmountRedeemed > 0) {
-            events.push({
-                id: `${order._id.toString()}-redeemed`,
-                type: 'redeemed',
-                amount: order.walletAmountRedeemed,
-                date: (order.createdAt || new Date()).toISOString(),
-                orderId: order._id.toString(),
-                description: `Used for Order ${formatId(order._id.toString())}`
-            });
-        }
-        if (order.refundedToWallet) {
-            events.push({
-                id: `${order._id.toString()}-refund`,
-                type: 'earned',
-                amount: order.totalPrice,
-                date: (order.updatedAt || new Date()).toISOString(),
-                orderId: order._id.toString(),
-                description: `Refund for Order ${formatId(order._id.toString())}`
-            });
-        }
-        return events;
-    }),
-    ...manualTransactions.map((tx: any) => ({
-        id: tx._id.toString(),
-        type: tx.amount >= 0 ? 'earned' : 'redeemed',
-        amount: Math.abs(tx.amount),
-        date: tx.createdAt.toISOString(),
-        description: tx.reason
-    }))
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const totalCount = history.length;
+  // Fetch all wallet transactions with DB-side pagination
+  const totalCount = await WalletTransaction.countDocuments({ user: session.user.id });
   const skipAmount = (pageNum - 1) * pageSize;
-  const paginatedHistory = history.slice(skipAmount, skipAmount + pageSize);
+
+  const transactions = await WalletTransaction.find({ user: session.user.id })
+    .populate({
+        path: "order",
+        select: "_id trackingNumber"
+    })
+    .sort({ createdAt: -1 })
+    .skip(skipAmount)
+    .limit(pageSize)
+    .lean() as unknown as (IWalletTransaction & { order?: { _id: string; trackingNumber: string } })[];
+
+  const history = transactions.map((tx) => ({
+    id: tx._id.toString(),
+    date: tx.createdAt.toISOString(),
+    type: tx.source === "refund" || (tx.source === "admin_adjustment" && tx.amount >= 0) ? 'earned' : 'redeemed',
+    amount: Math.abs(tx.amount),
+    orderId: tx.order?._id?.toString(),
+    description: tx.reason
+  }));
 
   return (
     <div className="space-y-6">
@@ -105,7 +74,7 @@ export default async function WalletPage({
         </p>
       </div>
 
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 background border-primary/20">
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
           <div className="p-4 rounded-full bg-primary/10">
             <WalletIcon className="h-12 w-12 text-primary animate-pulse" />
@@ -120,7 +89,7 @@ export default async function WalletPage({
 
       <div className="grid gap-6">
         <h2 className="text-xl font-bold">Transaction History</h2>
-        {paginatedHistory.length === 0 ? (
+        {history.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
               Your wallet history is empty.
@@ -128,7 +97,7 @@ export default async function WalletPage({
           </Card>
         ) : (
           <div className="space-y-3">
-            {paginatedHistory.map((event) => (
+            {history.map((event) => (
               <Card key={event.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">

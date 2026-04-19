@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Pagination from "@/components/shared/pagination";
-import { getWalletAdminStats, getWalletEarnersAdmin } from "@/lib/actions/wallet.actions";
+import { getWalletAdminStats, getWalletEarnersAdmin, WalletEarnerRow } from "@/lib/actions/wallet.actions";
 import { getServerSession } from "@/lib/get-session";
 import { WalletStatsCards } from "./wallet-stats-cards";
 import WalletAdjustDialog from "./wallet-adjust-dialog";
@@ -76,7 +76,7 @@ export default async function AdminWalletPage({
           </TableHeader>
           <TableBody>
             {earnersData.data.length > 0 ? (
-              earnersData.data.map((user: any) => (
+              earnersData.data.map((user: WalletEarnerRow) => (
                 <TableRow key={user._id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>

@@ -48,6 +48,8 @@ const userSchema = new Schema<IUser>(
 );
 
 userSchema.index({ name: 1 });
+userSchema.index({ walletBalance: -1, updatedAt: -1 });
+userSchema.index({ coins: -1, updatedAt: -1 });
 
 const User = (models.User as Model<IUser>) || model<IUser>("User", userSchema);
 

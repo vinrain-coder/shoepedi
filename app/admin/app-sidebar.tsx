@@ -23,6 +23,7 @@ import {
   IconCash,
   IconMapPin,
   IconCoin,
+  IconWallet,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/app/admin/nav-main";
@@ -96,7 +97,7 @@ const data = {
     {
       title: "Wallet",
       url: "/admin/wallet",
-      icon: IconCash,
+      icon: IconWallet,
     },
   ],
   storefront: [

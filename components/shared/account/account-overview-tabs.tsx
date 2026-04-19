@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import Link from "next/link";
-import { ArrowRight, Coins as CoinsIcon, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User } from "lucide-react";
+import { ArrowRight, Coins as CoinsIcon, Headset, Home, MessageCircle, PackageCheckIcon, ShieldCheck, Star, User, Wallet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ const tabGroups: {
         href: "/account/wallet",
         title: "My Wallet",
         description: "View your refund balance and transaction history",
-        icon: ShieldCheck,
+        icon: Wallet,
       },
     ],
   },

@@ -4,32 +4,33 @@ import { revalidatePath } from "next/cache";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { getServerSession } from "@/lib/get-session";
-import WalletTransaction from "@/lib/db/models/wallet-transaction.model";
+import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
 import { escapeRegExp, formatError, round2 } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
 
-type LeanWalletOrder = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt?: Date;
-  status: string;
-  totalPrice: number;
-  walletAmountRedeemed: number;
-  refundedToWallet: boolean;
-  trackingNumber?: string;
-};
-
-type LeanWalletTransaction = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
+export type WalletTransactionRow = {
+  id: string;
+  date: Date;
+  type: string;
   amount: number;
+  signedAmount: number;
   reason: string;
-  source: "admin_adjustment" | "system";
+  source: string;
+  orderId?: string;
+  orderTrackingNumber?: string;
+  admin?: { name?: string; email?: string } | null;
   balanceBefore: number;
   balanceAfter: number;
-  admin?: { name?: string; email?: string } | null;
+};
+
+export type WalletEarnerRow = {
+  _id: string;
+  name: string;
+  email: string;
+  walletBalance: number;
+  createdAt: Date;
 };
 
 async function ensureAdmin() {
@@ -57,9 +58,10 @@ export async function getWalletEarnersAdmin({
     common: { pageSize },
   } = await getSetting();
 
-  const currentLimit = limit || pageSize;
+  const currentLimit = limit ?? pageSize;
+  if (currentLimit <= 0) throw new Error("Invalid limit");
   const currentPage = Math.max(1, Math.floor(page || 1));
-  const query: Record<string, unknown> = { walletBalance: { $gt: 0 } };
+  const query: Record<string, unknown> = {};
 
   if (search?.trim()) {
     const escaped = escapeRegExp(search.trim());
@@ -82,7 +84,7 @@ export async function getWalletEarnersAdmin({
   ]);
 
   return {
-    data: JSON.parse(JSON.stringify(users)),
+    data: JSON.parse(JSON.stringify(users)) as WalletEarnerRow[],
     totalUsers,
     totalPages: Math.ceil(totalUsers / currentLimit),
   };
@@ -146,69 +148,41 @@ export async function getUserWalletHistoryAdmin({
     common: { pageSize },
   } = await getSetting();
 
-  const currentLimit = limit || pageSize;
+  const currentLimit = limit ?? pageSize;
+  if (currentLimit <= 0) throw new Error("Invalid limit");
   const currentPage = Math.max(1, Math.floor(page || 1));
+  const skip = (currentPage - 1) * currentLimit;
 
   const user = await User.findById(userId).select("name email walletBalance").lean();
   if (!user) throw new Error("User not found");
 
-  const [manualTx, walletOrders] = await Promise.all([
+  const [transactions, totalEvents] = await Promise.all([
     WalletTransaction.find({ user: userId })
       .populate("admin", "name email")
+      .populate({
+        path: "order",
+        select: "trackingNumber status totalPrice"
+      })
       .sort({ createdAt: -1 })
-      .lean(),
-    Order.find({
-      user: userId,
-      $or: [
-        { walletAmountRedeemed: { $gt: 0 } },
-        { refundedToWallet: true },
-      ],
-    })
-      .select(
-        "_id createdAt updatedAt status totalPrice walletAmountRedeemed refundedToWallet trackingNumber"
-      )
-      .sort({ createdAt: -1 })
-      .lean(),
+      .skip(skip)
+      .limit(currentLimit)
+      .lean() as unknown as (IWalletTransaction & {
+        admin?: { name: string; email: string },
+        order?: { _id: string; trackingNumber: string; status: string; totalPrice: number }
+      })[],
+    WalletTransaction.countDocuments({ user: userId })
   ]);
 
-  const orderEvents = (walletOrders as LeanWalletOrder[]).flatMap((order) => {
-    const events: Array<Record<string, unknown>> = [];
-
-    if (order.walletAmountRedeemed > 0) {
-      events.push({
-        id: `redeem-${order._id}`,
-        date: order.createdAt,
-        type: "redeemed",
-        amount: round2(order.walletAmountRedeemed),
-        reason: `Wallet balance used to pay order #${order.trackingNumber || order._id.toString().slice(-6)}`,
-        source: "order",
-        orderId: order._id.toString(),
-      });
-    }
-
-    if (order.refundedToWallet && order.totalPrice > 0) {
-      events.push({
-        id: `refund-${order._id}`,
-        date: order.updatedAt || order.createdAt,
-        type: "refund",
-        amount: round2(order.totalPrice),
-        reason: `Order refund returned to wallet (#${order.trackingNumber || order._id.toString().slice(-6)})`,
-        source: "order",
-        orderId: order._id.toString(),
-      });
-    }
-
-    return events;
-  });
-
-  const manualEvents = (manualTx as LeanWalletTransaction[]).map((tx) => ({
-    id: `manual-${tx._id}`,
+  const history = transactions.map((tx) => ({
+    id: tx._id.toString(),
     date: tx.createdAt,
-    type: tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct",
+    type: tx.source === "refund" || tx.source === "wallet_payment" ? (tx.amount >= 0 ? "refund" : "redeemed") : (tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct"),
     amount: round2(Math.abs(tx.amount)),
     signedAmount: round2(tx.amount),
     reason: tx.reason,
     source: tx.source,
+    orderId: tx.order?._id?.toString(),
+    orderTrackingNumber: tx.order?.trackingNumber,
     admin: tx.admin
       ? {
           name: tx.admin.name,
@@ -217,16 +191,7 @@ export async function getUserWalletHistoryAdmin({
       : null,
     balanceBefore: round2(tx.balanceBefore),
     balanceAfter: round2(tx.balanceAfter),
-  }));
-
-  const allEvents = [...manualEvents, ...orderEvents].sort(
-    (a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()
-  );
-
-  const totalEvents = allEvents.length;
-  const totalPages = Math.ceil(totalEvents / currentLimit);
-  const start = (currentPage - 1) * currentLimit;
-  const paginatedEvents = allEvents.slice(start, start + currentLimit);
+  })) as WalletTransactionRow[];
 
   return {
     user: {
@@ -235,9 +200,9 @@ export async function getUserWalletHistoryAdmin({
       email: user.email,
       walletBalance: round2(user.walletBalance || 0),
     },
-    history: paginatedEvents,
+    history,
     totalEvents,
-    totalPages,
+    totalPages: Math.ceil(totalEvents / currentLimit),
   };
 }
 
