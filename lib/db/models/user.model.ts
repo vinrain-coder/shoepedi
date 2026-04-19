@@ -14,6 +14,7 @@ export interface IUser extends Document, IUserInput {
   wishlist: Types.ObjectId[];
   addresses: unknown[];
   coins: number;
+  walletBalance: number;
   isAffiliate: boolean;
   navigationHistory: IUserNavigationEntry[];
   firstPurchaseDiscountUsed?: boolean;
@@ -30,6 +31,7 @@ const userSchema = new Schema<IUser>(
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     addresses: { type: [Schema.Types.Mixed], default: [] },
     coins: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 },
     isAffiliate: { type: Boolean, default: false },
     firstPurchaseDiscountUsed: { type: Boolean, default: false },
     navigationHistory: [
@@ -46,6 +48,8 @@ const userSchema = new Schema<IUser>(
 );
 
 userSchema.index({ name: 1 });
+userSchema.index({ walletBalance: -1, updatedAt: -1 });
+userSchema.index({ coins: -1, updatedAt: -1 });
 
 const User = (models.User as Model<IUser>) || model<IUser>("User", userSchema);
 

@@ -4,34 +4,33 @@ import { revalidatePath } from "next/cache";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { getServerSession } from "@/lib/get-session";
-import CoinTransaction from "@/lib/db/models/coin-transaction.model";
+import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
 import { escapeRegExp, formatError, round2 } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
 
-type LeanCoinOrder = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt?: Date;
-  status: string;
-  totalPrice: number;
-  coinsEarned: number;
-  coinsRedeemed: number;
-  coinsCredited: boolean;
-  refundedToCoins: boolean;
-  trackingNumber?: string;
-};
-
-type LeanCoinTransaction = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
+export type WalletTransactionRow = {
+  id: string;
+  date: Date;
+  type: string;
   amount: number;
+  signedAmount: number;
   reason: string;
-  source: "admin_adjustment" | "system";
+  source: string;
+  orderId?: string;
+  orderTrackingNumber?: string;
+  admin?: { name?: string; email?: string } | null;
   balanceBefore: number;
   balanceAfter: number;
-  admin?: { name?: string; email?: string } | null;
+};
+
+export type WalletEarnerRow = {
+  _id: string;
+  name: string;
+  email: string;
+  walletBalance: number;
+  createdAt: Date;
 };
 
 async function ensureAdmin() {
@@ -43,7 +42,7 @@ async function ensureAdmin() {
   return session;
 }
 
-export async function getCoinEarnersAdmin({
+export async function getWalletEarnersAdmin({
   page,
   search,
   limit,
@@ -59,9 +58,10 @@ export async function getCoinEarnersAdmin({
     common: { pageSize },
   } = await getSetting();
 
-  const currentLimit = limit || pageSize;
+  const currentLimit = limit ?? pageSize;
+  if (currentLimit <= 0) throw new Error("Invalid limit");
   const currentPage = Math.max(1, Math.floor(page || 1));
-  const query: Record<string, unknown> = { coins: { $gt: 0 } };
+  const query: Record<string, unknown> = {};
 
   if (search?.trim()) {
     const escaped = escapeRegExp(search.trim());
@@ -75,8 +75,8 @@ export async function getCoinEarnersAdmin({
 
   const [users, totalUsers] = await Promise.all([
     User.find(query)
-      .select("name email coins createdAt")
-      .sort({ coins: -1, updatedAt: -1 })
+      .select("name email walletBalance createdAt")
+      .sort({ walletBalance: -1, updatedAt: -1 })
       .skip(skip)
       .limit(currentLimit)
       .lean(),
@@ -84,13 +84,13 @@ export async function getCoinEarnersAdmin({
   ]);
 
   return {
-    data: JSON.parse(JSON.stringify(users)),
+    data: JSON.parse(JSON.stringify(users)) as WalletEarnerRow[],
     totalUsers,
     totalPages: Math.ceil(totalUsers / currentLimit),
   };
 }
 
-export async function getCoinAdminStats() {
+export async function getWalletAdminStats() {
   await ensureAdmin();
   await connectToDatabase();
 
@@ -100,39 +100,39 @@ export async function getCoinAdminStats() {
         $group: {
           _id: null,
           totalUsers: { $sum: 1 },
-          totalCoinHolders: {
+          totalWalletHolders: {
             $sum: {
-              $cond: [{ $gt: ["$coins", 0] }, 1, 0],
+              $cond: [{ $gt: ["$walletBalance", 0] }, 1, 0],
             },
           },
-          circulatingCoins: { $sum: "$coins" },
-          averageBalance: { $avg: "$coins" },
+          totalWalletBalance: { $sum: "$walletBalance" },
+          averageBalance: { $avg: "$walletBalance" },
         },
       },
     ]),
-    User.findOne({ coins: { $gt: 0 } }).sort({ coins: -1 }).select("name coins").lean(),
-    CoinTransaction.countDocuments({ source: "admin_adjustment" }),
+    User.findOne({ walletBalance: { $gt: 0 } }).sort({ walletBalance: -1 }).select("name walletBalance").lean(),
+    WalletTransaction.countDocuments({ source: "admin_adjustment" }),
   ]);
 
   const stat = allStats[0] || {
     totalUsers: 0,
-    totalCoinHolders: 0,
-    circulatingCoins: 0,
+    totalWalletHolders: 0,
+    totalWalletBalance: 0,
     averageBalance: 0,
   };
 
   return {
     totalUsers: stat.totalUsers,
-    totalCoinHolders: stat.totalCoinHolders,
-    circulatingCoins: round2(stat.circulatingCoins || 0),
+    totalWalletHolders: stat.totalWalletHolders,
+    totalWalletBalance: round2(stat.totalWalletBalance || 0),
     averageBalance: round2(stat.averageBalance || 0),
     topHolderName: topUser?.name || "-",
-    topHolderBalance: round2(topUser?.coins || 0),
+    topHolderBalance: round2(topUser?.walletBalance || 0),
     totalAdjustments,
   };
 }
 
-export async function getUserCoinHistoryAdmin({
+export async function getUserWalletHistoryAdmin({
   userId,
   page,
   limit,
@@ -148,70 +148,41 @@ export async function getUserCoinHistoryAdmin({
     common: { pageSize },
   } = await getSetting();
 
-  const currentLimit = limit || pageSize;
+  const currentLimit = limit ?? pageSize;
+  if (currentLimit <= 0) throw new Error("Invalid limit");
   const currentPage = Math.max(1, Math.floor(page || 1));
+  const skip = (currentPage - 1) * currentLimit;
 
-  const user = await User.findById(userId).select("name email coins").lean();
+  const user = await User.findById(userId).select("name email walletBalance").lean();
   if (!user) throw new Error("User not found");
 
-  const [manualTx, coinOrders] = await Promise.all([
-    CoinTransaction.find({ user: userId })
+  const [transactions, totalEvents] = await Promise.all([
+    WalletTransaction.find({ user: userId })
       .populate("admin", "name email")
+      .populate({
+        path: "order",
+        select: "trackingNumber status totalPrice"
+      })
       .sort({ createdAt: -1 })
-      .lean(),
-    Order.find({
-      user: userId,
-      $or: [
-        { coinsEarned: { $gt: 0 } },
-        { coinsRedeemed: { $gt: 0 } },
-      ],
-    })
-      .select(
-        "_id createdAt updatedAt status totalPrice coinsEarned coinsRedeemed coinsCredited trackingNumber"
-      )
-      .sort({ createdAt: -1 })
-      .lean(),
+      .skip(skip)
+      .limit(currentLimit)
+      .lean() as unknown as (IWalletTransaction & {
+        admin?: { name: string; email: string },
+        order?: { _id: string; trackingNumber: string; status: string; totalPrice: number }
+      })[],
+    WalletTransaction.countDocuments({ user: userId })
   ]);
 
-  const orderEvents = (coinOrders as LeanCoinOrder[]).flatMap((order) => {
-    const events: Array<Record<string, unknown>> = [];
-
-    if (order.coinsEarned > 0 && order.coinsCredited && !["cancelled", "returned"].includes(order.status)) {
-      events.push({
-        id: `earn-${order._id}`,
-        date: order.updatedAt || order.createdAt,
-        type: "earned",
-        amount: round2(order.coinsEarned),
-        reason: `Coins earned from order #${order.trackingNumber || order._id.toString().slice(-6)}`,
-        source: "order",
-        orderId: order._id.toString(),
-      });
-    }
-
-    if (order.coinsRedeemed > 0) {
-      events.push({
-        id: `redeem-${order._id}`,
-        date: order.createdAt,
-        type: "redeemed",
-        amount: round2(order.coinsRedeemed),
-        reason: `Coins used to pay order #${order.trackingNumber || order._id.toString().slice(-6)}`,
-        source: "order",
-        orderId: order._id.toString(),
-      });
-    }
-
-
-    return events;
-  });
-
-  const manualEvents = (manualTx as LeanCoinTransaction[]).map((tx) => ({
-    id: `manual-${tx._id}`,
+  const history = transactions.map((tx) => ({
+    id: tx._id.toString(),
     date: tx.createdAt,
-    type: tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct",
+    type: tx.source === "refund" || tx.source === "wallet_payment" ? (tx.amount >= 0 ? "refund" : "redeemed") : (tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct"),
     amount: round2(Math.abs(tx.amount)),
     signedAmount: round2(tx.amount),
     reason: tx.reason,
     source: tx.source,
+    orderId: tx.order?._id?.toString(),
+    orderTrackingNumber: tx.order?.trackingNumber,
     admin: tx.admin
       ? {
           name: tx.admin.name,
@@ -220,31 +191,22 @@ export async function getUserCoinHistoryAdmin({
       : null,
     balanceBefore: round2(tx.balanceBefore),
     balanceAfter: round2(tx.balanceAfter),
-  }));
-
-  const allEvents = [...manualEvents, ...orderEvents].sort(
-    (a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()
-  );
-
-  const totalEvents = allEvents.length;
-  const totalPages = Math.ceil(totalEvents / currentLimit);
-  const start = (currentPage - 1) * currentLimit;
-  const paginatedEvents = allEvents.slice(start, start + currentLimit);
+  })) as WalletTransactionRow[];
 
   return {
     user: {
       _id: userId,
       name: user.name,
       email: user.email,
-      coins: round2(user.coins || 0),
+      walletBalance: round2(user.walletBalance || 0),
     },
-    history: paginatedEvents,
+    history,
     totalEvents,
-    totalPages,
+    totalPages: Math.ceil(totalEvents / currentLimit),
   };
 }
 
-export async function adjustUserCoinsAdmin({
+export async function adjustUserWalletAdmin({
   userId,
   amount,
   reason,
@@ -271,14 +233,14 @@ export async function adjustUserCoinsAdmin({
 
     const query: Record<string, unknown> = { _id: userId };
     if (normalizedAmount < 0) {
-      query.coins = { $gte: Math.abs(normalizedAmount) };
+      query.walletBalance = { $gte: Math.abs(normalizedAmount) };
     }
 
     const updatedUser = await User.findOneAndUpdate(
       query,
-      { $inc: { coins: normalizedAmount } },
+      { $inc: { walletBalance: normalizedAmount } },
       { new: true }
-    ).select("_id coins");
+    ).select("_id walletBalance");
 
     if (!updatedUser) {
       if (normalizedAmount < 0) {
@@ -287,10 +249,10 @@ export async function adjustUserCoinsAdmin({
       throw new Error("User not found");
     }
 
-    const newBalance = round2(updatedUser.coins || 0);
+    const newBalance = round2(updatedUser.walletBalance || 0);
     const balanceBefore = round2(newBalance - normalizedAmount);
 
-    await CoinTransaction.create({
+    await WalletTransaction.create({
       user: updatedUser._id,
       admin: sessionUser.user.id,
       amount: normalizedAmount,
@@ -300,14 +262,14 @@ export async function adjustUserCoinsAdmin({
       balanceAfter: newBalance,
     });
 
-    revalidatePath("/admin/coins");
-    revalidatePath(`/admin/coins/${userId}`);
-    revalidatePath("/account/coins");
+    revalidatePath("/admin/wallet");
+    revalidatePath(`/admin/wallet/${userId}`);
+    revalidatePath("/account/wallet");
     revalidatePath("/checkout");
 
     return {
       success: true,
-      message: `User balance updated successfully. New balance: ${newBalance.toFixed(2)} coins`,
+      message: `User wallet balance updated successfully. New balance: ${newBalance.toFixed(2)}`,
     };
   } catch (error) {
     return {

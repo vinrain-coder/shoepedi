@@ -19,7 +19,7 @@ import {
 } from "@/lib/actions/order.actions";
 import { validateCoupon } from "@/lib/actions/coupon.actions";
 import { getUserAddresses, upsertUserAddress } from "@/lib/actions/address.actions";
-import { getUserCoins } from "@/lib/actions/user.actions";
+import { getUserCoins, getUserWalletBalance } from "@/lib/actions/user.actions";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { getAllCounties, getPlacesByCounty } from "@/lib/actions/delivery-location.actions";
 import { normalizeAddressBookEntries } from "@/lib/address-book";
@@ -92,6 +92,7 @@ export const useCheckoutForm = (
   const [products, setProducts] = useState<IProduct[]>([]);
   const [createdOrder, setCreatedOrder] = useState<SerializedOrder | null>(null);
   const [liveUserCoins, setLiveUserCoins] = useState<number | null>(null);
+  const [liveUserWallet, setLiveUserWallet] = useState<number | null>(null);
   const [saveAddressToAccount, setSaveAddressToAccount] = useState(true);
 
   // Status flags
@@ -255,10 +256,13 @@ export const useCheckoutForm = (
     }
   }, [selectedCounty]);
 
-  // Fetch user coins
+  // Fetch user coins & wallet
   useEffect(() => {
     getUserCoins().then((coins) => {
       if (coins !== null) setLiveUserCoins(coins);
+    });
+    getUserWalletBalance().then((balance) => {
+      if (balance !== null) setLiveUserWallet(balance);
     });
   }, []);
 
@@ -580,6 +584,10 @@ export const useCheckoutForm = (
     ? liveUserCoins
     : Number((session?.user as { coins?: number } | undefined)?.coins ?? 0);
 
+  const userWallet = liveUserWallet !== null
+    ? liveUserWallet
+    : Number((session?.user as { walletBalance?: number } | undefined)?.walletBalance ?? 0);
+
   const coinsToEarn = Math.round(itemsPrice * (common.coinsRewardRate / 100) * 100) / 100;
 
   const hasCompleteShippingAddress = useMemo(
@@ -622,12 +630,17 @@ export const useCheckoutForm = (
         methods.push({ name: "Coins", commission: 0 });
       }
     }
+    if (userWallet >= totalPrice) {
+      if (!methods.find((m) => m.name === "Wallet")) {
+        methods.push({ name: "Wallet", commission: 0 });
+      }
+    }
     return methods;
-  }, [availablePaymentMethods, userCoins, totalPrice]);
+  }, [availablePaymentMethods, userCoins, userWallet, totalPrice]);
 
   // Update payment method effects
   useEffect(() => {
-    if (paymentMethod === "Coins") {
+    if (paymentMethod === "Coins" || paymentMethod === "Wallet") {
       setCouponCode("");
       setAppliedCoupon(null);
       setCouponError(null);
@@ -660,6 +673,7 @@ export const useCheckoutForm = (
     products,
     createdOrder,
     userCoins,
+    userWallet,
     coinsToEarn,
     saveAddressToAccount,
     addressBook,

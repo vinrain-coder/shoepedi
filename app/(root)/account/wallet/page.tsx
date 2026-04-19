@@ -4,22 +4,21 @@ import { toSignInPath } from "@/lib/redirects";
 
 import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
-import Order from "@/lib/db/models/order.model";
+import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import { Metadata } from "next";
-import { formatDateTime, formatId } from "@/lib/utils";
-import ProductPrice from "@/components/shared/product/product-price";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Wallet as WalletIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
 import Pagination from "@/components/shared/pagination";
 import { getSetting } from "@/lib/actions/setting.actions";
 
 export const metadata: Metadata = {
-  title: "My Coins",
+  title: "My Wallet",
 };
 
-export default async function CoinsPage({
+export default async function WalletPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
@@ -37,83 +36,54 @@ export default async function CoinsPage({
     common: { pageSize },
   } = await getSetting();
 
-  const user = await User.findById(session.user.id);
+  const user = await User.findById(session.user.id).select("walletBalance");
 
-  // Fetch orders where coins were earned or redeemed
-  const query = {
-    user: session.user.id,
-    $or: [
-      { coinsEarned: { $gt: 0 } },
-      { coinsRedeemed: { $gt: 0 } }
-    ],
-  };
-
-  const totalCount = await Order.countDocuments(query);
+  // Fetch all wallet transactions with DB-side pagination
+  const totalCount = await WalletTransaction.countDocuments({ user: session.user.id });
   const skipAmount = (pageNum - 1) * pageSize;
 
-  const coinOrders = await Order.find(query)
+  const transactions = await WalletTransaction.find({ user: session.user.id })
+    .populate({
+        path: "order",
+        select: "_id trackingNumber"
+    })
     .sort({ createdAt: -1 })
     .skip(skipAmount)
     .limit(pageSize)
-    .lean();
+    .lean() as unknown as (IWalletTransaction & { order?: { _id: string; trackingNumber: string } })[];
 
-  const history = coinOrders.flatMap((order: any) => {
-    const events = [];
-
-    // Original earnings
-    if (order.coinsEarned > 0 && order.coinsCredited && !["cancelled", "returned"].includes(order.status)) {
-      events.push({
-        id: `${order._id.toString()}-earned`,
-        type: 'earned',
-        amount: order.coinsEarned,
-        date: (order.paidAt || order.createdAt || new Date()).toISOString(),
-        orderId: order._id.toString(),
-        description: `Earned from Order ${formatId(order._id.toString())}`
-      });
-    }
-
-    // Redemptions
-    if (order.coinsRedeemed > 0) {
-      events.push({
-        id: `${order._id.toString()}-redeemed`,
-        type: 'redeemed',
-        amount: order.coinsRedeemed,
-        date: (order.createdAt || new Date()).toISOString(),
-        orderId: order._id.toString(),
-        description: `Redeemed for Order ${formatId(order._id.toString())}`
-      });
-    }
-
-
-    return events;
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const history = transactions.map((tx) => ({
+    id: tx._id.toString(),
+    date: tx.createdAt.toISOString(),
+    type: tx.source === "refund" || (tx.source === "admin_adjustment" && tx.amount >= 0) ? 'earned' : 'redeemed',
+    amount: Math.abs(tx.amount),
+    orderId: tx.order?._id?.toString(),
+    description: tx.reason
+  }));
 
   return (
     <div className="space-y-6">
       <Breadcrumb />
       <div className="flex flex-col gap-2">
         <h1 className="h1-bold text-3xl flex items-center gap-2">
-          <CoinsIcon className="h-8 w-8 text-primary" />
-          My Coins
+          <WalletIcon className="h-8 w-8 text-primary" />
+          My Wallet
         </h1>
         <p className="text-muted-foreground">
-          Track your rewards and see how you&apos;ve used your coins.
+          View your refund balance and transaction history.
         </p>
       </div>
 
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 background border-primary/20">
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
           <div className="p-4 rounded-full bg-primary/10">
-            <CoinsIcon className="h-12 w-12 text-primary animate-pulse" />
+            <WalletIcon className="h-12 w-12 text-primary animate-pulse" />
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-foreground">{(user?.coins || 0).toFixed(2)}</h2>
-            <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
+            <h2 className="text-5xl font-extrabold text-foreground">{(user?.walletBalance || 0).toFixed(2)}</h2>
+            <p className="text-sm text-muted-foreground mt-1">Available for future purchases</p>
           </div>
-          <p className="text-xs text-muted-foreground italic mt-2">
-            Coins are loyalty rewards and can only be used to pay for orders on ShoePedi.
-          </p>
         </CardContent>
       </Card>
 
@@ -122,7 +92,7 @@ export default async function CoinsPage({
         {history.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
-              You haven&apos;t earned or redeemed any coins yet. Start shopping to earn rewards!
+              Your wallet history is empty.
             </CardContent>
           </Card>
         ) : (
@@ -144,7 +114,7 @@ export default async function CoinsPage({
                       {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
                       {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
                     </p>
-                    <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>
+                    {event.orderId && <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>}
                   </div>
                 </CardContent>
               </Card>

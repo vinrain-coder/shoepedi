@@ -214,8 +214,9 @@ export const OrderInputSchema = z.object({
   shippingPrice: Price("Shipping price"),
   taxPrice: Price("Tax price"),
   totalPrice: Price("Total price"),
-  coinsEarned: z.number().default(0),
-  coinsRedeemed: z.number().default(0),
+  coinsEarned: z.number().nonnegative().finite().default(0),
+  coinsRedeemed: z.number().nonnegative().finite().default(0),
+  walletAmountRedeemed: z.number().nonnegative().finite().default(0),
   expectedDeliveryDate: z
     .date()
     .refine(
