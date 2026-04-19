@@ -93,6 +93,11 @@ const data = {
       url: "/admin/coins",
       icon: IconCoin,
     },
+    {
+      title: "Wallet",
+      url: "/admin/wallet",
+      icon: IconCash,
+    },
   ],
   storefront: [
     {

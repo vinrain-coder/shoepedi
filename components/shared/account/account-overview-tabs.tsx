@@ -46,6 +46,12 @@ const tabGroups: {
         description: "Check your balance and view coin transaction history",
         icon: CoinsIcon,
       },
+      {
+        href: "/account/wallet",
+        title: "My Wallet",
+        description: "View your refund balance and transaction history",
+        icon: ShieldCheck,
+      },
     ],
   },
   {

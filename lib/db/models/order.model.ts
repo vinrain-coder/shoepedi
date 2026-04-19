@@ -69,6 +69,7 @@ export interface IOrder extends Document {
   totalPrice: number;
   coinsEarned: number;
   coinsRedeemed: number;
+  walletAmountRedeemed: number;
   coinsCredited: boolean;
   isPaid: boolean;
   paidAt?: Date;
@@ -88,6 +89,7 @@ export interface IOrder extends Document {
   stockReverted?: boolean;
   couponUsageReverted?: boolean;
   refundedToCoins?: boolean;
+  refundedToWallet?: boolean;
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -233,6 +235,7 @@ const orderSchema = new Schema<IOrder>(
     totalPrice: { type: Number, required: true },
     coinsEarned: { type: Number, default: 0 },
     coinsRedeemed: { type: Number, default: 0 },
+    walletAmountRedeemed: { type: Number, default: 0 },
     coinsCredited: { type: Boolean, default: false },
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },
@@ -243,6 +246,7 @@ const orderSchema = new Schema<IOrder>(
     stockReverted: { type: Boolean, default: false },
     couponUsageReverted: { type: Boolean, default: false },
     refundedToCoins: { type: Boolean, default: false },
+    refundedToWallet: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },
   {

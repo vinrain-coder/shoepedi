@@ -29,6 +29,7 @@ import Review from "../db/models/review.model";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import SupportTicket from "../db/models/support-ticket.model";
 import mongoose from "mongoose";
+import WalletTransaction from "../db/models/wallet-transaction.model";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
@@ -233,22 +234,38 @@ const notifyCustomerOrderStatus = async (
   });
 };
 
-const revertOrderEffects = async (order: IOrder, options: { refundToCoins: boolean } = { refundToCoins: true }) => {
+const revertOrderEffects = async (order: IOrder, options: { refundToWallet: boolean } = { refundToWallet: true }) => {
   const userId = (order.user as any)?._id || order.user;
 
-  // 1. Refund paid amount to coins if paid and not already refunded (Only for cancellations)
-  if (options.refundToCoins && order.isPaid && userId) {
+  // 1. Refund paid amount to wallet if paid and not already refunded (Only for cancellations)
+  if (options.refundToWallet && order.isPaid && userId) {
     const updatedOrder = await Order.findOneAndUpdate(
-      { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
-      { $set: { refundedToCoins: true } },
+      { _id: order._id, refundedToWallet: { $ne: true }, isPaid: true },
+      { $set: { refundedToWallet: true } },
       { new: true }
     );
 
     if (updatedOrder) {
-      await User.findByIdAndUpdate(userId, {
-        $inc: { coins: round2(order.totalPrice) },
-      });
-      order.refundedToCoins = true;
+      const amount = round2(order.totalPrice);
+      const user = await User.findById(userId).select("walletBalance");
+      if (user) {
+         const balanceBefore = round2(user.walletBalance || 0);
+         const balanceAfter = round2(balanceBefore + amount);
+
+         await User.findByIdAndUpdate(userId, {
+           $inc: { walletBalance: amount },
+         });
+
+         await WalletTransaction.create({
+           user: userId,
+           amount: amount,
+           reason: `Refund for cancelled order #${order.trackingNumber || order._id.toString().slice(-6)}`,
+           source: "system",
+           balanceBefore,
+           balanceAfter,
+         });
+      }
+      order.refundedToWallet = true;
     }
   }
 
@@ -353,11 +370,11 @@ const runStatusTransition = async ({
   }
 
   if (nextStatus === "cancelled") {
-    await revertOrderEffects(order as IOrder, { refundToCoins: true });
+    await revertOrderEffects(order as IOrder, { refundToWallet: true });
   }
 
   if (nextStatus === "returned") {
-    await revertOrderEffects(order as IOrder, { refundToCoins: false });
+    await revertOrderEffects(order as IOrder, { refundToWallet: false });
   }
 
   if (nextStatus === "delivered") {
@@ -502,6 +519,7 @@ export const createOrderFromCart = async (
   const { common } = await getSetting();
   let coinsEarned = 0;
   let coinsRedeemed = 0;
+  let walletAmountRedeemed = 0;
   let isPaid = false;
   let paidAt: Date | undefined;
 
@@ -584,6 +602,24 @@ export const createOrderFromCart = async (
     paidAt = new Date();
   }
 
+  if (cart.paymentMethod === "Wallet") {
+    if (!userId) throw new Error("Authentication required for Wallet payments");
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+    if (user.walletBalance < cart.totalPrice) {
+      throw new Error("Insufficient wallet balance");
+    }
+    // Wallet payments don't use coupons (optional, but consistent with Coins)
+    if (coupon?.code) {
+      throw new Error("Coupons cannot be used with wallet payments");
+    }
+    affiliateId = undefined;
+    affiliateCode = undefined;
+    walletAmountRedeemed = cart.totalPrice;
+    isPaid = true;
+    paidAt = new Date();
+  }
+
   const totalPrice = cart.totalPrice;
   coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
 
@@ -606,6 +642,7 @@ export const createOrderFromCart = async (
     coupon: appliedCoupon,
     coinsEarned,
     coinsRedeemed,
+    walletAmountRedeemed,
     coinsCredited: false,
     isPaid,
     paidAt,
@@ -643,6 +680,39 @@ export const createOrderFromCart = async (
       await Order.findByIdAndDelete(createdOrder._id);
       throw new Error("Insufficient coins balance or payment failed");
     }
+
+    await runPostPaymentSideEffects(createdOrder._id.toString());
+  }
+
+  if (cart.paymentMethod === "Wallet") {
+    const user = await User.findById(userId);
+    if (!user || user.walletBalance < totalPrice) {
+       await Order.findByIdAndDelete(createdOrder._id);
+       throw new Error("Insufficient wallet balance or payment failed");
+    }
+
+    const balanceBefore = round2(user.walletBalance);
+    const balanceAfter = round2(balanceBefore - totalPrice);
+
+    const userUpdate = await User.findOneAndUpdate(
+      { _id: userId, walletBalance: { $gte: totalPrice } },
+      { $inc: { walletBalance: -totalPrice } },
+      { new: true }
+    );
+
+    if (!userUpdate) {
+      await Order.findByIdAndDelete(createdOrder._id);
+      throw new Error("Insufficient wallet balance or payment failed");
+    }
+
+    await WalletTransaction.create({
+      user: userId,
+      amount: -totalPrice,
+      reason: `Used to pay for order #${createdOrder.trackingNumber || createdOrder._id.toString().slice(-6)}`,
+      source: "system",
+      balanceBefore,
+      balanceAfter,
+    });
 
     await runPostPaymentSideEffects(createdOrder._id.toString());
   }
@@ -987,7 +1057,7 @@ export async function cancelOrder(orderId: string) {
       title: "Order cancelled",
       description: `Order ${orderId.slice(-8).toUpperCase()} was cancelled by ${session.user.name}.`,
       href: `/admin/orders/${orderId}`,
-      meta: order.isPaid ? "Paid amount refunded to coins" : "Unpaid order",
+      meta: order.isPaid ? "Paid amount refunded to wallet" : "Unpaid order",
       createdAt: new Date().toISOString(),
     });
 

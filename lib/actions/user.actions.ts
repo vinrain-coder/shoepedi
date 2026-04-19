@@ -374,6 +374,21 @@ export async function getUserCoins(): Promise<number | null> {
   }
 }
 
+export async function getUserWalletBalance(): Promise<number | null> {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession();
+    if (!session?.user?.id) return null;
+
+    const user = await User.findById(session.user.id).select("walletBalance").lean();
+    if (!user) return null;
+    return Number(Number(user.walletBalance || 0).toFixed(2));
+  } catch (error) {
+    console.error("Error fetching user wallet balance:", error);
+    return null;
+  }
+}
+
 export async function convertGuestToUser(orderId: string, accessToken: string) {
   try {
     await connectToDatabase();

@@ -216,6 +216,7 @@ export const OrderInputSchema = z.object({
   totalPrice: Price("Total price"),
   coinsEarned: z.number().default(0),
   coinsRedeemed: z.number().default(0),
+  walletAmountRedeemed: z.number().default(0),
   expectedDeliveryDate: z
     .date()
     .refine(
