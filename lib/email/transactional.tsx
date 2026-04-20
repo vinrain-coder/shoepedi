@@ -4,6 +4,7 @@ import StockSubscriptionNotificationEmail from "./templates/transactional/stock-
 import { IOrder } from "@/lib/db/models/order.model";
 import { IProduct } from "@/lib/db/models/product.model";
 import { getSetting } from "@/lib/actions/setting.actions";
+import { escapeHTML } from "../utils";
 import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
 import type { SerializedOrder } from "@/lib/actions/order.actions";
@@ -457,6 +458,190 @@ export const sendAffiliateResubmittedNotification = async ({
   return { success: true };
 };
 
+export const sendWalletPayoutStatusNotification = async ({
+  email,
+  name,
+  amount,
+  status,
+  paymentMethod,
+  adminNote,
+  phone,
+}: {
+  email: string;
+  name: string;
+  amount: number;
+  status: "paid" | "rejected";
+  paymentMethod: string;
+  adminNote?: string;
+  phone?: string;
+}) => {
+  const { site } = await getSetting();
+  const formattedAmount = new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+  }).format(amount);
+
+  const safeName = escapeHTML(name);
+  const safePaymentMethod = escapeHTML(paymentMethod);
+  const safeAdminNote = escapeHTML(adminNote || "");
+
+  const subject = status === "paid"
+    ? `Wallet Payout Processed - ${site.name}`
+    : `Wallet Payout Rejected - ${site.name}`;
+
+  const messageHtml = status === "paid"
+    ? `
+      <p>Hello ${safeName},</p>
+      <p>Your wallet payout of <strong>${formattedAmount}</strong> has been successfully processed via ${safePaymentMethod}.</p>
+      ${adminNote ? `<p><strong>Admin Note:</strong> ${safeAdminNote}</p>` : ""}
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `
+    : `
+      <p>Hello ${safeName},</p>
+      <p>Your wallet payout request of <strong>${formattedAmount}</strong> was not approved at this time.</p>
+      <p>The funds have been returned to your wallet balance.</p>
+      ${adminNote ? `<p><strong>Reason:</strong> ${safeAdminNote}</p>` : ""}
+      <p>You can view your wallet history and reapply if necessary: <a href="${site.url}/account/wallet">${site.url}/account/wallet</a></p>
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `;
+
+  await sendEmail({
+    to: email,
+    subject,
+    react: <div dangerouslySetInnerHTML={{ __html: messageHtml }} />,
+  });
+
+  if (phone) {
+    const smsMessage = status === "paid"
+      ? `Your wallet payout of ${formattedAmount} via ${paymentMethod} has been processed.`
+      : `Your wallet payout of ${formattedAmount} was rejected. Funds returned to your wallet. Reason: ${adminNote || "N/A"}`;
+
+    await sendAfricasTalkingSms({
+      to: phone,
+      message: toUserSmsMessage({ siteName: site.name, message: smsMessage }),
+    });
+  }
+
+  console.log(`✅ Wallet payout ${status} notification sent to ${email}`);
+  return { success: true };
+};
+
+export const sendWalletAdjustmentNotification = async ({
+  email,
+  name,
+  amount,
+  reason,
+  newBalance,
+  phone,
+}: {
+  email: string;
+  name: string;
+  amount: number;
+  reason: string;
+  newBalance: number;
+  phone?: string;
+}) => {
+  const { site } = await getSetting();
+  const formattedAmount = new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+  }).format(Math.abs(amount));
+  const formattedBalance = new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+  }).format(newBalance);
+
+  const safeName = escapeHTML(name);
+  const safeReason = escapeHTML(reason);
+
+  const type = amount >= 0 ? "credited to" : "deducted from";
+  const subject = `Wallet Balance Update - ${site.name}`;
+
+  await sendEmail({
+    to: email,
+    subject,
+    react: (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+      <p>Hello ${safeName},</p>
+      <p>Your wallet balance has been updated.</p>
+      <p><strong>Amount:</strong> ${formattedAmount} (${type} your wallet)</p>
+      <p><strong>Reason:</strong> ${safeReason}</p>
+      <p><strong>New Balance:</strong> ${formattedBalance}</p>
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `,
+        }}
+      />
+    ),
+  });
+
+  if (phone) {
+    const smsMessage = `Your wallet was ${type} ${formattedAmount}. Reason: ${reason}. New balance: ${formattedBalance}.`;
+    await sendAfricasTalkingSms({
+      to: phone,
+      message: toUserSmsMessage({ siteName: site.name, message: smsMessage }),
+    });
+  }
+
+  return { success: true };
+};
+
+export const sendCoinAdjustmentNotification = async ({
+  email,
+  name,
+  amount,
+  reason,
+  newBalance,
+  phone,
+}: {
+  email: string;
+  name: string;
+  amount: number;
+  reason: string;
+  newBalance: number;
+  phone?: string;
+}) => {
+  const { site } = await getSetting();
+  const absAmount = Math.abs(amount);
+  const formattedAbsAmount = Number.isInteger(absAmount) ? String(absAmount) : absAmount.toFixed(2);
+  const formattedNewBalance = Number.isInteger(newBalance) ? String(newBalance) : newBalance.toFixed(2);
+
+  const safeName = escapeHTML(name);
+  const safeReason = escapeHTML(reason);
+
+  const type = amount >= 0 ? "credited to" : "deducted from";
+  const subject = `Coins Balance Update - ${site.name}`;
+
+  await sendEmail({
+    to: email,
+    subject,
+    react: (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+      <p>Hello ${safeName},</p>
+      <p>Your coins balance has been updated.</p>
+      <p><strong>Amount:</strong> ${formattedAbsAmount} coins (${type} your account)</p>
+      <p><strong>Reason:</strong> ${safeReason}</p>
+      <p><strong>New Balance:</strong> ${formattedNewBalance} coins</p>
+      <p>Best regards,<br/>The ${site.name} Team</p>
+    `,
+        }}
+      />
+    ),
+  });
+
+  if (phone) {
+    const smsMessage = `Your coins balance was ${type} ${formattedAbsAmount} coins. Reason: ${reason}. New balance: ${formattedNewBalance} coins.`;
+    await sendAfricasTalkingSms({
+      to: phone,
+      message: toUserSmsMessage({ siteName: site.name, message: smsMessage }),
+    });
+  }
+
+  return { success: true };
+};
 
 export const sendSupportTicketReplyEmail = async ({
   to,

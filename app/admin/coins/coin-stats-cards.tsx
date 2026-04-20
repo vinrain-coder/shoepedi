@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatNumber, formatNumberWithTwoDecimals } from "@/lib/utils";
 import { Coins, Users, Crown, RefreshCcw, ChevronDown, ChevronUp, LayoutPanelTop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

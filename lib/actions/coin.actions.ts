@@ -9,6 +9,7 @@ import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
 import { escapeRegExp, formatError, round2 } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
+import { sendCoinAdjustmentNotification } from "../email/transactional";
 
 type LeanCoinOrder = {
   _id: mongoose.Types.ObjectId;
@@ -150,86 +151,162 @@ export async function getUserCoinHistoryAdmin({
 
   const currentLimit = limit || pageSize;
   const currentPage = Math.max(1, Math.floor(page || 1));
+  const skip = (currentPage - 1) * currentLimit;
 
   const user = await User.findById(userId).select("name email coins").lean();
   if (!user) throw new Error("User not found");
 
-  const [manualTx, coinOrders] = await Promise.all([
-    CoinTransaction.find({ user: userId })
-      .populate("admin", "name email")
-      .sort({ createdAt: -1 })
-      .lean(),
-    Order.find({
-      user: userId,
-      $or: [
-        { coinsEarned: { $gt: 0 } },
-        { coinsRedeemed: { $gt: 0 } },
-      ],
-    })
-      .select(
-        "_id createdAt updatedAt status totalPrice coinsEarned coinsRedeemed coinsCredited trackingNumber"
-      )
-      .sort({ createdAt: -1 })
-      .lean(),
+  const aggregation = await CoinTransaction.aggregate([
+    { $match: { user: new mongoose.Types.ObjectId(userId) } },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        amount: 1,
+        reason: 1,
+        source: 1,
+        balanceBefore: 1,
+        balanceAfter: 1,
+        admin: 1,
+      },
+    },
+    {
+      $unionWith: {
+        coll: "orders",
+        pipeline: [
+          {
+            $match: {
+              user: new mongoose.Types.ObjectId(userId),
+              $or: [{ coinsEarned: { $gt: 0 } }, { coinsRedeemed: { $gt: 0 } }],
+            },
+          },
+          // We might need to split earn and redeem events if they happened at different times,
+          // but for now, we follow the previous logic and map them later.
+          // To correctly paginate, each event should be a separate document in aggregation.
+          {
+            $project: {
+              events: {
+                $concatArrays: [
+                  {
+                    $cond: [
+                      {
+                        $and: [
+                          { $gt: ["$coinsEarned", 0] },
+                          { $eq: ["$coinsCredited", true] },
+                          { $not: { $in: ["$status", ["cancelled", "returned"]] } },
+                        ],
+                      },
+                      [
+                        {
+                          _id: { $concat: ["earn-", { $toString: "$_id" }] },
+                          createdAt: { $ifNull: ["$updatedAt", "$createdAt"] },
+                          type: "earned",
+                          amount: "$coinsEarned",
+                          reason: {
+                            $concat: [
+                              "Coins earned from order #",
+                              { $ifNull: ["$trackingNumber", { $substr: [{ $toString: "$_id" }, 18, 6] }] },
+                            ],
+                          },
+                          source: "order",
+                          orderId: "$_id",
+                        },
+                      ],
+                      [],
+                    ],
+                  },
+                  {
+                    $cond: [
+                      { $gt: ["$coinsRedeemed", 0] },
+                      [
+                        {
+                          _id: { $concat: ["redeem-", { $toString: "$_id" }] },
+                          createdAt: "$createdAt",
+                          type: "redeemed",
+                          amount: "$coinsRedeemed",
+                          reason: {
+                            $concat: [
+                              "Coins used to pay order #",
+                              { $ifNull: ["$trackingNumber", { $substr: [{ $toString: "$_id" }, 18, 6] }] },
+                            ],
+                          },
+                          source: "order",
+                          orderId: "$_id",
+                        },
+                      ],
+                      [],
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          { $unwind: "$events" },
+          {
+            $replaceRoot: { newRoot: "$events" },
+          },
+        ],
+      },
+    },
+    {
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [
+          { $sort: { createdAt: -1, _id: -1 } },
+          { $skip: skip },
+          { $limit: currentLimit },
+          {
+            $lookup: {
+              from: "users",
+              localField: "admin",
+              foreignField: "_id",
+              as: "adminInfo",
+            },
+          },
+          {
+            $addFields: {
+              admin: { $arrayElemAt: ["$adminInfo", 0] },
+            },
+          },
+        ],
+      },
+    },
   ]);
 
-  const orderEvents = (coinOrders as LeanCoinOrder[]).flatMap((order) => {
-    const events: Array<Record<string, unknown>> = [];
+  const totalEvents = aggregation[0].metadata[0]?.total || 0;
+  const rawEvents = aggregation[0].data;
 
-    if (order.coinsEarned > 0 && order.coinsCredited && !["cancelled", "returned"].includes(order.status)) {
-      events.push({
-        id: `earn-${order._id}`,
-        date: order.updatedAt || order.createdAt,
-        type: "earned",
-        amount: round2(order.coinsEarned),
-        reason: `Coins earned from order #${order.trackingNumber || order._id.toString().slice(-6)}`,
+  const history = rawEvents.map((event: any) => {
+    if (event.source === "order") {
+      return {
+        id: event._id,
+        date: event.createdAt,
+        type: event.type,
+        amount: round2(event.amount),
+        reason: event.reason,
         source: "order",
-        orderId: order._id.toString(),
-      });
+        orderId: event.orderId.toString(),
+      };
+    } else {
+      return {
+        id: `manual-${event._id}`,
+        date: event.createdAt,
+        type: event.amount >= 0 ? "adjustment_add" : "adjustment_deduct",
+        amount: round2(Math.abs(event.amount)),
+        signedAmount: round2(event.amount),
+        reason: event.reason,
+        source: event.source,
+        admin: event.admin
+          ? {
+              name: event.admin.name,
+              email: event.admin.email,
+            }
+          : null,
+        balanceBefore: round2(event.balanceBefore),
+        balanceAfter: round2(event.balanceAfter),
+      };
     }
-
-    if (order.coinsRedeemed > 0) {
-      events.push({
-        id: `redeem-${order._id}`,
-        date: order.createdAt,
-        type: "redeemed",
-        amount: round2(order.coinsRedeemed),
-        reason: `Coins used to pay order #${order.trackingNumber || order._id.toString().slice(-6)}`,
-        source: "order",
-        orderId: order._id.toString(),
-      });
-    }
-
-
-    return events;
   });
-
-  const manualEvents = (manualTx as LeanCoinTransaction[]).map((tx) => ({
-    id: `manual-${tx._id}`,
-    date: tx.createdAt,
-    type: tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct",
-    amount: round2(Math.abs(tx.amount)),
-    signedAmount: round2(tx.amount),
-    reason: tx.reason,
-    source: tx.source,
-    admin: tx.admin
-      ? {
-          name: tx.admin.name,
-          email: tx.admin.email,
-        }
-      : null,
-    balanceBefore: round2(tx.balanceBefore),
-    balanceAfter: round2(tx.balanceAfter),
-  }));
-
-  const allEvents = [...manualEvents, ...orderEvents].sort(
-    (a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()
-  );
-
-  const totalEvents = allEvents.length;
-  const totalPages = Math.ceil(totalEvents / currentLimit);
-  const start = (currentPage - 1) * currentLimit;
-  const paginatedEvents = allEvents.slice(start, start + currentLimit);
 
   return {
     user: {
@@ -238,9 +315,9 @@ export async function getUserCoinHistoryAdmin({
       email: user.email,
       coins: round2(user.coins || 0),
     },
-    history: paginatedEvents,
+    history,
     totalEvents,
-    totalPages,
+    totalPages: Math.ceil(totalEvents / currentLimit),
   };
 }
 
@@ -278,7 +355,7 @@ export async function adjustUserCoinsAdmin({
       query,
       { $inc: { coins: normalizedAmount } },
       { new: true }
-    ).select("_id coins");
+    ).select("_id name email coins addresses");
 
     if (!updatedUser) {
       if (normalizedAmount < 0) {
@@ -304,6 +381,21 @@ export async function adjustUserCoinsAdmin({
     revalidatePath(`/admin/coins/${userId}`);
     revalidatePath("/account/coins");
     revalidatePath("/checkout");
+
+    // Send user notification
+    try {
+      const defaultAddress = (updatedUser.addresses as any[] || []).find((a: any) => a.isDefault) || (updatedUser.addresses as any[] || [])[0];
+      await sendCoinAdjustmentNotification({
+        email: updatedUser.email,
+        name: updatedUser.name || "Customer",
+        amount: normalizedAmount,
+        reason: normalizedReason,
+        newBalance,
+        phone: defaultAddress?.phone,
+      });
+    } catch (notifyErr) {
+      console.error("Failed to notify user of coins adjustment:", notifyErr);
+    }
 
     return {
       success: true,

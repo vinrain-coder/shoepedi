@@ -50,6 +50,7 @@ const iconMap = {
   support: MessageSquareMore,
   affiliate: Users,
   "affiliate-payout": HandCoins,
+  "wallet-payout": HandCoins,
 } as const;
 
 const getRelativeTimestamp = (date: Date, now: number) => {
