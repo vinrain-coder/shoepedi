@@ -317,6 +317,7 @@ export async function initializeWalletTopup(amount: number) {
       body: JSON.stringify({
         email: user.email,
         amount: Math.round(numericAmount * 100), // convert to cents
+        currency: "KES",
         callback_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/account/wallet`,
         metadata: {
           userId: user._id.toString(),
@@ -337,6 +338,84 @@ export async function initializeWalletTopup(amount: number) {
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
+  }
+}
+
+export async function completeWalletTopup(reference: string, paystackData: any) {
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
+
+  try {
+    const authSession = await getServerSession();
+
+    if (!authSession) {
+      throw new Error("Unauthorized");
+    }
+
+    const data = paystackData;
+
+    // Validate required fields
+    if (!data?.status || data.data.status !== "success") {
+      throw new Error("Payment not successful");
+    }
+
+    const metadata = data.data.metadata;
+    if (!metadata || metadata.type !== "wallet_topup") {
+      throw new Error("Invalid transaction type");
+    }
+
+    if (metadata.userId !== authSession.user.id) {
+      throw new Error("User mismatch");
+    }
+
+    // Idempotency check: check if this reference was already processed
+    const existingTx = await WalletTransaction.findOne({
+      externalReference: reference,
+    }).session(session);
+    if (existingTx) {
+      await session.commitTransaction();
+      return { success: true, message: "Already processed" };
+    }
+
+    // Paystack amounts are in the smallest currency unit (e.g., kobo/cents)
+    // Most currencies supported by Paystack (NGN, GHS, ZAR, KES) use 100 as divisor
+    const amount = data.data.amount / 100;
+
+    const user = await User.findById(metadata.userId).session(session);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const balanceBefore = round2(user.walletBalance || 0);
+    user.walletBalance = round2(balanceBefore + amount);
+    await user.save({ session });
+
+    const balanceAfter = round2(user.walletBalance);
+
+    await WalletTransaction.create(
+      [
+        {
+          user: user._id,
+          amount: amount,
+          reason: `Wallet Top-up via Paystack (${reference})`,
+          source: "deposit",
+          balanceBefore,
+          balanceAfter,
+          externalReference: reference,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    revalidatePath("/account/wallet");
+    return { success: true, message: "Wallet credited successfully" };
+  } catch (err) {
+    await session.abortTransaction();
+    return { success: false, message: formatError(err) };
+  } finally {
+    session.endSession();
   }
 }
 

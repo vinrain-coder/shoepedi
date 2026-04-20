@@ -26,8 +26,9 @@ export function WalletTopupDialog() {
 
   const onSuccess = (reference: any) => {
     setLoading(true);
-    fetch("/api/paystack/wallet-verify", {
+    fetch("/api/paystack/verify", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reference: reference.reference }),
     })
       .then((res) => res.json())
