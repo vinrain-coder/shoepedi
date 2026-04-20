@@ -7,8 +7,11 @@ import { getServerSession } from "@/lib/get-session";
 import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
-import { escapeRegExp, formatError, round2 } from "@/lib/utils";
+import WalletPayout from "@/lib/db/models/wallet-payout.model";
+import { escapeRegExp, formatError, round2, formatCurrency } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
+import { WalletPayoutInputSchema } from "../validator";
+import { sendAdminEventNotification } from "../email/transactional";
 
 export type WalletTransactionRow = {
   id: string;
@@ -282,5 +285,295 @@ export async function adjustUserWalletAdmin({
       success: false,
       message: formatError(error),
     };
+  }
+}
+
+export async function initializeWalletTopup(amount: number) {
+  try {
+    const session = await getServerSession();
+    if (!session) throw new Error("User not authenticated");
+
+    const user = await User.findById(session.user.id).select("email");
+    if (!user) throw new Error("User not found");
+
+    const res = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: user.email,
+        amount: Math.round(amount * 100), // convert to cents
+        callback_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/account/wallet`,
+        metadata: {
+          userId: user._id.toString(),
+          type: "wallet_topup",
+        },
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.status) throw new Error(data.message);
+
+    return {
+      success: true,
+      data: {
+        ...data.data,
+        email: user.email,
+      },
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function createWalletPayoutRequest(data: any) {
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
+
+  try {
+    const authSession = await getServerSession();
+    if (!authSession) throw new Error("User not authenticated");
+
+    const validatedData = WalletPayoutInputSchema.parse(data);
+
+    const user = await User.findById(authSession.user.id).session(session);
+    if (!user) throw new Error("User not found");
+
+    if (validatedData.amount > user.walletBalance) {
+      throw new Error("Insufficient wallet balance");
+    }
+
+    const payout = await WalletPayout.create(
+      [
+        {
+          user: user._id,
+          amount: validatedData.amount,
+          paymentMethod: validatedData.paymentMethod,
+          paymentDetails: validatedData.paymentDetails,
+          status: "pending",
+        },
+      ],
+      { session }
+    );
+
+    const balanceBefore = round2(user.walletBalance);
+    user.walletBalance = round2(user.walletBalance - validatedData.amount);
+    await user.save({ session });
+
+    const balanceAfter = round2(user.walletBalance);
+
+    await WalletTransaction.create(
+      [
+        {
+          user: user._id,
+          amount: -validatedData.amount,
+          reason: `Payout request: ${validatedData.paymentMethod}`,
+          source: "payout",
+          balanceBefore,
+          balanceAfter,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    await sendAdminEventNotification({
+      title: "New wallet payout request",
+      description: `${user.name || "A user"} requested a wallet payout of ${formatCurrency(validatedData.amount)} via ${validatedData.paymentMethod}.`,
+      href: "/admin/wallet/payouts",
+      meta: "Payout pending",
+      createdAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/account/wallet");
+    revalidatePath("/admin/wallet/payouts");
+
+    return {
+      success: true,
+      message: "Payout request submitted successfully",
+      data: JSON.parse(JSON.stringify(payout[0])),
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function getAllWalletPayouts({
+  page = 1,
+  limit = 20,
+  status,
+  query,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  query?: string;
+}) {
+  try {
+    await ensureAdmin();
+    await connectToDatabase();
+
+    const filter: any = {};
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (query) {
+      const escapedQuery = escapeRegExp(query);
+      const regex = new RegExp(escapedQuery, "i");
+      const users = await User.find({
+        $or: [{ name: regex }, { email: regex }],
+      }).select("_id");
+      const userIds = users.map((u: any) => u._id);
+      filter.user = { $in: userIds };
+    }
+
+    const payouts = await WalletPayout.find(filter)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const count = await WalletPayout.countDocuments(filter);
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(payouts)),
+      totalPages: Math.ceil(count / limit),
+      totalPayouts: count,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function updateWalletPayoutStatus(
+  id: string,
+  status: "paid" | "rejected",
+  adminNote?: string
+) {
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
+
+  try {
+    await ensureAdmin();
+
+    const payout = await WalletPayout.findById(id).session(session);
+    if (!payout) throw new Error("Payout not found");
+    if (payout.status !== "pending" && payout.status !== "processing") {
+      throw new Error("Payout already processed");
+    }
+
+    if (status === "rejected") {
+      if (!adminNote || adminNote.trim().length === 0) {
+        throw new Error("A rejection reason is mandatory for rejection");
+      }
+      payout.adminNote = adminNote.trim();
+
+      // Refund user balance
+      const user = await User.findById(payout.user).session(session);
+      if (user) {
+        const balanceBefore = round2(user.walletBalance);
+        user.walletBalance = round2(user.walletBalance + payout.amount);
+        await user.save({ session });
+
+        const balanceAfter = round2(user.walletBalance);
+
+        await WalletTransaction.create(
+          [
+            {
+              user: user._id,
+              amount: payout.amount,
+              reason: `Payout rejected: ${adminNote}`,
+              source: "admin_adjustment",
+              balanceBefore,
+              balanceAfter,
+            },
+          ],
+          { session }
+        );
+      }
+    } else if (status === "paid") {
+      payout.adminNote = adminNote?.trim() || "";
+    }
+
+    payout.status = status;
+    await payout.save({ session });
+
+    await session.commitTransaction();
+
+    revalidatePath("/admin/wallet/payouts");
+    revalidatePath("/account/wallet");
+
+    return { success: true, message: `Payout marked as ${status}` };
+  } catch (error) {
+    await session.abortTransaction();
+    return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function deleteWalletPayoutRequest(id: string) {
+  const connection = await connectToDatabase();
+  const session = await connection.startSession();
+  session.startTransaction();
+
+  try {
+    await ensureAdmin();
+
+    const payout = await WalletPayout.findById(id).session(session);
+    if (!payout) throw new Error("Payout request not found");
+
+    if (payout.status === "pending" || payout.status === "processing") {
+      // Refund user balance before deletion
+      const user = await User.findById(payout.user).session(session);
+      if (user) {
+        const balanceBefore = round2(user.walletBalance);
+        user.walletBalance = round2(user.walletBalance + payout.amount);
+        await user.save({ session });
+
+        const balanceAfter = round2(user.walletBalance);
+
+        await WalletTransaction.create(
+          [
+            {
+              user: user._id,
+              amount: payout.amount,
+              reason: "Payout request deleted by admin (refunded)",
+              source: "admin_adjustment",
+              balanceBefore,
+              balanceAfter,
+            },
+          ],
+          { session }
+        );
+      }
+    }
+
+    await WalletPayout.findByIdAndDelete(id).session(session);
+
+    await session.commitTransaction();
+
+    revalidatePath("/admin/wallet/payouts");
+    revalidatePath("/account/wallet");
+
+    return {
+      success: true,
+      message: "Payout request deleted and balance refunded if applicable",
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
   }
 }

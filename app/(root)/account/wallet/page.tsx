@@ -6,13 +6,16 @@ import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
 import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import { Metadata } from "next";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, formatNumber } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet as WalletIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
 import Pagination from "@/components/shared/pagination";
 import { getSetting } from "@/lib/actions/setting.actions";
+import { WalletTopupDialog } from "./wallet-topup-dialog";
+import { WalletPayoutDialog } from "./wallet-payout-dialog";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "My Wallet",
@@ -55,7 +58,7 @@ export default async function WalletPage({
   const history = transactions.map((tx) => ({
     id: tx._id.toString(),
     date: tx.createdAt.toISOString(),
-    type: tx.source === "refund" || (tx.source === "admin_adjustment" && tx.amount >= 0) ? 'earned' : 'redeemed',
+    type: tx.source === "refund" || tx.source === "deposit" || (tx.source === "admin_adjustment" && tx.amount >= 0) ? 'earned' : 'redeemed',
     amount: Math.abs(tx.amount),
     orderId: tx.order?._id?.toString(),
     description: tx.reason
@@ -63,15 +66,22 @@ export default async function WalletPage({
 
   return (
     <div className="space-y-6">
+      <Script src="https://js.paystack.co/v1/inline.js" />
       <Breadcrumb />
-      <div className="flex flex-col gap-2">
-        <h1 className="h1-bold text-3xl flex items-center gap-2">
-          <WalletIcon className="h-8 w-8 text-primary" />
-          My Wallet
-        </h1>
-        <p className="text-muted-foreground">
-          View your refund balance and transaction history.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="h1-bold text-3xl flex items-center gap-2">
+            <WalletIcon className="h-8 w-8 text-primary" />
+            My Wallet
+          </h1>
+          <p className="text-muted-foreground">
+            View your refund balance and transaction history.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+            <WalletPayoutDialog currentBalance={user?.walletBalance || 0} />
+            <WalletTopupDialog />
+        </div>
       </div>
 
       <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
@@ -81,7 +91,7 @@ export default async function WalletPage({
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-foreground">{(user?.walletBalance || 0).toFixed(2)}</h2>
+            <h2 className="text-5xl font-extrabold text-foreground">{formatNumber(user?.walletBalance || 0)}</h2>
             <p className="text-sm text-muted-foreground mt-1">Available for future purchases</p>
           </div>
         </CardContent>
@@ -112,7 +122,7 @@ export default async function WalletPage({
                   <div className="text-right">
                     <p className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                       {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
-                      {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
+                      {event.type === 'earned' ? '+' : '-'}{formatNumber(event.amount)}
                     </p>
                     {event.orderId && <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>}
                   </div>

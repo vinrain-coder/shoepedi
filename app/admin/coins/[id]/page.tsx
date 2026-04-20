@@ -19,14 +19,10 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getUserCoinHistoryAdmin } from "@/lib/actions/coin.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, formatNumber } from "@/lib/utils";
 import CoinAdjustDialog from "../coin-adjust-dialog";
 
-const formatCoinAmount = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+const formatCoinAmount = (value: number) => formatNumber(value);
 
 export const metadata: Metadata = {
   title: "User Coin History",

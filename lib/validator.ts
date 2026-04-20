@@ -692,6 +692,14 @@ export const AffiliatePayoutInputSchema = z.object({
   }),
 });
 
+export const WalletPayoutInputSchema = z.object({
+  amount: Price("Payout amount"),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  paymentDetails: z.object({
+    recipient: z.string().min(1, "Recipient details are required"),
+  }),
+});
+
 export const DeliveryLocationInputSchema = z.object({
   county: z.string().trim().min(1, "County is required"),
   city: z.string().trim().min(1, "City is required"),

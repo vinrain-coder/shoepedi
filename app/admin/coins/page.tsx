@@ -15,15 +15,11 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getServerSession } from "@/lib/get-session";
 import { getCoinAdminStats, getCoinEarnersAdmin } from "@/lib/actions/coin.actions";
-import { formatDateTime, formatId } from "@/lib/utils";
+import { formatDateTime, formatId, formatNumber } from "@/lib/utils";
 import CoinStatsCards from "./coin-stats-cards";
 import CoinAdjustDialog from "./coin-adjust-dialog";
 
-const formatCoinAmount = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+const formatCoinAmount = (value: number) => formatNumber(value);
 
 export const metadata: Metadata = {
   title: "Admin Coins",

@@ -7,7 +7,7 @@ export interface IWalletTransaction extends Document {
   order?: Types.ObjectId;
   amount: number;
   reason: string;
-  source: "admin_adjustment" | "refund" | "wallet_payment";
+  source: "admin_adjustment" | "refund" | "wallet_payment" | "deposit" | "payout";
   balanceBefore: number;
   balanceAfter: number;
   createdAt: Date;
@@ -42,7 +42,7 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     },
     source: {
       type: String,
-      enum: ["admin_adjustment", "refund", "wallet_payment"],
+      enum: ["admin_adjustment", "refund", "wallet_payment", "deposit", "payout"],
       default: "admin_adjustment",
       required: true,
     },

@@ -6,11 +6,7 @@ import { cn, formatNumber } from "@/lib/utils";
 import { Coins, Users, Crown, RefreshCcw, ChevronDown, ChevronUp, LayoutPanelTop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const formatCoinAmount = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+const formatCoinAmount = (value: number) => formatNumber(value);
 
 export default function CoinStatsCards({
   stats,

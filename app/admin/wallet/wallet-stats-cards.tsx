@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconUsers, IconWallet, IconArrowsExchange, IconTrendingUp } from "@tabler/icons-react";
+import { formatNumber } from "@/lib/utils";
 
 interface StatsProps {
   totalUsers: number;
@@ -15,7 +16,7 @@ export function WalletStatsCards({ stats }: { stats: StatsProps }) {
   const cards = [
     {
       title: "Circulating Balance",
-      value: stats.totalWalletBalance.toFixed(2),
+      value: formatNumber(stats.totalWalletBalance),
       description: "Total value across all wallets",
       icon: IconWallet,
       color: "text-emerald-600",
@@ -29,7 +30,7 @@ export function WalletStatsCards({ stats }: { stats: StatsProps }) {
     },
     {
       title: "Average Balance",
-      value: stats.averageBalance.toFixed(2),
+      value: formatNumber(stats.averageBalance),
       description: "Mean balance per holder",
       icon: IconTrendingUp,
       color: "text-amber-600",
