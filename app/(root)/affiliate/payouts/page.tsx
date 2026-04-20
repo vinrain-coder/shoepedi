@@ -8,6 +8,7 @@ import PayoutRequestForm from "@/components/affiliate/payout-request-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Pagination from "@/components/shared/pagination";
 import Breadcrumb from "@/components/shared/breadcrumb";
+import { redirect } from "next/navigation";
 
 export default async function AffiliatePayoutsPage({
   searchParams,
@@ -16,12 +17,25 @@ export default async function AffiliatePayoutsPage({
 }) {
   const { page = "1" } = await searchParams;
   const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
-  const { data } = await getAffiliateDashboardData({ payoutPage: pageNum });
+  const result = await getAffiliateDashboardData({ payoutPage: pageNum });
+
+  if (!result.success) {
+    if (result.message === "User not authenticated") {
+      const { toSignInPath } = await import("@/lib/redirects");
+      redirect(toSignInPath());
+    }
+    return (
+      <div className="container mx-auto py-10">
+        <Breadcrumb />
+        <div className="p-4 border border-destructive bg-destructive/10 text-destructive rounded-md">
+          {result.message}
+        </div>
+      </div>
+    );
+  }
+
+  const { affiliate, recentPayouts, payoutTotalPages } = result.data;
   const { affiliate: settings } = await getSetting();
-
-  if (!data) return <div>Unauthorized</div>;
-
-  const { affiliate, recentPayouts, payoutTotalPages } = data;
 
   return (
     <div className="container mx-auto py-10 space-y-8">

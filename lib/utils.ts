@@ -97,7 +97,7 @@ export function calculateFutureDate(days: number) {
 export function getMonthName(yearMonth: string): string {
   const [year, month] = yearMonth.split("-").map(Number);
   const date = new Date(year, month - 1);
-  const monthName = date.toLocaleString("default", { month: "long" });
+  const monthName = date.toLocaleString("default", { month: "long", timeZone: "Africa/Nairobi" });
   const now = new Date();
 
   if (year === now.getFullYear() && month === now.getMonth() + 1) {
@@ -111,8 +111,8 @@ export function calculatePastDate(days: number) {
   return currentDate;
 }
 export function timeUntilMidnight(): { hours: number; minutes: number } {
-  const now = new Date();
-  const midnight = new Date();
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi" }));
+  const midnight = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi" }));
   midnight.setHours(24, 0, 0, 0); // Set to 12:00 AM (next day)
 
   const diff = midnight.getTime() - now.getTime(); // Difference in milliseconds
@@ -130,17 +130,20 @@ export const formatDateTime = (dateInput: Date | string | number) => {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    timeZone: "Africa/Nairobi",
   };
   const dateOptions: Intl.DateTimeFormatOptions = {
     // weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
     month: "short", // abbreviated month name (e.g., 'Oct')
     year: "numeric", // abbreviated month name (e.g., '2023')
     day: "numeric", // numeric day of the month (e.g., '25')
+    timeZone: "Africa/Nairobi",
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    timeZone: "Africa/Nairobi",
   };
   const parsedDate = new Date(dateInput);
 
@@ -210,6 +213,7 @@ export function formatDate(date: Date | string) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 

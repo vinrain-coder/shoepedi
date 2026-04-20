@@ -495,17 +495,22 @@ const runStatusTransition = async ({
 export const createOrder = async (
   clientSideCart: Cart & { coupon?: OrderCouponInput; userEmail?: string; userName?: string },
 ) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     await connectToDatabase();
-    const session = await getServerSession();
+    const userSession = await getServerSession();
 
     const createdOrder = await createOrderFromCart(
       clientSideCart,
-      session?.user?.id,
+      userSession?.user?.id,
       clientSideCart.coupon,
       clientSideCart.userEmail,
       clientSideCart.userName,
+      session
     );
+
+    await session.commitTransaction();
 
     // For guest checkout, we need to return the accessToken once upon creation
     const serialized = serializeOrder(createdOrder);
@@ -519,7 +524,10 @@ export const createOrder = async (
       data: serialized,
     };
   } catch (error) {
+    await session.abortTransaction();
     return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
   }
 };
 
@@ -529,6 +537,7 @@ export const createOrderFromCart = async (
   coupon?: OrderCouponInput,
   userEmail?: string,
   userName?: string,
+  session?: mongoose.ClientSession,
 ) => {
   const cookieStore = await cookies();
   let affiliateCode = cookieStore.get("affiliate_code")?.value;
@@ -606,6 +615,17 @@ export const createOrderFromCart = async (
       isAffiliate: false,
       isFirstPurchase: true,
     };
+
+    if (userId) {
+       const userUpdate = await User.findOneAndUpdate(
+         { _id: userId, firstPurchaseDiscountUsed: { $ne: true } },
+         { $set: { firstPurchaseDiscountUsed: true } },
+         { session, new: true }
+       );
+       if (!userUpdate) {
+          throw new Error("First purchase discount already used or invalid user.");
+       }
+    }
   }
 
   const pricing = await calcDeliveryDateAndPrice({
@@ -694,23 +714,16 @@ export const createOrderFromCart = async (
       },
     ],
   });
-  const createdOrder = await Order.create(order);
-
-  if (appliedCoupon?.isFirstPurchase && userId) {
-    await User.findByIdAndUpdate(userId, {
-      $set: { firstPurchaseDiscountUsed: true },
-    });
-  }
+  const [createdOrder] = await Order.create([order], { session });
 
   if (cart.paymentMethod === "Coins") {
     const userUpdate = await User.findOneAndUpdate(
       { _id: userId, coins: { $gte: totalPrice } },
       { $inc: { coins: -totalPrice } },
-      { new: true }
+      { new: true, session }
     );
 
     if (!userUpdate) {
-      await Order.findByIdAndDelete(createdOrder._id);
       throw new Error("Insufficient coins balance or payment failed");
     }
 
@@ -718,8 +731,6 @@ export const createOrderFromCart = async (
   }
 
   if (cart.paymentMethod === "Wallet") {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
       const userUpdate = await User.findOneAndUpdate(
         { _id: userId, walletBalance: { $gte: totalPrice } },
@@ -749,14 +760,9 @@ export const createOrderFromCart = async (
         { session }
       );
 
-      await session.commitTransaction();
       await runPostPaymentSideEffects(createdOrder._id.toString());
     } catch (error) {
-      await session.abortTransaction();
-      await Order.findByIdAndDelete(createdOrder._id);
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 
@@ -1184,6 +1190,11 @@ export async function getOrderByTrackingNumber(trackingNumber: string) {
 export async function deleteOrder(id: string) {
   try {
     await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
     const res = await Order.findByIdAndDelete(id);
     if (!res) throw new Error("Order not found");
     revalidatePath("/admin/orders");

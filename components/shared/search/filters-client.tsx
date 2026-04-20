@@ -495,7 +495,7 @@ export default function FiltersClient({
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <SheetTrigger asChild>
-              <Button className="rounded-full">Filters</Button>
+              <Button variant="elevated" className="rounded-full">Filters</Button>
             </SheetTrigger>
 
             <div className="flex-1">
