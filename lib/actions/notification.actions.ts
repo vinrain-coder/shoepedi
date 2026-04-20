@@ -12,10 +12,11 @@ import AdminNotificationState from "../db/models/admin-notification-state.model"
 import SupportTicket from "../db/models/support-ticket.model";
 import Affiliate from "../db/models/affiliate.model";
 import AffiliatePayout from "../db/models/affiliate-payout.model";
+import WalletPayout from "../db/models/wallet-payout.model";
 
 export type AdminNotificationItem = {
   id: string;
-  type: "order" | "review" | "stock-subscription" | "customer" | "support" | "affiliate" | "affiliate-payout";
+  type: "order" | "review" | "stock-subscription" | "customer" | "support" | "affiliate" | "affiliate-payout" | "wallet-payout";
   title: string;
   description: string;
   href: string;
@@ -133,7 +134,7 @@ export async function getAdminNotificationFeed(
 
   const lastSeenAt = state?.lastSeenAt ? new Date(state.lastSeenAt) : null;
 
-  const [orders, reviews, subscriptions, customers, supportTickets, affiliates, payouts] = (await Promise.all([
+  const [orders, reviews, subscriptions, customers, supportTickets, affiliates, payouts, walletPayouts] = (await Promise.all([
     Order.find({ status: { $nin: ["cancelled", "return_requested"] } })
       .populate("user", "name email")
       .sort({ createdAt: -1 })
@@ -171,6 +172,11 @@ export async function getAdminNotificationFeed(
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean(),
+    WalletPayout.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean(),
   ])) as [
     OrderNotificationSource[],
     ReviewNotificationSource[],
@@ -179,6 +185,7 @@ export async function getAdminNotificationFeed(
     SupportNotificationSource[],
     AffiliateNotificationSource[],
     AffiliatePayoutNotificationSource[],
+    any[],
   ];
 
   const items: AdminNotificationItem[] = [
@@ -251,9 +258,19 @@ export async function getAdminNotificationFeed(
     ...payouts.map((payout) => ({
       id: `affiliate-payout-${asId(payout._id)}`,
       type: "affiliate-payout" as const,
-      title: "New payout request",
+      title: "New affiliate payout request",
       description: `${payout.affiliate?.user?.name || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
-      href: "/admin/payouts",
+      href: "/admin/affiliates/payouts",
+      createdAt: asDate(payout.createdAt),
+      isUnread: lastSeenAt ? new Date(payout.createdAt) > lastSeenAt : true,
+      meta: payout.status === "pending" ? "Payout pending" : `Status: ${payout.status}`,
+    })),
+    ...walletPayouts.map((payout) => ({
+      id: `wallet-payout-${asId(payout._id)}`,
+      type: "wallet-payout" as const,
+      title: "New wallet payout request",
+      description: `${payout.user?.name || "A user"} requested a wallet payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
+      href: "/admin/wallet/payouts",
       createdAt: asDate(payout.createdAt),
       isUnread: lastSeenAt ? new Date(payout.createdAt) > lastSeenAt : true,
       meta: payout.status === "pending" ? "Payout pending" : `Status: ${payout.status}`,
