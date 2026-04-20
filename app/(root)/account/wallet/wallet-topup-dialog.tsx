@@ -75,6 +75,7 @@ export function WalletTopupDialog() {
           key: config.publicKey,
           email: config.email,
           amount: config.amount,
+          currency: "KES",
           ref: config.reference,
           onClose: () => {
               setLoading(false);

@@ -291,6 +291,26 @@ export async function adjustUserWalletAdmin({
   }
 }
 
+export type PaystackVerifyResponse = {
+  status: boolean;
+  message: string;
+  data: {
+    id: number;
+    status: string;
+    amount: number;
+    currency: string;
+    customer: {
+      email: string;
+    };
+    metadata: {
+      userId: string;
+      type: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+};
+
 export async function initializeWalletTopup(amount: number) {
   try {
     const numericAmount = round2(Number(amount));
@@ -341,23 +361,34 @@ export async function initializeWalletTopup(amount: number) {
   }
 }
 
-export async function completeWalletTopup(reference: string, paystackData: any) {
-  const connection = await connectToDatabase();
-  const session = await connection.startSession();
-  session.startTransaction();
+export async function completeWalletTopup(
+  reference: string,
+  data: PaystackVerifyResponse,
+) {
+  await connectToDatabase();
 
   try {
     const authSession = await getServerSession();
+    if (!authSession) throw new Error("Unauthorized");
 
-    if (!authSession) {
-      throw new Error("Unauthorized");
-    }
+    // Preliminary idempotency check outside transaction
+    const existingTxPre = await WalletTransaction.findOne({
+      externalReference: reference,
+    }).lean();
+    if (existingTxPre) return { success: true, message: "Already processed" };
 
-    const data = paystackData;
-
-    // Validate required fields
+    // Validate Paystack response
     if (!data?.status || data.data.status !== "success") {
       throw new Error("Payment not successful");
+    }
+
+    if (data.data.currency !== "KES") {
+      throw new Error(`Unsupported currency: ${data.data.currency}`);
+    }
+
+    const amount = data.data.amount / 100;
+    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_TOPUP) {
+      throw new Error("Invalid payment amount");
     }
 
     const metadata = data.data.metadata;
@@ -369,53 +400,65 @@ export async function completeWalletTopup(reference: string, paystackData: any) 
       throw new Error("User mismatch");
     }
 
-    // Idempotency check: check if this reference was already processed
-    const existingTx = await WalletTransaction.findOne({
-      externalReference: reference,
-    }).session(session);
-    if (existingTx) {
+    const connection = await connectToDatabase();
+    const session = await connection.startSession();
+    session.startTransaction();
+
+    try {
+      // Re-verify inside transaction
+      const existingTx = await WalletTransaction.findOne({
+        externalReference: reference,
+      }).session(session);
+
+      if (existingTx) {
+        await session.abortTransaction();
+        return { success: true, message: "Already processed" };
+      }
+
+      const user = await User.findById(metadata.userId).session(session);
+      if (!user) throw new Error("User not found");
+
+      const balanceBefore = round2(user.walletBalance || 0);
+      user.walletBalance = round2(balanceBefore + amount);
+      await user.save({ session });
+
+      const balanceAfter = round2(user.walletBalance);
+
+      try {
+        await WalletTransaction.create(
+          [
+            {
+              user: user._id,
+              amount: amount,
+              reason: `Wallet Top-up via Paystack (${reference})`,
+              source: "deposit",
+              balanceBefore,
+              balanceAfter,
+              externalReference: reference,
+            },
+          ],
+          { session },
+        );
+      } catch (dbErr: any) {
+        if (dbErr.code === 11000 || dbErr.name === "MongoServerError") {
+          await session.abortTransaction();
+          return { success: true, message: "Already processed" };
+        }
+        throw dbErr;
+      }
+
       await session.commitTransaction();
-      return { success: true, message: "Already processed" };
+      revalidatePath("/account/wallet");
+      return { success: true, message: "Wallet credited successfully" };
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
     }
-
-    // Paystack amounts are in the smallest currency unit (e.g., kobo/cents)
-    // Most currencies supported by Paystack (NGN, GHS, ZAR, KES) use 100 as divisor
-    const amount = data.data.amount / 100;
-
-    const user = await User.findById(metadata.userId).session(session);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const balanceBefore = round2(user.walletBalance || 0);
-    user.walletBalance = round2(balanceBefore + amount);
-    await user.save({ session });
-
-    const balanceAfter = round2(user.walletBalance);
-
-    await WalletTransaction.create(
-      [
-        {
-          user: user._id,
-          amount: amount,
-          reason: `Wallet Top-up via Paystack (${reference})`,
-          source: "deposit",
-          balanceBefore,
-          balanceAfter,
-          externalReference: reference,
-        },
-      ],
-      { session },
-    );
-
-    await session.commitTransaction();
-    revalidatePath("/account/wallet");
-    return { success: true, message: "Wallet credited successfully" };
   } catch (err) {
-    await session.abortTransaction();
+    console.error("completeWalletTopup error:", err);
     return { success: false, message: formatError(err) };
-  } finally {
-    session.endSession();
   }
 }
 

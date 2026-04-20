@@ -85,11 +85,15 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ status: true, data: data.data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Verification error:", error);
+    const message =
+      typeof error === "object" && error !== null && "message" in error
+        ? (error as { message: string }).message
+        : "Verification failed";
     return NextResponse.json({
       status: false,
-      message: error.message || "Verification failed",
+      message,
     });
   }
 }

@@ -28,7 +28,9 @@ declare global {
         amount: number;
         currency: string;
         ref: string;
-        metadata?: Record<string, any>;
+        metadata?:
+          | { type: "order"; orderId: string; [key: string]: any }
+          | { type: "wallet_topup"; userId: string; [key: string]: any };
         onClose: () => void;
         callback: (response: { reference: string }) => void;
       }) => { openIframe: () => void };
