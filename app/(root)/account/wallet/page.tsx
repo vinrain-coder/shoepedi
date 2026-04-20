@@ -6,7 +6,7 @@ import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
 import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
 import { Metadata } from "next";
-import { formatDateTime, formatNumber } from "@/lib/utils";
+import { formatDateTime, formatNumberWithTwoDecimals } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet as WalletIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
@@ -66,7 +66,7 @@ export default async function WalletPage({
 
   return (
     <div className="space-y-6">
-      <Script src="https://js.paystack.co/v1/inline.js" />
+      <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
       <Breadcrumb />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
@@ -91,7 +91,7 @@ export default async function WalletPage({
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-foreground">{formatNumber(user?.walletBalance || 0)}</h2>
+            <h2 className="text-5xl font-extrabold text-foreground">KES {formatNumberWithTwoDecimals(user?.walletBalance || 0)}</h2>
             <p className="text-sm text-muted-foreground mt-1">Available for future purchases</p>
           </div>
         </CardContent>
@@ -122,7 +122,7 @@ export default async function WalletPage({
                   <div className="text-right">
                     <p className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                       {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
-                      {event.type === 'earned' ? '+' : '-'}{formatNumber(event.amount)}
+                      {event.type === 'earned' ? '+' : '-'}{formatNumberWithTwoDecimals(event.amount)}
                     </p>
                     {event.orderId && <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>}
                   </div>

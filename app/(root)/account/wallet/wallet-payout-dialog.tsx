@@ -23,9 +23,11 @@ import {
 import { toast } from "sonner";
 import { createWalletPayoutRequest } from "@/lib/actions/wallet.actions";
 import { ArrowDownToLine, Loader2 } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export function WalletPayoutDialog({ currentBalance }: { currentBalance: number }) {
+  const router = useRouter();
   const [amount, setAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("MPESA");
   const [recipient, setRecipient] = useState<string>("");
@@ -64,11 +66,11 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
         setOpen(false);
         setAmount("");
         setRecipient("");
-        window.location.reload();
+        router.refresh();
       } else {
         toast.error(res.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit payout request");
     } finally {
       setLoading(false);
@@ -88,7 +90,7 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
           <DialogHeader>
             <DialogTitle>Request Payout</DialogTitle>
             <DialogDescription>
-              Request to withdraw funds from your wallet. Current balance: KES {formatNumber(currentBalance)}
+              Request to withdraw funds from your wallet. Current balance: KES {formatNumberWithTwoDecimals(currentBalance)}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

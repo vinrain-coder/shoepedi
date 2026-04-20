@@ -13,8 +13,15 @@ import Pagination from "@/components/shared/pagination";
 import { getAllWalletPayouts } from "@/lib/actions/wallet.actions";
 import { getServerSession } from "@/lib/get-session";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime, formatNumber } from "@/lib/utils";
+import { formatDateTime, formatCurrency } from "@/lib/utils";
 import { PayoutStatusActions } from "./payout-status-actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const metadata: Metadata = {
   title: "Wallet Payout Requests",
@@ -39,6 +46,8 @@ export default async function AdminWalletPayoutsPage({
     status: status,
   });
 
+  const { data: payouts = [], totalPages = 1 } = payoutsData as { data: any[], totalPages: number };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -46,15 +55,35 @@ export default async function AdminWalletPayoutsPage({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="relative flex-1 min-w-[300px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <form method="GET">
-            <Input
-              name="q"
-              placeholder="Search by user name or email..."
-              defaultValue={q}
-              className="pl-10"
-            />
+        <div className="flex flex-1 flex-wrap items-center gap-4">
+          <form method="GET" className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="relative flex-1 min-w-[300px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                name="q"
+                placeholder="Search by user name or email..."
+                defaultValue={q}
+                className="pl-10"
+              />
+            </div>
+
+            <Select name="status" defaultValue={status}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Preserve page if searching, though often searching should reset to page 1 */}
+            <input type="hidden" name="page" value="1" />
+
+            <button type="submit" className="hidden">Search</button>
           </form>
         </div>
       </div>
@@ -73,8 +102,8 @@ export default async function AdminWalletPayoutsPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payoutsData.data.length > 0 ? (
-              payoutsData.data.map((payout: any) => (
+            {payouts.length > 0 ? (
+              payouts.map((payout: any) => (
                 <TableRow key={payout._id}>
                   <TableCell>
                     <div className="flex flex-col">
@@ -83,7 +112,7 @@ export default async function AdminWalletPayoutsPage({
                     </div>
                   </TableCell>
                   <TableCell className="font-mono">
-                    {formatNumber(payout.amount)}
+                    {formatCurrency(payout.amount)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{payout.paymentMethod}</Badge>
@@ -123,8 +152,8 @@ export default async function AdminWalletPayoutsPage({
         </Table>
       </div>
 
-      {payoutsData.totalPages > 1 && (
-        <Pagination page={String(currentPage)} totalPages={payoutsData.totalPages} />
+      {totalPages > 1 && (
+        <Pagination page={String(currentPage)} totalPages={totalPages} />
       )}
     </div>
   );

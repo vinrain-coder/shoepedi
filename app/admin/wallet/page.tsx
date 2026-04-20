@@ -14,7 +14,7 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getWalletAdminStats, getWalletEarnersAdmin, WalletEarnerRow } from "@/lib/actions/wallet.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatNumber } from "@/lib/utils";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
 import { WalletStatsCards } from "./wallet-stats-cards";
 import WalletAdjustDialog from "./wallet-adjust-dialog";
 
@@ -85,7 +85,7 @@ export default async function AdminWalletPage({
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatNumber(user.walletBalance || 0)}
+                    {formatNumberWithTwoDecimals(user.walletBalance || 0)}
                   </TableCell>
                   <TableCell className="text-right flex justify-end gap-2">
                     <WalletAdjustDialog userId={user._id} currentBalance={user.walletBalance} />

@@ -5,7 +5,7 @@ export interface IWalletPayout extends Document {
   amount: number;
   status: "pending" | "processing" | "paid" | "rejected";
   paymentMethod: string;
-  paymentDetails: Record<string, any>;
+  paymentDetails: { recipient: string };
   adminNote?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +28,9 @@ const walletPayoutSchema = new Schema<IWalletPayout>(
     timestamps: true,
   }
 );
+
+walletPayoutSchema.index({ user: 1 });
+walletPayoutSchema.index({ status: 1, createdAt: -1 });
 
 const WalletPayout =
   (models.WalletPayout as Model<IWalletPayout>) ||

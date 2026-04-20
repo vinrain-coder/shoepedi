@@ -19,10 +19,10 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getUserWalletHistoryAdmin } from "@/lib/actions/wallet.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatDateTime, formatId, formatNumber } from "@/lib/utils";
+import { formatDateTime, formatId, formatNumberWithTwoDecimals } from "@/lib/utils";
 import WalletAdjustDialog from "../wallet-adjust-dialog";
 
-const formatAmount = (value: number) => formatNumber(value);
+const formatAmount = (value: number) => formatNumberWithTwoDecimals(value);
 
 export const metadata: Metadata = {
   title: "User Wallet History",

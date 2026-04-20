@@ -19,10 +19,9 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getUserCoinHistoryAdmin } from "@/lib/actions/coin.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatDateTime, formatNumber } from "@/lib/utils";
+import { formatDateTime, formatNumberWithTwoDecimals } from "@/lib/utils";
 import CoinAdjustDialog from "../coin-adjust-dialog";
 
-const formatCoinAmount = (value: number) => formatNumber(value);
 
 export const metadata: Metadata = {
   title: "User Coin History",
@@ -84,7 +83,7 @@ export default async function AdminUserCoinHistoryPage({
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-2xl font-bold">
             <Wallet className="size-5 text-muted-foreground" />
-            {formatCoinAmount(data.user.coins)}
+            {formatNumberWithTwoDecimals(data.user.coins)}
           </CardContent>
         </Card>
         <Card>
@@ -130,7 +129,7 @@ export default async function AdminUserCoinHistoryPage({
                     <TableCell className="capitalize">{String(event.type).replaceAll("_", " ")}</TableCell>
                     <TableCell className={isNegative ? "text-destructive font-medium" : "text-emerald-600 font-medium"}>
                       {isNegative ? "-" : "+"}
-                      {formatCoinAmount(event.amount)}
+                      {formatNumberWithTwoDecimals(event.amount)}
                     </TableCell>
                     <TableCell>{event.reason}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
@@ -142,7 +141,7 @@ export default async function AdminUserCoinHistoryPage({
                         <span>By {event.admin.name || event.admin.email}</span>
                       ) : event.balanceAfter !== undefined ? (
                         <span>
-                          {formatCoinAmount(event.balanceBefore ?? 0)} → {formatCoinAmount(event.balanceAfter ?? 0)}
+                          {formatNumberWithTwoDecimals(event.balanceBefore ?? 0)} → {formatNumberWithTwoDecimals(event.balanceAfter ?? 0)}
                         </span>
                       ) : (
                         <span>-</span>

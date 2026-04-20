@@ -6,7 +6,6 @@ import { cn, formatNumber } from "@/lib/utils";
 import { Coins, Users, Crown, RefreshCcw, ChevronDown, ChevronUp, LayoutPanelTop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const formatCoinAmount = (value: number) => formatNumber(value);
 
 export default function CoinStatsCards({
   stats,
@@ -27,8 +26,8 @@ export default function CoinStatsCards({
     {
       key: "circulation",
       title: "Circulating",
-      value: formatCoinAmount(stats.circulatingCoins),
-      detail: `Avg ${formatCoinAmount(stats.averageBalance)}`,
+      value: formatNumberWithTwoDecimals(stats.circulatingCoins),
+      detail: `Avg ${formatNumberWithTwoDecimals(stats.averageBalance)}`,
       icon: Coins,
       iconClass: "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
     },
@@ -43,7 +42,7 @@ export default function CoinStatsCards({
     {
       key: "top",
       title: "Top Holder",
-      value: formatCoinAmount(stats.topHolderBalance),
+      value: formatNumberWithTwoDecimals(stats.topHolderBalance),
       detail: stats.topHolderName,
       icon: Crown,
       iconClass: "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300",

@@ -10,6 +10,7 @@ export interface IWalletTransaction extends Document {
   source: "admin_adjustment" | "refund" | "wallet_payment" | "deposit" | "payout";
   balanceBefore: number;
   balanceAfter: number;
+  externalReference?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +54,12 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     balanceAfter: {
       type: Number,
       required: true,
+    },
+    externalReference: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
     },
   },
   {

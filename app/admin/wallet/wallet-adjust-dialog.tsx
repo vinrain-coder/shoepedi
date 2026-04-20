@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { adjustUserWalletAdmin } from "@/lib/actions/wallet.actions";
 import { Wallet } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
 
 export default function WalletAdjustDialog({
   userId,
@@ -101,7 +101,7 @@ export default function WalletAdjustDialog({
           <DialogHeader>
             <DialogTitle>Adjust Wallet Balance</DialogTitle>
             <DialogDescription>
-              Manually add or deduct balance from the user&apos;s wallet. Current balance: {formatNumber(currentBalance)}
+              Manually add or deduct balance from the user&apos;s wallet. Current balance: {formatNumberWithTwoDecimals(currentBalance)}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

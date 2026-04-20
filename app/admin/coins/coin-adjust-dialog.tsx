@@ -18,9 +18,9 @@ import {
 import { adjustUserCoinsAdmin } from "@/lib/actions/coin.actions";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatNumber } from "@/lib/utils";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
 
-const formatCoinAmount = (value: number) => formatNumber(value);
+const formatCoinAmount = (value: number) => formatNumberWithTwoDecimals(value);
 
 export default function CoinAdjustDialog({
   userId,

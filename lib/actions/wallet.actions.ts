@@ -12,6 +12,9 @@ import { escapeRegExp, formatError, round2, formatCurrency } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
 import { WalletPayoutInputSchema } from "../validator";
 import { sendAdminEventNotification } from "../email/transactional";
+import { z } from "zod";
+
+const MAX_TOPUP = 100000; // Define a sensible max top-up limit (e.g. 100k KES)
 
 export type WalletTransactionRow = {
   id: string;
@@ -290,6 +293,15 @@ export async function adjustUserWalletAdmin({
 
 export async function initializeWalletTopup(amount: number) {
   try {
+    const numericAmount = round2(Number(amount));
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      throw new Error("Invalid top-up amount");
+    }
+
+    if (numericAmount > MAX_TOPUP) {
+      throw new Error(`Maximum top-up amount is ${formatCurrency(MAX_TOPUP)}`);
+    }
+
     const session = await getServerSession();
     if (!session) throw new Error("User not authenticated");
 
@@ -304,7 +316,7 @@ export async function initializeWalletTopup(amount: number) {
       },
       body: JSON.stringify({
         email: user.email,
-        amount: Math.round(amount * 100), // convert to cents
+        amount: Math.round(numericAmount * 100), // convert to cents
         callback_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/account/wallet`,
         metadata: {
           userId: user._id.toString(),
@@ -328,7 +340,7 @@ export async function initializeWalletTopup(amount: number) {
   }
 }
 
-export async function createWalletPayoutRequest(data: any) {
+export async function createWalletPayoutRequest(data: z.infer<typeof WalletPayoutInputSchema>) {
   const connection = await connectToDatabase();
   const session = await connection.startSession();
   session.startTransaction();
@@ -426,7 +438,9 @@ export async function getAllWalletPayouts({
     }
 
     if (query) {
-      const escapedQuery = escapeRegExp(query);
+      // Defense-in-depth: cap query length to mitigate ReDoS risks
+      const truncatedQuery = query.slice(0, 100);
+      const escapedQuery = escapeRegExp(truncatedQuery);
       const regex = new RegExp(escapedQuery, "i");
       const users = await User.find({
         $or: [{ name: regex }, { email: regex }],
@@ -450,7 +464,13 @@ export async function getAllWalletPayouts({
       totalPayouts: count,
     };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    return {
+      success: false,
+      message: formatError(error),
+      data: [],
+      totalPages: 0,
+      totalPayouts: 0,
+    };
   }
 }
 
@@ -493,7 +513,7 @@ export async function updateWalletPayoutStatus(
               user: user._id,
               amount: payout.amount,
               reason: `Payout rejected: ${adminNote}`,
-              source: "admin_adjustment",
+              source: "refund",
               balanceBefore,
               balanceAfter,
             },
@@ -549,7 +569,7 @@ export async function deleteWalletPayoutRequest(id: string) {
               user: user._id,
               amount: payout.amount,
               reason: "Payout request deleted by admin (refunded)",
-              source: "admin_adjustment",
+              source: "refund",
               balanceBefore,
               balanceAfter,
             },

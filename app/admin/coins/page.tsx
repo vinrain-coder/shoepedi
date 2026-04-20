@@ -15,11 +15,10 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getServerSession } from "@/lib/get-session";
 import { getCoinAdminStats, getCoinEarnersAdmin } from "@/lib/actions/coin.actions";
-import { formatDateTime, formatId, formatNumber } from "@/lib/utils";
+import { formatDateTime, formatId, formatNumberWithTwoDecimals } from "@/lib/utils";
 import CoinStatsCards from "./coin-stats-cards";
 import CoinAdjustDialog from "./coin-adjust-dialog";
 
-const formatCoinAmount = (value: number) => formatNumber(value);
 
 export const metadata: Metadata = {
   title: "Admin Coins",
@@ -92,7 +91,7 @@ export default async function AdminCoinsPage({
                     <div className="font-medium">{user.name}</div>
                     <div className="text-xs text-muted-foreground">{user.email}</div>
                   </TableCell>
-                  <TableCell className="font-semibold">{formatCoinAmount(Number(user.coins || 0))}</TableCell>
+                  <TableCell className="font-semibold">{formatNumberWithTwoDecimals(Number(user.coins || 0))}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {user.createdAt ? formatDateTime(user.createdAt).dateOnly : "-"}
                   </TableCell>

@@ -20,8 +20,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { MoreHorizontal, CheckCircle, XCircle, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateWalletPayoutStatus, deleteWalletPayoutRequest } from "@/lib/actions/wallet.actions";
+import { useRouter } from "next/navigation";
 
-export function PayoutStatusActions({ payout }: { payout: any }) {
+interface Payout {
+  _id: string;
+  status: "pending" | "processing" | "paid" | "rejected";
+}
+
+export function PayoutStatusActions({ payout }: { payout: Payout }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"paid" | "rejected" | "delete" | null>(null);
@@ -42,7 +49,8 @@ export function PayoutStatusActions({ payout }: { payout: any }) {
       if (res.success) {
         toast.success(res.message);
         setDialogOpen(false);
-        window.location.reload();
+        setAdminNote("");
+        router.refresh();
       } else {
         toast.error(res.message);
       }
@@ -55,7 +63,15 @@ export function PayoutStatusActions({ payout }: { payout: any }) {
 
   const openDialog = (type: "paid" | "rejected" | "delete") => {
     setActionType(type);
+    setAdminNote("");
     setDialogOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setAdminNote("");
+    }
   };
 
   return (
@@ -86,7 +102,7 @@ export function PayoutStatusActions({ payout }: { payout: any }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -114,7 +130,7 @@ export function PayoutStatusActions({ payout }: { payout: any }) {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={loading}>
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
             <Button

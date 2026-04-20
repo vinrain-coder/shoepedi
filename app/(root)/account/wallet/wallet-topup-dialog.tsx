@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { initializeWalletTopup } from "@/lib/actions/wallet.actions";
 import { PlusCircle, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function WalletTopupDialog() {
+  const router = useRouter();
   const [amount, setAmount] = useState<string>("1000");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -33,7 +35,7 @@ export function WalletTopupDialog() {
         if (data.status) {
           toast.success("Wallet topped up successfully!");
           setOpen(false);
-          window.location.reload();
+          router.refresh();
         } else {
           toast.error(data.message || "Failed to verify top-up");
         }
