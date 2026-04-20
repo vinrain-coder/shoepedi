@@ -291,6 +291,26 @@ export async function adjustUserWalletAdmin({
   }
 }
 
+export type PaystackVerifyResponse = {
+  status: boolean;
+  message: string;
+  data: {
+    id: number;
+    status: string;
+    amount: number;
+    currency: string;
+    customer: {
+      email: string;
+    };
+    metadata: {
+      userId: string;
+      type: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+};
+
 export async function initializeWalletTopup(amount: number) {
   try {
     const numericAmount = round2(Number(amount));
@@ -317,6 +337,7 @@ export async function initializeWalletTopup(amount: number) {
       body: JSON.stringify({
         email: user.email,
         amount: Math.round(numericAmount * 100), // convert to cents
+        currency: "KES",
         callback_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/account/wallet`,
         metadata: {
           userId: user._id.toString(),
@@ -337,6 +358,107 @@ export async function initializeWalletTopup(amount: number) {
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
+  }
+}
+
+export async function completeWalletTopup(
+  reference: string,
+  data: PaystackVerifyResponse,
+) {
+  await connectToDatabase();
+
+  try {
+    const authSession = await getServerSession();
+    if (!authSession) throw new Error("Unauthorized");
+
+    // Preliminary idempotency check outside transaction
+    const existingTxPre = await WalletTransaction.findOne({
+      externalReference: reference,
+    }).lean();
+    if (existingTxPre) return { success: true, message: "Already processed" };
+
+    // Validate Paystack response
+    if (!data?.status || data.data.status !== "success") {
+      throw new Error("Payment not successful");
+    }
+
+    if (data.data.currency !== "KES") {
+      throw new Error(`Unsupported currency: ${data.data.currency}`);
+    }
+
+    const amount = data.data.amount / 100;
+    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_TOPUP) {
+      throw new Error("Invalid payment amount");
+    }
+
+    const metadata = data.data.metadata;
+    if (!metadata || metadata.type !== "wallet_topup") {
+      throw new Error("Invalid transaction type");
+    }
+
+    if (metadata.userId !== authSession.user.id) {
+      throw new Error("User mismatch");
+    }
+
+    const connection = await connectToDatabase();
+    const session = await connection.startSession();
+    session.startTransaction();
+
+    try {
+      // Re-verify inside transaction
+      const existingTx = await WalletTransaction.findOne({
+        externalReference: reference,
+      }).session(session);
+
+      if (existingTx) {
+        await session.abortTransaction();
+        return { success: true, message: "Already processed" };
+      }
+
+      const user = await User.findById(metadata.userId).session(session);
+      if (!user) throw new Error("User not found");
+
+      const balanceBefore = round2(user.walletBalance || 0);
+      user.walletBalance = round2(balanceBefore + amount);
+      await user.save({ session });
+
+      const balanceAfter = round2(user.walletBalance);
+
+      try {
+        await WalletTransaction.create(
+          [
+            {
+              user: user._id,
+              amount: amount,
+              reason: `Wallet Top-up via Paystack (${reference})`,
+              source: "deposit",
+              balanceBefore,
+              balanceAfter,
+              externalReference: reference,
+            },
+          ],
+          { session },
+        );
+      } catch (dbErr: any) {
+        if (dbErr.code === 11000 || dbErr.name === "MongoServerError") {
+          await session.abortTransaction();
+          return { success: true, message: "Already processed" };
+        }
+        throw dbErr;
+      }
+
+      await session.commitTransaction();
+      revalidatePath("/account/wallet");
+      return { success: true, message: "Wallet credited successfully" };
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
+    }
+  } catch (err) {
+    console.error("completeWalletTopup error:", err);
+    return { success: false, message: formatError(err) };
   }
 }
 

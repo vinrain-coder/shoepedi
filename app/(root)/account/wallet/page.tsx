@@ -39,7 +39,7 @@ export default async function WalletPage({
     common: { pageSize },
   } = await getSetting();
 
-  const user = await User.findById(session.user.id).select("walletBalance");
+  const user = await User.findById(session.user.id).select("walletBalance").lean();
 
   // Fetch all wallet transactions with DB-side pagination
   const totalCount = await WalletTransaction.countDocuments({ user: session.user.id });
@@ -57,9 +57,9 @@ export default async function WalletPage({
 
   const history = transactions.map((tx) => ({
     id: tx._id.toString(),
-    date: tx.createdAt.toISOString(),
+    date: tx.createdAt ? tx.createdAt.toISOString() : new Date().toISOString(),
     type: tx.source === "refund" || tx.source === "deposit" || (tx.source === "admin_adjustment" && tx.amount >= 0) ? 'earned' : 'redeemed',
-    amount: Math.abs(tx.amount),
+    amount: Math.abs(tx.amount || 0),
     orderId: tx.order?._id?.toString(),
     description: tx.reason
   }));

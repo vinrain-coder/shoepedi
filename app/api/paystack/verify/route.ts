@@ -1,25 +1,42 @@
 import { NextResponse } from "next/server";
 import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
+import { completeWalletTopup } from "@/lib/actions/wallet.actions";
+import { verifyPaystackTransaction } from "@/lib/paystack";
 
 export async function POST(req: Request) {
   try {
-    const { reference, orderId } = await req.json();
+    const { reference, orderId: bodyOrderId } = await req.json();
 
-    const response = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      },
-    );
-
-    const data = await response.json();
+    const data = await verifyPaystackTransaction(reference);
 
     if (!data?.status || data.data.status !== "success") {
       return NextResponse.json({
         status: false,
         message: "Payment not successful",
+      });
+    }
+
+    const metadata = data.data.metadata;
+    const type = metadata?.type;
+
+    if (type === "wallet_topup") {
+      const result = await completeWalletTopup(reference, data);
+      if (!result.success) {
+        return NextResponse.json({
+          status: false,
+          message: result.message,
+        });
+      }
+      return NextResponse.json({ status: true, message: result.message, data: data.data });
+    }
+
+    // Default to order payment if not wallet_topup or if type is explicitly 'order'
+    const orderId = metadata?.orderId || bodyOrderId;
+
+    if (!orderId) {
+      return NextResponse.json({
+        status: false,
+        message: "Missing orderId for verification",
       });
     }
 
@@ -68,10 +85,15 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ status: true, data: data.data });
-  } catch {
+  } catch (error: unknown) {
+    console.error("Verification error:", error);
+    const message =
+      typeof error === "object" && error !== null && "message" in error
+        ? (error as { message: string }).message
+        : "Verification failed";
     return NextResponse.json({
       status: false,
-      message: "Verification failed",
+      message,
     });
   }
 }

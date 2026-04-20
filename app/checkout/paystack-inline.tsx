@@ -28,6 +28,9 @@ declare global {
         amount: number;
         currency: string;
         ref: string;
+        metadata?:
+          | { type: "order"; orderId: string; [key: string]: any }
+          | { type: "wallet_topup"; userId: string; [key: string]: any };
         onClose: () => void;
         callback: (response: { reference: string }) => void;
       }) => { openIframe: () => void };
@@ -85,6 +88,10 @@ export default function PaystackInline({
       amount,
       currency: "KES",
       ref: `${orderId}-${Date.now()}`,
+      metadata: {
+        orderId,
+        type: "order",
+      },
       onClose: function () {
         toast.error("Payment popup closed");
         setIsPaystackLaunched(false);
