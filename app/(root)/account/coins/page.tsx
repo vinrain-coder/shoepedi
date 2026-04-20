@@ -6,7 +6,7 @@ import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
 import { Metadata } from "next";
-import { formatDateTime, formatId } from "@/lib/utils";
+import { formatDateTime, formatId, formatNumberWithTwoDecimals } from "@/lib/utils";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
@@ -108,7 +108,7 @@ export default async function CoinsPage({
           </div>
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-foreground">{(user?.coins || 0).toFixed(2)}</h2>
+            <h2 className="text-5xl font-extrabold text-foreground">{formatNumberWithTwoDecimals(user?.coins || 0)}</h2>
             <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
           </div>
           <p className="text-xs text-muted-foreground italic mt-2">
@@ -142,7 +142,7 @@ export default async function CoinsPage({
                   <div className="text-right">
                     <p className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                       {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
-                      {event.type === 'earned' ? '+' : '-'}{Number(event.amount).toFixed(2)}
+                      {event.type === 'earned' ? '+' : '-'}{formatNumberWithTwoDecimals(event.amount)}
                     </p>
                     <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>
                   </div>

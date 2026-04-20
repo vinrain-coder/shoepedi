@@ -53,9 +53,17 @@ export function formatCurrency(amount: number) {
   return CURRENCY_FORMATTER.format(amount);
 }
 
-const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
-export function formatNumber(number: number) {
-  return NUMBER_FORMATTER.format(number);
+const COUNT_FORMATTER = new Intl.NumberFormat("en-US");
+export function formatNumber(number: number | string) {
+  return COUNT_FORMATTER.format(Number(number));
+}
+
+const NUMBER_FORMATTER_TWO_DECIMALS = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+export function formatNumberWithTwoDecimals(number: number | string) {
+  return NUMBER_FORMATTER_TWO_DECIMALS.format(Number(number));
 }
 
 export const round2 = (num: number) =>

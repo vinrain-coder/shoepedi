@@ -7,9 +7,10 @@ export interface IWalletTransaction extends Document {
   order?: Types.ObjectId;
   amount: number;
   reason: string;
-  source: "admin_adjustment" | "refund" | "wallet_payment";
+  source: "admin_adjustment" | "refund" | "wallet_payment" | "deposit" | "payout";
   balanceBefore: number;
   balanceAfter: number;
+  externalReference?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,7 +43,7 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     },
     source: {
       type: String,
-      enum: ["admin_adjustment", "refund", "wallet_payment"],
+      enum: ["admin_adjustment", "refund", "wallet_payment", "deposit", "payout"],
       default: "admin_adjustment",
       required: true,
     },
@@ -53,6 +54,12 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     balanceAfter: {
       type: Number,
       required: true,
+    },
+    externalReference: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
     },
   },
   {

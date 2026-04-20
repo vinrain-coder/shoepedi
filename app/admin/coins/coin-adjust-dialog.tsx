@@ -18,12 +18,9 @@ import {
 import { adjustUserCoinsAdmin } from "@/lib/actions/coin.actions";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
 
-const formatCoinAmount = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+const formatCoinAmount = (value: number) => formatNumberWithTwoDecimals(value);
 
 export default function CoinAdjustDialog({
   userId,
