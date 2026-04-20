@@ -346,7 +346,11 @@ export default function OrderDetailsForm({
                 caption="Cancel Order"
                 variant="destructive"
                 requireConfirmation
-                confirmationMessage="Are you sure you want to cancel this order? Any paid amount will be refunded to your coins."
+                confirmationMessage={
+                  order.paymentMethod === "Coins"
+                    ? "Are you sure you want to cancel this order? Any paid amount will be returned to your coin balance."
+                    : "Are you sure you want to cancel this order? Any paid amount will be refunded to your wallet."
+                }
                 action={() => cancelOrder(orderId)}
               />
             )}

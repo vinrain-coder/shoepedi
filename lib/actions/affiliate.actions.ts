@@ -174,14 +174,14 @@ export async function getAffiliateStatus() {
 
     return {
       exists: true,
-      status: affiliate.status,
+      status: affiliate.status as string,
       affiliateCode: affiliate.affiliateCode,
       paymentDetails: affiliate.paymentDetails,
       adminNote: affiliate.adminNote || "",
     };
   } catch (error) {
     console.error("Error getting affiliate status:", error);
-    return { exists: false };
+    return { exists: false, error: true, message: formatError(error) };
   }
 }
 

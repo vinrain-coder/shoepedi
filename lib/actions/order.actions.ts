@@ -29,6 +29,7 @@ import Review from "../db/models/review.model";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import SupportTicket from "../db/models/support-ticket.model";
 import mongoose from "mongoose";
+import FirstPurchaseClaim from "../db/models/first-purchase-claim.model";
 import WalletTransaction from "../db/models/wallet-transaction.model";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
@@ -497,15 +498,39 @@ export const createOrder = async (
 ) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession();
+  } catch (dbError) {
+    return { success: false, message: "Database connection failed" };
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const userSession = await getServerSession();
 
     const createdOrder = await createOrderFromCart(
       clientSideCart,
-      session?.user?.id,
+      userSession?.user?.id,
       clientSideCart.coupon,
       clientSideCart.userEmail,
       clientSideCart.userName,
+      session
     );
+
+    await session.commitTransaction();
+
+    if (createdOrder.isPaid) {
+      await runPostPaymentSideEffects(createdOrder._id.toString());
+    }
+
+    const orderUser = userSession?.user?.id ? await User.findById(userSession.user.id).select("name email").lean() : null;
+
+    await sendAdminEventNotification({
+      title: "New order received",
+      description: `${orderUser?.name || clientSideCart.userName || clientSideCart.userEmail || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
+      href: `/admin/orders/${createdOrder._id.toString()}`,
+      meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
+      createdAt: createdOrder.createdAt.toISOString(),
+    });
 
     // For guest checkout, we need to return the accessToken once upon creation
     const serialized = serializeOrder(createdOrder);
@@ -519,7 +544,10 @@ export const createOrder = async (
       data: serialized,
     };
   } catch (error) {
+    await session.abortTransaction();
     return { success: false, message: formatError(error) };
+  } finally {
+    session.endSession();
   }
 };
 
@@ -529,6 +557,7 @@ export const createOrderFromCart = async (
   coupon?: OrderCouponInput,
   userEmail?: string,
   userName?: string,
+  session?: mongoose.ClientSession,
 ) => {
   const cookieStore = await cookies();
   let affiliateCode = cookieStore.get("affiliate_code")?.value;
@@ -606,6 +635,26 @@ export const createOrderFromCart = async (
       isAffiliate: false,
       isFirstPurchase: true,
     };
+
+    if (userId) {
+       const userUpdate = await User.findOneAndUpdate(
+         { _id: userId, firstPurchaseDiscountUsed: { $ne: true } },
+         { $set: { firstPurchaseDiscountUsed: true } },
+         { session, new: true }
+       );
+       if (!userUpdate) {
+          throw new Error("First purchase discount already used or invalid user.");
+       }
+    } else if (userEmail) {
+      try {
+        await FirstPurchaseClaim.create([{ email: userEmail.trim().toLowerCase() }], { session });
+      } catch (err: any) {
+        if (err.code === 11000) {
+          throw new Error("First purchase discount already claimed for this email.");
+        }
+        throw err;
+      }
+    }
   }
 
   const pricing = await calcDeliveryDateAndPrice({
@@ -694,32 +743,21 @@ export const createOrderFromCart = async (
       },
     ],
   });
-  const createdOrder = await Order.create(order);
-
-  if (appliedCoupon?.isFirstPurchase && userId) {
-    await User.findByIdAndUpdate(userId, {
-      $set: { firstPurchaseDiscountUsed: true },
-    });
-  }
+  const [createdOrder] = await Order.create([order], { session });
 
   if (cart.paymentMethod === "Coins") {
     const userUpdate = await User.findOneAndUpdate(
       { _id: userId, coins: { $gte: totalPrice } },
       { $inc: { coins: -totalPrice } },
-      { new: true }
+      { new: true, session }
     );
 
     if (!userUpdate) {
-      await Order.findByIdAndDelete(createdOrder._id);
       throw new Error("Insufficient coins balance or payment failed");
     }
-
-    await runPostPaymentSideEffects(createdOrder._id.toString());
   }
 
   if (cart.paymentMethod === "Wallet") {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
       const userUpdate = await User.findOneAndUpdate(
         { _id: userId, walletBalance: { $gte: totalPrice } },
@@ -748,15 +786,8 @@ export const createOrderFromCart = async (
         ],
         { session }
       );
-
-      await session.commitTransaction();
-      await runPostPaymentSideEffects(createdOrder._id.toString());
     } catch (error) {
-      await session.abortTransaction();
-      await Order.findByIdAndDelete(createdOrder._id);
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 
@@ -765,15 +796,6 @@ export const createOrderFromCart = async (
     nextStatus: "confirmed",
     message: "Order confirmed and queued for processing.",
     source: "system",
-  });
-  const orderUser = userId ? await User.findById(userId).select("name email").lean() : null;
-
-  await sendAdminEventNotification({
-    title: "New order received",
-    description: `${orderUser?.name || userName || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
-    href: `/admin/orders/${createdOrder._id.toString()}`,
-    meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
-    createdAt: createdOrder.createdAt.toISOString(),
   });
 
   return createdOrder;
@@ -1184,6 +1206,11 @@ export async function getOrderByTrackingNumber(trackingNumber: string) {
 export async function deleteOrder(id: string) {
   try {
     await connectToDatabase();
+    const session = await getServerSession();
+    if (session?.user?.role !== "ADMIN") {
+      throw new Error("Admin permission required");
+    }
+
     const res = await Order.findByIdAndDelete(id);
     if (!res) throw new Error("Order not found");
     revalidatePath("/admin/orders");

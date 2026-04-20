@@ -97,10 +97,18 @@ export function calculateFutureDate(days: number) {
 export function getMonthName(yearMonth: string): string {
   const [year, month] = yearMonth.split("-").map(Number);
   const date = new Date(year, month - 1);
-  const monthName = date.toLocaleString("default", { month: "long" });
-  const now = new Date();
+  const monthName = date.toLocaleString("default", { month: "long", timeZone: "Africa/Nairobi" });
 
-  if (year === now.getFullYear() && month === now.getMonth() + 1) {
+  const nairobiParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Nairobi",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(new Date());
+
+  const nairobiYear = parseInt(nairobiParts.find((p) => p.type === "year")!.value, 10);
+  const nairobiMonth = parseInt(nairobiParts.find((p) => p.type === "month")!.value, 10);
+
+  if (year === nairobiYear && month === nairobiMonth) {
     return `${monthName} Ongoing`;
   }
   return monthName;
@@ -111,11 +119,30 @@ export function calculatePastDate(days: number) {
   return currentDate;
 }
 export function timeUntilMidnight(): { hours: number; minutes: number } {
-  const now = new Date();
-  const midnight = new Date();
-  midnight.setHours(24, 0, 0, 0); // Set to 12:00 AM (next day)
+  const nairobiParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Nairobi",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(new Date());
 
-  const diff = midnight.getTime() - now.getTime(); // Difference in milliseconds
+  const getValue = (type: string) => parseInt(nairobiParts.find((p) => p.type === type)!.value, 10);
+
+  const year = getValue("year");
+  const month = getValue("month");
+  const day = getValue("day");
+  const hour = getValue("hour");
+  const minute = getValue("minute");
+  const second = getValue("second");
+
+  const nowNairobi = new Date(year, month - 1, day, hour, minute, second);
+  const midnightNairobi = new Date(year, month - 1, day + 1, 0, 0, 0);
+
+  const diff = midnightNairobi.getTime() - nowNairobi.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -130,17 +157,20 @@ export const formatDateTime = (dateInput: Date | string | number) => {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    timeZone: "Africa/Nairobi",
   };
   const dateOptions: Intl.DateTimeFormatOptions = {
     // weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
     month: "short", // abbreviated month name (e.g., 'Oct')
     year: "numeric", // abbreviated month name (e.g., '2023')
     day: "numeric", // numeric day of the month (e.g., '25')
+    timeZone: "Africa/Nairobi",
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    timeZone: "Africa/Nairobi",
   };
   const parsedDate = new Date(dateInput);
 
@@ -210,6 +240,7 @@ export function formatDate(date: Date | string) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 

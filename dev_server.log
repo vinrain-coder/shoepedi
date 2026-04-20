@@ -1,0 +1,54 @@
+
+> shoepedi@0.1.0 dev /app
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 2.1s
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+- Cache Components enabled
+
+○ Compiling / ...
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5664:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5849:30)
+    at <unknown> (app/(home)/layout.tsx:4:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5876:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5939:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient;
+⨯ Error: Please add your Mongo URI to .env
+    at module evaluation (lib/db/client.ts:8:9)
+    at <unknown> (lib/auth.ts:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5664:30)
+    at <unknown> (lib/get-session.ts:3:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5849:30)
+    at <unknown> (app/(home)/layout.tsx:4:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5876:30)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__0-e2-9e._.js:5939:47)
+   6 |
+   7 | if (!uri) {
+>  8 |   throw new Error("Please add your Mongo URI to .env");
+     |         ^
+   9 | }
+  10 |
+  11 | let client: MongoClient; {
+  page: '/'
+}
+○ Compiling /_error ...
+ HEAD / 500 in 44s (next.js: 43s, proxy.ts: 445ms, application-code: 235ms)
+ ELIFECYCLE  Command failed.
+[?25h
