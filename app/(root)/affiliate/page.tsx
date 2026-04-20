@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 
 export default async function AffiliatePage() {
   const session = await getServerSession();
-  const affiliateStatus = await getAffiliateStatus();
+  const affiliateStatus = session ? await getAffiliateStatus() : { exists: false };
 
   return (
     <div className="container mx-auto py-10 space-y-12">
@@ -26,6 +26,13 @@ export default async function AffiliatePage() {
             <Button asChild size="lg">
               <Link href="/sign-in?redirect=/affiliate">Sign in to Join</Link>
             </Button>
+          ) : (affiliateStatus as any).error ? (
+            <div className="space-y-4">
+              <p className="text-destructive">Error loading affiliate status: {(affiliateStatus as any).message}</p>
+              <Button asChild variant="outline">
+                <Link href="/affiliate">Retry</Link>
+              </Button>
+            </div>
           ) : !affiliateStatus.exists ? (
             <Button asChild size="lg">
               <Link href="/affiliate/register">Become an Affiliate</Link>

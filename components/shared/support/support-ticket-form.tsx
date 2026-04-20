@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createSupportTicket } from "@/lib/actions/support.actions";
-import { SupportTicketInputSchema } from "@/lib/validator";
+import { SupportTicketInputSchema } from "@/lib/validator-client";
 import {
   Form,
   FormControl,

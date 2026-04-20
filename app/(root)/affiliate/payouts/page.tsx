@@ -24,11 +24,19 @@ export default async function AffiliatePayoutsPage({
       const { toSignInPath } = await import("@/lib/redirects");
       redirect(toSignInPath());
     }
+
+    let userFriendlyMessage = "An unexpected error occurred; please try again later";
+    if (result.message === "Affiliate profile not found") {
+      userFriendlyMessage = "Affiliate profile not found. Please register to view payouts.";
+    }
+
+    console.error("AffiliatePayoutsPage error:", result.message);
+
     return (
       <div className="container mx-auto py-10">
         <Breadcrumb />
         <div className="p-4 border border-destructive bg-destructive/10 text-destructive rounded-md">
-          {result.message}
+          {userFriendlyMessage}
         </div>
       </div>
     );
@@ -84,7 +92,14 @@ export default async function AffiliatePayoutsPage({
                 <TableBody>
                   {recentPayouts.map((payout: any) => (
                     <TableRow key={payout._id}>
-                      <TableCell>{new Date(payout.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {new Intl.DateTimeFormat("en-US", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          timeZone: "Africa/Nairobi",
+                        }).format(new Date(payout.createdAt))}
+                      </TableCell>
                       <TableCell className="font-medium">{formatCurrency(payout.amount)}</TableCell>
                       <TableCell>{payout.paymentMethod}</TableCell>
                       <TableCell>

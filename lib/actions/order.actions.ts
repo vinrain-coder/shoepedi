@@ -29,6 +29,7 @@ import Review from "../db/models/review.model";
 import NewsletterSubscription from "../db/models/newsletter-subscription.model";
 import SupportTicket from "../db/models/support-ticket.model";
 import mongoose from "mongoose";
+import FirstPurchaseClaim from "../db/models/first-purchase-claim.model";
 import WalletTransaction from "../db/models/wallet-transaction.model";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
@@ -495,10 +496,15 @@ const runStatusTransition = async ({
 export const createOrder = async (
   clientSideCart: Cart & { coupon?: OrderCouponInput; userEmail?: string; userName?: string },
 ) => {
+  try {
+    await connectToDatabase();
+  } catch (dbError) {
+    return { success: false, message: "Database connection failed" };
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    await connectToDatabase();
     const userSession = await getServerSession();
 
     const createdOrder = await createOrderFromCart(
@@ -511,6 +517,20 @@ export const createOrder = async (
     );
 
     await session.commitTransaction();
+
+    if (createdOrder.isPaid) {
+      await runPostPaymentSideEffects(createdOrder._id.toString());
+    }
+
+    const orderUser = userSession?.user?.id ? await User.findById(userSession.user.id).select("name email").lean() : null;
+
+    await sendAdminEventNotification({
+      title: "New order received",
+      description: `${orderUser?.name || clientSideCart.userName || clientSideCart.userEmail || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
+      href: `/admin/orders/${createdOrder._id.toString()}`,
+      meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
+      createdAt: createdOrder.createdAt.toISOString(),
+    });
 
     // For guest checkout, we need to return the accessToken once upon creation
     const serialized = serializeOrder(createdOrder);
@@ -625,6 +645,15 @@ export const createOrderFromCart = async (
        if (!userUpdate) {
           throw new Error("First purchase discount already used or invalid user.");
        }
+    } else if (userEmail) {
+      try {
+        await FirstPurchaseClaim.create([{ email: userEmail.trim().toLowerCase() }], { session });
+      } catch (err: any) {
+        if (err.code === 11000) {
+          throw new Error("First purchase discount already claimed for this email.");
+        }
+        throw err;
+      }
     }
   }
 
@@ -726,8 +755,6 @@ export const createOrderFromCart = async (
     if (!userUpdate) {
       throw new Error("Insufficient coins balance or payment failed");
     }
-
-    await runPostPaymentSideEffects(createdOrder._id.toString());
   }
 
   if (cart.paymentMethod === "Wallet") {
@@ -759,8 +786,6 @@ export const createOrderFromCart = async (
         ],
         { session }
       );
-
-      await runPostPaymentSideEffects(createdOrder._id.toString());
     } catch (error) {
       throw error;
     }
@@ -771,15 +796,6 @@ export const createOrderFromCart = async (
     nextStatus: "confirmed",
     message: "Order confirmed and queued for processing.",
     source: "system",
-  });
-  const orderUser = userId ? await User.findById(userId).select("name email").lean() : null;
-
-  await sendAdminEventNotification({
-    title: "New order received",
-    description: `${orderUser?.name || userName || "Guest Customer"} placed an order for ${round2(createdOrder.totalPrice).toFixed(2)}.`,
-    href: `/admin/orders/${createdOrder._id.toString()}`,
-    meta: createdOrder.isPaid ? "Paid order" : "Awaiting payment",
-    createdAt: createdOrder.createdAt.toISOString(),
   });
 
   return createdOrder;

@@ -704,7 +704,7 @@ export const DeliveryLocationUpdateSchema = DeliveryLocationInputSchema.extend({
 
 export const SupportTicketInputSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  email: Email,
+  email: Email.transform((val) => val.trim()),
   type: z.enum(["complaint", "query", "recommendation"]),
   subject: z.string().trim().min(5, "Subject must be at least 5 characters"),
   message: z.string().trim().min(10, "Message must be at least 10 characters"),
