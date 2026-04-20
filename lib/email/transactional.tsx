@@ -4,6 +4,7 @@ import StockSubscriptionNotificationEmail from "./templates/transactional/stock-
 import { IOrder } from "@/lib/db/models/order.model";
 import { IProduct } from "@/lib/db/models/product.model";
 import { getSetting } from "@/lib/actions/setting.actions";
+import { escapeHTML } from "../utils";
 import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
 import type { SerializedOrder } from "@/lib/actions/order.actions";
@@ -480,22 +481,26 @@ export const sendWalletPayoutStatusNotification = async ({
     currency: "KES",
   }).format(amount);
 
+  const safeName = escapeHTML(name);
+  const safePaymentMethod = escapeHTML(paymentMethod);
+  const safeAdminNote = escapeHTML(adminNote || "");
+
   const subject = status === "paid"
     ? `Wallet Payout Processed - ${site.name}`
     : `Wallet Payout Rejected - ${site.name}`;
 
   const messageHtml = status === "paid"
     ? `
-      <p>Hello ${name},</p>
-      <p>Your wallet payout of <strong>${formattedAmount}</strong> has been successfully processed via ${paymentMethod}.</p>
-      ${adminNote ? `<p><strong>Admin Note:</strong> ${adminNote}</p>` : ""}
+      <p>Hello ${safeName},</p>
+      <p>Your wallet payout of <strong>${formattedAmount}</strong> has been successfully processed via ${safePaymentMethod}.</p>
+      ${adminNote ? `<p><strong>Admin Note:</strong> ${safeAdminNote}</p>` : ""}
       <p>Best regards,<br/>The ${site.name} Team</p>
     `
     : `
-      <p>Hello ${name},</p>
+      <p>Hello ${safeName},</p>
       <p>Your wallet payout request of <strong>${formattedAmount}</strong> was not approved at this time.</p>
       <p>The funds have been returned to your wallet balance.</p>
-      ${adminNote ? `<p><strong>Reason:</strong> ${adminNote}</p>` : ""}
+      ${adminNote ? `<p><strong>Reason:</strong> ${safeAdminNote}</p>` : ""}
       <p>You can view your wallet history and reapply if necessary: <a href="${site.url}/account/wallet">${site.url}/account/wallet</a></p>
       <p>Best regards,<br/>The ${site.name} Team</p>
     `;
@@ -546,7 +551,10 @@ export const sendWalletAdjustmentNotification = async ({
     currency: "KES",
   }).format(newBalance);
 
-  const type = amount > 0 ? "credited to" : "deducted from";
+  const safeName = escapeHTML(name);
+  const safeReason = escapeHTML(reason);
+
+  const type = amount >= 0 ? "credited to" : "deducted from";
   const subject = `Wallet Balance Update - ${site.name}`;
 
   await sendEmail({
@@ -556,10 +564,10 @@ export const sendWalletAdjustmentNotification = async ({
       <div
         dangerouslySetInnerHTML={{
           __html: `
-      <p>Hello ${name},</p>
+      <p>Hello ${safeName},</p>
       <p>Your wallet balance has been updated.</p>
       <p><strong>Amount:</strong> ${formattedAmount} (${type} your wallet)</p>
-      <p><strong>Reason:</strong> ${reason}</p>
+      <p><strong>Reason:</strong> ${safeReason}</p>
       <p><strong>New Balance:</strong> ${formattedBalance}</p>
       <p>Best regards,<br/>The ${site.name} Team</p>
     `,
@@ -596,7 +604,13 @@ export const sendCoinAdjustmentNotification = async ({
 }) => {
   const { site } = await getSetting();
   const absAmount = Math.abs(amount);
-  const type = amount > 0 ? "credited to" : "deducted from";
+  const formattedAbsAmount = Number.isInteger(absAmount) ? String(absAmount) : absAmount.toFixed(2);
+  const formattedNewBalance = Number.isInteger(newBalance) ? String(newBalance) : newBalance.toFixed(2);
+
+  const safeName = escapeHTML(name);
+  const safeReason = escapeHTML(reason);
+
+  const type = amount >= 0 ? "credited to" : "deducted from";
   const subject = `Coins Balance Update - ${site.name}`;
 
   await sendEmail({
@@ -606,11 +620,11 @@ export const sendCoinAdjustmentNotification = async ({
       <div
         dangerouslySetInnerHTML={{
           __html: `
-      <p>Hello ${name},</p>
+      <p>Hello ${safeName},</p>
       <p>Your coins balance has been updated.</p>
-      <p><strong>Amount:</strong> ${absAmount} coins (${type} your account)</p>
-      <p><strong>Reason:</strong> ${reason}</p>
-      <p><strong>New Balance:</strong> ${newBalance} coins</p>
+      <p><strong>Amount:</strong> ${formattedAbsAmount} coins (${type} your account)</p>
+      <p><strong>Reason:</strong> ${safeReason}</p>
+      <p><strong>New Balance:</strong> ${formattedNewBalance} coins</p>
       <p>Best regards,<br/>The ${site.name} Team</p>
     `,
         }}
@@ -619,7 +633,7 @@ export const sendCoinAdjustmentNotification = async ({
   });
 
   if (phone) {
-    const smsMessage = `Your coins balance was ${type} ${absAmount} coins. Reason: ${reason}. New balance: ${newBalance} coins.`;
+    const smsMessage = `Your coins balance was ${type} ${formattedAbsAmount} coins. Reason: ${reason}. New balance: ${formattedNewBalance} coins.`;
     await sendAfricasTalkingSms({
       to: phone,
       message: toUserSmsMessage({ siteName: site.name, message: smsMessage }),

@@ -112,6 +112,18 @@ type AffiliatePayoutNotificationSource = {
   } | null;
 };
 
+type WalletPayoutNotificationSource = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  amount: number;
+  status: "pending" | "processing" | "paid" | "rejected";
+  paymentMethod: string;
+  user?: {
+    name?: string;
+    email?: string;
+  } | null;
+};
+
 const asId = (value: { toString(): string } | string) => value.toString();
 const asDate = (value: Date | string) => new Date(value).toISOString();
 
@@ -185,7 +197,7 @@ export async function getAdminNotificationFeed(
     SupportNotificationSource[],
     AffiliateNotificationSource[],
     AffiliatePayoutNotificationSource[],
-    any[],
+    WalletPayoutNotificationSource[],
   ];
 
   const items: AdminNotificationItem[] = [

@@ -252,7 +252,7 @@ export async function adjustUserWalletAdmin({
       query,
       { $inc: { walletBalance: normalizedAmount } },
       { new: true }
-    ).select("_id name email walletBalance shippingAddress");
+    ).select("_id name email walletBalance addresses");
 
     if (!updatedUser) {
       if (normalizedAmount < 0) {
@@ -281,13 +281,14 @@ export async function adjustUserWalletAdmin({
 
     // Send user notification
     try {
+      const defaultAddress = (updatedUser.addresses as any[] || []).find((a: any) => a.isDefault) || (updatedUser.addresses as any[] || [])[0];
       await sendWalletAdjustmentNotification({
         email: updatedUser.email,
         name: updatedUser.name || "Customer",
         amount: normalizedAmount,
         reason: normalizedReason,
         newBalance,
-        phone: updatedUser.shippingAddress?.phone,
+        phone: defaultAddress?.phone,
       });
     } catch (notifyErr) {
       console.error("Failed to notify user of wallet adjustment:", notifyErr);
@@ -546,7 +547,9 @@ export async function createWalletPayoutRequest(data: z.infer<typeof WalletPayou
       data: JSON.parse(JSON.stringify(payout[0])),
     };
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     return { success: false, message: formatError(error) };
   } finally {
     session.endSession();
@@ -674,8 +677,9 @@ export async function updateWalletPayoutStatus(
 
     // Send user notification
     try {
-      const user = await User.findById(payout.user).select("name email shippingAddress");
+      const user = await User.findById(payout.user).select("name email addresses");
       if (user) {
+        const defaultAddress = (user.addresses as any[] || []).find((a: any) => a.isDefault) || (user.addresses as any[] || [])[0];
         await sendWalletPayoutStatusNotification({
           email: user.email,
           name: user.name || "Customer",
@@ -683,7 +687,7 @@ export async function updateWalletPayoutStatus(
           status,
           paymentMethod: payout.paymentMethod,
           adminNote,
-          phone: user.shippingAddress?.phone,
+          phone: defaultAddress?.phone,
         });
       }
     } catch (notifyErr) {
@@ -695,7 +699,9 @@ export async function updateWalletPayoutStatus(
 
     return { success: true, message: `Payout marked as ${status}` };
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     return { success: false, message: formatError(error) };
   } finally {
     session.endSession();
@@ -751,7 +757,9 @@ export async function deleteWalletPayoutRequest(id: string) {
       message: "Payout request deleted and balance refunded if applicable",
     };
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     return { success: false, message: formatError(error) };
   } finally {
     session.endSession();

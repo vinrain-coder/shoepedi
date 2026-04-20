@@ -252,7 +252,7 @@ export async function getUserCoinHistoryAdmin({
       $facet: {
         metadata: [{ $count: "total" }],
         data: [
-          { $sort: { createdAt: -1 } },
+          { $sort: { createdAt: -1, _id: -1 } },
           { $skip: skip },
           { $limit: currentLimit },
           {
@@ -355,7 +355,7 @@ export async function adjustUserCoinsAdmin({
       query,
       { $inc: { coins: normalizedAmount } },
       { new: true }
-    ).select("_id name email coins shippingAddress");
+    ).select("_id name email coins addresses");
 
     if (!updatedUser) {
       if (normalizedAmount < 0) {
@@ -384,13 +384,14 @@ export async function adjustUserCoinsAdmin({
 
     // Send user notification
     try {
+      const defaultAddress = (updatedUser.addresses as any[] || []).find((a: any) => a.isDefault) || (updatedUser.addresses as any[] || [])[0];
       await sendCoinAdjustmentNotification({
         email: updatedUser.email,
         name: updatedUser.name || "Customer",
         amount: normalizedAmount,
         reason: normalizedReason,
         newBalance,
-        phone: updatedUser.shippingAddress?.phone,
+        phone: defaultAddress?.phone,
       });
     } catch (notifyErr) {
       console.error("Failed to notify user of coins adjustment:", notifyErr);
