@@ -3,7 +3,7 @@ import { AccountPageSkeleton, TableSkeleton } from "@/components/shared/skeleton
 export default function Loading() {
   return (
     <AccountPageSkeleton>
-      <TableSkeleton rows={5} cols={5} />
+      <TableSkeleton />
     </AccountPageSkeleton>
   );
 }

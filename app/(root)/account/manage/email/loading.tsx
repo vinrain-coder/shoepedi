@@ -1,9 +1,9 @@
-import { AccountPageSkeleton, AdminFormSkeleton } from "@/components/shared/skeletons";
+import { AccountPageSkeleton, FormSkeleton } from "@/components/shared/skeletons";
 
 export default function Loading() {
   return (
     <AccountPageSkeleton>
-      <AdminFormSkeleton />
+      <FormSkeleton />
     </AccountPageSkeleton>
   );
 }
