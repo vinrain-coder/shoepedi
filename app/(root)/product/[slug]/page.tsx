@@ -410,35 +410,6 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                     <SubscribeButton productId={product._id.toString()} />
                   </div>
                 )}
-
-                <div className="rounded-xl border bg-primary/5 p-4">
-                  <ul className="space-y-3 text-sm">
-                    <li className="flex items-start gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-                        <Truck className="h-4 w-4 text-green-600" />
-                      </span>
-                      <span>Fast delivery across Kenya</span>
-                    </li>
-
-                    <li className="flex items-start gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-                        <RotateCcw className="h-4 w-4 text-green-600" />
-                      </span>
-                      <span>7-day easy returns</span>
-                    </li>
-
-                    <li className="flex items-start gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-                        <Wallet className="h-4 w-4 text-green-600" />
-                      </span>
-                      <span>Secure online payment</span>
-                    </li>
-                  </ul>
-                </div>
-                <DeliveryEstimator
-                  deliveryDates={availableDeliveryDates}
-                  itemsPrice={product.price}
-                />
               </CardContent>
             </Card>
           </div>

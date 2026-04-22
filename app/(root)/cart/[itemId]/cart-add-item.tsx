@@ -45,12 +45,21 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
                 <CheckCircle2Icon className="h-6 w-6 text-green-700" />
                 Added to cart
               </h3>
-              <p className="text-sm">
-                <span className="font-bold"> Color: </span> {item.color ?? "-"}
-              </p>
-              <p className="text-sm">
-                <span className="font-bold"> Size: </span> {item.size ?? "-"}
-              </p>
+              {item.color && (
+                <div className="text-sm flex items-center gap-2">
+                  <span className="font-bold"> Color: </span>
+                  <div
+                    style={{ backgroundColor: item.color }}
+                    className="h-3 w-3 rounded-full border border-muted-foreground"
+                  />
+                  {item.color}
+                </div>
+              )}
+              {item.size && (
+                <p className="text-sm">
+                  <span className="font-bold"> Size: </span> {item.size}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -39,15 +39,8 @@ export default function AddToCart({
   const handleAddToCart = async () => {
     setIsLoading(true);
     try {
-      await addItem(item, quantity);
-      toast.success("Item added to cart 🛒", {
-        action: (
-          <Button onClick={() => router.push("/cart")}>
-            <ArrowRight className="w-4 h-4 mr-2" />
-            Go to Cart
-          </Button>
-        ),
-      });
+      const clientId = await addItem(item, quantity);
+      router.push(`/cart/${clientId}`);
     } catch (error: any) {
       toast.error(`ERROR! ${error.message}`);
     } finally {
@@ -74,15 +67,8 @@ export default function AddToCart({
         onClick={async () => {
           setIsLoading(true);
           try {
-            await addItem(item, 1);
-            toast.success("Item added to cart 🛒", {
-              action: (
-                <Button onClick={() => router.push("/cart")}>
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  Go to Cart
-                </Button>
-              ),
-            });
+            const clientId = await addItem(item, 1);
+            router.push(`/cart/${clientId}`);
           } catch (error: any) {
             toast.error(`ERROR! ${error.message}`);
           } finally {
@@ -108,15 +94,8 @@ export default function AddToCart({
         onClick={async () => {
           setIsLoading(true);
           try {
-            await addItem(item, 1);
-            toast.success("Item added to cart 🛒", {
-              action: (
-                <Button onClick={() => router.push("/cart")}>
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  Go to Cart
-                </Button>
-              ),
-            });
+            const clientId = await addItem(item, 1);
+            router.push(`/cart/${clientId}`);
           } catch (error: any) {
             toast.error(`ERROR! ${error.message}`);
           } finally {
