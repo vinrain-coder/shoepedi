@@ -226,6 +226,7 @@ export const getFilterUrl = ({
   price,
   rating,
   page,
+  basePath = "/search",
 }: {
   params: {
     q?: string;
@@ -235,6 +236,10 @@ export const getFilterUrl = ({
     rating?: string;
     sort?: string;
     page?: string;
+    brand?: string;
+    gender?: string;
+    color?: string;
+    size?: string;
   };
   tag?: string;
   category?: string;
@@ -242,15 +247,43 @@ export const getFilterUrl = ({
   price?: string;
   rating?: string;
   page?: string;
+  basePath?: string;
 }) => {
-  const newParams = { ...params };
-  if (category) newParams.category = category;
-  if (tag) newParams.tag = toSlug(tag);
-  if (price) newParams.price = price;
-  if (rating) newParams.rating = rating;
-  if (page) newParams.page = page;
-  if (sort) newParams.sort = sort;
-  return `/search?${new URLSearchParams(newParams).toString()}`;
+  const newParams: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value && value !== "all") {
+      newParams[key] = value;
+    }
+  }
+
+  if (category) {
+    if (category === "all") delete newParams.category;
+    else newParams.category = category;
+  }
+  if (tag) {
+    if (tag === "all") delete newParams.tag;
+    else newParams.tag = toSlug(tag);
+  }
+  if (price) {
+    if (price === "all") delete newParams.price;
+    else newParams.price = price;
+  }
+  if (rating) {
+    if (rating === "all") delete newParams.rating;
+    else newParams.rating = rating;
+  }
+  if (page) {
+    if (page === "all") delete newParams.page;
+    else newParams.page = page;
+  }
+  if (sort) {
+    if (sort === "all") delete newParams.sort;
+    else newParams.sort = sort;
+  }
+
+  const queryString = new URLSearchParams(newParams).toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
 };
 
 export function formatDate(date: Date | string) {

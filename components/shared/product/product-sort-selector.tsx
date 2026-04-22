@@ -8,35 +8,42 @@ import {
 } from "@/components/ui/select";
 import { getFilterUrl } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import React from "react";
 
 export default function ProductSortSelector({
   sortOrders,
   sort,
   params,
+  basePath,
 }: {
   sortOrders: { value: string; name: string }[];
   sort: string;
   params: {
     q?: string;
     category?: string;
+    tag?: string;
+    brand?: string;
+    gender?: string;
+    color?: string;
+    size?: string;
     price?: string;
     rating?: string;
     sort?: string;
     page?: string;
   };
+  basePath?: string;
 }) {
   const router = useRouter();
+
   return (
     <Select
       onValueChange={(v) => {
-        router.push(getFilterUrl({ params, sort: v }));
+        router.push(getFilterUrl({ params, sort: v, basePath }));
       }}
       value={sort}
     >
       <SelectTrigger>
         <SelectValue>
-          Sort By: {sortOrders.find((s) => s.value === sort)!.name}
+          Sort By: {sortOrders.find((s) => s.value === sort)?.name}
         </SelectValue>
       </SelectTrigger>
 
