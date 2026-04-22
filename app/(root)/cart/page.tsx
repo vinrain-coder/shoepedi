@@ -20,6 +20,9 @@ import { useEffect, useState } from "react";
 import { getProductsByIds } from "@/lib/actions/product.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { ChevronLeft, ShoppingBag, Trash2 } from "lucide-react";
+import QuantityController from "@/components/shared/product/quantity-controller";
+import DeliveryEstimator from "@/components/shared/product/delivery-estimator";
+import TrustBadges from "@/components/shared/trust-badges";
 
 export default function CartPage() {
   const {
@@ -41,12 +44,10 @@ export default function CartPage() {
     fetchProducts();
   }, [items]);
   const router = useRouter();
+  const { setting } = useSettingStore();
   const {
-    setting: {
-      site,
-      common: { freeShippingMinPrice },
-    },
-  } = useSettingStore();
+    common: { freeShippingMinPrice },
+  } = setting;
 
   return (
     <div>
@@ -118,60 +119,98 @@ export default function CartPage() {
                                 {item.name}
                               </Link>
                               <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-medium text-foreground">Color:</span>
-                                  <Select
-                                    value={item.color}
-                                    onValueChange={(value) =>
-                                      updateItem(item, item.quantity, value, item.size)
-                                    }
-                                  >
-                                    <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 font-normal hover:text-foreground focus:ring-0">
-                                      <SelectValue>{item.color}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {(() => {
-                                        const product = products.find(
-                                          (p) => p._id.toString() === item.product
-                                        );
-                                        return product?.colors?.length
-                                          ? product.colors.map((color) => (
-                                              <SelectItem key={color} value={color}>
-                                                {color}
-                                              </SelectItem>
-                                            ))
-                                          : null;
-                                      })()}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-medium text-foreground">Size:</span>
-                                  <Select
-                                    value={item.size}
-                                    onValueChange={(value) =>
-                                      updateItem(item, item.quantity, item.color, value)
-                                    }
-                                  >
-                                    <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 font-normal hover:text-foreground focus:ring-0">
-                                      <SelectValue>{item.size}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {(() => {
-                                        const product = products.find(
-                                          (p) => p._id.toString() === item.product
-                                        );
-                                        return product?.sizes?.length
-                                          ? product.sizes.map((size) => (
-                                              <SelectItem key={size} value={size}>
-                                                {size}
-                                              </SelectItem>
-                                            ))
-                                          : null;
-                                      })()}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
+                                {item.color && (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-medium text-foreground">
+                                      Color:
+                                    </span>
+                                    <div
+                                      style={{ backgroundColor: item.color }}
+                                      className="h-3 w-3 rounded-full border border-muted-foreground"
+                                    />
+                                    <Select
+                                      value={item.color}
+                                      onValueChange={(value) =>
+                                        updateItem(
+                                          item,
+                                          item.quantity,
+                                          value,
+                                          item.size
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 font-normal hover:text-foreground focus:ring-0">
+                                        <SelectValue>{item.color}</SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {(() => {
+                                          const product = products.find(
+                                            (p) =>
+                                              p._id.toString() === item.product
+                                          );
+                                          return product?.colors?.length
+                                            ? product.colors.map((color) => (
+                                                <SelectItem
+                                                  key={color}
+                                                  value={color}
+                                                >
+                                                  <div className="flex items-center gap-2">
+                                                    <div
+                                                      style={{
+                                                        backgroundColor: color,
+                                                      }}
+                                                      className="h-3 w-3 rounded-full border border-muted-foreground"
+                                                    />
+                                                    {color}
+                                                  </div>
+                                                </SelectItem>
+                                              ))
+                                            : null;
+                                        })()}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+                                {item.size && (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-medium text-foreground">
+                                      Size:
+                                    </span>
+                                    <Select
+                                      value={item.size}
+                                      onValueChange={(value) =>
+                                        updateItem(
+                                          item,
+                                          item.quantity,
+                                          item.color,
+                                          value
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 font-normal hover:text-foreground focus:ring-0">
+                                        <SelectValue>{item.size}</SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {(() => {
+                                          const product = products.find(
+                                            (p) =>
+                                              p._id.toString() === item.product
+                                          );
+                                          return product?.sizes?.length
+                                            ? product.sizes.map((size) => (
+                                                <SelectItem
+                                                  key={size}
+                                                  value={size}
+                                                >
+                                                  {size}
+                                                </SelectItem>
+                                              ))
+                                            : null;
+                                        })()}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -188,26 +227,16 @@ export default function CartPage() {
                         </div>
 
                         <div className="col-span-1 md:col-span-3 flex items-center justify-between md:justify-center">
-                          <span className="md:hidden text-sm font-medium text-muted-foreground uppercase">Quantity</span>
-                          <Select
-                            value={item.quantity.toString()}
-                            onValueChange={(value) =>
-                              updateItem(item, Number(value))
+                          <span className="md:hidden text-sm font-medium text-muted-foreground uppercase">
+                            Quantity
+                          </span>
+                          <QuantityController
+                            quantity={item.quantity}
+                            countInStock={item.countInStock}
+                            onQuantityChange={(newQuantity) =>
+                              updateItem(item, newQuantity)
                             }
-                          >
-                            <SelectTrigger className="w-24 h-9 rounded-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({
-                                length: Math.min(item.countInStock, 10),
-                              }).map((_, i) => (
-                                <SelectItem key={i + 1} value={`${i + 1}`}>
-                                  {i + 1}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          />
                         </div>
 
                         <div className="col-span-1 md:col-span-3 flex items-center justify-between md:justify-end">
@@ -230,7 +259,7 @@ export default function CartPage() {
               </Card>
             </div>
 
-            <div className="mt-8 lg:mt-0">
+            <div className="mt-8 lg:mt-0 space-y-6">
               <Card className="rounded-xl border-border/60 shadow-sm sticky top-4">
                 <CardHeader>
                   <CardTitle className="text-xl">Order Summary</CardTitle>
@@ -282,6 +311,13 @@ export default function CartPage() {
                   </p>
                 </CardContent>
               </Card>
+
+              <DeliveryEstimator
+                deliveryDates={setting.availableDeliveryDates}
+                itemsPrice={itemsPrice}
+              />
+
+              <TrustBadges />
             </div>
           </>
         )}
