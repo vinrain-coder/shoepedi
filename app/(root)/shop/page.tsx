@@ -15,7 +15,6 @@ import {
 import { getSetting } from "@/lib/actions/setting.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 
-
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -27,7 +26,9 @@ const sortOrders = [
 const baseDescription =
   "Browse all shoes and fashion essentials. Filter by category, brand, price, color, size, and rating.";
 
-const normalizeSearchParams = (searchParams?: Record<string, string | string[]>) => {
+const normalizeSearchParams = (
+  searchParams?: Record<string, string | string[]>
+) => {
   const getValue = (key: string, fallback: string) => {
     const value = searchParams?.[key];
     return typeof value === "string" && value.length > 0 ? value : fallback;
@@ -71,6 +72,9 @@ export async function generateMetadata({
     alternates: {
       canonical: `${site.url}/shop`,
     },
+    robots: hasActiveFilters(resolvedParams)
+      ? { index: false, follow: true }
+      : undefined,
     openGraph: {
       title,
       description: baseDescription,
@@ -86,6 +90,8 @@ export default async function ShopPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = normalizeSearchParams(await searchParams);
+  const pageNum = Math.max(1, Number.parseInt(params.page, 10) || 1);
+
   const [categories, tags, brands, colors, sizes, data, { site }] =
     await Promise.all([
       getAllCategories(),
@@ -104,7 +110,7 @@ export default async function ShopPage({
         price: params.price,
         rating: params.rating,
         sort: params.sort,
-        page: Number(params.page),
+        page: pageNum,
       }),
       getSetting(),
     ]);
@@ -113,12 +119,15 @@ export default async function ShopPage({
     "@context": "https://schema.org",
     "@type": "ItemList",
     itemListOrder: "https://schema.org/ItemListOrderAscending",
+    url: `${site.url}/shop`,
     numberOfItems: data.totalProducts,
     itemListElement: data.products.map((product: IProduct, index: number) => ({
       "@type": "ListItem",
       position: index + 1,
+      url: `${site.url}/product/${product.slug}`,
       item: {
         "@type": "Product",
+        "@id": `${site.url}/product/${product.slug}`,
         name: product.name,
         image: product.images?.[0],
         url: `${site.url}/product/${product.slug}`,
@@ -140,7 +149,9 @@ export default async function ShopPage({
     <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema).replace(/<\//g, "<\\/"),
+        }}
       />
 
       <Breadcrumb />
@@ -151,7 +162,7 @@ export default async function ShopPage({
           <p className="text-sm text-muted-foreground">{baseDescription}</p>
           {data.totalProducts === 0
             ? "No results"
-            : `${data.from}-${data.to} of ${data.totalProducts}`} products
+            : `${data.from}-${data.to} of ${data.totalProducts} products`}
         </div>
         <ProductSortSelector
           sortOrders={sortOrders}
@@ -175,7 +186,7 @@ export default async function ShopPage({
         <div className="md:col-span-4 space-y-4">
           <ProductLayoutSwitcher products={data.products as IProduct[]} />
           {data.totalPages > 1 && (
-            <Pagination page={params.page} totalPages={data.totalPages} />
+            <Pagination page={pageNum} totalPages={data.totalPages} />
           )}
         </div>
       </div>

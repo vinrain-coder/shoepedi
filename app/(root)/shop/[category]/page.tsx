@@ -16,7 +16,6 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { getCategoryBySlug } from "@/lib/actions/category.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 
-
 const sortOrders = [
   { value: "price-low-to-high", name: "Price: Low to high" },
   { value: "price-high-to-low", name: "Price: High to low" },
@@ -25,7 +24,9 @@ const sortOrders = [
   { value: "best-selling", name: "Best selling" },
 ];
 
-const normalizeSearchParams = (searchParams?: Record<string, string | string[]>) => {
+const normalizeSearchParams = (
+  searchParams?: Record<string, string | string[]>
+) => {
   const getValue = (key: string, fallback: string) => {
     const value = searchParams?.[key];
     return typeof value === "string" && value.length > 0 ? value : fallback;
@@ -92,17 +93,18 @@ export default async function ShopCategoryPage({
 }) {
   const { category: categorySlug } = await params;
   const search = normalizeSearchParams(await searchParams);
+  const pageNum = Math.max(1, Number.parseInt(search.page, 10) || 1);
+  const category = await getCategoryBySlug(categorySlug);
 
-  const [categories, tags, brands, colors, sizes, category, data, { site }] =
+  const [categories, tags, brands, colors, sizes, data, { site }] =
     await Promise.all([
       getAllCategories(),
       getAllTags(),
       getAllBrands(),
       getAllColors(),
       getAllSizes(),
-      getCategoryBySlug(categorySlug),
       getAllProducts({
-        category: categorySlug,
+        category: category.name,
         tag: search.tag,
         brand: search.brand,
         gender: search.gender,
@@ -112,7 +114,7 @@ export default async function ShopCategoryPage({
         price: search.price,
         rating: search.rating,
         sort: search.sort,
-        page: Number(search.page),
+        page: pageNum,
       }),
       getSetting(),
     ]);
@@ -153,7 +155,9 @@ export default async function ShopCategoryPage({
     <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(schema).replace(/<\//g, "<\\/"),
+        }}
       />
 
       <Breadcrumb />
@@ -163,7 +167,7 @@ export default async function ShopCategoryPage({
           <h1 className="text-xl font-bold capitalize">{pageTitle}</h1>
           {data.totalProducts === 0
             ? "No results"
-            : `${data.from}-${data.to} of ${data.totalProducts}`} products
+            : `${data.from}-${data.to} of ${data.totalProducts} products`}
         </div>
 
         <ProductSortSelector
@@ -190,7 +194,7 @@ export default async function ShopCategoryPage({
           <ProductLayoutSwitcher products={data.products as IProduct[]} />
 
           {data.totalPages > 1 && (
-            <Pagination page={search.page} totalPages={data.totalPages} />
+            <Pagination page={pageNum} totalPages={data.totalPages} />
           )}
         </div>
       </div>

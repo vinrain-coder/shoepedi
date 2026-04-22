@@ -131,6 +131,7 @@ export default async function SearchPage(props: {
           brands={brands}
           colors={colors}
           sizes={sizes}
+          basePath="/search"
         />
         <div className="md:col-span-4 space-y-4">
           <ProductLayoutSwitcher products={data.products as IProduct[]} />

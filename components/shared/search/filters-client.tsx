@@ -35,6 +35,9 @@ type ParamsShape = {
   rating?: string;
   sort?: string;
   page?: string;
+};
+
+type FiltersConfig = {
   basePath?: string;
   lockCategory?: boolean;
   lockBrand?: boolean;
@@ -42,6 +45,7 @@ type ParamsShape = {
 };
 
 export default function FiltersClient({
+  initialParams,
   categories,
   tags,
   brands,
@@ -52,34 +56,30 @@ export default function FiltersClient({
   lockBrand = false,
   lockTag = false,
 }: {
-  initialParams: ParamsShape;
+  initialParams?: ParamsShape;
   categories: string[];
   tags: string[];
   brands: string[];
   colors: string[];
   sizes: string[];
-  basePath?: string;
-  lockCategory?: boolean;
-  lockBrand?: boolean;
-  lockTag?: boolean;
-}) {
+} & FiltersConfig) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   // --- Current URL parameters ---
   const current: ParamsShape = {
-    q: searchParams.get("q") ?? "all",
-    category: searchParams.get("category") ?? "all",
-    tag: searchParams.get("tag") ?? "all",
-    brand: searchParams.get("brand") ?? "all",
-    gender: searchParams.get("gender") ?? "all",
-    color: searchParams.get("color") ?? "all",
-    size: searchParams.get("size") ?? "all",
-    price: searchParams.get("price") ?? "all",
-    rating: searchParams.get("rating") ?? "all",
-    sort: searchParams.get("sort") ?? "best-selling",
-    page: searchParams.get("page") ?? "1",
+    q: searchParams.get("q") ?? initialParams?.q ?? "all",
+    category: searchParams.get("category") ?? initialParams?.category ?? "all",
+    tag: searchParams.get("tag") ?? initialParams?.tag ?? "all",
+    brand: searchParams.get("brand") ?? initialParams?.brand ?? "all",
+    gender: searchParams.get("gender") ?? initialParams?.gender ?? "all",
+    color: searchParams.get("color") ?? initialParams?.color ?? "all",
+    size: searchParams.get("size") ?? initialParams?.size ?? "all",
+    price: searchParams.get("price") ?? initialParams?.price ?? "all",
+    rating: searchParams.get("rating") ?? initialParams?.rating ?? "all",
+    sort: searchParams.get("sort") ?? initialParams?.sort ?? "best-selling",
+    page: searchParams.get("page") ?? initialParams?.page ?? "1",
   };
 
   const [open, setOpen] = useState(false);
