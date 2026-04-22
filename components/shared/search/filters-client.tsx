@@ -182,7 +182,7 @@ export default function FiltersClient({
 
   function clearAllLocal() {
     startTransition(() => {
-      router.push("/search");
+      router.push(basePath);
     });
   }
 

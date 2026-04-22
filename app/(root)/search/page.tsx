@@ -119,6 +119,7 @@ export default async function SearchPage(props: {
           sortOrders={sortOrders}
           sort={sort}
           params={params}
+          basePath="/search"
         />
       </div>
 

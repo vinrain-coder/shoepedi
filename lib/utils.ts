@@ -226,6 +226,7 @@ export const getFilterUrl = ({
   price,
   rating,
   page,
+  basePath = "/search",
 }: {
   params: {
     q?: string;
@@ -235,6 +236,10 @@ export const getFilterUrl = ({
     rating?: string;
     sort?: string;
     page?: string;
+    brand?: string;
+    gender?: string;
+    color?: string;
+    size?: string;
   };
   tag?: string;
   category?: string;
@@ -242,6 +247,7 @@ export const getFilterUrl = ({
   price?: string;
   rating?: string;
   page?: string;
+  basePath?: string;
 }) => {
   const newParams = { ...params };
   if (category) newParams.category = category;
@@ -250,7 +256,8 @@ export const getFilterUrl = ({
   if (rating) newParams.rating = rating;
   if (page) newParams.page = page;
   if (sort) newParams.sort = sort;
-  return `/search?${new URLSearchParams(newParams).toString()}`;
+
+  return `${basePath}?${new URLSearchParams(newParams).toString()}`;
 };
 
 export function formatDate(date: Date | string) {
