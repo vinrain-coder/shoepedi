@@ -13,7 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteReview, getAllReviews, getReviewStats } from "@/lib/actions/review.actions";
+import {
+  deleteReview,
+  getAllReviews,
+  getReviewStats,
+} from "@/lib/actions/review.actions";
 import { IReviewDetails } from "@/types";
 import { getServerSession } from "@/lib/get-session";
 import { formatDateTime, formatId } from "@/lib/utils";
@@ -43,12 +47,7 @@ export default async function ReviewsPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
-  const {
-    query = "",
-    rating = "all",
-    from,
-    to
-  } = searchParams;
+  const { query = "", rating = "all", from, to } = searchParams;
 
   const session = await getServerSession();
   if (session?.user.role !== "ADMIN") {
@@ -85,7 +84,9 @@ export default async function ReviewsPage(props: {
               defaultValue={query}
               className="pl-9"
             />
-            {rating !== "all" && <input type="hidden" name="rating" value={rating} />}
+            {rating !== "all" && (
+              <input type="hidden" name="rating" value={rating} />
+            )}
             {from && <input type="hidden" name="from" value={from} />}
             {to && <input type="hidden" name="to" value={to} />}
           </Form>
@@ -99,14 +100,14 @@ export default async function ReviewsPage(props: {
         <Table className="text-sm">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">ID</TableHead>
-              <TableHead className="w-[120px]">Date</TableHead>
-              <TableHead className="w-[180px]">Product</TableHead>
-              <TableHead className="w-[150px]">Customer</TableHead>
-              <TableHead className="w-[80px]">Rating</TableHead>
-              <TableHead className="w-[250px]">Review</TableHead>
-              <TableHead className="w-[250px]">Reply</TableHead>
-              <TableHead className="w-[80px] text-right">Actions</TableHead>
+              <TableHead className="w-20">ID</TableHead>
+              <TableHead className="w-30">Date</TableHead>
+              <TableHead className="w-45">Product</TableHead>
+              <TableHead className="w-37.5">Customer</TableHead>
+              <TableHead className="w-20">Rating</TableHead>
+              <TableHead className="w-62.5">Review</TableHead>
+              <TableHead className="w-62.5">Reply</TableHead>
+              <TableHead className="w-20 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -156,8 +157,17 @@ export default async function ReviewsPage(props: {
                             </span>
                           )}
 
-                          <Badge variant={review.isVerifiedPurchase ? "default" : "secondary"} className="text-[10px] mt-1 px-1 py-0">
-                            {review.isVerifiedPurchase ? "Verified" : "Feedback"}
+                          <Badge
+                            variant={
+                              review.isVerifiedPurchase
+                                ? "success"
+                                : "secondary"
+                            }
+                            className="text-[10px] mt-1 px-1 py-0"
+                          >
+                            {review.isVerifiedPurchase
+                              ? "Verified"
+                              : "Feedback"}
                           </Badge>
                         </div>
                       </div>
@@ -215,7 +225,7 @@ export default async function ReviewsPage(props: {
                               {review.adminReply.repliedBy || "Admin"}:
                             </span>
                             <p className="line-clamp-2">
-                               {review.adminReply.message}
+                              {review.adminReply.message}
                             </p>
                           </div>
                         )}
@@ -235,7 +245,10 @@ export default async function ReviewsPage(props: {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No reviews found matching the criteria.
                 </TableCell>
               </TableRow>

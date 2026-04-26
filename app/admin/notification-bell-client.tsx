@@ -130,7 +130,11 @@ export default function NotificationBellClient({
 
     setIsOpen(false);
     setFeed((current) => {
-      if (!current.items.some((item) => item.id === selectedItem.id && item.isUnread)) {
+      if (
+        !current.items.some(
+          (item) => item.id === selectedItem.id && item.isUnread,
+        )
+      ) {
         return current;
       }
 
@@ -138,7 +142,7 @@ export default function NotificationBellClient({
         ...current,
         unreadCount: Math.max(0, current.unreadCount - 1),
         items: current.items.map((item) =>
-          item.id === selectedItem.id ? { ...item, isUnread: false } : item
+          item.id === selectedItem.id ? { ...item, isUnread: false } : item,
         ),
       };
     });
@@ -236,7 +240,9 @@ function NotificationFeedPanel({
       <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1 pr-2">
           <p className="font-semibold">Admin alerts</p>
-          <p className="text-muted-foreground text-xs sm:text-sm">{groupedLabel}</p>
+          <p className="text-muted-foreground text-xs sm:text-sm">
+            {groupedLabel}
+          </p>
         </div>
         <Button
           variant="outline"
@@ -296,7 +302,9 @@ function NotificationRow({
       onClick={() => onSelect(item)}
       className={cn(
         "group block w-full rounded-2xl border p-3 text-left shadow-sm transition hover:border-primary/40 hover:bg-accent/40 hover:shadow-md sm:p-4",
-        item.isUnread ? "border-primary/40 bg-primary/5" : "border-border bg-background"
+        item.isUnread
+          ? "border-primary/40 bg-primary/5"
+          : "border-border bg-background",
       )}
     >
       <div className="flex items-start gap-3">
@@ -305,7 +313,7 @@ function NotificationRow({
             "flex size-10 shrink-0 items-center justify-center rounded-2xl border transition-colors",
             item.isUnread
               ? "border-primary/20 bg-primary text-primary-foreground"
-              : "border-border bg-muted text-muted-foreground"
+              : "border-border bg-muted text-muted-foreground",
           )}
         >
           <Icon className="size-4" />
@@ -315,9 +323,11 @@ function NotificationRow({
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-semibold leading-5">{item.title}</p>
-                {item.isUnread ? <Badge className="rounded-full px-2">New</Badge> : null}
+                {item.isUnread ? (
+                  <Badge className="rounded-full px-2">New</Badge>
+                ) : null}
               </div>
-              <p className="text-muted-foreground text-sm leading-5 break-words">
+              <p className="text-muted-foreground text-sm leading-5 wrap-break-word">
                 {item.description}
               </p>
             </div>

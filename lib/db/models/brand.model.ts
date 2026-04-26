@@ -1,4 +1,4 @@
-import { Schema, model, models, Document, Types, Model } from "mongoose";
+import { Schema, model, models, Document, Model } from "mongoose";
 
 export interface IBrand extends Document {
   name: string;
@@ -53,7 +53,7 @@ const brandSchema = new Schema<IBrand>(
       default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Brand: Model<IBrand> =

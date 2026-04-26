@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AffiliateInputSchema } from "@/lib/validator";
 import { registerAffiliate } from "@/lib/actions/affiliate.actions";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -22,6 +21,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 
 import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
 import { AlertCircle, Loader2 } from "lucide-react";
+import { LoadingButton } from "@/components/shared/loading-button";
 
 const defaultValues = {
   affiliateCode: "",
@@ -88,7 +88,7 @@ export default function RegisterAffiliatePage() {
 
   if (checkingStatus) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -99,7 +99,9 @@ export default function RegisterAffiliatePage() {
       <Breadcrumb />
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Become an Affiliate</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Become an Affiliate
+          </CardTitle>
           <p className="text-muted-foreground">
             Join our affiliate program and start earning commissions today.
           </p>
@@ -132,7 +134,8 @@ export default function RegisterAffiliatePage() {
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Payment Details</h3>
                 <p className="text-sm text-muted-foreground">
-                  Provide at least one payment method where you'd like to receive your earnings.
+                  Provide at least one payment method where you&apos;d like to
+                  receive your earnings.
                 </p>
 
                 <FormField
@@ -156,7 +159,11 @@ export default function RegisterAffiliatePage() {
                     <FormItem>
                       <FormLabel>PayPal Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="e.g. john@example.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="e.g. john@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -164,7 +171,9 @@ export default function RegisterAffiliatePage() {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-md bg-muted/50">
-                  <div className="col-span-full font-medium">Bank Details (Optional)</div>
+                  <div className="col-span-full font-medium">
+                    Bank Details (Optional)
+                  </div>
                   <FormField
                     control={form.control}
                     name="paymentDetails.bankName"
@@ -207,16 +216,15 @@ export default function RegisterAffiliatePage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Application"
-                )}
-              </Button>
+              <LoadingButton
+                type="submit"
+                className="w-full font-semibold"
+                loading={isSubmitting}
+                loadingText="Submitting..."
+                disabled={isSubmitting}
+              >
+                Submit Application
+              </LoadingButton>
             </form>
           </Form>
         </CardContent>

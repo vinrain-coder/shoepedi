@@ -11,13 +11,13 @@ export default async function MaintenancePage() {
       <div className="max-w-md w-full text-center space-y-8">
         <div className="flex justify-center">
           <div className="relative w-32 h-32 md:w-40 md:h-40">
-             <Image
-                src={site.logo}
-                alt={site.name}
-                fill
-                className="object-contain"
-                priority
-              />
+            <Image
+              src={site.logo}
+              alt={site.name}
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
 
@@ -27,17 +27,25 @@ export default async function MaintenancePage() {
               <Hammer className="w-12 h-12 text-primary animate-pulse" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">Under Maintenance</h1>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Under Maintenance
+          </h1>
           <p className="text-muted-foreground text-lg">
-            {site.name} is currently undergoing scheduled maintenance to improve your shopping experience. We'll be back online shortly.
+            taxPrice, taxPrice, taxPrice, taxPrice,
+            {site.name} is currently undergoing scheduled maintenance to improve
+            your shopping experience. We&apos;ll be back online shortly.
           </p>
         </div>
 
         <div className="pt-8 border-t border-border">
           <p className="text-sm text-muted-foreground">
-            Thank you for your patience. For urgent inquiries, please contact us at:
+            Thank you for your patience. For urgent inquiries, please contact us
+            at:
             <br />
-            <a href={`mailto:${site.email}`} className="text-primary hover:underline font-medium">
+            <a
+              href={`mailto:${site.email}`}
+              className="text-primary hover:underline font-medium"
+            >
               {site.email}
             </a>
           </p>

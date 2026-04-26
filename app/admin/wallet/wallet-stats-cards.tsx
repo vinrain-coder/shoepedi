@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IconUsers, IconWallet, IconArrowsExchange, IconTrendingUp } from "@tabler/icons-react";
-import { formatNumber, formatNumberWithTwoDecimals } from "@/lib/utils";
+import {
+  IconUsers,
+  IconWallet,
+  IconArrowsExchange,
+  IconTrendingUp,
+} from "@tabler/icons-react";
+import { formatNumberWithTwoDecimals } from "@/lib/utils";
 
 interface StatsProps {
   totalUsers: number;

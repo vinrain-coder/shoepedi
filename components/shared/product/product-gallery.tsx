@@ -59,7 +59,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
             {safeImages.map((image, index) => (
               <CarouselItem
                 key={index}
-                className="relative flex justify-center h-[380px]"
+                className="relative flex justify-center h-95"
               >
                 <Zoom>
                   <Image
@@ -124,7 +124,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
         {/* Main Image */}
         <div className="w-full">
           <Zoom>
-            <div className="relative h-[500px]">
+            <div className="relative h-125">
               <Image
                 key={safeImages[selectedImage]}
                 src={safeImages[selectedImage]}

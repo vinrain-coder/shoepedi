@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -12,7 +13,7 @@ const ImageHover = ({
   src: string;
   hoverSrc: string;
   alt: string;
-  className?:string;
+  className?: string;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   let hoverTimeout: any;
@@ -27,7 +28,7 @@ const ImageHover = ({
 
   return (
     <div
-      className="relative h-52"
+      className={cn("relative h-52", className)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -44,7 +45,7 @@ const ImageHover = ({
         src={hoverSrc}
         alt={alt}
         fill
-       // sizes="80vw"
+        // sizes="80vw"
         className={`absolute inset-0 object-cover transition-opacity duration-500 ${
           isHovered ? "opacity-100" : "opacity-0"
         }`}

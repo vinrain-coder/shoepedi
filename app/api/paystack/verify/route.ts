@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Order from "@/lib/db/models/order.model";
 import { markPaystackOrderAsPaid } from "@/lib/actions/order.actions";
 import { completeWalletTopup } from "@/lib/actions/wallet.actions";
 import { verifyPaystackTransaction } from "@/lib/paystack";
@@ -27,7 +28,11 @@ export async function POST(req: Request) {
           message: result.message,
         });
       }
-      return NextResponse.json({ status: true, message: result.message, data: data.data });
+      return NextResponse.json({
+        status: true,
+        message: result.message,
+        data: data.data,
+      });
     }
 
     // Default to order payment if not wallet_topup or if type is explicitly 'order'
@@ -37,6 +42,23 @@ export async function POST(req: Request) {
       return NextResponse.json({
         status: false,
         message: "Missing orderId for verification",
+      });
+    }
+
+    const order = await Order.findById(orderId).select("totalPrice").lean();
+    if (!order) {
+      return NextResponse.json({
+        status: false,
+        message: "Order not found for verification",
+      });
+    }
+
+    const expectedAmount = Math.round(Number(order.totalPrice) * 100);
+    const paidAmount = Number(data.data.amount);
+    if (expectedAmount !== paidAmount) {
+      return NextResponse.json({
+        status: false,
+        message: "Payment amount does not match order total",
       });
     }
 

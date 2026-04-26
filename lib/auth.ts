@@ -65,7 +65,15 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
 
-      async sendChangeEmailVerification({ user, newEmail, url }) {
+      async sendChangeEmailVerification({
+        user,
+        newEmail,
+        url,
+      }: {
+        user: { email: string };
+        newEmail: string;
+        url: string;
+      }) {
         await sendChangeEmailVerification({
           email: user.email,
           newEmail,
@@ -159,7 +167,16 @@ export const auth = betterAuth({
 
   events: {
     user: {
-      created: async ({ user }) => {
+      created: async ({
+        user,
+      }: {
+        user: {
+          role?: string;
+          name?: string;
+          email?: string;
+          emailVerified?: boolean;
+        };
+      }) => {
         if (user.role === "ADMIN") return;
 
         await sendAdminEventNotification({

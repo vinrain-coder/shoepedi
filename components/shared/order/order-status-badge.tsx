@@ -11,6 +11,7 @@ const STATUS_ICONS: Record<OrderTrackingStatus, React.ReactNode> = {
   delivered: <CheckCircle2 className="w-4 h-4" />,
   cancelled: <XCircle className="w-4 h-4" />,
   returned: <ArrowUpRight className="w-4 h-4" />,
+  return_requested: <ArrowUpRight className="w-4 h-4" />,
   delivery_exception: <XCircle className="w-4 h-4" />,
 };
 

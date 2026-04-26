@@ -12,9 +12,8 @@ import { getSetting } from "@/lib/actions/setting.actions";
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSetting();
   return {
-    title: `Blogs & Trends | ${site.name}`,
-    description:
-      "Explore our latest shoe-related blogs, trends, and styling tips. Stay updated with the newest footwear fashion at ShoePedi.",
+    title: `Blogs & Trends | {site.name}`,
+    description: `Explore our latest shoe-related blogs, trends, and styling tips. Stay updated with the newest footwear fashion at {site.name}.`,
   };
 }
 

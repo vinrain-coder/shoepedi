@@ -17,7 +17,6 @@ import {
 } from "@/lib/actions/category.actions";
 import { Plus, Search, PenBox, LayoutGrid } from "lucide-react";
 import { formatId, formatDateTime } from "@/lib/utils";
-import { ICategory } from "@/lib/db/models/category.model";
 import Pagination from "@/components/shared/pagination";
 import CategoryStatsCards from "./category-stats-cards";
 import { Input } from "@/components/ui/input";
@@ -89,10 +88,12 @@ export default async function AdminCategoryPage(props: {
           </TableHeader>
           <TableBody>
             {data.categories.length > 0 ? (
-              data.categories.map((category) => (
-                <TableRow key={category._id as string}>
+              data.categories.map((category) => {
+                const id = String(category._id);
+                return (
+                <TableRow key={id}>
                   <TableCell className="font-mono text-xs text-muted-foreground">
-                    {formatId(category._id as string)}
+                    {formatId(id)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -111,16 +112,17 @@ export default async function AdminCategoryPage(props: {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/categories/${category._id}`}>
+                        <Link href={`/admin/categories/${id}`}>
                           <PenBox className="mr-2 h-4 w-4" />
                           Edit
                         </Link>
                       </Button>
-                      <DeleteDialog id={category._id as string} action={deleteCategory} />
+                      <DeleteDialog id={id} action={deleteCategory} />
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">

@@ -21,10 +21,9 @@ import {
 } from "./components";
 import { isCardOrMobileMoneyMethod } from "./utils/checkout-helpers";
 
-const PaystackInline = dynamic(
-  () => import("./paystack-inline"),
-  { ssr: false }
-);
+const PaystackInline = dynamic(() => import("./paystack-inline"), {
+  ssr: false,
+});
 
 const CheckoutForm = ({
   savedAddresses,
@@ -38,13 +37,9 @@ const CheckoutForm = ({
   const {
     session,
     site,
-    common,
-    availablePaymentMethods,
     availableDeliveryDates,
     items,
     itemsPrice,
-    shippingPrice,
-    taxPrice,
     discount,
     totalPrice,
     shippingAddress,
@@ -60,13 +55,11 @@ const CheckoutForm = ({
 
   const effectiveDeliveryDateIndex =
     deliveryDateIndex ?? availableDeliveryDates.length - 1;
-  const selectedDeliveryDate = availableDeliveryDates[effectiveDeliveryDateIndex];
+  const selectedDeliveryDate =
+    availableDeliveryDates[effectiveDeliveryDateIndex];
 
   const renderSummary = () => (
-    <OrderSummary
-      {...form}
-      discountAmount={discount}
-    />
+    <OrderSummary {...form} discountAmount={discount} />
   );
 
   return (
@@ -94,12 +87,16 @@ const CheckoutForm = ({
                 <div className="col-span-5">
                   <p className="font-medium">
                     Delivery date:{" "}
-                    {formatDateTime(calculateFutureDate(selectedDeliveryDate.daysToDeliver)).dateOnly}
+                    {
+                      formatDateTime(
+                        calculateFutureDate(selectedDeliveryDate.daysToDeliver),
+                      ).dateOnly
+                    }
                   </p>
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     {items.map((item, index) => (
                       <li key={index}>
-                        {item.name} x {item.quantiprice}
+                        {item.name} x {item.quantity}
                       </li>
                     ))}
                   </ul>
@@ -126,7 +123,14 @@ const CheckoutForm = ({
                   <CardContent className="p-4">
                     <p className="mb-4 text-sm md:text-base">
                       <span className="text-lg font-bold text-green-700">
-                        Arriving {formatDateTime(calculateFutureDate(selectedDeliveryDate.daysToDeliver)).dateOnly}
+                        Arriving{" "}
+                        {
+                          formatDateTime(
+                            calculateFutureDate(
+                              selectedDeliveryDate.daysToDeliver,
+                            ),
+                          ).dateOnly
+                        }
                       </span>
                     </p>
                     <div className="grid md:grid-cols-2 gap-8">
@@ -165,23 +169,23 @@ const CheckoutForm = ({
                 {isCardOrMobileMoneyMethod(paymentMethod) && createdOrder && (
                   <div className="mt-4">
                     <PaystackInline
-                      email={(session?.user?.email || shippingAddress?.email) as string}
+                      email={
+                        (session?.user?.email ||
+                          shippingAddress?.email) as string
+                      }
                       amount={Math.round(totalPrice * 100)}
                       publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                       orderId={createdOrder._id}
-                     // autoStart={true}
-                     // hideButton={true}
-                      onSuccess={() => {
-                        window.location.href = createdOrder.isGuest
-                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                          : `/account/orders/${createdOrder._id}/placed`;
-                      }}
-                      onFailure={() => {
-                        window.location.href = createdOrder.isGuest
-                          ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                          : `/account/orders/${createdOrder._id}/placed`;
-                      }}
+                      autoStart={true}
+                      hideButton={false}
+                      onSuccess={form.handleCompletePayment}
+                      onFailure={form.handlePaymentFailure}
+                      buttonLabel="Complete secure payment"
                     />
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Your order has been created. Complete the secure payment
+                      in the Paystack window to finish checkout.
+                    </p>
                   </div>
                 )}
               </div>
@@ -191,34 +195,38 @@ const CheckoutForm = ({
                   {isCardOrMobileMoneyMethod(paymentMethod) && createdOrder ? (
                     <div className="w-full">
                       <PaystackInline
-                        email={(session?.user?.email || shippingAddress?.email) as string}
+                        email={
+                          (session?.user?.email ||
+                            shippingAddress?.email) as string
+                        }
                         amount={Math.round(totalPrice * 100)}
                         publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
                         orderId={createdOrder._id}
                         autoStart={true}
-                        hideButton={true}
-                        onSuccess={() => {
-                          window.location.href = createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`;
-                        }}
-                        onFailure={() => {
-                          window.location.href = createdOrder.isGuest
-                            ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
-                            : `/account/orders/${createdOrder._id}/placed`;
-                        }}
+                        hideButton={false}
+                        onSuccess={form.handleCompletePayment}
+                        onFailure={form.handlePaymentFailure}
+                        buttonLabel="Complete secure payment"
                       />
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Your order is ready. If the payment window does not
+                        appear, click the button above.
+                      </p>
                     </div>
                   ) : (
                     <Button
                       onClick={form.handlePlaceOrder}
                       className="rounded-full px-12 py-6 text-lg font-bold cursor-pointer flex items-center gap-2"
                       disabled={!canPlaceOrder || isPlacingOrder}
-                      hidden={isCardOrMobileMoneyMethod(paymentMethod) && !!createdOrder}
+                      hidden={
+                        isCardOrMobileMoneyMethod(paymentMethod) &&
+                        !!createdOrder
+                      }
                     >
                       {isPlacingOrder ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Placing order...
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />{" "}
+                          Placing order...
                         </>
                       ) : (
                         "Place Your Order"
@@ -232,8 +240,21 @@ const CheckoutForm = ({
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
                       By placing your order, you agree to {site.name}&apos;s{" "}
-                      <Link href="/page/privacy-policy" className="underline hover:text-primary">privacy notice</Link> and
-                      <Link href="/page/conditions-of-use" className="underline hover:text-primary"> conditions of use</Link>.
+                      <Link
+                        href="/page/privacy-policy"
+                        className="underline hover:text-primary"
+                      >
+                        privacy notice
+                      </Link>{" "}
+                      and
+                      <Link
+                        href="/page/conditions-of-use"
+                        className="underline hover:text-primary"
+                      >
+                        {" "}
+                        conditions of use
+                      </Link>
+                      .
                     </p>
                   </div>
                 </CardContent>
@@ -245,9 +266,7 @@ const CheckoutForm = ({
 
         {/* Desktop Sidebar Summary */}
         <div className="hidden md:block">
-          <div className="sticky top-6">
-            {renderSummary()}
-          </div>
+          <div className="sticky top-6">{renderSummary()}</div>
         </div>
       </div>
     </main>

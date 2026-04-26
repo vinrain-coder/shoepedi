@@ -60,14 +60,18 @@ export default async function CategoriesPage() {
       <Breadcrumb />
 
       <div className="text-center space-y-4 animate-in slide-in-from-bottom-4 duration-700 delay-100">
-        <Badge variant="secondary" className="px-3 py-1 rounded-full uppercase tracking-wider text-xs font-bold">
+        <Badge
+          variant="secondary"
+          className="px-3 py-1 rounded-full uppercase tracking-wider text-xs font-bold"
+        >
           Our Collections
         </Badge>
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           Browse Categories
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Explore our wide range of collections curated just for you. From daily essentials to premium selections.
+          Explore our wide range of collections curated just for you. From daily
+          essentials to premium selections.
         </p>
       </div>
 
@@ -81,7 +85,7 @@ export default async function CategoriesPage() {
             style={{ animationDelay: `${index * 50}ms` }}
           >
             <Card className="overflow-hidden rounded-2xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card">
-              <div className="relative aspect-[4/3] w-full overflow-hidden">
+              <div className="relative aspect-4/3 w-full overflow-hidden">
                 {category.image ? (
                   <Image
                     src={category.image}
@@ -97,7 +101,7 @@ export default async function CategoriesPage() {
                 )}
 
                 {/* Refined Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
                   <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors duration-300">

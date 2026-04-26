@@ -3,11 +3,25 @@
 import { z } from "zod";
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
-import Category, { ICategory } from "@/lib/db/models/category.model";
+import Category from "@/lib/db/models/category.model";
 import { formatError, escapeRegExp } from "@/lib/utils";
 import { CategoryInputSchema, CategoryUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
-import { IProduct } from "../db/models/product.model";
+
+export type SerializedCategory = {
+  _id: string;
+  name: string;
+  slug: string;
+  parent?: string | null;
+  description?: string;
+  isFeatured?: boolean;
+  image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  createdAt: string;
+  updatedAt: string;
+};
 
 /* ---------------------------------
    CREATE CATEGORY
@@ -92,7 +106,9 @@ export async function deleteCategory(id: string) {
 /* ---------------------------------
    GET CATEGORY BY ID
 ---------------------------------- */
-export async function getCategoryById(id: string) {
+export async function getCategoryById(
+  id: string,
+): Promise<SerializedCategory | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("categories");
@@ -104,9 +120,19 @@ export async function getCategoryById(id: string) {
     if (!category) return null;
 
     return {
-      ...category,
       _id: category._id.toString(),
-    } as ICategory;
+      name: category.name,
+      slug: category.slug,
+      parent: category.parent ? String(category.parent) : null,
+      description: category.description,
+      isFeatured: category.isFeatured,
+      image: category.image,
+      seoTitle: category.seoTitle,
+      seoDescription: category.seoDescription,
+      seoKeywords: category.seoKeywords,
+      createdAt: category.createdAt.toISOString(),
+      updatedAt: category.updatedAt.toISOString(),
+    };
   } catch (error) {
     console.error("Error fetching category by ID:", error);
     return null;
@@ -127,7 +153,7 @@ export async function getAllCategoriesForAdmin({
   page = 1,
   limit = 10,
 }: GetAllCategoriesParams): Promise<{
-  categories: ICategory[];
+  categories: SerializedCategory[];
   totalCategories: number;
   totalPages: number;
   from: number;
@@ -158,9 +184,19 @@ export async function getAllCategoriesForAdmin({
       .limit(limit)
       .lean();
 
-    const normalizedCategories = categories.map((category) => ({
-      ...category,
+    const normalizedCategories: SerializedCategory[] = categories.map((category) => ({
       _id: category._id.toString(),
+      name: category.name,
+      slug: category.slug,
+      parent: category.parent ? String(category.parent) : null,
+      description: category.description,
+      isFeatured: category.isFeatured,
+      image: category.image,
+      seoTitle: category.seoTitle,
+      seoDescription: category.seoDescription,
+      seoKeywords: category.seoKeywords,
+      createdAt: category.createdAt.toISOString(),
+      updatedAt: category.updatedAt.toISOString(),
     }));
 
     return {
@@ -230,7 +266,7 @@ export async function getAllCategoriesForStore() {
       .select("name slug image description isFeatured")
       .lean();
 
-    return categories.map((category: any) => ({
+    return categories.map((category) => ({
       ...category,
       _id: category._id.toString(),
     }));
@@ -248,5 +284,18 @@ export async function getCategoryBySlug(slug: string) {
   await connectToDatabase();
   const category = await Category.findOne({ slug }).lean();
   if (!category) return notFound();
-  return JSON.parse(JSON.stringify(category)) as ICategory;
+  return {
+    _id: category._id.toString(),
+    name: category.name,
+    slug: category.slug,
+    parent: category.parent ? String(category.parent) : null,
+    description: category.description,
+    isFeatured: category.isFeatured,
+    image: category.image,
+    seoTitle: category.seoTitle,
+    seoDescription: category.seoDescription,
+    seoKeywords: category.seoKeywords,
+    createdAt: category.createdAt.toISOString(),
+    updatedAt: category.updatedAt.toISOString(),
+  } satisfies SerializedCategory;
 }

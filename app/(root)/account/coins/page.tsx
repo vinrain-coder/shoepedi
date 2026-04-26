@@ -6,14 +6,23 @@ import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";
 import Order from "@/lib/db/models/order.model";
 import { Metadata } from "next";
-import { formatDateTime, formatId, formatNumberWithTwoDecimals } from "@/lib/utils";
-import ProductPrice from "@/components/shared/product/product-price";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins as CoinsIcon, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from "lucide-react";
+import {
+  formatDateTime,
+  formatId,
+  formatNumberWithTwoDecimals,
+} from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Coins as CoinsIcon,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  CheckCircle2,
+} from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import Link from "next/link";
 import Pagination from "@/components/shared/pagination";
 import { getSetting } from "@/lib/actions/setting.actions";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "My Coins",
@@ -35,6 +44,7 @@ export default async function CoinsPage({
 
   const {
     common: { pageSize },
+    site,
   } = await getSetting();
 
   const user = await User.findById(session.user.id);
@@ -42,10 +52,7 @@ export default async function CoinsPage({
   // Fetch orders where coins were earned or redeemed
   const query = {
     user: session.user.id,
-    $or: [
-      { coinsEarned: { $gt: 0 } },
-      { coinsRedeemed: { $gt: 0 } }
-    ],
+    $or: [{ coinsEarned: { $gt: 0 } }, { coinsRedeemed: { $gt: 0 } }],
   };
 
   const totalCount = await Order.countDocuments(query);
@@ -57,36 +64,41 @@ export default async function CoinsPage({
     .limit(pageSize)
     .lean();
 
-  const history = coinOrders.flatMap((order: any) => {
-    const events = [];
+  const history = coinOrders
+    .flatMap((order: any) => {
+      const events = [];
 
-    // Original earnings
-    if (order.coinsEarned > 0 && order.coinsCredited && !["cancelled", "returned"].includes(order.status)) {
-      events.push({
-        id: `${order._id.toString()}-earned`,
-        type: 'earned',
-        amount: order.coinsEarned,
-        date: (order.paidAt || order.createdAt || new Date()).toISOString(),
-        orderId: order._id.toString(),
-        description: `Earned from Order ${formatId(order._id.toString())}`
-      });
-    }
+      // Original earnings
+      if (
+        order.coinsEarned > 0 &&
+        order.coinsCredited &&
+        !["cancelled", "returned"].includes(order.status)
+      ) {
+        events.push({
+          id: `${order._id.toString()}-earned`,
+          type: "earned",
+          amount: order.coinsEarned,
+          date: (order.paidAt || order.createdAt || new Date()).toISOString(),
+          orderId: order._id.toString(),
+          description: `Earned from Order ${formatId(order._id.toString())}`,
+        });
+      }
 
-    // Redemptions
-    if (order.coinsRedeemed > 0) {
-      events.push({
-        id: `${order._id.toString()}-redeemed`,
-        type: 'redeemed',
-        amount: order.coinsRedeemed,
-        date: (order.createdAt || new Date()).toISOString(),
-        orderId: order._id.toString(),
-        description: `Redeemed for Order ${formatId(order._id.toString())}`
-      });
-    }
+      // Redemptions
+      if (order.coinsRedeemed > 0) {
+        events.push({
+          id: `${order._id.toString()}-redeemed`,
+          type: "redeemed",
+          amount: order.coinsRedeemed,
+          date: (order.createdAt || new Date()).toISOString(),
+          orderId: order._id.toString(),
+          description: `Redeemed for Order ${formatId(order._id.toString())}`,
+        });
+      }
 
-
-    return events;
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return events;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-6">
@@ -101,18 +113,25 @@ export default async function CoinsPage({
         </p>
       </div>
 
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 background border-primary/20">
+      <Card className="bg-linear-to-br from-primary/10 via-primary/5 background border-primary/20">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
           <div className="p-4 rounded-full bg-primary/10">
             <CoinsIcon className="h-12 w-12 text-primary animate-pulse" />
           </div>
           <div>
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">Current Balance</p>
-            <h2 className="text-5xl font-extrabold text-foreground">{formatNumberWithTwoDecimals(user?.coins || 0)}</h2>
-            <p className="text-sm text-muted-foreground mt-1">1 coin = 1 Shilling</p>
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">
+              Current Balance
+            </p>
+            <h2 className="text-5xl font-extrabold text-foreground">
+              {formatNumberWithTwoDecimals(user?.coins || 0)}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              1 coin = 1 Shilling
+            </p>
           </div>
           <p className="text-xs text-muted-foreground italic mt-2">
-            Coins are loyalty rewards and can only be used to pay for orders on ShoePedi.
+            Coins are loyalty rewards and can only be used to pay for orders on
+            {} {site.name}.
           </p>
         </CardContent>
       </Card>
@@ -122,29 +141,54 @@ export default async function CoinsPage({
         {history.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
-              You haven&apos;t earned or redeemed any coins yet. Start shopping to earn rewards!
+              You haven&apos;t earned or redeemed any coins yet. Start shopping
+              to earn rewards!
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {history.map((event) => (
-              <Card key={event.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card">
+              <Card
+                key={event.id}
+                className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card"
+              >
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${event.type === 'earned' ? 'badge-success' : 'badge-rejected'}`}>
-                      {event.type === 'earned' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
-                    </div>
+                    <Badge
+                      variant={
+                        event.type === "earned" ? "success" : "destructive"
+                      }
+                      className="rounded-full p-2 h-auto w-auto"
+                    >
+                      {event.type === "earned" ? (
+                        <ArrowUpCircle className="h-5 w-5" />
+                      ) : (
+                        <ArrowDownCircle className="h-5 w-5" />
+                      )}
+                    </Badge>
                     <div>
                       <p className="font-semibold">{event.description}</p>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(new Date(event.date)).dateTime}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateTime(new Date(event.date)).dateTime}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                      {event.type === 'earned' && <CheckCircle2 className="h-4 w-4" />}
-                      {event.type === 'earned' ? '+' : '-'}{formatNumberWithTwoDecimals(event.amount)}
+                    <p
+                      className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === "earned" ? "text-green-600" : "text-red-600"}`}
+                    >
+                      {event.type === "earned" && (
+                        <CheckCircle2 className="h-4 w-4" />
+                      )}
+                      {event.type === "earned" ? "+" : "-"}
+                      {formatNumberWithTwoDecimals(event.amount)}
                     </p>
-                    <Link href={`/account/orders/${event.orderId}`} className="text-xs text-blue-600 hover:underline">View Order</Link>
+                    <Link
+                      href={`/account/orders/${event.orderId}`}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      View Order
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

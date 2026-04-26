@@ -284,6 +284,11 @@ export const OrderSummary = ({
               <span>{placeOrderBlockReason}</span>
             </div>
           )}
+          {createdOrder && isCardOrMobileMoneyMethod(paymentMethod) && (
+            <div className="my-3 rounded-md border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-900">
+              Your order <span className="font-semibold">#{createdOrder._id}</span> has been created and is awaiting secure payment. Keep this page open until payment completes.
+            </div>
+          )}
           <Button
             onClick={handlePlaceOrder}
             className="rounded-full w-full cursor-pointer mt-2"

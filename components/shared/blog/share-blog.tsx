@@ -32,6 +32,10 @@ function ShareBlog({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false);
   const [blogUrl, setBlogUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const canUseNativeShare =
+    typeof window !== "undefined" &&
+    typeof (navigator as Navigator & { share?: Navigator["share"] }).share ===
+      "function";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,7 +55,7 @@ function ShareBlog({ slug, title }: { slug: string; title: string }) {
   };
 
   const shareOnMobile = () => {
-    if (navigator.share && blogUrl) {
+    if (canUseNativeShare && blogUrl) {
       navigator
         .share({
           title,
@@ -211,7 +215,7 @@ function ShareBlog({ slug, title }: { slug: string; title: string }) {
           </div>
 
           {/* Native Share (if available) */}
-          {navigator.share && (
+          {canUseNativeShare && (
             <>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">

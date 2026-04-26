@@ -83,7 +83,7 @@ export async function createDeliveryLocation(data: any) {
     const validatedData = DeliveryLocationInputSchema.parse(data);
 
     const newLocation = await DeliveryLocation.create(validatedData);
-    revalidateTag("delivery-locations");
+    revalidateTag("delivery-locations", "max");
 
     return {
       success: true,
@@ -110,7 +110,7 @@ export async function updateDeliveryLocation(data: any) {
     );
 
     if (!updatedLocation) throw new Error("Location not found");
-    revalidateTag("delivery-locations");
+    revalidateTag("delivery-locations", "max");
 
     return {
       success: true,
@@ -131,7 +131,7 @@ export async function deleteDeliveryLocation(id: string) {
     const deletedLocation = await DeliveryLocation.findByIdAndDelete(id);
 
     if (!deletedLocation) throw new Error("Location not found");
-    revalidateTag("delivery-locations");
+    revalidateTag("delivery-locations", "max");
 
     return {
       success: true,

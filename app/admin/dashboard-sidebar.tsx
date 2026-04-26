@@ -7,7 +7,6 @@ import {
   IconCategory,
   IconChecklist,
   IconClipboardList,
-  IconColorSwatch,
   IconDashboard,
   IconFileText,
   IconLayoutGrid,
@@ -78,46 +77,41 @@ const data = {
   ],
   storefront: [
     {
-      name: "Site Pages",
+      title: "Site Pages",
       url: "/admin/web-pages",
       icon: IconFileText,
     },
     {
-      name: "Blog Posts",
+      title: "Blog Posts",
       url: "/admin/blogs",
       icon: IconArticle,
     },
     {
-      name: "Restock Alerts",
+      title: "Restock Alerts",
       url: "/admin/stockSubs",
       icon: IconBellRinging,
     },
     {
-      name: "Customer Reviews",
+      title: "Customer Reviews",
       url: "/admin/reviews",
       icon: IconChecklist,
     },
   ],
   catalog: [
     {
-      name: "Categories",
+      title: "Categories",
       url: "/admin/categories",
       icon: IconCategory,
     },
     {
-      name: "Brands",
+      title: "Brands",
       url: "/admin/brands",
       icon: IconPalette,
     },
     {
-      name: "Tags",
+      title: "Tags",
       url: "/admin/tags",
       icon: IconTags,
-    },
-    {
-      name: "Colors",
-      url: "/admin/colors",
-      icon: IconColorSwatch,
     },
   ],
 };
@@ -130,7 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/" className="flex items-center gap-2">
                 <Image
@@ -140,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   height={32}
                   className="rounded"
                 />
-                <span className="text-base font-semibold">ShoePedi</span>
+                <span className="text-base font-semibold">ShoeStar</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

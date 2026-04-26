@@ -95,25 +95,25 @@ export default function FiltersClient({
   const filteredCategories = useMemo(
     () =>
       categories.filter((c) =>
-        c.toLowerCase().includes(dCategorySearch.toLowerCase())
+        c.toLowerCase().includes(dCategorySearch.toLowerCase()),
       ),
-    [categories, dCategorySearch]
+    [categories, dCategorySearch],
   );
 
   const filteredBrands = useMemo(
     () =>
       brands.filter((b) =>
-        b.toLowerCase().includes(dBrandSearch.toLowerCase())
+        b.toLowerCase().includes(dBrandSearch.toLowerCase()),
       ),
-    [brands, dBrandSearch]
+    [brands, dBrandSearch],
   );
 
   const filteredColors = useMemo(
     () =>
       colors.filter((c) =>
-        c.toLowerCase().includes(dColorSearch.toLowerCase())
+        c.toLowerCase().includes(dColorSearch.toLowerCase()),
       ),
-    [colors, dColorSearch]
+    [colors, dColorSearch],
   );
 
   const defaultAccordionValues = useMemo(
@@ -128,11 +128,11 @@ export default function FiltersClient({
         current.color !== "all" && "colors",
         current.size !== "all" && "sizes",
       ].filter(Boolean) as string[],
-    [current]
+    [current],
   );
 
   const [openAccordions, setOpenAccordions] = useState<string[]>(
-    defaultAccordionValues
+    defaultAccordionValues,
   );
 
   // --- Helpers ---
@@ -149,7 +149,8 @@ export default function FiltersClient({
       p.set("tag", params.tag);
     }
 
-    if (params.gender && params.gender !== "all") p.set("gender", params.gender);
+    if (params.gender && params.gender !== "all")
+      p.set("gender", params.gender);
     if (params.color && params.color !== "all") p.set("color", params.color);
     if (params.size && params.size !== "all") p.set("size", params.size);
     if (params.price && params.price !== "all") p.set("price", params.price);
@@ -480,7 +481,7 @@ export default function FiltersClient({
     <>
       {/* Loading overlay during transition */}
       {isPending && (
-        <div className="fixed inset-0 z-[100] bg-background/70 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-100 bg-background/70 backdrop-blur-sm flex items-center justify-center">
           <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
             <Loader className="h-6 w-6 animate-spin text-primary" />
             <span className="text-sm text-muted-foreground">
@@ -495,7 +496,9 @@ export default function FiltersClient({
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <SheetTrigger asChild>
-              <Button variant="elevated" className="rounded-full">Filters</Button>
+              <Button variant="elevated" className="rounded-full">
+                Filters
+              </Button>
             </SheetTrigger>
 
             <div className="flex-1">
@@ -503,7 +506,7 @@ export default function FiltersClient({
             </div>
           </div>
 
-          <SheetContent className="p-4 shadow-lg !w-[90vw]">
+          <SheetContent className="p-4 shadow-lg w-[90vw]!">
             <div className="flex flex-col h-full">
               {/* Header */}
               <SheetHeader className="flex flex-row items-center justify-between px-2 border-b sticky top-0 bg-background z-20">

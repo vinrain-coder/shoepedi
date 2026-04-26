@@ -17,7 +17,6 @@ import {
 } from "@/lib/actions/tag.actions";
 import { Plus, Search, PenBox, Hash } from "lucide-react";
 import { formatId, formatDateTime } from "@/lib/utils";
-import { ITag } from "@/lib/db/models/tag.model";
 import Pagination from "@/components/shared/pagination";
 import TagStatsCards from "./tag-stats-cards";
 import { Input } from "@/components/ui/input";
@@ -89,7 +88,7 @@ export default async function AdminTagPage(props: {
           </TableHeader>
           <TableBody>
             {data.tags.length > 0 ? (
-              (data.tags as ITag[]).map((tag) => {
+              data.tags.map((tag) => {
                 const id = String(tag._id);
                 return (
                   <TableRow key={id}>

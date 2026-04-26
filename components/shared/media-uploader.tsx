@@ -5,6 +5,12 @@ import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
+import {
+  FieldValues,
+  Path,
+  PathValue,
+  UseFormReturn,
+} from "react-hook-form";
 
 import {
   FormField,
@@ -22,20 +28,8 @@ type MediaItem = {
   type: MediaType;
 };
 
-interface MediaUploaderProps {
-  form: any;
-  name: string; // "images" | "image"
-  label: string;
-  uploadRoute:
-    | "products"
-    | "categories"
-    | "brands"
-    | "tags"
-    | "blogs"
-    | "pages";
-  multiple?: boolean;
-  maxFiles?: number;
-}
+const getMediaType = (url: string): MediaType =>
+  /\.(mp4|webm|mov|ogg)$/i.test(url) ? "video" : "image";
 
 /* ---------------- Media Preview ---------------- */
 function MediaPreview({
@@ -53,11 +47,11 @@ function MediaPreview({
           alt="Uploaded media"
           width={120}
           height={120}
-          className="w-28 h-28 object-cover rounded-lg border"
+          className="h-28 w-28 rounded-lg border object-cover"
         />
       ) : (
-        <div className="w-28 h-28 relative rounded-lg border overflow-hidden bg-black/10">
-          <video src={item.url} className="w-full h-full object-cover" muted />
+        <div className="relative h-28 w-28 overflow-hidden rounded-lg border bg-black/10">
+          <video src={item.url} className="h-full w-full object-cover" muted />
           <div className="absolute inset-0 flex items-center justify-center">
             <Play size={32} className="text-white/80" />
           </div>
@@ -66,11 +60,11 @@ function MediaPreview({
 
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={(event) => {
+          event.stopPropagation();
           onRemove();
         }}
-        className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
+        className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white shadow hover:bg-black"
       >
         <X size={14} />
       </button>
@@ -79,50 +73,70 @@ function MediaPreview({
 }
 
 /* ---------------- Main Component ---------------- */
-export default function MediaUploader({
+type MediaUploaderProps<TFieldValues extends FieldValues> = {
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
+  label: string;
+  uploadRoute:
+    | "products"
+    | "categories"
+    | "brands"
+    | "tags"
+    | "blogs"
+    | "pages";
+  multiple?: boolean;
+  maxFiles?: number;
+};
+
+export default function MediaUploader<TFieldValues extends FieldValues>({
   form,
   name,
   label,
   uploadRoute,
   multiple = false,
   maxFiles = multiple ? undefined : 1,
-}: MediaUploaderProps) {
+}: MediaUploaderProps<TFieldValues>) {
   const rawValue = form.getValues(name);
 
   const initialMedia: MediaItem[] = Array.isArray(rawValue)
-    ? rawValue.map((url: string) => ({
-        url,
-        type: url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
-      }))
-    : rawValue
-    ? [
-        {
-          url: rawValue,
-          type: rawValue.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
-        },
-      ]
-    : [];
+    ? (rawValue as unknown[])
+        .filter((value): value is string => typeof value === "string")
+        .map((url) => ({
+          url,
+          type: getMediaType(url),
+        }))
+    : typeof rawValue === "string" && rawValue
+      ? [
+          {
+            url: rawValue,
+            type: getMediaType(rawValue),
+          },
+        ]
+      : [];
 
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
   const [progress, setProgress] = useState(0);
 
   /* Sync with RHF */
   useEffect(() => {
-    const value = multiple ? media.map((m) => m.url) : media[0]?.url || "";
-
-    form.setValue(name, value, { shouldValidate: true });
+    const value = multiple ? media.map((item) => item.url) : media[0]?.url || "";
+    form.setValue(name, value as PathValue<TFieldValues, Path<TFieldValues>>, {
+      shouldValidate: true,
+    });
   }, [media, form, name, multiple]);
 
   /* UploadThing */
   const { startUpload, isUploading } = useUploadThing(uploadRoute, {
-    onClientUploadComplete: (res) => {
-      const uploaded = res.map((f) => ({
-        url: f.url,
-        type: f.url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
+    onClientUploadComplete: (result) => {
+      if (!result?.length) return;
+
+      const uploaded: MediaItem[] = result.map((file) => ({
+        url: file.url,
+        type: getMediaType(file.url),
       }));
 
       setProgress(0);
-      setMedia((prev) => [...prev, ...uploaded]);
+      setMedia((previous) => [...previous, ...uploaded]);
 
       toast.success("Upload completed");
     },
@@ -140,7 +154,9 @@ export default function MediaUploader({
       "image/*": [],
       "video/*": [],
     },
-    onDrop: startUpload,
+    onDrop: (acceptedFiles) => {
+      void startUpload(acceptedFiles);
+    },
   });
 
   /* Remove */
@@ -152,10 +168,12 @@ export default function MediaUploader({
         body: JSON.stringify({ url }),
       });
 
-      setMedia((prev) => prev.filter((m) => m.url !== url));
+      setMedia((previous) => previous.filter((item) => item.url !== url));
       toast.success("File deleted");
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete uploaded file",
+      );
     }
   };
 
@@ -183,7 +201,7 @@ export default function MediaUploader({
 
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
+                className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition ${
                   isDragActive
                     ? "border-primary bg-primary/10"
                     : "border-muted-foreground/30 bg-muted"
@@ -191,15 +209,15 @@ export default function MediaUploader({
               >
                 <input {...getInputProps()} />
                 <p className="text-sm text-muted-foreground">
-                  Drag & drop or click to upload
+                  Drag and drop or click to upload
                 </p>
               </div>
 
               {isUploading && (
                 <div>
-                  <div className="bg-gray-200 rounded-full h-3">
+                  <div className="h-3 rounded-full bg-gray-200">
                     <div
-                      className="bg-primary h-3 rounded-full"
+                      className="h-3 rounded-full bg-primary"
                       style={{ width: `${progress}%` }}
                     />
                   </div>

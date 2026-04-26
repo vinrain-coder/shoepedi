@@ -21,7 +21,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createBlog, updateBlog } from "@/lib/actions/blog.actions";
 import { BlogInputSchema, BlogUpdateSchema } from "@/lib/validator";
 import { toast } from "sonner";
-import { IBlog } from "@/lib/db/models/blog.model";
 import { toSlug } from "@/lib/utils";
 import { X } from "lucide-react";
 import SubmitButton from "@/components/shared/submit-button";
@@ -42,26 +41,28 @@ const blogDefaultValues = {
   publishedAt: undefined,
 };
 
+type BlogFormValues = z.infer<typeof BlogInputSchema>;
+
 const BlogForm = ({
   type,
   blog,
   blogId,
 }: {
   type: "Create" | "Update";
-  blog?: IBlog;
+  blog?: BlogFormValues;
   blogId?: string;
 }) => {
   const { theme } = useTheme();
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof BlogInputSchema>>({
+  const form = useForm<BlogFormValues>({
     resolver: zodResolver(
-      type === "Update" ? BlogUpdateSchema : BlogInputSchema
+      type === "Update" ? BlogUpdateSchema : BlogInputSchema,
     ),
     defaultValues: blog && type === "Update" ? blog : blogDefaultValues,
   });
 
-  async function onSubmit(values: z.infer<typeof BlogInputSchema>) {
+  async function onSubmit(values: BlogFormValues) {
     let res;
     if (type === "Create") {
       res = await createBlog(values);
@@ -184,7 +185,7 @@ const BlogForm = ({
                         className="text-red-500 hover:text-red-700"
                         onClick={() => {
                           const updatedTags = (field.value || []).filter(
-                            (_, i) => i !== index
+                            (_, i) => i !== index,
                           );
                           field.onChange(updatedTags);
                         }}

@@ -36,7 +36,9 @@ const ProductCard = ({
   isInWishlist?: boolean;
   layout?: "classic" | "detailed";
 }) => {
-  const [mainImage, setMainImage] = useState(product.images?.[0] ?? "/placeholder.png");
+  const [mainImage, setMainImage] = useState(
+    product.images?.[0] ?? "/placeholder.png",
+  );
   const router = useRouter();
   const primaryImage = mainImage;
   const hoverImage = product.images?.[1] ?? mainImage;
@@ -51,19 +53,32 @@ const ProductCard = ({
     const normalizedTag = tag.toLowerCase();
     switch (normalizedTag) {
       case "todays-deal":
-        return { label: "Today's Deal", className: "bg-red-600 hover:bg-red-600" };
+        return {
+          label: "Today's Deal",
+          className: "bg-red-600 hover:bg-red-600",
+        };
       case "new-arrival":
-        return { label: "New Arrival", className: "bg-blue-600 hover:bg-blue-600" };
+        return {
+          label: "New Arrival",
+          className: "bg-blue-600 hover:bg-blue-600",
+        };
       case "featured":
-        return { label: "Featured", className: "bg-purple-600 hover:bg-purple-600" };
+        return {
+          label: "Featured",
+          className: "bg-purple-600 hover:bg-purple-600",
+        };
       case "best-seller":
-        return { label: "Best Seller", className: "bg-orange-500 hover:bg-orange-500" };
+        return {
+          label: "Best Seller",
+          className: "bg-orange-500 hover:bg-orange-500",
+        };
       default:
         return { label: tag, className: "bg-black hover:bg-black" };
     }
   };
 
-  const firstTag = product.tags && product.tags.length > 0 ? product.tags[0] : null;
+  const firstTag =
+    product.tags && product.tags.length > 0 ? product.tags[0] : null;
   const tagStyle = firstTag ? getTagStyles(firstTag) : null;
 
   const ProductImage = ({ withFloatingIcons = false }) => (
@@ -71,12 +86,15 @@ const ProductCard = ({
       className={cn(
         "relative w-full overflow-hidden",
         layout === "detailed"
-          ? "aspect-square min-h-[110px] rounded-xl p-2.5 sm:min-h-[160px] sm:p-3"
-          : "aspect-[3/4] h-52 sm:h-56",
+          ? "aspect-square min-h-27.5 rounded-xl p-2.5 sm:min-h-40 sm:p-3"
+          : "aspect-3/4 h-52 sm:h-56",
       )}
     >
       {layout === "classic" && tagStyle && firstTag && (
-        <Link href={`/tags/${encodeURIComponent(firstTag)}`} className="absolute -top-1.5 left-0 z-10">
+        <Link
+          href={`/tags/${encodeURIComponent(firstTag)}`}
+          className="absolute -top-1.5 left-0 z-10"
+        >
           <Badge
             className={cn(
               "rounded-none rounded-br-md text-[10px] uppercase font-bold px-2 py-0.5 border-none text-white cursor-pointer",
@@ -105,7 +123,10 @@ const ProductCard = ({
             src={primaryImage}
             hoverSrc={hoverImage}
             alt={product.name}
-            className={cn("object-cover", layout === "detailed" && "rounded-lg")}
+            className={cn(
+              "object-cover",
+              layout === "detailed" && "rounded-lg",
+            )}
           />
         ) : (
           <Image
@@ -113,7 +134,10 @@ const ProductCard = ({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 80vw, 20vw"
-            className={cn("object-cover", layout === "detailed" && "rounded-lg")}
+            className={cn(
+              "object-cover",
+              layout === "detailed" && "rounded-lg",
+            )}
             priority
           />
         )}
@@ -134,7 +158,11 @@ const ProductCard = ({
         <Rating rating={product.avgRating} size={15} />
         <span>({formatNumber(product.numReviews)})</span>
       </div>
-      <ProductPrice price={product.price} listPrice={product.listPrice} align="center" />
+      <ProductPrice
+        price={product.price}
+        listPrice={product.listPrice}
+        align="center"
+      />
     </div>
   );
 
@@ -147,9 +175,12 @@ const ProductCard = ({
   if (layout === "detailed") {
     return (
       <>
-        <Card className="relative overflow-hidden rounded-md border border-[0.5px] p-1 pb-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
+        <Card className="relative overflow-hidden rounded-md border p-1 pb-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
           <div className="absolute right-2 top-2 z-20 flex flex-col items-center gap-1.5 sm:right-3 sm:top-3">
-            <WishlistIcon productId={product._id.toString()} initialInWishlist={isInWishlist} />
+            <WishlistIcon
+              productId={product._id.toString()}
+              initialInWishlist={isInWishlist}
+            />
           </div>
           <div className="grid grid-cols-[104px_1fr] gap-2.5 sm:grid-cols-[144px_1fr] sm:gap-3.5 lg:grid-cols-[220px_1fr] lg:gap-5">
             <div className="w-full">
@@ -161,11 +192,18 @@ const ProductCard = ({
                       key={`${image}-${index}`}
                       onClick={() => setMainImage(image)}
                       className={cn(
-                        "relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md border transition-all sm:h-12 sm:w-12",
-                        mainImage === image ? "border-primary ring-1 ring-primary" : "border-transparent",
+                        "relative h-9 w-9 shrink-0 overflow-hidden rounded-md border transition-all sm:h-12 sm:w-12 cursor-pointer",
+                        mainImage === image
+                          ? "border-primary ring-1 ring-primary"
+                          : "border-transparent",
                       )}
                     >
-                      <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
+                      <Image
+                        src={image}
+                        alt={`${product.name} ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -176,46 +214,86 @@ const ProductCard = ({
               <div className="flex flex-wrap items-center gap-1.5 pr-9 sm:pr-10">
                 {tagStyle && firstTag && (
                   <Link href={`/tags/${encodeURIComponent(firstTag)}`}>
-                    <Badge className={cn("h-4 px-1.5 text-[9px] text-white", tagStyle.className)}>{tagStyle.label}</Badge>
+                    <Badge
+                      className={cn(
+                        "h-4 px-1.5 text-[9px] text-white",
+                        tagStyle.className,
+                      )}
+                    >
+                      {tagStyle.label}
+                    </Badge>
                   </Link>
                 )}
               </div>
 
-              <Link href={productPath} className="line-clamp-2 text-sm font-semibold leading-tight hover:text-primary sm:text-base">
+              <Link
+                href={productPath}
+                className="line-clamp-2 text-sm font-semibold leading-tight hover:text-primary sm:text-base"
+              >
                 {product.name}
               </Link>
 
-              <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{product.description || "Premium quality product designed for comfort and style."}</p>
+              <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+                {product.shortDescription ||
+                  "Premium quality product designed for comfort and style."}
+              </p>
 
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
                 <Rating rating={product.avgRating} size={15} />
                 <span>({formatNumber(product.numReviews)})</span>
                 <span>•</span>
-                <span className={cn(product.countInStock > 0 ? "text-emerald-600" : "text-red-500")}>
-                  {product.countInStock > 0 ? `${product.countInStock} in stock` : "Out of stock"}
+                <span
+                  className={cn(
+                    product.countInStock > 0
+                      ? "text-emerald-600"
+                      : "text-red-500",
+                  )}
+                >
+                  {product.countInStock > 0
+                    ? `${product.countInStock} in stock`
+                    : "Out of stock"}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sizes</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sizes
+                </p>
                 <div className="flex flex-wrap gap-1">
                   {product.sizes.slice(0, 5).map((size) => (
-                    <span key={size} className="rounded-full border px-1.5 py-0.5 text-[10px] sm:text-[11px]">{size}</span>
+                    <span
+                      key={size}
+                      className="rounded-full border px-1.5 py-0.5 text-[10px] sm:text-[11px]"
+                    >
+                      {size}
+                    </span>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Colors</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Colors
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {product.colors.slice(0, 6).map((color) => (
-                    <span key={color} title={color} className="h-4 w-4 rounded-full ring-1 ring-border sm:h-[18px] sm:w-[18px]" style={{ backgroundColor: color }} />
+                    <span
+                      key={color}
+                      title={color}
+                      className="h-4 w-4 rounded-full ring-1 ring-border sm:h-4.5 sm:w-4.5"
+                      style={{ backgroundColor: color }}
+                    />
                   ))}
                 </div>
               </div>
 
               <div className="mt-auto space-y-2 pt-0.5 sm:pt-1">
-                <ProductPrice price={product.price} listPrice={product.listPrice} align="start" className="text-lg sm:text-xl" />
+                <ProductPrice
+                  price={product.price}
+                  listPrice={product.listPrice}
+                  align="start"
+                  className="text-lg sm:text-xl"
+                />
 
                 {!hideAddToCart && (
                   <AddButton className="text-left [&>button]:w-full [&>button]:sm:w-auto" />
@@ -243,31 +321,31 @@ const ProductCard = ({
           )}
         </div>
       ) : (
-      <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
-        <CardHeader className="p-0">
-          <ProductImage withFloatingIcons />
-        </CardHeader>
-        {!hideDetails && (
-          <>
-            <CardContent className="px-0 flex-1 text-center -mt-6">
-              <ProductDetails />
-            </CardContent>
+        <Card className="flex flex-col relative hover:shadow-lg rounded-sm p-0">
+          <CardHeader className="p-0">
+            <ProductImage withFloatingIcons />
+          </CardHeader>
+          {!hideDetails && (
+            <>
+              <CardContent className="px-0 flex-1 text-center -mt-6">
+                <ProductDetails />
+              </CardContent>
 
-            <CardFooter className="mb-2 -mt-5">
-              {product.countInStock === 0 ? (
-                <Badge
-                  variant="destructive"
-                  className="mx-auto px-3 py-2 text-sm font-semibold rounded-full hidden"
-                >
-                  Out of Stock
-                </Badge>
-              ) : (
-                !hideAddToCart && <AddButton />
-              )}
-            </CardFooter>
-          </>
-        )}
-      </Card>
+              <CardFooter className="mb-2 -mt-5">
+                {product.countInStock === 0 ? (
+                  <Badge
+                    variant="destructive"
+                    className="mx-auto px-3 py-2 text-sm font-semibold rounded-full hidden"
+                  >
+                    Out of Stock
+                  </Badge>
+                ) : (
+                  !hideAddToCart && <AddButton />
+                )}
+              </CardFooter>
+            </>
+          )}
+        </Card>
       )}
     </>
   );

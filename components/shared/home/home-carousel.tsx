@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function HomeCarousel({ items }: { items: ICarousel[] }) {
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
+    Autoplay({ delay: 5000, stopOnInteraction: true }),
   );
 
   const [api, setApi] = React.useState<CarouselApi>();
@@ -52,7 +52,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
         {items.map((item, index) => (
           <CarouselItem key={item.title}>
             <Link href={item.url}>
-              <div className="flex aspect-[16/8] md:aspect-[16/6] items-center justify-center p-6 relative overflow-hidden">
+              <div className="flex aspect-16/8 md:aspect-16/5 items-center justify-center p-4 relative overflow-hidden">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -75,7 +75,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.1 }}
                         className={cn(
-                          "text-2xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg"
+                          "text-2xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg",
                         )}
                       >
                         {item.title}
@@ -110,7 +110,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
               "w-2 h-2 rounded-full transition-all duration-300",
               current === i
                 ? "bg-primary w-6"
-                : "bg-white/50 hover:bg-white/80"
+                : "bg-white/50 hover:bg-white/80",
             )}
             onClick={() => api?.scrollTo(i)}
           />

@@ -1,15 +1,17 @@
 import { IReviewInput } from "@/types";
 import { Document, Model, Schema, Types, model, models } from "mongoose";
 
-export interface IReview extends Document, IReviewInput {
+export interface IReview
+  extends Document,
+    Omit<IReviewInput, "user" | "product"> {
   _id: Types.ObjectId;
-  user: Types.ObjectId;
-  product: Types.ObjectId;
+  user: Types.ObjectId | string;
+  product: Types.ObjectId | string;
   rating: number;
   comment: string;
   title: string;
   image?: string;
-  images?: string[];
+  images: string[];
   adminReply?: {
     message: string;
     repliedAt: Date;

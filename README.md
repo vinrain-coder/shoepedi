@@ -1,4 +1,4 @@
-# ShoePedi
+# ShoeStar
 
 Comprehensive documentation is available in the `docs/` folder:
 

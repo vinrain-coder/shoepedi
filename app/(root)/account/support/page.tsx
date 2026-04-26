@@ -35,7 +35,7 @@ export default async function AccountSupportPage() {
               <div key={ticket._id} className="space-y-2 p-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-sm">{ticket.subject}</p>
-                  <Badge variant={ticket.status === "replied" ? "default" : "secondary"}>{ticket.status}</Badge>
+                  <Badge variant={ticket.status === "replied" ? "success" : "secondary"}>{ticket.status}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">{new Date(ticket.createdAt).toLocaleString()}</p>
                 <p className="text-sm">{ticket.message}</p>

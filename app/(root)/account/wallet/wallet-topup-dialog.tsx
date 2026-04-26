@@ -66,9 +66,9 @@ export function WalletTopupDialog() {
         };
 
         if (!(window as any).PaystackPop) {
-           toast.error("Paystack script not loaded. Please refresh the page.");
-           setLoading(false);
-           return;
+          toast.error("Paystack script not loaded. Please refresh the page.");
+          setLoading(false);
+          return;
         }
 
         const handler = (window as any).PaystackPop.setup({
@@ -78,14 +78,13 @@ export function WalletTopupDialog() {
           currency: "KES",
           ref: config.reference,
           onClose: () => {
-              setLoading(false);
+            setLoading(false);
           },
           callback: (response: any) => {
-              onSuccess(response);
-          }
+            onSuccess(response);
+          },
         });
         handler.openIframe();
-
       } else {
         toast.error(res.message);
         setLoading(false);

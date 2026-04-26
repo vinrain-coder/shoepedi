@@ -1,4 +1,4 @@
-# ShoePedi User Documentation
+# ShoeStar User Documentation
 
 ## 1) Getting started
 1. Open the website home page.

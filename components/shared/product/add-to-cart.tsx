@@ -14,12 +14,7 @@ import { OrderItem } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  ShoppingCart,
-  Loader2,
-  CreditCard,
-  ArrowRight,
-} from "lucide-react";
+import { ShoppingCart, Loader2, CreditCard } from "lucide-react";
 
 export default function AddToCart({
   item,
@@ -77,11 +72,7 @@ export default function AddToCart({
         }}
         className="cursor-pointer inline-flex items-center"
       >
-        {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
-          children
-        )}
+        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : children}
       </span>
     );
   }
@@ -183,4 +174,4 @@ export default function AddToCart({
       </Button>
     </div>
   );
-  }
+}

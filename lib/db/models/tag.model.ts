@@ -1,6 +1,7 @@
 import { Document, Model, Schema, model, models } from "mongoose";
 
 export interface ITag extends Document {
+  id: string;
   name: string;
   slug: string;
   image: string;

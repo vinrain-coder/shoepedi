@@ -23,13 +23,7 @@ interface CouponStatsCardsProps {
   currentStatus?: string;
 }
 
-export default function CouponStatsCards({
-  stats,
-  currentStatus = "all",
-}: CouponStatsCardsProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+export default function CouponStatsCards({ stats }: CouponStatsCardsProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   // Note: Coupons don't currently have a 'status' filter in the same way products do,
@@ -49,7 +43,8 @@ export default function CouponStatsCards({
       label: "Active",
       value: stats.activeCoupons,
       icon: CheckCircle2,
-      color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+      color:
+        "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
     },
     {
       id: "expired",
@@ -95,7 +90,7 @@ export default function CouponStatsCards({
                 key={stat.id}
                 className={cn(
                   "border-dashed shadow-none transition-colors",
-                  "opacity-80"
+                  "opacity-80",
                 )}
               >
                 <CardContent className="p-3 sm:p-4">

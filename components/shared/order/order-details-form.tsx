@@ -27,7 +27,10 @@ import {
   updateOrderToPaid,
 } from "@/lib/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
-import { ORDER_STATUS_LABELS, ORDER_TRACKING_STATUSES } from "@/lib/order-tracking";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_TRACKING_STATUSES,
+} from "@/lib/order-tracking";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import dynamic from "next/dynamic";
@@ -56,17 +59,23 @@ function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
     >
       <span className="font-medium">{trackingNumber}</span>
       <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-      {copied && <span className="text-xs text-green-600 dark:text-green-400">Copied!</span>}
+      {copied && (
+        <span className="text-xs text-green-600 dark:text-green-400">
+          Copied!
+        </span>
+      )}
     </div>
   );
-  }
+}
 
 export default function OrderDetailsForm({
   order,
   isAdmin,
+  accessToken,
 }: {
   order: SerializedOrder;
   isAdmin: boolean;
+  accessToken?: string;
 }) {
   const orderId = order._id;
   const { data: session } = authClient.useSession();
@@ -74,7 +83,10 @@ export default function OrderDetailsForm({
   const [nextStatus, setNextStatus] = useState(order.status);
 
   const timeline = useMemo(
-    () => [...(order.trackingHistory || [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+    () =>
+      [...(order.trackingHistory || [])].sort(
+        (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt),
+      ),
     [order.trackingHistory],
   );
 
@@ -93,7 +105,9 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
     paymentResult,
   } = order;
-  const paymentResultInfo = paymentResult as Record<string, string | undefined> | undefined;
+  const paymentResultInfo = paymentResult as
+    | Record<string, string | undefined>
+    | undefined;
 
   return (
     <div className="grid md:grid-cols-3 gap-2 md:gap-5">
@@ -102,10 +116,20 @@ export default function OrderDetailsForm({
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
             <p className="text-sm flex items-center gap-2">
-              Tracking Number: <CopyTrackingNumber trackingNumber={order.trackingNumber} />
+              Tracking Number:{" "}
+              <CopyTrackingNumber trackingNumber={order.trackingNumber} />
             </p>
-            <p className="text-sm flex items-center gap-2">Current Status: <OrderStatusBadge status={order.status} /></p>
-            <p className="text-sm"><Link className="underline text-blue-600 underline hover:text-blue-700" href={`/track/${order.trackingNumber}`}>Open tracking page</Link></p>
+            <p className="text-sm flex items-center gap-2">
+              Current Status: <OrderStatusBadge status={order.status} />
+            </p>
+            <p className="text-sm">
+              <Link
+                className="underline text-blue-600 hover:text-blue-700"
+                href={`/track/${order.trackingNumber}`}
+              >
+                Open tracking page
+              </Link>
+            </p>
             <p>
               {shippingAddress.fullName} {shippingAddress.phone}
             </p>
@@ -116,13 +140,13 @@ export default function OrderDetailsForm({
             </p>
 
             {isDelivered ? (
-              <Badge>
+              <Badge variant="success">
                 Delivered at {formatDateTime(deliveredAt!).dateTime}
               </Badge>
             ) : (
               <div>
                 {" "}
-                <Badge variant="destructive">Not delivered</Badge>
+                <Badge variant="pending">Not delivered</Badge>
                 <div>
                   Expected delivery at{" "}
                   {formatDateTime(expectedDeliveryDate!).dateTime}
@@ -136,7 +160,9 @@ export default function OrderDetailsForm({
             <h2 className="text-xl pb-4">Payment Method</h2>
             <p>{paymentMethod}</p>
             {isPaid ? (
-              <Badge>Paid at {formatDateTime(paidAt!).dateTime}</Badge>
+              <Badge variant="success">
+                Paid at {formatDateTime(paidAt!).dateTime}
+              </Badge>
             ) : (
               <Badge variant="destructive">Not paid</Badge>
             )}
@@ -267,10 +293,7 @@ export default function OrderDetailsForm({
             <div className="flex justify-between pt-2 font-bold text-lg border-t">
               <span>Order Total:</span>
               <span>
-                <ProductPrice
-                  price={totalPrice}
-                  plain
-                />
+                <ProductPrice price={totalPrice} plain />
               </span>
             </div>
             <Button asChild variant="outline" className="w-full">
@@ -293,19 +316,26 @@ export default function OrderDetailsForm({
                 />
               )}
 
-            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && order.status !== "cancelled" && (
-              <ActionButton
-                caption="Mark as paid"
-                action={() => updateOrderToPaid(orderId)}
-              />
-            )}
+            {isAdmin &&
+              !isPaid &&
+              paymentMethod === "Cash On Delivery" &&
+              order.status !== "cancelled" && (
+                <ActionButton
+                  caption="Mark as paid"
+                  action={() => updateOrderToPaid(orderId)}
+                />
+              )}
             {isAdmin && !["cancelled", "returned"].includes(order.status) && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Update Order Status</label>
+                <label className="text-sm font-medium">
+                  Update Order Status
+                </label>
                 <select
                   className="w-full border rounded-md px-3 py-2 text-sm"
                   value={nextStatus}
-                  onChange={(event) => setNextStatus(event.target.value as typeof order.status)}
+                  onChange={(event) =>
+                    setNextStatus(event.target.value as typeof order.status)
+                  }
                 >
                   {ORDER_TRACKING_STATUSES.map((status) => (
                     <option key={status} value={status}>
@@ -315,47 +345,60 @@ export default function OrderDetailsForm({
                 </select>
                 <ActionButton
                   caption="Apply status"
-                  action={() => updateOrderStatus({ orderId, status: nextStatus })}
+                  action={() =>
+                    updateOrderStatus({ orderId, status: nextStatus })
+                  }
                 />
               </div>
             )}
-            {isAdmin && isPaid && !isDelivered && order.status !== "cancelled" && (
-              <ActionButton
-                caption="Quick mark as delivered"
-                action={() => deliverOrder(orderId)}
-              />
-            )}
+            {isAdmin &&
+              isPaid &&
+              !isDelivered &&
+              order.status !== "cancelled" && (
+                <ActionButton
+                  caption="Quick mark as delivered"
+                  action={() => deliverOrder(orderId)}
+                />
+              )}
 
-            {isAdmin && order.status === "returned" && !order.isExchangeInitiated && (
-              <ActionButton
-                caption="Initiate Exchange"
-                variant="outline"
-                requireConfirmation
-                confirmationMessage="Are you sure you want to initiate an exchange for this order? The customer will be responsible for new delivery costs."
-                action={() => initiateExchange(orderId)}
-              />
-            )}
+            {isAdmin &&
+              order.status === "returned" &&
+              !order.isExchangeInitiated && (
+                <ActionButton
+                  caption="Initiate Exchange"
+                  variant="outline"
+                  requireConfirmation
+                  confirmationMessage="Are you sure you want to initiate an exchange for this order? The customer will be responsible for new delivery costs."
+                  action={() => initiateExchange(orderId)}
+                />
+              )}
             {isAdmin && order.isExchangeInitiated && (
-              <Badge variant="outline" className="w-full justify-center py-2 border-orange-500 text-orange-600">
+              <Badge
+                variant="outline"
+                className="w-full justify-center py-2 border-orange-500 text-orange-600"
+              >
                 Exchange Processed
               </Badge>
             )}
 
-            {!isAdmin && ["pending", "confirmed", "processing"].includes(order.status) && (
-              <ActionButton
-                caption="Cancel Order"
-                variant="destructive"
-                requireConfirmation
-                confirmationMessage={
-                  order.paymentMethod === "Coins"
-                    ? "Are you sure you want to cancel this order? Any paid amount will be returned to your coin balance."
-                    : "Are you sure you want to cancel this order? Any paid amount will be refunded to your wallet."
-                }
-                action={() => cancelOrder(orderId)}
-              />
-            )}
+            {!isAdmin &&
+              ["pending", "confirmed", "processing"].includes(order.status) && (
+                <ActionButton
+                  caption="Cancel Order"
+                  variant="destructive"
+                  requireConfirmation
+                  confirmationMessage={
+                    order.paymentMethod === "Coins"
+                      ? "Are you sure you want to cancel this order? Any paid amount will be returned to your coin balance."
+                      : "Are you sure you want to cancel this order? Any paid amount will be refunded to your wallet."
+                  }
+                  action={() => cancelOrder(orderId, accessToken)}
+                />
+              )}
 
-            {!isAdmin && order.status === "delivered" && order.deliveredAt && (
+            {!isAdmin &&
+              order.status === "delivered" &&
+              order.deliveredAt &&
               (() => {
                 const deliveredDate = new Date(order.deliveredAt);
                 const sevenDaysLater = new Date(deliveredDate);
@@ -371,8 +414,7 @@ export default function OrderDetailsForm({
                     action={() => requestReturnOrder(orderId)}
                   />
                 ) : null;
-              })()
-            )}
+              })()}
           </CardContent>
         </Card>
       </div>

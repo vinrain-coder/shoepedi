@@ -56,7 +56,12 @@ export default function StockSubList({ data }: StockSubListProps) {
                         {sub.product.name}
                       </Link>
                       {!sub.product.isPublished && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1 uppercase">Draft</Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] h-4 px-1 uppercase"
+                        >
+                          Draft
+                        </Badge>
                       )}
                     </div>
                   ) : (
@@ -72,7 +77,7 @@ export default function StockSubList({ data }: StockSubListProps) {
                       Notified
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="rounded-full bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400">
+                    <Badge variant="pending" className="rounded-full">
                       Pending
                     </Badge>
                   )}

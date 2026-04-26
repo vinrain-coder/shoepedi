@@ -1,26 +1,34 @@
 import { Section, Row, Column, Link, Img } from "@react-email/components";
 
+const socialLinks = {
+  twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "#",
+  tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL || "#",
+  facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "#",
+  instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "#",
+  youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "#",
+};
+
 export default function SocialLinks() {
   const socialPlatforms = [
     {
       name: "Facebook",
       icon: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
-      url: "https://facebook.com/shoepedi",
+      url: socialLinks.facebook,
     },
     {
       name: "Instagram",
       icon: "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
-      url: "https://instagram.com/shoepedi",
+      url: socialLinks.instagram,
     },
     {
       name: "Twitter",
       icon: "https://cdn-icons-png.flaticon.com/512/3256/3256013.png",
-      url: "https://twitter.com/shoepedi",
+      url: socialLinks.twitter,
     },
     {
       name: "Tiktok",
       icon: "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
-      url: "https://tiktok.com/@shoepedi",
+      url: socialLinks.tiktok,
     },
   ];
 

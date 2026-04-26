@@ -17,6 +17,7 @@ const UpdateWebPage = async (props: UpdateWebPageProps) => {
 
   const webPage = await getWebPageById(id);
   if (!webPage) notFound();
+  const webPageId = String(webPage._id);
   return (
     <main className="max-w-6xl mx-auto p-4">
       <div className="flex mb-4">
@@ -24,12 +25,12 @@ const UpdateWebPage = async (props: UpdateWebPageProps) => {
           <span>Web Pages</span>
         </Link>
         <span className="mx-1">›</span>
-        <Link href={`/admin/web-pages/${webPage._id}`}>
-          <span>{webPage._id}</span>
+        <Link href={`/admin/web-pages/${webPageId}`}>
+          <span>{webPageId}</span>
         </Link>
       </div>
       <div className="my-8">
-        <WebPageForm type="Update" webPage={webPage} webPageId={webPage._id} />
+        <WebPageForm type="Update" webPage={webPage} webPageId={webPageId} />
       </div>
     </main>
   );

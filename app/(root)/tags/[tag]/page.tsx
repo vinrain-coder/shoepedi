@@ -40,7 +40,7 @@ export async function generateMetadata({
     tagData.description || `Shop ${titleBase} products at ${site.name}.`;
 
   const hasFilters = Object.keys(sp || {}).some(
-    (k) => sp[k] && sp[k] !== "all" && k !== "page"
+    (k) => sp[k] && sp[k] !== "all" && k !== "page",
   );
 
   return {
@@ -175,7 +175,7 @@ export default async function TagPage({
       <Breadcrumb />
 
       {/* Header */}
-      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex-between flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-3">
+      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-3">
         <div>
           <h1 className="text-xl font-bold capitalize">{tagData.name}</h1>
           <p>

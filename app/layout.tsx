@@ -1,17 +1,10 @@
 
-import { Nunito } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getSetting } from "@/lib/actions/setting.actions";
-import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
-
-const nunito = Nunito({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export async function generateMetadata() {
   const {
@@ -53,14 +46,12 @@ export default async function AppLayout({
 }) {
   const setting = await getSetting();
 
-  //const currencyCookie = (await cookies()).get("currency");
- // const currency = currencyCookie ? currencyCookie.value : "KES";
-    const currency = "KES";
+  const currency = "KES";
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`min-h-screen ${nunito.className} antialiased leading-relaxed tracking-wide`}
+        className="min-h-screen font-sans antialiased leading-relaxed tracking-wide"
       >
         <Suspense fallback={null}>
           

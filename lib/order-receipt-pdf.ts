@@ -9,6 +9,9 @@ const escapePdf = (value: string) =>
 const drawTextLine = (text: string, y: number, size = 11) =>
   `BT /F1 ${size} Tf 50 ${y} Td (${escapePdf(text)}) Tj ET`;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 /** Build an order receipt PDF */
 export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
   const createdAt = formatDateTime(order.createdAt).dateTime;
@@ -18,6 +21,33 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
     : "Not delivered";
 
   const money = (value: number) => formatCurrency(value).padStart(14, " ");
+  const paymentResult = isRecord(order.paymentResult)
+    ? order.paymentResult
+    : undefined;
+  const authorization =
+    paymentResult && isRecord(paymentResult.authorization)
+      ? paymentResult.authorization
+      : undefined;
+  const paymentGateway =
+    typeof paymentResult?.gateway === "string" ? paymentResult.gateway : "Paystack";
+  const paymentStatus =
+    typeof paymentResult?.status === "string" ? paymentResult.status : "-";
+  const paymentReference =
+    typeof paymentResult?.paymentReference === "string"
+      ? paymentResult.paymentReference
+      : "-";
+  const transactionId =
+    typeof paymentResult?.id === "string" ? paymentResult.id : "-";
+  const channel =
+    typeof paymentResult?.channel === "string" ? paymentResult.channel : "-";
+  const amountPaid =
+    typeof paymentResult?.pricePaid === "string" ? paymentResult.pricePaid : "-";
+  const currency =
+    typeof paymentResult?.currency === "string" ? paymentResult.currency : "-";
+  const cardLast4 =
+    typeof authorization?.last4 === "string" ? authorization.last4 : undefined;
+  const cardBrand =
+    typeof authorization?.brand === "string" ? authorization.brand : "";
 
   // Lines to render in PDF
   const lines: string[] = [
@@ -51,23 +81,23 @@ export function buildOrderReceiptPdf(order: SerializedOrder): Buffer {
   ];
 
   // Payment details
-  if (order.paymentResult) {
+  if (paymentResult) {
     lines.push(
       "",
       "-------------------------------------------------------------",
       "PAYMENT DETAILS",
-      `Gateway: ${order.paymentResult.gateway ?? "Paystack"}`,
-      `Status: ${order.paymentResult.status ?? "-"}`,
-      `Reference: ${order.paymentResult.paymentReference ?? "-"}`,
-      `Transaction ID: ${order.paymentResult.id ?? "-"}`,
-      `Channel: ${order.paymentResult.channel ?? "-"}`,
-      `Amount paid: ${order.paymentResult.pricePaid ?? "-"}`,
-      `Currency: ${order.paymentResult.currency ?? "-"}`
+      `Gateway: ${paymentGateway}`,
+      `Status: ${paymentStatus}`,
+      `Reference: ${paymentReference}`,
+      `Transaction ID: ${transactionId}`,
+      `Channel: ${channel}`,
+      `Amount paid: ${amountPaid}`,
+      `Currency: ${currency}`
     );
 
-    if (order.paymentResult.authorization?.last4) {
+    if (cardLast4) {
       lines.push(
-        `Card: **** ${order.paymentResult.authorization.last4} (${order.paymentResult.authorization.brand ?? ""})`.trim()
+        `Card: **** ${cardLast4} (${cardBrand})`.trim()
       );
     }
   }

@@ -46,18 +46,26 @@ export default async function AdminWalletPayoutsPage({
     status: status,
   });
 
-  const { data: payouts = [], totalPages = 1 } = payoutsData as { data: any[], totalPages: number };
+  const { data: payouts = [], totalPages = 1 } = payoutsData as {
+    data: any[];
+    totalPages: number;
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Wallet Payout Requests</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Wallet Payout Requests
+        </h1>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-1 flex-wrap items-center gap-4">
-          <form method="GET" className="flex flex-1 flex-wrap items-center gap-4">
-            <div className="relative flex-1 min-w-[300px]">
+          <form
+            method="GET"
+            className="flex flex-1 flex-wrap items-center gap-4"
+          >
+            <div className="relative flex-1 min-w-75">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 name="q"
@@ -68,7 +76,7 @@ export default async function AdminWalletPayoutsPage({
             </div>
 
             <Select name="status" defaultValue={status}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -83,7 +91,9 @@ export default async function AdminWalletPayoutsPage({
             {/* Preserve page if searching, though often searching should reset to page 1 */}
             <input type="hidden" name="page" value="1" />
 
-            <button type="submit" className="hidden">Search</button>
+            <button type="submit" className="hidden">
+              Search
+            </button>
           </form>
         </div>
       </div>
@@ -108,7 +118,9 @@ export default async function AdminWalletPayoutsPage({
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">{payout.user?.name}</span>
-                      <span className="text-xs text-muted-foreground">{payout.user?.email}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {payout.user?.email}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono">
@@ -117,17 +129,17 @@ export default async function AdminWalletPayoutsPage({
                   <TableCell>
                     <Badge variant="outline">{payout.paymentMethod}</Badge>
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate">
+                  <TableCell className="max-w-50 truncate">
                     {payout.paymentDetails?.recipient}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant={
                         payout.status === "paid"
-                          ? "default"
+                          ? "success"
                           : payout.status === "rejected"
-                          ? "destructive"
-                          : "secondary"
+                            ? "destructive"
+                            : "secondary"
                       }
                     >
                       {payout.status}
@@ -143,7 +155,10 @@ export default async function AdminWalletPayoutsPage({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No payout requests found.
                 </TableCell>
               </TableRow>

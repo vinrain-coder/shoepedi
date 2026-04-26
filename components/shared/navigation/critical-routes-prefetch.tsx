@@ -10,6 +10,8 @@ export default function CriticalRoutesPrefetch() {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const prefetchRoutes = () => {
       for (const route of CRITICAL_ROUTES) {
         if (pathname !== route) {
@@ -18,15 +20,15 @@ export default function CriticalRoutesPrefetch() {
       }
     };
 
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+    if ("requestIdleCallback" in window) {
       const idleCallbackId = window.requestIdleCallback(prefetchRoutes, {
         timeout: 1200,
       });
       return () => window.cancelIdleCallback(idleCallbackId);
     }
 
-    const timeoutId = window.setTimeout(prefetchRoutes, 350);
-    return () => window.clearTimeout(timeoutId);
+    const timeoutId = setTimeout(prefetchRoutes, 350);
+    return () => clearTimeout(timeoutId);
   }, [pathname, router]);
 
   return null;

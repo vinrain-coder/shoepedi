@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea"; // Using Textarea for description
 import SubmitButton from "@/components/shared/submit-button";
-import CategoryImageUploader from "./category-image-uploader";
 import { CategoryInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
@@ -234,7 +233,7 @@ export default function CategoryForm({
                     value={field.value?.join(", ") || ""}
                     onChange={(e) =>
                       field.onChange(
-                        e.target.value.split(",").map((k) => k.trim())
+                        e.target.value.split(",").map((k) => k.trim()),
                       )
                     }
                   />

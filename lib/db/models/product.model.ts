@@ -26,14 +26,6 @@ const productSchema = new Schema<IProduct>(
       type: String,
       required: true,
     },
-    subcategory: {
-      type: String,
-      default: null,
-    },
-    minicategory: {
-      type: String,
-      default: null,
-    },
     gender: {
       type: String,
       enum: ["male", "female", "unisex", null],
@@ -45,6 +37,10 @@ const productSchema = new Schema<IProduct>(
     },
     videoLink: {
       type: String,
+    },
+    shortDescription: {
+      type: String,
+      trim: true,
     },
     description: {
       type: String,

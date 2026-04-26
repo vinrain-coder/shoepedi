@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { IOrder } from "@/lib/db/models/order.model";
+import { SerializedOrder } from "@/lib/actions/order.actions";
 import { formatDateTime } from "@/lib/utils";
 
 import CheckoutFooter from "../checkout-footer";
@@ -19,10 +19,11 @@ const PaystackInline = dynamic(
 
 export default function OrderDetailsForm({
   order,
+  paystackPublicKey,
 }: {
-  order: IOrder;
-  isAdmin: boolean;
-  clientSecret: string | null;
+  order: SerializedOrder;
+  isAdmin?: boolean;
+  clientSecret?: string | null;
   paystackPublicKey?: string | null;
 }) {
   const { data: session } = authClient.useSession();
@@ -113,8 +114,8 @@ export default function OrderDetailsForm({
                   <PaystackInline
                     email={(session?.user?.email || order.userEmail) as string}
                     amount={Math.round(order.totalPrice * 100)}
-                    publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-                    orderId={order._id.toString()}
+                    publicKey={paystackPublicKey || process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+                    orderId={order._id}
                     onSuccess={() =>
                       router.push(orderPath)
                     }

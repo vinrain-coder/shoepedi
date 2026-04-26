@@ -1,7 +1,3 @@
-import { getServerSession } from "@/lib/get-session";
-import { toSignInPath } from "@/lib/redirects";
-import { redirect } from "next/navigation";
-
 export default async function AccountLayout({
   children,
 }: {

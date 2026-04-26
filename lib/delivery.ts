@@ -1,7 +1,5 @@
 import { DeliveryDate } from "@/types";
 
-const normalizeValue = (value: string) => value.trim().toLowerCase();
-
 export const calculateShippingPrice = ({
   deliveryDate,
   itemsPrice,

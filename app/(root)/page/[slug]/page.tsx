@@ -38,8 +38,7 @@ export async function generateMetadata({
       description: description,
       url: `${site.url}/page/${slug}`,
       type: "article",
-      //@ts-ignore
-      publishedTime: webPage.createdAt,
+      publishedTime: new Date(webPage.createdAt).toISOString(),
       images: [
         {
           url: webPage.image || "/default-og-image.jpg",

@@ -1,7 +1,7 @@
-# ShoePedi Developer Documentation
+# ShoeStar Developer Documentation
 
 ## 1) Project overview
-ShoePedi is a Next.js App Router ecommerce application with:
+ShoeStar is a Next.js App Router ecommerce application with:
 - Public storefront pages under `app/(home)` and `app/(root)`.
 - Authentication flows under `app/(auth)`.
 - Checkout flows under `app/checkout`.

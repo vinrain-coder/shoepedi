@@ -78,9 +78,14 @@ export async function getAllWebPages({
   await connectToDatabase();
 
   // Normalize and validate inputs
-  const normalizedLimit = Math.min(Math.max(1, Math.floor(Number(limit) || 10)), 100);
+  const normalizedLimit = Math.min(
+    Math.max(1, Math.floor(Number(limit) || 10)),
+    100,
+  );
   const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
-  const normalizedIsPublished = ["true", "false", "all"].includes(String(isPublished))
+  const normalizedIsPublished = ["true", "false", "all"].includes(
+    String(isPublished),
+  )
     ? String(isPublished)
     : "all";
 
@@ -131,8 +136,14 @@ export async function getWebPageById(webPageId: string) {
   cacheLife("days");
   cacheTag("web-pages");
   await connectToDatabase();
-  const webPage = await WebPage.findById(webPageId);
-  return JSON.parse(JSON.stringify(webPage)) as IWebPage;
+  const webPage = await WebPage.findById(webPageId).lean();
+  if (!webPage) return null;
+  return {
+    ...webPage,
+    _id: webPage._id.toString(),
+    createdAt: webPage.createdAt?.toISOString(),
+    updatedAt: webPage.updatedAt?.toISOString(),
+  } as unknown as IWebPage;
 }
 
 // GET ONE PAGE BY SLUG
@@ -141,7 +152,12 @@ export async function getWebPageBySlug(slug: string) {
   cacheLife("hours");
   cacheTag("web-pages");
   await connectToDatabase();
-  const webPage = await WebPage.findOne({ slug, isPublished: true });
+  const webPage = await WebPage.findOne({ slug, isPublished: true }).lean();
   if (!webPage) throw new Error("WebPage not found");
-  return JSON.parse(JSON.stringify(webPage)) as IWebPage;
+  return {
+    ...webPage,
+    _id: webPage._id.toString(),
+    createdAt: webPage.createdAt?.toISOString(),
+    updatedAt: webPage.updatedAt?.toISOString(),
+  } as unknown as IWebPage;
 }

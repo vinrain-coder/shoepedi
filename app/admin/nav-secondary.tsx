@@ -41,12 +41,14 @@ export function NavSecondary({
                 <SidebarMenuButton
                   asChild={!isDisabled}
                   isActive={isActive}
-                  tooltip={item.comingSoon ? `${item.title} (Coming Soon)` : item.title}
+                  tooltip={
+                    item.comingSoon ? `${item.title} (Coming Soon)` : item.title
+                  }
                   className={cn(
                     "transition-all duration-200",
                     isActive &&
-                      "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary",
-                    isDisabled && "opacity-50 cursor-not-allowed"
+                      "bg-linear-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary",
+                    isDisabled && "opacity-50 cursor-not-allowed",
                   )}
                 >
                   {isDisabled ? (

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, FileQuestion } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-background to-muted/20 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -24,7 +25,7 @@ export default function NotFound() {
             type: "spring",
             stiffness: 260,
             damping: 20,
-            delay: 0.1
+            delay: 0.1,
           }}
           className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-sm"
         >
@@ -39,7 +40,8 @@ export default function NotFound() {
           Page Not Found
         </h2>
         <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-          The page you’re looking for doesn’t exist or has been moved to a new address.
+          The page you’re looking for doesn’t exist or has been moved to a new
+          address.
         </p>
 
         {/* Action Buttons */}
@@ -66,7 +68,13 @@ export default function NotFound() {
 
         {/* Help Link */}
         <p className="mt-12 text-sm text-muted-foreground">
-          Need help? <a href="/page/support" className="font-medium text-primary hover:underline">Contact Support</a>
+          Need help?{" "}
+          <Link
+            href="/page/support"
+            className="font-medium text-primary hover:underline"
+          >
+            Contact Support
+          </Link>
         </p>
       </motion.div>
     </div>

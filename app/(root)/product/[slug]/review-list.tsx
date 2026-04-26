@@ -1,12 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Calendar,
-  CornerDownRight,
-  StarIcon,
-  User,
-} from "lucide-react";
+import { Calendar, CornerDownRight, StarIcon, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -21,10 +16,7 @@ import { LoadingButton } from "@/components/shared/loading-button";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +51,11 @@ import {
 } from "@/components/ui/select";
 
 import { authClient } from "@/lib/auth-client";
-import { deleteReview, getReviews, submitReviewAction } from "@/lib/actions/review.actions";
+import {
+  deleteReview,
+  getReviews,
+  submitReviewAction,
+} from "@/lib/actions/review.actions";
 import { IProduct } from "@/lib/db/models/product.model";
 import { toSignInPath } from "@/lib/redirects";
 import { ReviewInputSchema } from "@/lib/validator";
@@ -206,7 +202,7 @@ export default function ReviewList({ product }: { product: IProduct }) {
     try {
       const res = await submitReviewAction(
         { ...values, product: product._id.toString() },
-        `/product/${product.slug}`
+        `/product/${product.slug}`,
       );
 
       if (!res.success) {
@@ -274,7 +270,9 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 isMobile ? (
                   <Drawer open={open} onOpenChange={setOpen}>
                     <DrawerTrigger asChild>
-                      <Button className="w-full rounded-full">Write review</Button>
+                      <Button className="w-full rounded-full">
+                        Write review
+                      </Button>
                     </DrawerTrigger>
                     <DrawerContent>
                       <DrawerHeader>
@@ -286,14 +284,18 @@ export default function ReviewList({ product }: { product: IProduct }) {
                 ) : (
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full rounded-full">Write review</Button>
+                      <Button className="w-full rounded-full">
+                        Write review
+                      </Button>
                     </DialogTrigger>
                     <DialogContent>{reviewForm}</DialogContent>
                   </Dialog>
                 )
               ) : (
                 <Link href={toSignInPath(`/product/${product.slug}#reviews`)}>
-                  <Button className="w-full rounded-full">Sign in to review</Button>
+                  <Button className="w-full rounded-full">
+                    Sign in to review
+                  </Button>
                 </Link>
               )}
             </CardContent>
@@ -316,80 +318,78 @@ export default function ReviewList({ product }: { product: IProduct }) {
                     ? [review.image]
                     : [];
               return (
-              <div key={review._id} className="py-5 space-y-2">
-                {/* stars + title */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <StarIcon
-                      key={i}
-                      className={`size-4 ${
-                        i < review.rating
-                          ? "fill-primary text-primary"
-                          : "text-muted"
-                      }`}
-                    />
-                  ))}
-                  {review.title && (
-                    <h3 className="font-semibold">{review.title}</h3>
-                  )}
-                  {review.isVerifiedPurchase && (
-                    <Badge>Verified</Badge>
-                  )}
-                </div>
-
-                {/* author */}
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <User className="size-4" />
-                  {review.user?.name || "Anonymous"} •
-                  <Calendar className="size-4 ml-2" />
-                  {review.createdAt &&
-                    new Date(review.createdAt).toLocaleDateString()}
-                </p>
-
-                {/* comment */}
-                <p className="whitespace-pre-line">{review.comment}</p>
-
-                {/* image */}
-                {reviewImages.length > 0 && (
-                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {reviewImages.map((imageUrl, index) => (
-                      <Image
-                        key={`${review._id}-${index}`}
-                        src={imageUrl}
-                        alt="review"
-                        width={140}
-                        height={140}
-                        className="rounded-lg border object-cover h-28 w-28 sm:h-32 sm:w-32"
+                <div key={review._id} className="py-5 space-y-2">
+                  {/* stars + title */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <StarIcon
+                        key={i}
+                        className={`size-4 ${
+                          i < review.rating
+                            ? "fill-primary text-primary"
+                            : "text-muted"
+                        }`}
                       />
                     ))}
+                    {review.title && (
+                      <h3 className="font-semibold">{review.title}</h3>
+                    )}
+                    {review.isVerifiedPurchase && (
+                      <Badge variant="success">Verified</Badge>
+                    )}
                   </div>
-                )}
 
-                {/* admin reply */}
-                {!!review.adminReply?.message?.trim() && (
-                  <div className="ml-8 mt-3 border-t pt-3 space-y-1">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <CornerDownRight className="size-4" />
-                      Admin
+                  {/* author */}
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <User className="size-4" />
+                    {review.user?.name || "Anonymous"} •
+                    <Calendar className="size-4 ml-2" />
+                    {review.createdAt &&
+                      new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+
+                  {/* comment */}
+                  <p className="whitespace-pre-line">{review.comment}</p>
+
+                  {/* image */}
+                  {reviewImages.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {reviewImages.map((imageUrl, index) => (
+                        <Image
+                          key={`${review._id}-${index}`}
+                          src={imageUrl}
+                          alt="review"
+                          width={140}
+                          height={140}
+                          className="rounded-lg border object-cover h-28 w-28 sm:h-32 sm:w-32"
+                        />
+                      ))}
                     </div>
-                    <p className="text-sm">
-                      {review.adminReply.message}
-                    </p>
-                  </div>
-                )}
+                  )}
 
-                {userId && review.user?._id === userId && (
-                  <div className="pt-1">
-                    <DeleteDialog
-                      id={review._id}
-                      action={deleteReview}
-                      callbackAction={loadInitial}
-                      title="Delete your review?"
-                      description="This will permanently remove your review and images."
-                    />
-                  </div>
-                )}
-              </div>
+                  {/* admin reply */}
+                  {!!review.adminReply?.message?.trim() && (
+                    <div className="ml-8 mt-3 border-t pt-3 space-y-1">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <CornerDownRight className="size-4" />
+                        Admin
+                      </div>
+                      <p className="text-sm">{review.adminReply.message}</p>
+                    </div>
+                  )}
+
+                  {userId && review.user?._id === userId && (
+                    <div className="pt-1">
+                      <DeleteDialog
+                        id={review._id}
+                        action={deleteReview}
+                        callbackAction={loadInitial}
+                        title="Delete your review?"
+                        description="This will permanently remove your review and images."
+                      />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

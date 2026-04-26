@@ -12,7 +12,7 @@ const Price = (field: string) =>
     .number()
     .refine(
       (value) => /^\d+(\.\d{2})?$/.test(formatNumberWithDecimal(value)),
-      `${field} must have exactly two decimal places (e.g., 49.99)`
+      `${field} must have exactly two decimal places (e.g., 49.99)`,
     );
 
 export const ReviewInputSchema = z.object({
@@ -42,8 +42,6 @@ const ProductInputBase = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
   category: z.string().min(1, "Category is required"),
-  subcategory: z.string().optional(), // optional, will be required if parent category has subs
-  minicategory: z.string().optional(), // optional, will be required if subcategory has minis
   gender: z.enum(["male", "female", "unisex"]).nullable().optional(),
   images: z.array(z.string()).min(1, "Product must have at least one image"),
   brand: z.string().optional().or(z.literal("")),
@@ -53,6 +51,10 @@ const ProductInputBase = z.object({
     .refine((val) => !val || z.string().url().safeParse(val).success, {
       message: "Must be a valid URL",
     }),
+  shortDescription: z
+    .string()
+    .min(1, "Short description is required")
+    .max(200, "Short description must be at most 200 characters"),
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
@@ -156,96 +158,107 @@ const OrderStatusSchema = z.enum([
   "delivery_exception",
 ]);
 
-export const OrderInputSchema = z.object({
-  user: MongoId.optional(),
-  isGuest: z.boolean().default(false),
-  userEmail: z.string().email().optional(),
-  userName: z.string().optional(),
-  accessToken: z.string().optional(),
-  items: z
-    .array(OrderItemSchema)
-    .min(1, "Order must contain at least one item"),
-  shippingAddress: ShippingAddressSchema,
-  paymentMethod: z.string().min(1, "Payment method is required"),
-  trackingNumber: z.string().min(8).optional(),
-  status: OrderStatusSchema.default("pending"),
-  trackingHistory: z.array(
-    z.object({
-      status: OrderStatusSchema,
-      message: z.string().min(1),
-      location: z.string().optional(),
-      source: z.enum(["system", "admin", "courier", "customer"]).default("system"),
-      metadata: z.record(z.unknown()).optional(),
-      createdAt: z.date().optional(),
-    }),
-  ).default([]),
-  shipment: z.object({
-    courierName: z.string().optional(),
-    courierTrackingReference: z.string().optional(),
-    estimatedDeliveryDate: z.date().optional(),
-    dispatchedAt: z.date().optional(),
+export const OrderInputSchema = z
+  .object({
+    user: MongoId.optional(),
+    isGuest: z.boolean().default(false),
+    userEmail: z.string().email().optional(),
+    userName: z.string().optional(),
+    accessToken: z.string().optional(),
+    items: z
+      .array(OrderItemSchema)
+      .min(1, "Order must contain at least one item"),
+    shippingAddress: ShippingAddressSchema,
+    paymentMethod: z.string().min(1, "Payment method is required"),
+    trackingNumber: z.string().min(8).optional(),
+    status: OrderStatusSchema.default("pending"),
+    trackingHistory: z
+      .array(
+        z.object({
+          status: OrderStatusSchema,
+          message: z.string().min(1),
+          location: z.string().optional(),
+          source: z
+            .enum(["system", "admin", "courier", "customer"])
+            .default("system"),
+          metadata: z.record(z.unknown()).optional(),
+          createdAt: z.date().optional(),
+        }),
+      )
+      .default([]),
+    shipment: z
+      .object({
+        courierName: z.string().optional(),
+        courierTrackingReference: z.string().optional(),
+        estimatedDeliveryDate: z.date().optional(),
+        dispatchedAt: z.date().optional(),
+        deliveredAt: z.date().optional(),
+      })
+      .optional(),
+    paymentResult: z
+      .object({
+        id: z.string(),
+        status: z.string(),
+        email_address: z.string(),
+        pricePaid: z.string(),
+        paymentMethod: z.string().optional(),
+        paymentReference: z.string().optional(),
+        gateway: z.string().optional(),
+        currency: z.string().optional(),
+        paidAtGateway: z.date().optional(),
+        channel: z.string().optional(),
+        authorization: z
+          .object({
+            card_type: z.string().optional(),
+            bank: z.string().optional(),
+            brand: z.string().optional(),
+            last4: z.string().optional(),
+            exp_month: z.string().optional(),
+            exp_year: z.string().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    itemsPrice: Price("Items price"),
+    shippingPrice: Price("Shipping price"),
+    taxPrice: Price("Tax price"),
+    totalPrice: Price("Total price"),
+    coinsEarned: z.number().nonnegative().finite().default(0),
+    coinsRedeemed: z.number().nonnegative().finite().default(0),
+    walletAmountRedeemed: z.number().nonnegative().finite().default(0),
+    expectedDeliveryDate: z
+      .date()
+      .refine(
+        (value) => value > new Date(),
+        "Expected delivery date must be in the future",
+      ),
+    isDelivered: z.boolean().default(false),
     deliveredAt: z.date().optional(),
-  }).optional(),
-  paymentResult: z
-    .object({
-      id: z.string(),
-      status: z.string(),
-      email_address: z.string(),
-      pricePaid: z.string(),
-      paymentMethod: z.string().optional(),
-      paymentReference: z.string().optional(),
-      gateway: z.string().optional(),
-      currency: z.string().optional(),
-      paidAtGateway: z.date().optional(),
-      channel: z.string().optional(),
-      authorization: z
-        .object({
-          card_type: z.string().optional(),
-          bank: z.string().optional(),
-          brand: z.string().optional(),
-          last4: z.string().optional(),
-          exp_month: z.string().optional(),
-          exp_year: z.string().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-  itemsPrice: Price("Items price"),
-  shippingPrice: Price("Shipping price"),
-  taxPrice: Price("Tax price"),
-  totalPrice: Price("Total price"),
-  coinsEarned: z.number().nonnegative().finite().default(0),
-  coinsRedeemed: z.number().nonnegative().finite().default(0),
-  walletAmountRedeemed: z.number().nonnegative().finite().default(0),
-  expectedDeliveryDate: z
-    .date()
-    .refine(
-      (value) => value > new Date(),
-      "Expected delivery date must be in the future"
-    ),
-  isDelivered: z.boolean().default(false),
-  deliveredAt: z.date().optional(),
-  isPaid: z.boolean().default(false),
-  paidAt: z.date().optional(),
-  coupon: z
-    .object({
-      _id: MongoId.optional(),
-      code: z.string(),
-      discountType: z.enum(["percentage", "fixed"]),
-      discountAmount: Price("Discount amount"),
-      isAffiliate: z.boolean().optional(),
-      isFirstPurchase: z.boolean().optional(),
-    })
-    .optional(),
-  affiliate: MongoId.optional(),
-  affiliateCode: z.string().optional(),
-}).refine(
-  (data) => !data.isGuest || (!!data.userEmail && z.string().email().safeParse(data.userEmail).success),
-  {
-    message: "Email is required and must be valid for guest checkout",
-    path: ["userEmail"],
-  }
-);
+    isPaid: z.boolean().default(false),
+    paidAt: z.date().optional(),
+    coupon: z
+      .object({
+        _id: MongoId.optional(),
+        code: z.string(),
+        discountType: z.enum(["percentage", "fixed"]),
+        discountAmount: Price("Discount amount"),
+        isAffiliate: z.boolean().optional(),
+        isFirstPurchase: z.boolean().optional(),
+      })
+      .optional(),
+    affiliate: MongoId.optional(),
+    affiliateCode: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      !data.isGuest ||
+      (!!data.userEmail &&
+        z.string().email().safeParse(data.userEmail).success),
+    {
+      message: "Email is required and must be valid for guest checkout",
+      path: ["userEmail"],
+    },
+  );
 // Cart
 
 export const CartSchema = z.object({
@@ -319,7 +332,7 @@ export const UserNameSchema = z.object({
 export const WebPageInputSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
-  image: z.string().url().optional().or(z.literal("")), 
+  image: z.string().url().optional().or(z.literal("")),
   excerpt: z.string().max(160).optional(),
   content: z.string().min(1, "Content is required"),
   isPublished: z.boolean(),
@@ -386,7 +399,6 @@ export const HeaderMenuSchema = z.object({
   subMenus: z.array(HeaderSubMenuSchema).default([]),
 });
 
-
 const SmsNotificationSchema = z.object({
   enabled: z.boolean().default(true),
   sandboxMode: z.boolean().default(true),
@@ -416,10 +428,7 @@ export const SettingInputSchema = z.object({
       .number()
       .min(0, "Coins reward rate must be at least 0")
       .default(4),
-    taxRate: z.coerce
-      .number()
-      .min(0, "Tax rate must be at least 0")
-      .default(0),
+    taxRate: z.coerce.number().min(0, "Tax rate must be at least 0").default(0),
     defaultTheme: z
       .string()
       .min(1, "Default theme is required")
@@ -505,12 +514,18 @@ export const BlogLikeInputSchema = z
 export const BlogCommentInputSchema = z.object({
   blogId: MongoId,
   parentCommentId: z.string().optional(),
-  content: z.string().trim().min(1, "Comment is required").max(2000, "Comment is too long"),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Comment is required")
+    .max(2000, "Comment is too long"),
 });
 
-
 export const NewsletterSubscriptionSchema = z.object({
-  email: z.string().email("Invalid email address").transform((value) => value.trim().toLowerCase()),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .transform((value) => value.trim().toLowerCase()),
   source: z.enum(["footer", "checkout", "api", "manual"]).default("footer"),
   tags: z.array(z.string().trim().min(1).max(50)).max(10).default([]),
   botField: z.string().optional(),
@@ -640,7 +655,7 @@ export const CouponInputSchema = z.object({
     .optional()
     .refine(
       (value) => !value || value > new Date(),
-      "Expiry date must be in the future"
+      "Expiry date must be in the future",
     ),
   maxUsage: z
     .number()
@@ -662,7 +677,10 @@ export const AffiliateInputSchema = z
       .string()
       .min(3, "Affiliate code must be at least 3 characters")
       .max(20, "Affiliate code must be at most 20 characters")
-      .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, hyphens and underscores are allowed"),
+      .regex(
+        /^[a-zA-Z0-9_-]+$/,
+        "Only letters, numbers, hyphens and underscores are allowed",
+      ),
     commissionRate: z.coerce.number().min(0).optional(),
     discountRate: z.coerce.number().min(0).optional(),
     paymentDetails: z.object({
@@ -675,13 +693,15 @@ export const AffiliateInputSchema = z
   })
   .refine(
     (data) => {
-      const { bankName, accountNumber, payPalEmail, mPesaNumber } = data.paymentDetails;
+      const { bankName, accountNumber, payPalEmail, mPesaNumber } =
+        data.paymentDetails;
       return (bankName && accountNumber) || payPalEmail || mPesaNumber;
     },
     {
-      message: "Please provide at least one payment method (M-Pesa, PayPal, or Bank Details)",
+      message:
+        "Please provide at least one payment method (M-Pesa, PayPal, or Bank Details)",
       path: ["paymentDetails"],
-    }
+    },
   );
 
 const PayoutInputSchema = z.object({

@@ -63,14 +63,18 @@ export default async function TagsPage() {
       <Breadcrumb />
 
       <div className="text-center space-y-4 animate-in slide-in-from-bottom-4 duration-700 delay-100">
-        <Badge variant="secondary" className="px-3 py-1 rounded-full uppercase tracking-wider text-xs font-bold">
+        <Badge
+          variant="secondary"
+          className="px-3 py-1 rounded-full uppercase tracking-wider text-xs font-bold"
+        >
           Quick Search
         </Badge>
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           Browse Tags
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Explore products curated by specific tags. Narrow down your search and find items that match your unique interests.
+          Explore products curated by specific tags. Narrow down your search and
+          find items that match your unique interests.
         </p>
       </div>
 

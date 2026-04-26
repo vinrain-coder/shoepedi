@@ -7,7 +7,8 @@ import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
 import Order from "../db/models/order.model";
 import Product from "../db/models/product.model";
-import { Types } from "mongoose";
+import WalletTransaction from "../db/models/wallet-transaction.model";
+import mongoose, { Types } from "mongoose";
 import { formatError, escapeRegExp } from "../utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -60,7 +61,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
 }
 
 export async function createUserByAdmin(
-  userData: IUserSignUp & { role?: "ADMIN" | "USER" }
+  userData: IUserSignUp & { role?: "ADMIN" | "USER" },
 ) {
   try {
     const session = await getServerSession();
@@ -211,10 +212,17 @@ export async function getAllUsers({
   const users = await User.find(query)
     .sort({ createdAt: "desc" })
     .skip(skipAmount)
-    .limit(limit);
+    .limit(limit)
+    .lean();
   const usersCount = await User.countDocuments(query);
+  const safeUsers = users.map((user) => ({
+    ...user,
+    _id: user._id.toString(),
+    createdAt: user.createdAt?.toISOString(),
+    updatedAt: user.updatedAt?.toISOString(),
+  }));
   return {
-    data: JSON.parse(JSON.stringify(users)) as IUser[],
+    data: safeUsers as unknown as IUser[],
     totalPages: Math.ceil(usersCount / limit),
     totalUsers: usersCount,
   };
@@ -223,14 +231,15 @@ export async function getAllUsers({
 export async function getUserStats() {
   await connectToDatabase();
 
-  const [totalUsers, adminCount, customerCount, recentUsers] = await Promise.all([
-    User.countDocuments(),
-    User.countDocuments({ role: "ADMIN" }),
-    User.countDocuments({ role: "USER" }),
-    User.countDocuments({
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-    }),
-  ]);
+  const [totalUsers, adminCount, customerCount, recentUsers] =
+    await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: "ADMIN" }),
+      User.countDocuments({ role: "USER" }),
+      User.countDocuments({
+        createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      }),
+    ]);
 
   return {
     totalUsers,
@@ -242,11 +251,15 @@ export async function getUserStats() {
 
 export async function getUserById(userId: string) {
   await connectToDatabase();
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).lean();
   if (!user) throw new Error("User not found");
-  return JSON.parse(JSON.stringify(user)) as IUser;
+  return {
+    ...user,
+    _id: user._id.toString(),
+    createdAt: user.createdAt?.toISOString(),
+    updatedAt: user.updatedAt?.toISOString(),
+  } as unknown as IUser;
 }
-
 
 export async function getAdminUserInsights(userId: string) {
   await connectToDatabase();
@@ -325,20 +338,17 @@ export async function getAdminUserInsights(userId: string) {
   };
 
   const monthlyOrders = (stats?.monthlyOrders ?? []).map(
-    (item: {
-      _id: { year: number; month: number };
-      orders: number;
-    }) => ({
+    (item: { _id: { year: number; month: number }; orders: number }) => ({
       month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
       orders: item.orders,
-    })
+    }),
   );
 
   const navigationHistory = (user.navigationHistory ?? [])
     .sort(
       (a, b) =>
         new Date(String(b.visitedAt)).getTime() -
-        new Date(String(a.visitedAt)).getTime()
+        new Date(String(a.visitedAt)).getTime(),
     )
     .slice(0, 15);
 
@@ -355,7 +365,7 @@ export async function getAdminUserInsights(userId: string) {
       monthlyOrders,
       recentOrders: orders,
       navigationHistory,
-    })
+    }),
   );
 }
 
@@ -380,7 +390,9 @@ export async function getUserWalletBalance(): Promise<number | null> {
     const session = await getServerSession();
     if (!session?.user?.id) return null;
 
-    const user = await User.findById(session.user.id).select("walletBalance").lean();
+    const user = await User.findById(session.user.id)
+      .select("walletBalance")
+      .lean();
     if (!user) return null;
     return Number(Number(user.walletBalance || 0).toFixed(2));
   } catch (error) {
@@ -392,17 +404,24 @@ export async function getUserWalletBalance(): Promise<number | null> {
 export async function convertGuestToUser(orderId: string, accessToken: string) {
   try {
     await connectToDatabase();
-    const order = await Order.findOne({ _id: orderId, isGuest: true, accessToken: accessToken });
+    const order = await Order.findOne({
+      _id: orderId,
+      isGuest: true,
+      accessToken: accessToken,
+    });
     if (!order) throw new Error("Order not found or already linked");
 
     const session = await getServerSession();
-    if (!session?.user?.id || !session?.user?.email) throw new Error("You must be signed in to link an order");
+    if (!session?.user?.id || !session?.user?.email)
+      throw new Error("You must be signed in to link an order");
 
     const userId = session.user.id;
     const userEmail = session.user.email.toLowerCase();
 
     // Verify email matches
-    const orderEmail = order.userEmail?.toLowerCase() || order.shippingAddress.email?.toLowerCase();
+    const orderEmail =
+      order.userEmail?.toLowerCase() ||
+      order.shippingAddress.email?.toLowerCase();
     if (orderEmail && userEmail !== orderEmail) {
       throw new Error("Signed-in email does not match order email");
     }
@@ -410,35 +429,98 @@ export async function convertGuestToUser(orderId: string, accessToken: string) {
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
-    // Link order to user
-    order.user = new Types.ObjectId(userId);
-    order.isGuest = false;
-    order.accessToken = undefined;
+    // Start transaction for atomic operations
+    const dbSession = await mongoose.startSession();
+    dbSession.startTransaction();
 
-    // Credit coins if order was paid and coins not yet credited
-    if (order.isPaid && order.coinsEarned > 0 && !order.coinsCredited) {
-      user.coins = (user.coins || 0) + order.coinsEarned;
-      order.coinsCredited = true;
-    }
+    try {
+      // Link order to user
+      order.user = new Types.ObjectId(userId);
+      order.isGuest = false;
+      order.accessToken = undefined;
 
-    await order.save();
+      // Handle financial adjustments
+      let coinsAdjustment = 0;
+      let walletAdjustment = 0;
 
-    // Link address if user has none
-    if (user.addresses.length === 0) {
-       const newAddress = {
+      // 1. Credit earned coins if order was paid and coins not yet credited
+      if (order.isPaid && order.coinsEarned > 0 && !order.coinsCredited) {
+        coinsAdjustment += order.coinsEarned;
+        order.coinsCredited = true;
+      }
+
+      // 2. Handle coins redeemed by guest (deduct from user balance)
+      if (order.coinsRedeemed > 0) {
+        coinsAdjustment -= order.coinsRedeemed;
+      }
+
+      // 3. Handle wallet amounts redeemed by guest (deduct from user balance)
+      if (order.walletAmountRedeemed > 0) {
+        walletAdjustment -= order.walletAmountRedeemed;
+      }
+
+      // 4. Handle refunds issued to guest order
+      if (order.refundedToCoins && order.coinsRedeemed > 0) {
+        coinsAdjustment += order.coinsRedeemed;
+      }
+
+      if (order.refundedToWallet && order.totalPrice > 0) {
+        walletAdjustment += order.totalPrice;
+      }
+
+      // Apply financial adjustments
+      if (coinsAdjustment !== 0) {
+        user.coins = Math.max(0, (user.coins || 0) + coinsAdjustment);
+      }
+
+      if (walletAdjustment !== 0) {
+        user.walletBalance = Math.max(
+          0,
+          (user.walletBalance || 0) + walletAdjustment,
+        );
+      }
+
+      await order.save({ session: dbSession });
+      await user.save({ session: dbSession });
+
+      // Transfer wallet transactions to user account
+      await WalletTransaction.updateMany(
+        { order: order._id },
+        { user: userId },
+        { session: dbSession },
+      );
+
+      // Link address if user has none
+      if (user.addresses.length === 0) {
+        const newAddress = {
           id: new Types.ObjectId().toString(),
           label: "Home",
           ...order.shippingAddress,
           isDefault: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-       };
-       user.addresses.push(newAddress);
-    }
-    await user.save();
+        };
+        user.addresses.push(newAddress);
+        await user.save({ session: dbSession });
+      }
 
-    revalidatePath(`/account/orders/${orderId}`);
-    return { success: true, message: "Order successfully linked to your account" };
+      await dbSession.commitTransaction();
+
+      revalidatePath(`/account/orders/${orderId}`);
+      revalidatePath("/account/orders");
+      revalidatePath("/account");
+      revalidatePath("/account/wallet");
+
+      return {
+        success: true,
+        message: "Order successfully linked to your account",
+      };
+    } catch (error) {
+      await dbSession.abortTransaction();
+      throw error;
+    } finally {
+      dbSession.endSession();
+    }
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

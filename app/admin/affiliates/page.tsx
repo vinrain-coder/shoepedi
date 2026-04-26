@@ -57,6 +57,18 @@ export default async function Page({
     );
   }
 
+  const stats = statsData.data ?? {
+    statusStats: { total: 0, approved: 0, pending: 0, rejected: 0 },
+    periodLeaderboard: [],
+    totalEarnedInPeriod: 0,
+    totalDue: 0,
+    monthlyPayouts: [],
+    allTimeLeaderboard: [],
+  };
+  const affiliates = affiliatesData.data ?? [];
+  const totalPages = affiliatesData.totalPages ?? 1;
+  const totalAffiliates = affiliatesData.totalAffiliates ?? affiliates.length;
+
   return (
     <div className="w-full space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -73,17 +85,17 @@ export default async function Page({
       </div>
 
       <StatusCards
-        stats={statsData.data.statusStats}
+        stats={stats.statusStats}
         currentStatus={status}
       />
 
-      <AffiliateStats stats={statsData.data} />
+      <AffiliateStats stats={stats} />
 
       <AffiliatesAdminPage
-        affiliates={affiliatesData.data}
-        totalPages={affiliatesData.totalPages}
+        affiliates={affiliates}
+        totalPages={totalPages}
         currentPage={Number(page)}
-        totalAffiliates={affiliatesData.totalAffiliates}
+        totalAffiliates={totalAffiliates}
       />
     </div>
   );

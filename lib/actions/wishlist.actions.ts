@@ -1,125 +1,119 @@
 "use server";
 
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
+import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/db";
 import { getServerSession } from "@/lib/get-session";
 import { IProduct } from "../db/models/product.model";
 
-// Helper: get the native MongoDB Db object
+type UserWishlistDocument = {
+  _id: ObjectId;
+  wishlist?: ObjectId[];
+};
+
+type WishlistProductDocument = Omit<IProduct, "_id"> & {
+  _id: ObjectId;
+};
+
 async function getDb() {
-  const conn = await connectToDatabase(); // Mongoose connection
-  return conn.connection.db; // native MongoDB driver
+  const connection = await connectToDatabase();
+  const db = connection.connection.db;
+  if (!db) {
+    throw new Error("Database is not initialized");
+  }
+  return db;
 }
 
-// Helper: get current user
 async function getCurrentUser() {
-  const db = await getDb();
   const session = await getServerSession();
   if (!session?.user?.id) return null;
 
-  return await db.collection("users").findOne({
-    _id: new mongoose.Types.ObjectId(session.user.id),
+  const db = await getDb();
+  return db.collection<UserWishlistDocument>("users").findOne({
+    _id: new ObjectId(session.user.id),
   });
 }
 
-// Ensure wishlist is an array in DB
 async function ensureWishlistIsArray(userId: string) {
   const db = await getDb();
-  const user = await db
-    .collection("users")
-    .findOne({ _id: new mongoose.Types.ObjectId(userId) });
+  const usersCollection = db.collection<UserWishlistDocument>("users");
+  const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
   if (!user) return;
 
   if (!Array.isArray(user.wishlist)) {
-    await db
-      .collection("users")
-      .updateOne(
-        { _id: new mongoose.Types.ObjectId(userId) },
-        { $set: { wishlist: [] } }
-      );
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { wishlist: [] } },
+    );
   }
 }
 
-// ✅ Get wishlist product IDs
 export async function getWishlist(): Promise<string[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-
-  return (Array.isArray(user.wishlist) ? user.wishlist : []).map(
-    (id: ObjectId) => id.toString()
+  return (Array.isArray(user.wishlist) ? user.wishlist : []).map((id) =>
+    id.toString(),
   );
 }
 
-// ✅ Add product to wishlist
 export async function addToWishlist(productId: string): Promise<string[]> {
-  const db = await getDb();
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  // Ensure wishlist is an array before $addToSet
   await ensureWishlistIsArray(session.user.id);
 
-  const result = await db
-    .collection("users")
-    .findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(session.user.id) },
-      { $addToSet: { wishlist: new mongoose.Types.ObjectId(productId) } },
-      { returnDocument: "after" }
-    );
+  const db = await getDb();
+  const usersCollection = db.collection<UserWishlistDocument>("users");
+  const result = await usersCollection.findOneAndUpdate(
+    { _id: new ObjectId(session.user.id) },
+    { $addToSet: { wishlist: new ObjectId(productId) } },
+    { returnDocument: "after" },
+  );
 
-  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
+  const wishlist = result?.wishlist ?? [];
+  return wishlist.map((id) => id.toString());
 }
 
-// ✅ Remove product from wishlist
 export async function removeFromWishlist(productId: string): Promise<string[]> {
-  const db = await getDb();
   const session = await getServerSession();
   if (!session?.user?.id) return [];
 
-  // Ensure wishlist is an array before $pull
   await ensureWishlistIsArray(session.user.id);
 
-  const result = await db
-    .collection("users")
-    .findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(session.user.id) },
-      { $pull: { wishlist: new mongoose.Types.ObjectId(productId) } },
-      { returnDocument: "after" }
-    );
+  const db = await getDb();
+  const usersCollection = db.collection<UserWishlistDocument>("users");
+  const result = await usersCollection.findOneAndUpdate(
+    { _id: new ObjectId(session.user.id) },
+    { $pull: { wishlist: new ObjectId(productId) } },
+    { returnDocument: "after" },
+  );
 
-  return result.value?.wishlist?.map((id: ObjectId) => id.toString()) || [];
+  const wishlist = result?.wishlist ?? [];
+  return wishlist.map((id) => id.toString());
 }
 
-// ✅ Fetch full product details for wishlist
 export async function getWishlistProducts(): Promise<IProduct[]> {
-  const db = await getDb();
   const user = await getCurrentUser();
-  if (
-    !user?.wishlist ||
-    !Array.isArray(user.wishlist) ||
-    user.wishlist.length === 0
-  )
-    return [];
+  if (!user?.wishlist?.length) return [];
 
-  const products = await db
-    .collection("products")
+  const db = await getDb();
+  const productsCollection = db.collection<WishlistProductDocument>("products");
+  const products = await productsCollection
     .find({
       _id: {
-        $in: user.wishlist.map((id: any) => new mongoose.Types.ObjectId(id)),
+        $in: user.wishlist.map((id) => new ObjectId(id)),
       },
     })
     .toArray();
 
-  return products.map((p: any) => ({
-    ...p,
-    _id: p._id.toString(),
+  return products.map((product) => ({
+    ...product,
+    _id: new mongoose.Types.ObjectId(product._id.toHexString()),
   })) as IProduct[];
 }
 
-// ✅ Count wishlist items
 export async function getWishlistCount(): Promise<number> {
   const user = await getCurrentUser();
   if (!user) return 0;
-
   return Array.isArray(user.wishlist) ? user.wishlist.length : 0;
 }

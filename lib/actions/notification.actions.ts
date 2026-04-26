@@ -104,12 +104,12 @@ type AffiliatePayoutNotificationSource = {
   status: "pending" | "processing" | "paid" | "rejected";
   paymentMethod: string;
   affiliate?: {
-    affiliateCode: string;
+    affiliateCode?: string;
     user?: {
       name?: string;
       email?: string;
     } | null;
-  } | null;
+  } | { toString(): string } | string | null;
 };
 
 type WalletPayoutNotificationSource = {
@@ -126,6 +126,14 @@ type WalletPayoutNotificationSource = {
 
 const asId = (value: { toString(): string } | string) => value.toString();
 const asDate = (value: Date | string) => new Date(value).toISOString();
+
+const getAffiliatePayoutUserName = (
+  affiliate: AffiliatePayoutNotificationSource["affiliate"],
+) => {
+  if (!affiliate || typeof affiliate !== "object") return undefined;
+  if (!("user" in affiliate)) return undefined;
+  return affiliate.user?.name;
+};
 
 const ensureAdminSession = async () => {
   const session = await getServerSession();
@@ -271,7 +279,7 @@ export async function getAdminNotificationFeed(
       id: `affiliate-payout-${asId(payout._id)}`,
       type: "affiliate-payout" as const,
       title: "New affiliate payout request",
-      description: `${payout.affiliate?.user?.name || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
+      description: `${getAffiliatePayoutUserName(payout.affiliate) || "An affiliate"} requested a payout of ${formatCurrency(payout.amount)} via ${payout.paymentMethod}.`,
       href: "/admin/affiliates/payouts",
       createdAt: asDate(payout.createdAt),
       isUnread: lastSeenAt ? new Date(payout.createdAt) > lastSeenAt : true,
@@ -295,7 +303,7 @@ export async function getAdminNotificationFeed(
       id: `order-cancelled-${asId(order._id)}`,
       type: "order" as const,
       title: "Order cancelled",
-      description: `Order ${order._id.toString().slice(-8).toUpperCase()} was cancelled by ${order.user?.name || "Customer"}.`,
+      description: `Order ${order._id.toString().slice(-8).toUpperCase()} was cancelled by ${((order.user as { name?: string } | null | undefined)?.name) || "Customer"}.`,
       href: `/admin/orders/${asId(order._id)}`,
       createdAt: asDate(order.updatedAt),
       isUnread: lastSeenAt ? new Date(order.updatedAt) > lastSeenAt : true,
@@ -309,7 +317,7 @@ export async function getAdminNotificationFeed(
       id: `order-return-requested-${asId(order._id)}`,
       type: "order" as const,
       title: "New return request",
-      description: `Customer ${order.user?.name || ""} requested a return for order ${order._id.toString().slice(-8).toUpperCase()}.`,
+      description: `Customer ${(order.user as { name?: string } | null | undefined)?.name || ""} requested a return for order ${order._id.toString().slice(-8).toUpperCase()}.`,
       href: `/admin/orders/${asId(order._id)}`,
       createdAt: asDate(order.updatedAt),
       isUnread: lastSeenAt ? new Date(order.updatedAt) > lastSeenAt : true,

@@ -81,7 +81,7 @@ export default async function BrandsPage() {
             style={{ animationDelay: `${index * 50}ms` }}
           >
             <Card className="overflow-hidden rounded-2xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card">
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-white flex items-center justify-center p-4">
+              <div className="relative aspect-4/3 w-full overflow-hidden bg-white flex items-center justify-center p-4">
                 {brand.logo ? (
                   <Image
                     src={brand.logo}
@@ -97,7 +97,7 @@ export default async function BrandsPage() {
                 )}
 
                 {/* Refined Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
                   <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors duration-300">

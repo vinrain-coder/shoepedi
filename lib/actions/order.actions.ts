@@ -34,7 +34,11 @@ import WalletTransaction from "../db/models/wallet-transaction.model";
 import { getSetting } from "./setting.actions";
 import { getServerSession } from "../get-session";
 import { cacheLife } from "next/cache";
-import { validateCoupon, incrementCouponUsage, decrementCouponUsage } from "./coupon.actions";
+import {
+  validateCoupon,
+  incrementCouponUsage,
+  decrementCouponUsage,
+} from "./coupon.actions";
 import { getAffiliateByCode } from "./affiliate.actions";
 import Affiliate from "../db/models/affiliate.model";
 import AffiliateEarning from "../db/models/affiliate-earning.model";
@@ -68,7 +72,10 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   const {
     common: { firstPurchaseDiscountRate = 0 },
   } = await getSetting();
-  const normalizedRate = Math.max(0, Math.min(100, Number(firstPurchaseDiscountRate) || 0));
+  const normalizedRate = Math.max(
+    0,
+    Math.min(100, Number(firstPurchaseDiscountRate) || 0),
+  );
   const normalizedItemsPrice = Math.max(0, Number(itemsPrice) || 0);
 
   if ((!userId && !email) || normalizedRate <= 0 || normalizedItemsPrice <= 0) {
@@ -87,7 +94,9 @@ const getFirstPurchaseDiscountQuoteForUser = async (
     existingOrdersCount = userOrdersCount;
   } else if (email) {
     const normalizedEmail = email.trim().toLowerCase();
-    existingOrdersCount = await Order.countDocuments({ userEmail: normalizedEmail });
+    existingOrdersCount = await Order.countDocuments({
+      userEmail: normalizedEmail,
+    });
   }
 
   if (firstPurchaseDiscountUsed || existingOrdersCount > 0) {
@@ -106,7 +115,10 @@ const getFirstPurchaseDiscountQuoteForUser = async (
   };
 };
 
-export const getFirstPurchaseDiscountQuote = async (itemsPrice: number, email?: string) => {
+export const getFirstPurchaseDiscountQuote = async (
+  itemsPrice: number,
+  email?: string,
+) => {
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -114,7 +126,7 @@ export const getFirstPurchaseDiscountQuote = async (itemsPrice: number, email?: 
     return await getFirstPurchaseDiscountQuoteForUser(
       session?.user?.id,
       email,
-      itemsPrice
+      itemsPrice,
     );
   } catch (error) {
     console.error("Failed to fetch first purchase discount quote:", error);
@@ -141,7 +153,9 @@ const serializeOrder = (order: IOrder | null): SerializedOrder | null => {
 const buildTrackingLink = (trackingNumber: string) =>
   `/track/${encodeURIComponent(trackingNumber)}`;
 
-const ensureTrackingState = async (order: IOrder | (IOrder & { user?: { email?: string; name?: string } })) => {
+const ensureTrackingState = async (
+  order: IOrder | (IOrder & { user?: { email?: string; name?: string } }),
+) => {
   let changed = false;
 
   if (!order.trackingNumber) {
@@ -195,8 +209,8 @@ const appendTrackingHistory = (
     createdAt,
   });
 
-  history.sort((a, b) =>
-    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  history.sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
   order.trackingHistory = history;
   return true;
@@ -209,15 +223,19 @@ const notifyCustomerOrderStatus = async (
 ) => {
   if (!shouldSendStatusNotification(status)) return;
 
-  let email = order.userEmail || (order.user as unknown as { email?: string })?.email;
+  let email =
+    order.userEmail || (order.user as unknown as { email?: string })?.email;
 
   if (!email && order.user) {
-     const populatedOrder = await Order.findById(order._id).populate("user", "email name");
-     email = (populatedOrder?.user as unknown as { email?: string })?.email;
-     if (email) {
-       (order as any).user = populatedOrder?.user;
-       order.userEmail = email;
-     }
+    const populatedOrder = await Order.findById(order._id).populate(
+      "user",
+      "email name",
+    );
+    email = (populatedOrder?.user as unknown as { email?: string })?.email;
+    if (email) {
+      (order as any).user = populatedOrder?.user;
+      order.userEmail = email;
+    }
   } else if (email && !order.userEmail) {
     order.userEmail = email;
   }
@@ -235,74 +253,95 @@ const notifyCustomerOrderStatus = async (
   });
 };
 
-const revertOrderEffects = async (order: IOrder, options: { refundToWallet: boolean } = { refundToWallet: true }) => {
-  const userId = (order.user as any)?._id || order.user;
+const revertOrderEffects = async (
+  order: IOrder,
+  options: { refundToWallet: boolean } = { refundToWallet: true },
+) => {
+  const explicitUserId = (order.user as any)?._id || order.user;
+  let refundUserId = explicitUserId;
+
+  if (!refundUserId) {
+    const refundEmail =
+      order.userEmail?.trim().toLowerCase() ||
+      order.shippingAddress?.email?.trim().toLowerCase();
+    if (refundEmail) {
+      const existingUser = await User.findOne({ email: refundEmail })
+        .select("_id")
+        .lean();
+      if (existingUser) {
+        refundUserId = existingUser._id;
+      }
+    }
+  }
 
   // 1. Refund paid amount to wallet or coins if paid and not already refunded (Only for cancellations)
-  if (options.refundToWallet && order.isPaid && userId) {
+  if (options.refundToWallet && order.isPaid && refundUserId) {
     const isPaidWithCoins = order.paymentMethod === "Coins";
 
     if (isPaidWithCoins) {
-        // Refund to coins
-        const updatedOrder = await Order.findOneAndUpdate(
-          { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
-          { $set: { refundedToCoins: true } },
-          { new: true }
-        );
-        if (updatedOrder) {
-          await User.findByIdAndUpdate(userId, {
-            $inc: { coins: round2(order.totalPrice) },
-          });
-          order.refundedToCoins = true;
-        }
+      // Refund to coins
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: order._id, refundedToCoins: { $ne: true }, isPaid: true },
+        { $set: { refundedToCoins: true } },
+        { new: true },
+      );
+      if (updatedOrder) {
+        await User.findByIdAndUpdate(refundUserId, {
+          $inc: { coins: round2(order.totalPrice) },
+        });
+        order.refundedToCoins = true;
+      }
     } else {
-        // Refund to wallet
-        const session = await mongoose.startSession();
-        session.startTransaction();
-        try {
-          const updatedOrder = await Order.findOneAndUpdate(
-            { _id: order._id, refundedToWallet: { $ne: true }, isPaid: true },
-            { $set: { refundedToWallet: true } },
-            { new: true, session }
+      // Refund to wallet
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        const updatedOrder = await Order.findOneAndUpdate(
+          { _id: order._id, refundedToWallet: { $ne: true }, isPaid: true },
+          { $set: { refundedToWallet: true } },
+          { new: true, session },
+        );
+
+        if (updatedOrder) {
+          const amount = round2(order.totalPrice);
+          const user = await User.findByIdAndUpdate(
+            refundUserId,
+            { $inc: { walletBalance: amount } },
+            { new: true, session, select: "walletBalance" },
           );
 
-          if (updatedOrder) {
-            const amount = round2(order.totalPrice);
-            const user = await User.findByIdAndUpdate(
-              userId,
-              { $inc: { walletBalance: amount } },
-              { new: true, session, select: "walletBalance" }
+          if (user) {
+            const balanceAfter = round2(user.walletBalance || 0);
+            const balanceBefore = round2(balanceAfter - amount);
+
+            await WalletTransaction.create(
+              [
+                {
+                  user: refundUserId,
+                  order: order._id,
+                  amount: amount,
+                  reason: `Refund for cancelled order #${order.trackingNumber || order._id.toString().slice(-6)}`,
+                  source: "refund",
+                  balanceBefore,
+                  balanceAfter,
+                },
+              ],
+              { session },
             );
-
-            if (user) {
-              const balanceAfter = round2(user.walletBalance || 0);
-              const balanceBefore = round2(balanceAfter - amount);
-
-              await WalletTransaction.create(
-                [
-                  {
-                    user: userId,
-                    order: order._id,
-                    amount: amount,
-                    reason: `Refund for cancelled order #${order.trackingNumber || order._id.toString().slice(-6)}`,
-                    source: "refund",
-                    balanceBefore,
-                    balanceAfter,
-                  },
-                ],
-                { session }
-              );
-            }
-            order.refundedToWallet = true;
           }
-          await session.commitTransaction();
-        } catch (error) {
-          await session.abortTransaction();
-          console.error("Critical: Failed to revert order effects atomically:", error);
-          throw error;
-        } finally {
-          session.endSession();
+          order.refundedToWallet = true;
         }
+        await session.commitTransaction();
+      } catch (error) {
+        await session.abortTransaction();
+        console.error(
+          "Critical: Failed to revert order effects atomically:",
+          error,
+        );
+        throw error;
+      } finally {
+        session.endSession();
+      }
     }
   }
 
@@ -310,7 +349,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToWallet: bool
   const updatedOrderForStock = await Order.findOneAndUpdate(
     { _id: order._id, stockAdjusted: true, stockReverted: { $ne: true } },
     { $set: { stockReverted: true } },
-    { new: true }
+    { new: true },
   );
 
   if (updatedOrderForStock) {
@@ -322,7 +361,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToWallet: bool
             countInStock: item.quantity,
             numSales: -item.quantity,
           },
-        }
+        },
       );
     }
     order.stockReverted = true;
@@ -332,11 +371,11 @@ const revertOrderEffects = async (order: IOrder, options: { refundToWallet: bool
   const updatedOrderForCoins = await Order.findOneAndUpdate(
     { _id: order._id, coinsCredited: true },
     { $set: { coinsCredited: false } },
-    { new: true }
+    { new: true },
   );
 
-  if (updatedOrderForCoins && order.coinsEarned > 0 && userId) {
-    await User.findByIdAndUpdate(userId, {
+  if (updatedOrderForCoins && order.coinsEarned > 0 && refundUserId) {
+    await User.findByIdAndUpdate(refundUserId, {
       $inc: { coins: -round2(order.coinsEarned) },
     });
     order.coinsCredited = false;
@@ -347,7 +386,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToWallet: bool
     const earning = await AffiliateEarning.findOneAndUpdate(
       { order: order._id, status: { $ne: "cancelled" } },
       { $set: { status: "cancelled" } },
-      { new: true }
+      { new: true },
     );
 
     if (earning) {
@@ -365,7 +404,7 @@ const revertOrderEffects = async (order: IOrder, options: { refundToWallet: bool
     const updatedOrderForCoupon = await Order.findOneAndUpdate(
       { _id: order._id, couponUsageReverted: { $ne: true } },
       { $set: { couponUsageReverted: true } },
-      { new: true }
+      { new: true },
     );
 
     if (updatedOrderForCoupon) {
@@ -491,10 +530,13 @@ const runStatusTransition = async ({
   return order;
 };
 
-
 // CREATE
 export const createOrder = async (
-  clientSideCart: Cart & { coupon?: OrderCouponInput; userEmail?: string; userName?: string },
+  clientSideCart: Cart & {
+    coupon?: OrderCouponInput;
+    userEmail?: string;
+    userName?: string;
+  },
 ) => {
   try {
     await connectToDatabase();
@@ -513,7 +555,7 @@ export const createOrder = async (
       clientSideCart.coupon,
       clientSideCart.userEmail,
       clientSideCart.userName,
-      session
+      session,
     );
 
     await session.commitTransaction();
@@ -522,7 +564,9 @@ export const createOrder = async (
       await runPostPaymentSideEffects(createdOrder._id.toString());
     }
 
-    const orderUser = userSession?.user?.id ? await User.findById(userSession.user.id).select("name email").lean() : null;
+    const orderUser = userSession?.user?.id
+      ? await User.findById(userSession.user.id).select("name email").lean()
+      : null;
 
     await sendAdminEventNotification({
       title: "New order received",
@@ -589,7 +633,10 @@ export const createOrderFromCart = async (
   let paidAt: Date | undefined;
 
   const itemsPriceRaw = round2(
-    clientSideCart.items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+    clientSideCart.items.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0,
+    ),
   );
 
   const couponCodeToUse = coupon?.code || affiliateCode;
@@ -637,20 +684,27 @@ export const createOrderFromCart = async (
     };
 
     if (userId) {
-       const userUpdate = await User.findOneAndUpdate(
-         { _id: userId, firstPurchaseDiscountUsed: { $ne: true } },
-         { $set: { firstPurchaseDiscountUsed: true } },
-         { session, new: true }
-       );
-       if (!userUpdate) {
-          throw new Error("First purchase discount already used or invalid user.");
-       }
+      const userUpdate = await User.findOneAndUpdate(
+        { _id: userId, firstPurchaseDiscountUsed: { $ne: true } },
+        { $set: { firstPurchaseDiscountUsed: true } },
+        { session, new: true },
+      );
+      if (!userUpdate) {
+        throw new Error(
+          "First purchase discount already used or invalid user.",
+        );
+      }
     } else if (userEmail) {
       try {
-        await FirstPurchaseClaim.create([{ email: userEmail.trim().toLowerCase() }], { session });
+        await FirstPurchaseClaim.create(
+          [{ email: userEmail.trim().toLowerCase() }],
+          { session },
+        );
       } catch (err: any) {
         if (err.code === 11000) {
-          throw new Error("First purchase discount already claimed for this email.");
+          throw new Error(
+            "First purchase discount already claimed for this email.",
+          );
         }
         throw err;
       }
@@ -705,7 +759,11 @@ export const createOrderFromCart = async (
   const totalPrice = cart.totalPrice;
   coinsEarned = round2(cart.itemsPrice * (common.coinsRewardRate / 100));
 
-  const normalizedUserEmail = (userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email))?.trim().toLowerCase();
+  const normalizedUserEmail = (
+    userEmail || (userId ? undefined : clientSideCart.shippingAddress?.email)
+  )
+    ?.trim()
+    .toLowerCase();
   const initialTrackingNumber = generateTrackingNumber();
   const order = OrderInputSchema.parse({
     user: userId,
@@ -749,7 +807,7 @@ export const createOrderFromCart = async (
     const userUpdate = await User.findOneAndUpdate(
       { _id: userId, coins: { $gte: totalPrice } },
       { $inc: { coins: -totalPrice } },
-      { new: true, session }
+      { new: true, session },
     );
 
     if (!userUpdate) {
@@ -762,7 +820,7 @@ export const createOrderFromCart = async (
       const userUpdate = await User.findOneAndUpdate(
         { _id: userId, walletBalance: { $gte: totalPrice } },
         { $inc: { walletBalance: -totalPrice } },
-        { new: true, session, select: "walletBalance" }
+        { new: true, session, select: "walletBalance" },
       );
 
       if (!userUpdate) {
@@ -784,7 +842,7 @@ export const createOrderFromCart = async (
             balanceAfter,
           },
         ],
-        { session }
+        { session },
       );
     } catch (error) {
       throw error;
@@ -812,7 +870,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       const updatedOrder = await Order.findOneAndUpdate(
         { _id: order._id, coinsCredited: { $ne: true } },
         { $set: { coinsCredited: true } },
-        { new: true }
+        { new: true },
       );
 
       if (updatedOrder) {
@@ -830,7 +888,7 @@ const runPostPaymentSideEffects = async (orderId: string) => {
     const updatedOrderForStock = await Order.findOneAndUpdate(
       { _id: order._id, stockAdjusted: { $ne: true } },
       { $set: { stockAdjusted: true } },
-      { new: true }
+      { new: true },
     );
     if (updatedOrderForStock) {
       await updateProductStock(order._id.toString());
@@ -845,7 +903,10 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       await incrementCouponUsage(order.coupon._id.toString());
     }
   } catch (couponError) {
-    console.error("Non-critical: Failed to increment coupon usage:", couponError);
+    console.error(
+      "Non-critical: Failed to increment coupon usage:",
+      couponError,
+    );
   }
 
   // 4. Handle Affiliate Earnings
@@ -857,10 +918,14 @@ const runPostPaymentSideEffects = async (orderId: string) => {
         if (affiliateDoc && affiliateDoc.status === "approved") {
           const commissionRate = settings.commissionRate;
 
-          const commissionAmount = round2((order.itemsPrice * commissionRate) / 100);
+          const commissionAmount = round2(
+            (order.itemsPrice * commissionRate) / 100,
+          );
 
           if (commissionAmount > 0) {
-            const existingEarning = await AffiliateEarning.findOne({ order: order._id });
+            const existingEarning = await AffiliateEarning.findOne({
+              order: order._id,
+            });
             if (!existingEarning) {
               await AffiliateEarning.create({
                 affiliate: order.affiliate,
@@ -883,13 +948,20 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       }
     }
   } catch (affiliateError) {
-    console.error("Non-critical: Failed to process affiliate earnings:", affiliateError);
+    console.error(
+      "Non-critical: Failed to process affiliate earnings:",
+      affiliateError,
+    );
   }
 
   // 5. Send purchase receipt
   try {
-    const populatedOrder = await Order.findById(orderId).populate("user", "name email");
-    const emailUser = (populatedOrder?.user as unknown as { email?: string })?.email;
+    const populatedOrder = await Order.findById(orderId).populate(
+      "user",
+      "name email",
+    );
+    const emailUser = (populatedOrder?.user as unknown as { email?: string })
+      ?.email;
     const finalEmail = populatedOrder?.userEmail || emailUser;
 
     if (finalEmail) {
@@ -899,7 +971,10 @@ const runPostPaymentSideEffects = async (orderId: string) => {
       await sendPurchaseReceipt(populatedOrder as unknown as IOrder);
     }
   } catch (emailError) {
-    console.error("Non-critical: Failed to send purchase receipt email:", emailError);
+    console.error(
+      "Non-critical: Failed to send purchase receipt email:",
+      emailError,
+    );
   }
 
   revalidatePath(`/account/orders/${orderId}`);
@@ -921,7 +996,9 @@ const processOrderPayment = async (orderId: string, paymentInfo?: any) => {
 
   appendTrackingHistory(order, {
     status: order.status,
-    message: paymentInfo ? "Payment verified by gateway." : "Payment received successfully.",
+    message: paymentInfo
+      ? "Payment verified by gateway."
+      : "Payment received successfully.",
     source: "system",
   });
 
@@ -1016,7 +1093,8 @@ export async function updateOrderStatus({
     });
 
     if (normalizedStatus === "delivered") {
-      const finalEmail = order.userEmail || (order.user as unknown as { email?: string })?.email;
+      const finalEmail =
+        order.userEmail || (order.user as unknown as { email?: string })?.email;
       if (finalEmail) {
         if (!order.userEmail) order.userEmail = finalEmail;
         await sendAskReviewOrderItems(order as unknown as IOrder);
@@ -1027,7 +1105,10 @@ export async function updateOrderStatus({
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath(buildTrackingLink(order.trackingNumber));
 
-    return { success: true, message: `Order status updated to ${ORDER_STATUS_LABELS[normalizedStatus]}` };
+    return {
+      success: true,
+      message: `Order status updated to ${ORDER_STATUS_LABELS[normalizedStatus]}`,
+    };
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
@@ -1053,9 +1134,9 @@ export async function initiateExchange(orderId: string) {
     order.isExchangeInitiated = true;
     appendTrackingHistory(order, {
       status: "returned",
-      message: "Admin initiated an exchange for a different product. User will pay for delivery costs.",
+      message:
+        "Admin initiated an exchange for a different product. User will pay for delivery costs.",
       source: "admin",
-      actor: session.user.name,
     });
 
     await order.save();
@@ -1065,7 +1146,8 @@ export async function initiateExchange(orderId: string) {
       await sendOrderTrackingNotification({
         order: order as unknown as IOrder,
         statusLabel: "Exchange Initiated",
-        statusMessage: "An exchange has been initiated for your returned order. Please note that you will be responsible for the new delivery costs.",
+        statusMessage:
+          "An exchange has been initiated for your returned order. Please note that you will be responsible for the new delivery costs.",
         trackingLink: `${(await getSetting()).site.url}${buildTrackingLink(order.trackingNumber)}`,
       });
     }
@@ -1073,7 +1155,10 @@ export async function initiateExchange(orderId: string) {
     revalidatePath(`/account/orders/${orderId}`);
     revalidatePath(`/admin/orders/${orderId}`);
 
-    return { success: true, message: "Exchange process initiated successfully" };
+    return {
+      success: true,
+      message: "Exchange process initiated successfully",
+    };
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
@@ -1087,11 +1172,17 @@ export async function deliverOrder(orderId: string) {
   });
 }
 
-export async function cancelOrder(orderId: string) {
+export async function cancelOrder(orderId: string, accessToken?: string) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
-    if (!session) throw new Error("User not authenticated");
+    const cookieStore = await cookies();
+    const guestAccessToken =
+      accessToken || cookieStore.get(`guest_order_access_${orderId}`)?.value;
+
+    if (!session && !guestAccessToken) {
+      throw new Error("User not authenticated");
+    }
 
     const order = await Order.findById(orderId).populate<{
       user: { _id: string; email: string; name: string };
@@ -1099,10 +1190,14 @@ export async function cancelOrder(orderId: string) {
 
     if (!order) throw new Error("Order not found");
 
-    const isUserOwner = order.user?._id?.toString() === session.user.id;
-    const isAdmin = session.user.role === "ADMIN";
+    const isUserOwner =
+      Boolean(session?.user?.id) &&
+      order.user?._id?.toString() === session?.user?.id;
+    const isAdmin = session?.user?.role === "ADMIN";
+    const isGuestOwner =
+      !session && order.isGuest && order.accessToken === guestAccessToken;
 
-    if (!isUserOwner && !isAdmin) {
+    if (!isUserOwner && !isAdmin && !isGuestOwner) {
       throw new Error("Unauthorized");
     }
 
@@ -1115,12 +1210,12 @@ export async function cancelOrder(orderId: string) {
       nextStatus: "cancelled",
       message: `Order cancelled by ${isAdmin ? "admin" : "customer"}.`,
       source: isAdmin ? "admin" : "customer",
-      actor: session.user.name,
+      actor: session?.user?.name || "Guest customer",
     });
 
     await sendAdminEventNotification({
       title: "Order cancelled",
-      description: `Order ${orderId.slice(-8).toUpperCase()} was cancelled by ${session.user.name}.`,
+      description: `Order ${orderId.slice(-8).toUpperCase()} was cancelled by ${session?.user?.name || "Guest customer"}.`,
       href: `/admin/orders/${orderId}`,
       meta: order.isPaid ? "Paid amount refunded to wallet" : "Unpaid order",
       createdAt: new Date().toISOString(),
@@ -1161,7 +1256,8 @@ export async function requestReturnOrder(orderId: string) {
     }
 
     const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-    const isWithinReturnWindow = Date.now() - new Date(order.deliveredAt).getTime() <= sevenDaysInMs;
+    const isWithinReturnWindow =
+      Date.now() - new Date(order.deliveredAt).getTime() <= sevenDaysInMs;
 
     if (!isWithinReturnWindow) {
       throw new Error("Return period has expired (7 days after delivery)");
@@ -1301,7 +1397,7 @@ export async function getOrderStatusStats(
     from?: string;
     to?: string;
   },
-  searchQuery?: string
+  searchQuery?: string,
 ) {
   "use cache";
   cacheLife("minutes");
@@ -1346,10 +1442,13 @@ export async function getOrderStatusStats(
 
   const totalOrders = await Order.countDocuments(filter);
 
-  const stats = statusDistribution.reduce((acc, curr) => {
-    acc[curr._id] = curr.count;
-    return acc;
-  }, {} as Record<string, number>);
+  const stats = statusDistribution.reduce(
+    (acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return {
     stats,
@@ -1401,7 +1500,8 @@ export async function getOrderById(
 
   const session = await getServerSession();
   const cookieStore = await cookies();
-  const guestAccessToken = accessToken || cookieStore.get(`guest_order_access_${orderId}`)?.value;
+  const guestAccessToken =
+    accessToken || cookieStore.get(`guest_order_access_${orderId}`)?.value;
 
   const query: any = { _id: orderId };
 
@@ -1409,7 +1509,7 @@ export async function getOrderById(
     if (session?.user?.id) {
       query.$or = [
         { user: session.user.id },
-        { isGuest: true, accessToken: guestAccessToken }
+        { isGuest: true, accessToken: guestAccessToken },
       ];
     } else {
       query.isGuest = true;
@@ -1437,7 +1537,10 @@ export const calcDeliveryDateAndPrice = async ({
   try {
     const { availableDeliveryDates, common } = await getSetting();
     const itemsPrice = round2(
-      (items || []).reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0),
+      (items || []).reduce(
+        (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
+        0,
+      ),
     );
 
     let locationRate = 0;
@@ -1481,7 +1584,9 @@ export const calcDeliveryDateAndPrice = async ({
 
     const netItemsPrice = Math.max(0, itemsPrice - (discount || 0));
     const taxRate = common?.taxRate ?? 0;
-    const taxPrice = !shippingAddress ? 0 : round2(netItemsPrice * (taxRate / 100));
+    const taxPrice = !shippingAddress
+      ? 0
+      : round2(netItemsPrice * (taxRate / 100));
 
     const safeShippingPrice = shippingPrice ?? 0;
     const totalPrice = round2(netItemsPrice + safeShippingPrice + taxPrice);
@@ -1623,7 +1728,9 @@ export async function getOrderSummary(date: DateRange) {
     ticketsCount,
     totalSales,
     avgOrderValue,
-    orderStatusDistribution: JSON.parse(JSON.stringify(orderStatusDistribution)),
+    orderStatusDistribution: JSON.parse(
+      JSON.stringify(orderStatusDistribution),
+    ),
     monthlySales: JSON.parse(JSON.stringify(monthlySales)),
     salesChartData: JSON.parse(JSON.stringify(await getSalesChartData(date))),
     topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),

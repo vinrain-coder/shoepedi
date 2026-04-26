@@ -9,7 +9,15 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Truck, Gift, Headphones, Tag, ShieldCheck, Zap, Award } from "lucide-react";
+import {
+  Truck,
+  Gift,
+  Headphones,
+  Tag,
+  ShieldCheck,
+  Zap,
+  Award,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,25 +27,29 @@ const aboutItems = [
   {
     icon: <Truck className="w-8 h-8" />,
     title: "Free Shipping",
-    description: "Enjoy complimentary delivery on all orders over KES 5,000, bringing luxury to your doorstep.",
+    description:
+      "Enjoy complimentary delivery on all orders over KES 5,000, bringing luxury to your doorstep.",
     color: "bg-blue-500/10 text-blue-600",
   },
   {
     icon: <Gift className="w-8 h-8" />,
     title: "Surprise Offers",
-    description: "Unlock exclusive daily deals and save up to 50% on our premium selection of products.",
+    description:
+      "Unlock exclusive daily deals and save up to 50% on our premium selection of products.",
     color: "bg-orange-500/10 text-orange-600",
   },
   {
     icon: <Headphones className="w-8 h-8" />,
     title: "Expert Support",
-    description: "Our dedicated specialists are available 24/7 to provide personalized shopping assistance.",
+    description:
+      "Our dedicated specialists are available 24/7 to provide personalized shopping assistance.",
     color: "bg-purple-500/10 text-purple-600",
   },
   {
     icon: <Tag className="w-8 h-8" />,
     title: "Best Value",
-    description: "Experience premium quality at competitive prices, ensuring value for every cent spent.",
+    description:
+      "Experience premium quality at competitive prices, ensuring value for every cent spent.",
     color: "bg-emerald-500/10 text-emerald-600",
   },
 ];
@@ -65,7 +77,7 @@ const itemVariants = {
 
 export function AboutCarousel() {
   const plugin = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: false })
+    Autoplay({ delay: 4000, stopOnInteraction: false }),
   );
 
   return (
@@ -82,7 +94,10 @@ export function AboutCarousel() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Badge variant="outline" className="mb-4 px-4 py-1 border-primary/20 text-primary font-medium">
+            <Badge
+              variant="outline"
+              className="mb-4 px-4 py-1 border-primary/20 text-primary font-medium"
+            >
               Why Choose Us
             </Badge>
           </motion.div>
@@ -92,7 +107,8 @@ export function AboutCarousel() {
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-bold tracking-tight mb-4"
           >
-            The <span className="text-primary">Difference</span> is in the Details
+            The <span className="text-primary">Difference</span> is in the
+            Details
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -101,7 +117,8 @@ export function AboutCarousel() {
             transition={{ delay: 0.1 }}
             className="text-muted-foreground text-lg max-w-2xl mx-auto"
           >
-            We're committed to providing an exceptional shopping experience built on trust, quality, and unparalleled service.
+            We&apos;re committed to providing an exceptional shopping experience
+            built on trust, quality, and unparalleled service.
           </motion.p>
         </div>
 
@@ -150,10 +167,12 @@ export function AboutCarousel() {
             <motion.div key={index} variants={itemVariants}>
               <Card className="group h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-primary/5 bg-card/50 backdrop-blur-sm">
                 <CardContent className="flex flex-col items-center text-center p-8">
-                  <div className={cn(
-                    "mb-6 p-4 rounded-2xl transition-transform duration-500 group-hover:scale-110",
-                    item.color
-                  )}>
+                  <div
+                    className={cn(
+                      "mb-6 p-4 rounded-2xl transition-transform duration-500 group-hover:scale-110",
+                      item.color,
+                    )}
+                  >
                     {item.icon}
                   </div>
                   <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
@@ -178,15 +197,21 @@ export function AboutCarousel() {
         >
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5" />
-            <span className="text-sm font-semibold tracking-wider">SECURE PAYMENTS</span>
+            <span className="text-sm font-semibold tracking-wider">
+              SECURE PAYMENTS
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5" />
-            <span className="text-sm font-semibold tracking-wider">FAST DELIVERY</span>
+            <span className="text-sm font-semibold tracking-wider">
+              FAST DELIVERY
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5" />
-            <span className="text-sm font-semibold tracking-wider">100% GENUINE</span>
+            <span className="text-sm font-semibold tracking-wider">
+              100% GENUINE
+            </span>
           </div>
         </motion.div>
       </div>

@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { AnimatePresence } from "framer-motion";
 
 import { NewsletterSubscriptionSchema } from "@/lib/validator";
 import { subscribeToNewsletter } from "@/lib/actions/newsletter.actions";
@@ -25,7 +24,7 @@ export default function NewsletterSubscribe() {
     formState: { errors, isSubmitting },
   } = useForm<NewsletterFormValues>({
     resolver: zodResolver(
-      NewsletterSubscriptionSchema.pick({ email: true, botField: true })
+      NewsletterSubscriptionSchema.pick({ email: true, botField: true }),
     ),
     defaultValues: {
       email: "",
@@ -56,9 +55,7 @@ export default function NewsletterSubscribe() {
   };
 
   return (
-    <div
-      className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl"
-    >
+    <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl">
       <h3 className="text-lg font-semibold text-white">Stay Updated</h3>
       <p className="mt-1 text-sm text-gray-400">
         Subscribe to get the latest updates and offers.

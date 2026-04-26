@@ -11,9 +11,9 @@ export default async function CheckoutLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site } = await getSetting();
+  const { site, common } = await getSetting();
 
-  if (site.isMaintenanceMode) {
+  if (common.isMaintenanceMode) {
     const session = await getServerSession();
     if (session?.user?.role !== "ADMIN") {
       redirect("/maintenance");

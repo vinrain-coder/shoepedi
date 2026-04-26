@@ -15,14 +15,20 @@ export default function BrowsingHistoryPage() {
   const [loading, setLoading] = useState(true);
 
   const ids = useMemo(
-    () => historyItems.map((p) => p.id).filter(Boolean).join(","),
-    [historyItems]
+    () =>
+      historyItems
+        .map((p) => p.id)
+        .filter(Boolean)
+        .join(","),
+    [historyItems],
   );
 
   const categories = useMemo(
     () =>
-      [...new Set(historyItems.map((p) => p.category).filter(Boolean))].join(","),
-    [historyItems]
+      [...new Set(historyItems.map((p) => p.category).filter(Boolean))].join(
+        ",",
+      ),
+    [historyItems],
   );
 
   useEffect(() => {
@@ -44,7 +50,7 @@ export default function BrowsingHistoryPage() {
         });
 
         const res = await fetch(
-          `/api/products/browsing-history?${query.toString()}`
+          `/api/products/browsing-history?${query.toString()}`,
         );
 
         if (!res.ok) throw new Error("Request failed");
@@ -72,9 +78,11 @@ export default function BrowsingHistoryPage() {
       <Breadcrumb />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Browsing History</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Browsing History
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Review and manage the products you've viewed.
+            Review and manage the products you&apos;ve viewed.
           </p>
         </div>
         {historyItems.length > 0 && (
@@ -110,7 +118,8 @@ export default function BrowsingHistoryPage() {
           </div>
           <h2 className="text-xl font-semibold">Your history is empty</h2>
           <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-            You haven't viewed any products yet. Start browsing to see your history here.
+            You haven&apos;t viewed any products yet. Start browsing to see your
+            history here.
           </p>
           <Button asChild className="mt-6">
             <Link href="/">Go Shopping</Link>

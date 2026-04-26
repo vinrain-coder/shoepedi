@@ -17,7 +17,6 @@ import {
 } from "@/lib/actions/brand.actions";
 import { Plus, Search, PenBox, Tag } from "lucide-react";
 import { formatId, formatDateTime } from "@/lib/utils";
-import { IBrand } from "@/lib/db/models/brand.model";
 import Pagination from "@/components/shared/pagination";
 import BrandStatsCards from "./brand-stats-cards";
 import { Input } from "@/components/ui/input";
@@ -91,16 +90,19 @@ export default async function AdminBrandPage(props: {
           </TableHeader>
           <TableBody>
             {data.brands.length > 0 ? (
-              (data.brands as IBrand[]).map((brand) => (
-                <TableRow key={brand._id as string}>
+              data.brands.map((brand) => {
+                const id = String(brand._id);
+                const logoSrc = brand.logo || brand.image || "/icons/logo.svg";
+                return (
+                <TableRow key={id}>
                   <TableCell className="font-mono text-xs text-muted-foreground">
-                    {formatId(brand._id as string)}
+                    {formatId(id)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                        <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center overflow-hidden">
                           {brand.logo || brand.image ? (
-                             <Image src={brand.logo || brand.image} alt={brand.name} width={32} height={32} className="object-cover" />
+                             <Image src={logoSrc} alt={brand.name} width={32} height={32} className="object-cover" />
                           ) : (
                              <Tag className="size-4 text-primary" />
                           )}
@@ -117,16 +119,17 @@ export default async function AdminBrandPage(props: {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/brands/${brand._id}`}>
+                        <Link href={`/admin/brands/${id}`}>
                           <PenBox className="mr-2 h-4 w-4" />
                           Edit
                         </Link>
                       </Button>
-                      <DeleteDialog id={brand._id as string} action={deleteBrand} />
+                      <DeleteDialog id={id} action={deleteBrand} />
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">

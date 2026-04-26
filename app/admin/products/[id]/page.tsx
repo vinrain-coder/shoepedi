@@ -6,8 +6,6 @@ import ProductForm from "../product-form";
 import { Metadata } from "next";
 import { getAllCategoriesForAdminProductInput } from "@/lib/actions/category.actions";
 import { getAllBrandsForAdminProductInput } from "@/lib/actions/brand.actions";
-import { ICategory } from "@/lib/db/models/category.model";
-import { IBrand } from "@/lib/db/models/brand.model";
 
 export const metadata: Metadata = {
   title: "Edit Product",
@@ -29,6 +27,14 @@ const UpdateProduct = async (props: UpdateProductProps) => {
 
   const categories = await getAllCategoriesForAdminProductInput();
   const brands = await getAllBrandsForAdminProductInput();
+  const categoryOptions = categories.map((category) => ({
+    _id: String(category._id),
+    name: category.name,
+  }));
+  const brandOptions = brands.map((brand) => ({
+    _id: String(brand._id),
+    name: brand.name,
+  }));
 
   return (
     <main className="max-w-6xl mx-auto p-4">
@@ -45,8 +51,8 @@ const UpdateProduct = async (props: UpdateProductProps) => {
           type="Update"
           product={product}
           productId={product._id.toString()}
-          categories={categories as ICategory[]}
-          brands={brands as IBrand[]}
+          categories={categoryOptions}
+          brands={brandOptions}
         />
       </div>
     </main>

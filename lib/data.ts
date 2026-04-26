@@ -1,6 +1,7 @@
 import { Data, IProductInput, IUserInput, ICategoryInput, IBrandInput, ITagInput, ICouponInput, IBlogInput } from "@/types";
 import { toSlug } from "./utils";
 import bcrypt from "bcryptjs";
+import { DiscountType } from "./db/models/coupon.model";
 
 const categories: ICategoryInput[] = [
   {
@@ -106,7 +107,7 @@ const tags: ITagInput[] = [
 const coupons: ICouponInput[] = [
   {
     code: "WELCOME10",
-    discountType: "percentage" as any,
+    discountType: DiscountType.PERCENTAGE,
     discountValue: 10,
     minPurchase: 50,
     isActive: true,
@@ -114,7 +115,7 @@ const coupons: ICouponInput[] = [
   },
   {
     code: "SAVE20",
-    discountType: "fixed" as any,
+    discountType: DiscountType.FIXED,
     discountValue: 20,
     minPurchase: 100,
     isActive: true,
@@ -150,7 +151,7 @@ const blogs: IBlogInput[] = [
 const users: IUserInput[] = [
   {
     name: "Admin User",
-    email: "admin@shoepedi.com",
+    email: "admin@shoestar.com",
     password: bcrypt.hashSync("admin123", 10),
     role: "ADMIN",
     emailVerified: true,
@@ -291,11 +292,11 @@ const data: Data = {
     {
       title: "About Us",
       slug: "about-us",
-      content: `Welcome to ShoePedi, your trusted destination for quality footwear and exceptional service. Our journey began with a mission to bring you the best shopping experience by offering a wide range of products at competitive prices, all in one convenient platform.
+      content: `Welcome to ShoeStar, your trusted destination for quality footwear and exceptional service. Our journey began with a mission to bring you the best shopping experience by offering a wide range of products at competitive prices, all in one convenient platform.
 
-At ShoePedi, we prioritize customer satisfaction and innovation. Our team works tirelessly to curate a diverse selection of items, from everyday essentials to exclusive deals, ensuring there's something for everyone. We also strive to make your shopping experience seamless with fast shipping, secure payments, and excellent customer support.
+At ShoeStar, we prioritize customer satisfaction and innovation. Our team works tirelessly to curate a diverse selection of items, from everyday essentials to exclusive deals, ensuring there's something for everyone. We also strive to make your shopping experience seamless with fast shipping, secure payments, and excellent customer support.
 
-As we continue to grow, our commitment to quality and service remains unwavering. Thank you for choosing ShoePedi—we look forward to being a part of your journey and delivering value every step of the way.`,
+As we continue to grow, our commitment to quality and service remains unwavering. Thank you for choosing ShoeStar—we look forward to being a part of your journey and delivering value every step of the way.`,
       isPublished: true,
     },
     {
@@ -305,7 +306,7 @@ As we continue to grow, our commitment to quality and service remains unwavering
 
 **Customer Support**
 For inquiries about orders, products, or account-related issues, contact our customer support team:
-- **Email:** support@shoepedi.com
+- **Email:** support@shoestar.com
 - **Phone:** +254 700 000000
 - **Live Chat:** Available on our website from 9 AM to 6 PM (Monday to Friday).
 
@@ -345,7 +346,7 @@ Your data is safeguarded through robust security measures to prevent unauthorize
     {
       title: "Conditions of Use",
       slug: "conditions-of-use",
-      content: `Welcome to ShoePedi. By accessing or using our website, you agree to comply with and be bound by the following terms and conditions. These terms govern your use of our platform, including browsing, purchasing products, and interacting with any content or services provided. You must be at least 18 years old or have the consent of a parent or guardian to use this website. Any breach of these terms may result in the termination of your access to our platform.
+      content: `Welcome to ShoeStar. By accessing or using our website, you agree to comply with and be bound by the following terms and conditions. These terms govern your use of our platform, including browsing, purchasing products, and interacting with any content or services provided. You must be at least 18 years old or have the consent of a parent or guardian to use this website. Any breach of these terms may result in the termination of your access to our platform.
 
 We strive to ensure all product descriptions, pricing, and availability information on our website are accurate. However, errors may occur, and we reserve the right to correct them without prior notice. All purchases are subject to our return and refund policy. By using our site, you acknowledge that your personal information will be processed according to our privacy policy, ensuring your data is handled securely and responsibly. Please review these terms carefully before proceeding with any transactions.
 `,
@@ -354,10 +355,10 @@ We strive to ensure all product descriptions, pricing, and availability informat
     {
       title: "Customer Service",
       slug: "customer-service",
-      content: `At ShoePedi, our customer service team is here to ensure you have the best shopping experience. Whether you need assistance with orders, product details, or returns, we are committed to providing prompt and helpful support.
+      content: `At ShoeStar, our customer service team is here to ensure you have the best shopping experience. Whether you need assistance with orders, product details, or returns, we are committed to providing prompt and helpful support.
 
 If you have questions or concerns, please reach out to us through our multiple contact options:
-- **Email:** support@shoepedi.com
+- **Email:** support@shoestar.com
 - **Phone:** +254 700 000000
 - **Live Chat:** Available on our website for instant assistance
 
@@ -425,15 +426,15 @@ Please note that certain items, such as socks and insoles, are not eligible for 
         pageSize: 12,
       },
       site: {
-        name: "ShoePedi",
+        name: "ShoeStar",
         description: "Premium Footwear Store in Kenya",
         keywords: "sneakers, shoes, kenya, nike, adidas, jordan",
-        url: "https://shoepedi.com",
+        url: "https://shoestar.com",
         logo: "/icons/logo.svg",
         slogan: "Step into Excellence",
-        author: "ShoePedi Team",
-        copyright: "2024 ShoePedi Inc.",
-        email: "support@shoepedi.com",
+        author: "ShoeStar Team",
+        copyright: "2024 ShoeStar Inc.",
+        email: "support@shoestar.com",
         address: "Nairobi, Kenya",
         phone: "+254 700 000000",
       },
@@ -502,23 +503,6 @@ Please note that certain items, such as socks and insoles, are not eligible for 
         { name: "Express", daysToDeliver: 1, shippingPrice: 600, freeShippingMinPrice: 10000 },
       ],
       defaultDeliveryDate: "Standard",
-      deliveryCounties: [
-        {
-          county: "Nairobi",
-          places: [
-            { name: "CBD", rate: 120 },
-            { name: "Westlands", rate: 180 },
-            { name: "Karen", rate: 250 },
-          ],
-        },
-        {
-          county: "Mombasa",
-          places: [
-            { name: "Nyali", rate: 280 },
-            { name: "Likoni", rate: 320 },
-          ],
-        },
-      ],
       affiliate: {
         enabled: true,
         commissionRate: 10,

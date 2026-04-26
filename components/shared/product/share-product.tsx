@@ -15,6 +15,10 @@ function ShareProduct({ slug, name }: { slug: string; name: string }) {
   const [copied, setCopied] = useState(false);
   const [productUrl, setProductUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const canUseNativeShare =
+    typeof window !== "undefined" &&
+    typeof (navigator as Navigator & { share?: Navigator["share"] }).share ===
+      "function";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -34,7 +38,7 @@ function ShareProduct({ slug, name }: { slug: string; name: string }) {
   };
 
   const shareOnMobile = () => {
-    if (navigator.share && productUrl) {
+    if (canUseNativeShare && productUrl) {
       navigator.share({
         title: name,
         text: `Check out this product: ${name}`,
@@ -101,7 +105,7 @@ function ShareProduct({ slug, name }: { slug: string; name: string }) {
             </Button>
           </div>
 
-          {navigator.share && (
+          {canUseNativeShare && (
             <>
               <div className="relative my-3">
                 <div className="absolute inset-0 flex items-center">

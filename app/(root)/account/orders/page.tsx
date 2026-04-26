@@ -14,7 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getMyOrders } from "@/lib/actions/order.actions";
-import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime, formatId } from "@/lib/utils";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import ProductPrice from "@/components/shared/product/product-price";
@@ -30,6 +29,16 @@ type OrdersPageProps = {
   searchParams?: {
     page?: string;
   };
+};
+
+type MyOrderRow = {
+  _id: string;
+  createdAt: string | Date;
+  totalPrice: number;
+  isPaid: boolean;
+  paidAt?: string | Date;
+  isDelivered: boolean;
+  deliveredAt?: string | Date;
 };
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
@@ -65,11 +74,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
               </TableRow>
             )}
 
-            {orders.data.map((order: IOrder) => (
-              <TableRow key={order._id}>
+            {orders.data.map((order: MyOrderRow) => {
+              const orderId = String(order._id);
+              return (
+              <TableRow key={orderId}>
                 <TableCell>
-                  <Link href={`/account/orders/${order._id}`}>
-                    {formatId(order._id)}
+                  <Link href={`/account/orders/${orderId}`}>
+                    {formatId(orderId)}
                   </Link>
                 </TableCell>
 
@@ -94,12 +105,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                 </TableCell>
 
                 <TableCell>
-                  <Link href={`/account/orders/${order._id}`}>
+                  <Link href={`/account/orders/${orderId}`}>
                     <span className="px-2">Details</span>
                   </Link>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
 

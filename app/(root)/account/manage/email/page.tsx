@@ -1,11 +1,8 @@
 import { Metadata } from "next";
 
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
-import { redirect } from "next/navigation";
-import { toSignInPath } from "@/lib/redirects";
 
 import { EmailForm } from "./email-form";
 import { unauthorized } from "next/navigation";

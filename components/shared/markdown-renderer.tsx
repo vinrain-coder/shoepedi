@@ -60,7 +60,7 @@ export default function MarkdownRenderer({ content, className }: Props) {
             </pre>
           ),
           img: ({ src = "", alt = "" }) => {
-            if (!src) return null;
+            if (typeof src !== "string" || !src) return null;
             return (
               <Image
                 src={src}

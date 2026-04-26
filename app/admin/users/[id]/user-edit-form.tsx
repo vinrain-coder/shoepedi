@@ -24,20 +24,26 @@ import {
 } from "@/components/ui/select";
 import { updateUser } from "@/lib/actions/user.actions";
 import { USER_ROLES } from "@/lib/constants";
-import { IUser } from "@/lib/db/models/user.model";
 import { UserUpdateSchema } from "@/lib/validator";
 import { toast } from "sonner";
 import SubmitButton from "@/components/shared/submit-button";
 
-const UserEditForm = ({ user }: { user: IUser }) => {
+type UserEditFormValues = z.infer<typeof UserUpdateSchema>;
+
+const UserEditForm = ({ user }: { user: UserEditFormValues }) => {
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof UserUpdateSchema>>({
+  const form = useForm<UserEditFormValues>({
     resolver: zodResolver(UserUpdateSchema),
-    defaultValues: user,
+    defaultValues: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   });
 
-  async function onSubmit(values: z.infer<typeof UserUpdateSchema>) {
+  async function onSubmit(values: UserEditFormValues) {
     try {
       const res = await updateUser({
         ...values,
@@ -51,9 +57,8 @@ const UserEditForm = ({ user }: { user: IUser }) => {
 
       form.reset();
       router.push(`/admin/users`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update user");
     }
   }
 

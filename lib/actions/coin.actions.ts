@@ -6,34 +6,9 @@ import { connectToDatabase } from "@/lib/db";
 import { getServerSession } from "@/lib/get-session";
 import CoinTransaction from "@/lib/db/models/coin-transaction.model";
 import User from "@/lib/db/models/user.model";
-import Order from "@/lib/db/models/order.model";
 import { escapeRegExp, formatError, round2 } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
 import { sendCoinAdjustmentNotification } from "../email/transactional";
-
-type LeanCoinOrder = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt?: Date;
-  status: string;
-  totalPrice: number;
-  coinsEarned: number;
-  coinsRedeemed: number;
-  coinsCredited: boolean;
-  refundedToCoins: boolean;
-  trackingNumber?: string;
-};
-
-type LeanCoinTransaction = {
-  _id: mongoose.Types.ObjectId;
-  createdAt: Date;
-  amount: number;
-  reason: string;
-  source: "admin_adjustment" | "system";
-  balanceBefore: number;
-  balanceAfter: number;
-  admin?: { name?: string; email?: string } | null;
-};
 
 async function ensureAdmin() {
   const session = await getServerSession();
@@ -111,7 +86,10 @@ export async function getCoinAdminStats() {
         },
       },
     ]),
-    User.findOne({ coins: { $gt: 0 } }).sort({ coins: -1 }).select("name coins").lean(),
+    User.findOne({ coins: { $gt: 0 } })
+      .sort({ coins: -1 })
+      .select("name coins")
+      .lean(),
     CoinTransaction.countDocuments({ source: "admin_adjustment" }),
   ]);
 
@@ -193,7 +171,11 @@ export async function getUserCoinHistoryAdmin({
                         $and: [
                           { $gt: ["$coinsEarned", 0] },
                           { $eq: ["$coinsCredited", true] },
-                          { $not: { $in: ["$status", ["cancelled", "returned"]] } },
+                          {
+                            $not: {
+                              $in: ["$status", ["cancelled", "returned"]],
+                            },
+                          },
                         ],
                       },
                       [
@@ -205,7 +187,12 @@ export async function getUserCoinHistoryAdmin({
                           reason: {
                             $concat: [
                               "Coins earned from order #",
-                              { $ifNull: ["$trackingNumber", { $substr: [{ $toString: "$_id" }, 18, 6] }] },
+                              {
+                                $ifNull: [
+                                  "$trackingNumber",
+                                  { $substr: [{ $toString: "$_id" }, 18, 6] },
+                                ],
+                              },
                             ],
                           },
                           source: "order",
@@ -227,7 +214,12 @@ export async function getUserCoinHistoryAdmin({
                           reason: {
                             $concat: [
                               "Coins used to pay order #",
-                              { $ifNull: ["$trackingNumber", { $substr: [{ $toString: "$_id" }, 18, 6] }] },
+                              {
+                                $ifNull: [
+                                  "$trackingNumber",
+                                  { $substr: [{ $toString: "$_id" }, 18, 6] },
+                                ],
+                              },
                             ],
                           },
                           source: "order",
@@ -354,7 +346,7 @@ export async function adjustUserCoinsAdmin({
     const updatedUser = await User.findOneAndUpdate(
       query,
       { $inc: { coins: normalizedAmount } },
-      { new: true }
+      { new: true },
     ).select("_id name email coins addresses");
 
     if (!updatedUser) {
@@ -384,7 +376,10 @@ export async function adjustUserCoinsAdmin({
 
     // Send user notification
     try {
-      const defaultAddress = (updatedUser.addresses as any[] || []).find((a: any) => a.isDefault) || (updatedUser.addresses as any[] || [])[0];
+      const defaultAddress =
+        ((updatedUser.addresses as any[]) || []).find(
+          (a: any) => a.isDefault,
+        ) || ((updatedUser.addresses as any[]) || [])[0];
       await sendCoinAdjustmentNotification({
         email: updatedUser.email,
         name: updatedUser.name || "Customer",

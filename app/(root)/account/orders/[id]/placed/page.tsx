@@ -1,9 +1,10 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, Truck, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Breadcrumb from "@/components/shared/breadcrumb";
@@ -15,18 +16,18 @@ import { formatId } from "@/lib/utils";
 const colors = ["#EAB308", "#CA8A04", "#A16207", "#FACC15", "#854D0E"];
 
 const normalizeOrderIdParam = (value: string | string[] | undefined) => {
-  const candidate = decodeURIComponent(Array.isArray(value) ? value[0] : value || "").trim();
+  const candidate = decodeURIComponent(
+    Array.isArray(value) ? value[0] : value || "",
+  ).trim();
   const objectIdMatch = candidate.match(/[a-f0-9]{24}/i);
   return objectIdMatch ? objectIdMatch[0] : candidate;
 };
 
 export default function OrderPlacedPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
   const orderId = normalizeOrderIdParam(params?.id);
   const accessToken = searchParams.get("accessToken");
-  const [progress, setProgress] = useState(0);
   const [order, setOrder] = useState<SerializedOrder | null>(null);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function OrderPlacedPage() {
   }));
 
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background py-20">
+    <div className="min-h-[70vh] flex flex-col items-center justify-center relative overflow-hidden bg-linear-to-br from-background via-muted/10 to-background py-20">
       <div className="absolute top-4 z-20">
         <Breadcrumb />
       </div>
@@ -68,7 +69,11 @@ export default function OrderPlacedPage() {
             style={{ left: `${p.x}%`, backgroundColor: p.color }}
             initial={{ y: -10, opacity: 1, rotate: 0 }}
             animate={{ y: "100vh", opacity: 0, rotate: 720 + p.rotate }}
-            transition={{ delay: p.delay, duration: p.duration, ease: "easeOut" }}
+            transition={{
+              delay: p.delay,
+              duration: p.duration,
+              ease: "easeOut",
+            }}
           />
         ))}
       </div>
@@ -96,9 +101,15 @@ export default function OrderPlacedPage() {
           })}
 
           <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-          <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse" style={{ animationDelay: "0.2s" }} />
+          <div
+            className="absolute inset-0 rounded-full bg-primary/10 animate-pulse"
+            style={{ animationDelay: "0.2s" }}
+          />
           <div className="relative w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-2xl shadow-primary/40">
-            <CheckCircle2 className="h-12 w-12 text-primary-foreground drop-shadow-md" strokeWidth={2.5} />
+            <CheckCircle2
+              className="h-12 w-12 text-primary-foreground drop-shadow-md"
+              strokeWidth={2.5}
+            />
           </div>
         </motion.div>
 
@@ -130,28 +141,40 @@ export default function OrderPlacedPage() {
           className="grid grid-cols-3 gap-4 mb-10"
         >
           {[
-            { icon: <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto mb-2" />, label: "Confirmed" },
-            { icon: <Clock className="h-5 w-5 text-primary mx-auto mb-2" />, label: "Processing" },
-            { icon: <Truck className="h-5 w-5 text-blue-500 mx-auto mb-2" />, label: "Delivered Soon" },
+            {
+              icon: (
+                <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto mb-2" />
+              ),
+              label: "Confirmed",
+            },
+            {
+              icon: <Clock className="h-5 w-5 text-primary mx-auto mb-2" />,
+              label: "Processing",
+            },
+            {
+              icon: <Truck className="h-5 w-5 text-blue-500 mx-auto mb-2" />,
+              label: "Delivered Soon",
+            },
           ].map((item, idx) => (
             <div
               key={idx}
               className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
             >
               {item.icon}
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{item.label}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">
+                {item.label}
+              </p>
             </div>
           ))}
         </motion.div>
 
-
         {accessToken && orderId && (
-            <GuestSignUpForm
-                orderId={orderId}
-                accessToken={accessToken}
-                defaultEmail={order?.userEmail || ""}
-                defaultName={order?.userName || ""}
-            />
+          <GuestSignUpForm
+            orderId={orderId}
+            accessToken={accessToken}
+            defaultEmail={order?.userEmail || ""}
+            defaultName={order?.userName || ""}
+          />
         )}
         {accessToken && orderId && (
           <div className="mt-4 text-sm text-muted-foreground">
@@ -166,25 +189,33 @@ export default function OrderPlacedPage() {
         )}
 
         <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8"
         >
-            <Link
-                href={accessToken
+          <Link
+            href={
+              accessToken
                 ? `/account/orders/${orderId}?accessToken=${accessToken}`
-                : `/account/orders/${orderId}`}
-                className={cn(buttonVariants({ size: "lg", variant: "default" }), "w-full sm:w-auto font-bold gap-2 px-8")}
-            >
-                View Order Details <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-                href="/search"
-                className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full sm:w-auto")}
-            >
-                Continue Shopping
-            </Link>
+                : `/account/orders/${orderId}`
+            }
+            className={cn(
+              buttonVariants({ size: "lg", variant: "default" }),
+              "w-full sm:w-auto font-bold gap-2 px-8",
+            )}
+          >
+            View Order Details <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/search"
+            className={cn(
+              buttonVariants({ size: "lg", variant: "outline" }),
+              "w-full sm:w-auto",
+            )}
+          >
+            Continue Shopping
+          </Link>
         </motion.div>
       </div>
     </div>

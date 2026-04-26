@@ -108,7 +108,14 @@ export async function getSupportTicketsAdmin({
 
     await connectToDatabase();
 
-    const filter: Record<string, unknown> = {};
+    const filter: {
+      status?: string;
+      $or?: Array<Record<string, unknown>>;
+      createdAt?: {
+        $gte?: Date;
+        $lte?: Date;
+      };
+    } = {};
     if (status !== "all") {
       filter.status = status;
     }

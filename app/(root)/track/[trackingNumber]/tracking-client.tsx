@@ -57,7 +57,7 @@ export default function TrackingClient({
         `/api/tracking/${encodeURIComponent(trackingNumber)}`,
         {
           cache: "no-store",
-        }
+        },
       );
       const payload = await response.json();
       if (!mounted) return;
@@ -83,9 +83,9 @@ export default function TrackingClient({
   const timeline = useMemo(
     () =>
       [...(data?.trackingHistory || [])].sort(
-        (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
+        (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt),
       ),
-    [data]
+    [data],
   );
 
   if (error) {
@@ -120,8 +120,8 @@ export default function TrackingClient({
                   new Date(
                     data.shipment?.estimatedDeliveryDate ||
                       data.expectedDeliveryDate ||
-                      new Date()
-                  )
+                      new Date(),
+                  ),
                 ).dateTime
               }
             </p>

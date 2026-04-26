@@ -85,7 +85,8 @@ export const AddressSection = ({
         </div>
         <div className="col-span-5">
           <p>
-            {shippingAddress.fullName} {shippingAddress.email ? `(${shippingAddress.email})` : ""} <br />
+            {shippingAddress.fullName}{" "}
+            {shippingAddress.email ? `(${shippingAddress.email})` : ""} <br />
             {shippingAddress.street} <br />
             {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
           </p>
@@ -123,7 +124,9 @@ export const AddressSection = ({
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Returning customer?</p>
-                  <p className="text-xs text-muted-foreground">Sign in to use your saved addresses and earn rewards.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sign in to use your saved addresses and earn rewards.
+                  </p>
                 </div>
               </div>
               <Link href={toSignInPath("/checkout")}>
@@ -133,7 +136,7 @@ export const AddressSection = ({
                 </Button>
               </Link>
             </div>
-            <div className="rounded-lg border border-primary/20 bg-white/70 p-3 text-xs text-muted-foreground">
+            <div className="rounded-lg border border-primary/20 bg-muted p-3 text-xs text-muted-foreground">
               <ul className="space-y-1.5">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
@@ -153,110 +156,109 @@ export const AddressSection = ({
         </Card>
       )}
 
-          {session && addressBook.length > 0 && (
-  <Card className="my-4 overflow-hidden md:ml-8">
-    <CardContent className="space-y-3 p-4">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <MapPin className="h-4 w-4 text-primary" />
-        Select a saved address
-      </div>
+      {session && addressBook.length > 0 && (
+        <Card className="my-4 overflow-hidden md:ml-8">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <MapPin className="h-4 w-4 text-primary" />
+              Select a saved address
+            </div>
 
-      <RadioGroup
-        value={selectedSavedAddressId}
-        onValueChange={setSelectedSavedAddressId}
-        className="grid grid-cols-1 gap-2 sm:grid-cols-2"
-      >
-        {addressBook.map((address) => (
-          <div
-            key={address.id}
-            onClick={() => setSelectedSavedAddressId(address.id)}
-            className={`flex w-full items-start gap-3 rounded-lg border p-3 transition-all ${
-              selectedSavedAddressId === address.id
-                ? "border-2 border-primary bg-primary/5 shadow-md"
-                : "hover:border-primary/40"
-            }`}
-          >
-            <RadioGroupItem
-              value={address.id}
-              id={`saved-address-${address.id}`}
-              className="mt-1 shrink-0"
-            />
-
-            <Label
-              htmlFor={`saved-address-${address.id}`}
-              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 text-sm leading-relaxed"
+            <RadioGroup
+              value={selectedSavedAddressId}
+              onValueChange={setSelectedSavedAddressId}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2"
             >
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="truncate font-medium">
-                  {address.label}
-                </span>
+              {addressBook.map((address) => (
+                <div
+                  key={address.id}
+                  onClick={() => setSelectedSavedAddressId(address.id)}
+                  className={`flex w-full items-start gap-3 rounded-lg border p-3 transition-all ${
+                    selectedSavedAddressId === address.id
+                      ? "border-2 border-primary bg-primary/5 shadow-md"
+                      : "hover:border-primary/40"
+                  }`}
+                >
+                  <RadioGroupItem
+                    value={address.id}
+                    id={`saved-address-${address.id}`}
+                    className="mt-1 shrink-0"
+                  />
 
-                {address.isDefault && (
-                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                    Default
-                  </span>
-                )}
-              </div>
+                  <Label
+                    htmlFor={`saved-address-${address.id}`}
+                    className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 text-sm leading-relaxed"
+                  >
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="truncate font-medium">
+                        {address.label}
+                      </span>
 
-              <p className="break-words text-xs sm:text-sm">
-                {address.fullName}
+                      {address.isDefault && (
+                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                          Default
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="wrap-break-word text-xs sm:text-sm">
+                      {address.fullName}
+                    </p>
+
+                    <p className="wrap-break-word text-xs sm:text-sm">
+                      {address.street}, {address.city}, {address.province},{" "}
+                      {address.postalCode}, {address.country}
+                    </p>
+
+                    <p className="wrap-break-word text-xs text-muted-foreground">
+                      {address.phone}
+                    </p>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+
+            {addressBook.find((a) => a.id === selectedSavedAddressId) && (
+              <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
+                {
+                  addressBook.find((a) => a.id === selectedSavedAddressId)
+                    ?.label
+                }{" "}
+                is selected and will be used for delivery.
               </p>
+            )}
 
-              <p className="break-words text-xs sm:text-sm">
-                {address.street}, {address.city}, {address.province},{" "}
-                {address.postalCode}, {address.country}
-              </p>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/account/addresses?returnTo=/checkout">
+                <Button type="button" variant="outline" size="sm">
+                  Manage/Add addresses
+                </Button>
+              </Link>
 
-              <p className="break-words text-xs text-muted-foreground">
-                {address.phone}
-              </p>
-            </Label>
-          </div>
-        ))}
-      </RadioGroup>
-
-      {addressBook.find((a) => a.id === selectedSavedAddressId) && (
-        <p className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
-          <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />
-          {
-            addressBook.find(
-              (a) => a.id === selectedSavedAddressId
-            )?.label
-          }{" "}
-          is selected and will be used for delivery.
-        </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setSelectedSavedAddressId("");
+                  setIsAddressSelected(false);
+                  shippingAddressForm.reset(shippingAddressDefaultValues);
+                }}
+              >
+                Enter a new address
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        <Link href="/account/addresses?returnTo=/checkout">
-          <Button type="button" variant="outline" size="sm">
-            Manage/Add addresses
-          </Button>
-        </Link>
-
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedSavedAddressId("");
-            setIsAddressSelected(false);
-            shippingAddressForm.reset(
-              shippingAddressDefaultValues
-            );
-          }}
-        >
-          Enter a new address
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-)}
 
       <Form {...shippingAddressForm}>
         <form
           method="post"
-          onSubmit={shippingAddressForm.handleSubmit(handleSelectShippingAddress)}
+          onSubmit={shippingAddressForm.handleSubmit(
+            handleSelectShippingAddress,
+          )}
           className="space-y-4"
         >
           <Card className="md:ml-8 my-4">
@@ -267,7 +269,9 @@ export const AddressSection = ({
                   <Checkbox
                     id="saveAddressToAccount"
                     checked={saveAddressToAccount}
-                    onCheckedChange={(value) => setSaveAddressToAccount(Boolean(value))}
+                    onCheckedChange={(value) =>
+                      setSaveAddressToAccount(Boolean(value))
+                    }
                   />
                   <Label htmlFor="saveAddressToAccount">
                     Save this address to my account
@@ -295,7 +299,8 @@ export const AddressSection = ({
                     )}
                   />
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    We&apos;ll use this email to send you order updates and tracking information.
+                    We&apos;ll use this email to send you order updates and
+                    tracking information.
                   </p>
                 </div>
               )}
@@ -346,7 +351,13 @@ export const AddressSection = ({
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={isCountiesLoading ? "Loading counties..." : "Select county"} />
+                            <SelectValue
+                              placeholder={
+                                isCountiesLoading
+                                  ? "Loading counties..."
+                                  : "Select county"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {counties.map((c) => (
@@ -358,7 +369,9 @@ export const AddressSection = ({
                         </Select>
                       </FormControl>
                       {countiesError && (
-                        <p className="text-xs text-destructive mt-1">{countiesError}</p>
+                        <p className="text-xs text-destructive mt-1">
+                          {countiesError}
+                        </p>
                       )}
                       <FormMessage />
                     </FormItem>
@@ -374,10 +387,20 @@ export const AddressSection = ({
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
-                          disabled={!selectedCounty || places.length === 0 || isPlacesLoading}
+                          disabled={
+                            !selectedCounty ||
+                            places.length === 0 ||
+                            isPlacesLoading
+                          }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={isPlacesLoading ? "Loading places..." : "Select delivery place"} />
+                            <SelectValue
+                              placeholder={
+                                isPlacesLoading
+                                  ? "Loading places..."
+                                  : "Select delivery place"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {places.map((p) => (
@@ -394,10 +417,14 @@ export const AddressSection = ({
                         </p>
                       )}
                       {selectedCounty && isPlacesLoading && (
-                        <p className="text-xs text-muted-foreground">Loading delivery places...</p>
+                        <p className="text-xs text-muted-foreground">
+                          Loading delivery places...
+                        </p>
                       )}
                       {placesError && (
-                        <p className="text-xs text-destructive mt-1">{placesError}</p>
+                        <p className="text-xs text-destructive mt-1">
+                          {placesError}
+                        </p>
                       )}
                       <FormMessage />
                     </FormItem>
@@ -452,7 +479,9 @@ export const AddressSection = ({
                 className="rounded-full font-bold cursor-pointer"
                 disabled={isSubmittingAddress}
               >
-                {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
+                {isSubmittingAddress
+                  ? "Saving address..."
+                  : "Ship to this address"}
               </Button>
             </CardFooter>
           </Card>

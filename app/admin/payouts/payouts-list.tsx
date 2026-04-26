@@ -1,11 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { updatePayoutStatus, deletePayoutRequest } from "@/lib/actions/affiliate.actions";
+import {
+  updatePayoutStatus,
+  deletePayoutRequest,
+} from "@/lib/actions/affiliate.actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,18 +56,21 @@ export default function PayoutsAdminPage({
   async function handleStatusUpdate(id: string, status: "paid" | "rejected") {
     setIsUpdating(id);
     // Only pass rejectionReason if status is rejected
-    const res = await updatePayoutStatus(id, status, status === "rejected" ? rejectionReason : undefined);
+    const res = await updatePayoutStatus(
+      id,
+      status,
+      status === "rejected" ? rejectionReason : undefined,
+    );
     setIsUpdating(null);
 
     if (res.success) {
       toast.success(res.message);
-      setList(prev => prev.map(p => p._id === id ? { ...p, status } : p));
+      setList((prev) => prev.map((p) => (p._id === id ? { ...p, status } : p)));
       setRejectionReason("");
     } else {
       toast.error(res.message);
     }
   }
-
 
   return (
     <div className="space-y-6">
@@ -75,7 +88,9 @@ export default function PayoutsAdminPage({
         </CardHeader>
         <CardContent>
           {list.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">No payout requests found.</p>
+            <p className="text-center py-8 text-muted-foreground">
+              No payout requests found.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -93,23 +108,48 @@ export default function PayoutsAdminPage({
                 {list.map((payout: any) => (
                   <TableRow key={payout._id}>
                     <TableCell>
-                      <div className="font-medium">{payout.affiliate?.user?.name}</div>
-                      <div className="text-xs text-muted-foreground">{payout.affiliate?.user?.email}</div>
+                      <div className="font-medium">
+                        {payout.affiliate?.user?.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {payout.affiliate?.user?.email}
+                      </div>
                     </TableCell>
-                    <TableCell className="font-bold">{formatCurrency(payout.amount)}</TableCell>
+                    <TableCell className="font-bold">
+                      {formatCurrency(payout.amount)}
+                    </TableCell>
                     <TableCell>{payout.paymentMethod}</TableCell>
                     <TableCell>
-                      <div className="text-xs">{payout.paymentDetails?.recipient}</div>
+                      <div className="text-xs">
+                        {payout.paymentDetails?.recipient}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={payout.status === "paid" ? "badge-success" : payout.status === "pending" ? "badge-pending" : "badge-rejected"}>
-                        {payout.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
-                        {payout.status === "pending" && <Clock className="h-3 w-3" />}
-                        {payout.status === "rejected" && <AlertCircle className="h-3 w-3" />}
+                      <Badge
+                        variant={
+                          payout.status === "paid"
+                            ? "success"
+                            : payout.status === "pending"
+                              ? "pending"
+                              : "destructive"
+                        }
+                        className="flex items-center gap-1"
+                      >
+                        {payout.status === "paid" && (
+                          <CheckCircle2 className="h-3 w-3" />
+                        )}
+                        {payout.status === "pending" && (
+                          <Clock className="h-3 w-3" />
+                        )}
+                        {payout.status === "rejected" && (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
                         {payout.status.toUpperCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell>{new Date(payout.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(payout.createdAt).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="text-right space-x-2">
                       {payout.status === "pending" && (
                         <>
@@ -117,14 +157,28 @@ export default function PayoutsAdminPage({
                             size="sm"
                             variant="default"
                             disabled={isUpdating === payout._id}
-                            onClick={() => handleStatusUpdate(payout._id, "paid")}
+                            onClick={() =>
+                              handleStatusUpdate(payout._id, "paid")
+                            }
                           >
-                            {isUpdating === payout._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark Paid"}
+                            {isUpdating === payout._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Mark Paid"
+                            )}
                           </Button>
 
-                          <Dialog onOpenChange={(open) => !open && setRejectionReason("")}>
+                          <Dialog
+                            onOpenChange={(open) =>
+                              !open && setRejectionReason("")
+                            }
+                          >
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="destructive" disabled={isUpdating === payout._id}>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={isUpdating === payout._id}
+                              >
                                 Reject
                               </Button>
                             </DialogTrigger>
@@ -132,23 +186,35 @@ export default function PayoutsAdminPage({
                               <DialogHeader>
                                 <DialogTitle>Reject Payout Request</DialogTitle>
                                 <DialogDescription>
-                                  Please provide a reason for rejecting this payout. This is mandatory.
+                                  Please provide a reason for rejecting this
+                                  payout. This is mandatory.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="py-4">
                                 <Textarea
                                   placeholder="Reason for rejection..."
                                   value={rejectionReason}
-                                  onChange={(e) => setRejectionReason(e.target.value)}
+                                  onChange={(e) =>
+                                    setRejectionReason(e.target.value)
+                                  }
                                 />
                               </div>
                               <DialogFooter>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleStatusUpdate(payout._id, "rejected")}
-                                  disabled={!rejectionReason.trim() || isUpdating === payout._id}
+                                  onClick={() =>
+                                    handleStatusUpdate(payout._id, "rejected")
+                                  }
+                                  disabled={
+                                    !rejectionReason.trim() ||
+                                    isUpdating === payout._id
+                                  }
                                 >
-                                  {isUpdating === payout._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Reject"}
+                                  {isUpdating === payout._id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Confirm Reject"
+                                  )}
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
@@ -158,7 +224,11 @@ export default function PayoutsAdminPage({
                       <DeleteDialog
                         id={payout._id}
                         action={deletePayoutRequest}
-                        callbackAction={() => setList(prev => prev.filter(p => p._id !== payout._id))}
+                        callbackAction={() =>
+                          setList((prev) =>
+                            prev.filter((p) => p._id !== payout._id),
+                          )
+                        }
                         title="Delete Payout Request?"
                         description="This will delete the payout request and refund the amount to the affiliate's balance. This action cannot be undone."
                       />

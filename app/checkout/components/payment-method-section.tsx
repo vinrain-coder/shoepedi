@@ -110,9 +110,15 @@ export const PaymentMethodSection = ({
             <Button
               onClick={handleSelectPaymentMethod}
               className="rounded-full font-bold cursor-pointer"
+              disabled={!paymentMethod}
             >
               Use this payment method
             </Button>
+            {!paymentMethod && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Select a payment option before continuing.
+              </p>
+            )}
           </CardFooter>
         </Card>
       </>

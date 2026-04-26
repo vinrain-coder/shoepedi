@@ -10,6 +10,7 @@ const initialState: Cart = {
   taxPrice: undefined,
   shippingPrice: undefined,
   totalPrice: 0,
+  discount: 0,
   paymentMethod: undefined,
   shippingAddress: undefined,
   deliveryDateIndex: undefined,

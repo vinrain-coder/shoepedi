@@ -45,6 +45,7 @@ export default async function OrderDetailsPage({
       <OrderDetailsForm
         order={order}
         isAdmin={session?.user?.role === "ADMIN"}
+        accessToken={accessToken}
       />
     </div>
   );

@@ -16,14 +16,14 @@ export type CardItem = {
 
 export function HomeCard({ cards }: { cards: CardItem[] }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 p-1">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 p-0">
       {cards.map((card) => (
         <Card
           key={card.title}
-          className="rounded-2xl border-none shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card flex flex-col overflow-hidden"
+          className="rounded-sm border-none shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col overflow-hidden"
         >
           <CardContent className="p-0 flex-1">
-            <h3 className="text-lg font-bold tracking-tight text-foreground/90 mb-6">{card.title}</h3>
+            <h3 className="text-lg font-bold tracking-tight text-foreground/90 mb-2">{card.title}</h3>
             <div className="grid grid-cols-2 gap-4 md:gap-6">
               {card.items.map((item) => (
                 <Link
@@ -31,7 +31,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
                   href={item.href}
                   className="flex flex-col group"
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-muted/50 mb-3">
+                  <div className="relative aspect-square overflow-hidden rounded-sm bg-muted/50 mb-3">
                     <Image
                       src={item.image}
                       alt={item.name}

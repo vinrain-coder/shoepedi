@@ -1,4 +1,4 @@
-# ShoePedi Admin Documentation
+# ShoeStar Admin Documentation
 
 ## 1) Admin access
 - Admin dashboard routes are under `/admin`.

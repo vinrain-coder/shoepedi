@@ -65,7 +65,7 @@ export async function deleteProduct(id: string) {
           if (fileKeys) {
             await utapi.deleteFiles(fileKeys); // Use the UTApi instance
           }
-        })
+        }),
       );
     }
 
@@ -90,8 +90,14 @@ export async function getProductById(productId: string) {
   cacheLife("hours");
   cacheTag("products");
   await connectToDatabase();
-  const product = await Product.findById(productId);
-  return JSON.parse(JSON.stringify(product)) as IProduct;
+  const product = await Product.findById(productId).lean();
+  if (!product) return null;
+  return {
+    ...product,
+    _id: product._id.toString(),
+    createdAt: product.createdAt?.toISOString(),
+    updatedAt: product.updatedAt?.toISOString(),
+  } as unknown as IProduct;
 }
 
 export async function getProductsByIds(productIds: string[]) {
@@ -101,9 +107,16 @@ export async function getProductsByIds(productIds: string[]) {
   await connectToDatabase();
 
   const objectIds = productIds.map((id) => new mongoose.Types.ObjectId(id));
-  const products = await Product.find({ _id: { $in: objectIds } });
+  const products = await Product.find({ _id: { $in: objectIds } }).lean();
 
-  return JSON.parse(JSON.stringify(products)) as IProduct[];
+  const safeProducts = products.map((product) => ({
+    ...product,
+    _id: product._id.toString(),
+    createdAt: product.createdAt?.toISOString(),
+    updatedAt: product.updatedAt?.toISOString(),
+  }));
+
+  return safeProducts as unknown as IProduct[];
 }
 
 // GET ALL PRODUCTS FOR ADMIN
@@ -215,12 +228,12 @@ export async function getAllProductsForAdmin({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-      ? { price: 1 }
-      : sort === "price-high-to-low"
-      ? { price: -1 }
-      : sort === "avg-customer-review"
-      ? { avgRating: -1 }
-      : { _id: -1 };
+        ? { price: 1 }
+        : sort === "price-high-to-low"
+          ? { price: -1 }
+          : sort === "avg-customer-review"
+            ? { avgRating: -1 }
+            : { _id: -1 };
 
   const products = await Product.find(filters)
     .sort(order)
@@ -287,7 +300,9 @@ export async function getProductAdminStats(params: {
   const genderFilter =
     params.gender && params.gender !== "all"
       ? {
-          gender: { $regex: new RegExp(`^${escapeRegExp(params.gender)}$`, "i") },
+          gender: {
+            $regex: new RegExp(`^${escapeRegExp(params.gender)}$`, "i"),
+          },
         }
       : {};
 
@@ -363,7 +378,7 @@ export async function getAllCategories(): Promise<string[]> {
       .split(/\s+|-/)
       .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ")
-      .trim()
+      .trim(),
   );
 }
 
@@ -384,7 +399,7 @@ export async function getProductsForCard({
       name: 1,
       href: { $concat: ["/product/", "$slug"] },
       image: { $arrayElemAt: ["$images", 0] },
-    }
+    },
   )
     .sort({ createdAt: "desc" })
     .limit(limit);
@@ -421,10 +436,7 @@ export async function getProductBySlug(slug: string) {
   cacheLife("hours");
   cacheTag("products");
   await connectToDatabase();
-  const product = await Product.findOne({
-    slug,
-    isPublished: true,
-  });
+  const product = await Product.findOne({ slug, isPublished: true });
   if (!product) return notFound();
   return JSON.parse(JSON.stringify(product)) as IProduct;
 }
@@ -609,12 +621,12 @@ export async function getAllProducts({
     sort === "best-selling"
       ? { numSales: -1 }
       : sort === "price-low-to-high"
-      ? { price: 1 }
-      : sort === "price-high-to-low"
-      ? { price: -1 }
-      : sort === "avg-customer-review"
-      ? { avgRating: -1 }
-      : { _id: -1 };
+        ? { price: 1 }
+        : sort === "price-high-to-low"
+          ? { price: -1 }
+          : sort === "avg-customer-review"
+            ? { avgRating: -1 }
+            : { _id: -1 };
 
   const filters = {
     ...isPublishedFilter,
@@ -685,10 +697,10 @@ export async function getAllTags() {
         word
           .split("-") // handle dashed words
           .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join("-")
+          .join("-"),
       )
       .join(" ")
-      .trim()
+      .trim(),
   );
 }
 
@@ -734,7 +746,7 @@ export async function getAllBrands(): Promise<string[]> {
       .split(/\s+|-/)
       .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ")
-      .trim()
+      .trim(),
   );
 }
 
@@ -765,7 +777,7 @@ export async function getAllColors(): Promise<string[]> {
       .split(/\s+|-/)
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ")
-      .trim()
+      .trim(),
   );
 }
 // GET ALL SIZES
@@ -795,7 +807,7 @@ export async function getAllSizes(): Promise<string[]> {
       .split(/\s+|-/)
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ")
-      .trim()
+      .trim(),
   );
 }
 

@@ -7,7 +7,6 @@ import {
   Wallet,
   Trophy,
   History,
-  ArrowUpRight,
   ChevronDown,
   ChevronUp,
   LineChart as ChartIcon,
@@ -79,22 +78,34 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-dashed shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Earnings in Period</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Earnings in Period
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats.totalEarnedInPeriod)}</div>
-                <p className="text-xs text-muted-foreground">Commission earned during selected dates</p>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(stats.totalEarnedInPeriod)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Commission earned during selected dates
+                </p>
               </CardContent>
             </Card>
             <Card className="border-dashed shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Amount Due</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Amount Due
+                </CardTitle>
                 <Wallet className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats.totalDue)}</div>
-                <p className="text-xs text-muted-foreground">Unpaid affiliate balance across all time</p>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(stats.totalDue)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Unpaid affiliate balance across all time
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -109,7 +120,11 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
               <CardContent className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.monthlyPayouts}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      opacity={0.3}
+                    />
                     <XAxis
                       dataKey="label"
                       axisLine={false}
@@ -121,15 +136,21 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
                       axisLine={false}
                       tickLine={false}
                       fontSize={10}
-                      tickFormatter={(val) => formatCurrency(val).replace(/\.00$/, "")}
+                      tickFormatter={(val) =>
+                        formatCurrency(val).replace(/\.00$/, "")
+                      }
                     />
                     <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
                             <div className="rounded-lg border bg-background p-2 shadow-sm text-xs">
-                              <p className="font-bold">{payload[0].payload.label}</p>
-                              <p className="text-primary">{formatCurrency(payload[0].value as number)}</p>
+                              <p className="font-bold">
+                                {payload[0].payload.label}
+                              </p>
+                              <p className="text-primary">
+                                {formatCurrency(payload[0].value as number)}
+                              </p>
                             </div>
                           );
                         }
@@ -150,24 +171,36 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-amber-500" /> Top Earners (Period)
+                    <Trophy className="h-4 w-4 text-amber-500" /> Top Earners
+                    (Period)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {stats.periodLeaderboard.length === 0 ? (
-                      <p className="text-xs text-center text-muted-foreground py-4">No earnings in this period</p>
+                      <p className="text-xs text-center text-muted-foreground py-4">
+                        No earnings in this period
+                      </p>
                     ) : (
                       stats.periodLeaderboard.map((item, i) => (
-                        <div key={item._id} className="flex items-center justify-between text-xs">
+                        <div
+                          key={item._id}
+                          className="flex items-center justify-between text-xs"
+                        >
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-muted-foreground w-4">{i + 1}.</span>
+                            <span className="font-bold text-muted-foreground w-4">
+                              {i + 1}.
+                            </span>
                             <div className="flex flex-col">
                               <span className="font-semibold">{item.name}</span>
-                              <span className="text-[10px] text-muted-foreground uppercase">{item.code}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase">
+                                {item.code}
+                              </span>
                             </div>
                           </div>
-                          <span className="font-bold">{formatCurrency(item.total)}</span>
+                          <span className="font-bold">
+                            {formatCurrency(item.total)}
+                          </span>
                         </div>
                       ))
                     )}
@@ -178,7 +211,8 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-blue-500" /> Top Earners (All Time)
+                    <Trophy className="h-4 w-4 text-blue-500" /> Top Earners
+                    (All Time)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

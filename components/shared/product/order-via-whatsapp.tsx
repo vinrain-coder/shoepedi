@@ -25,7 +25,7 @@ export default function OrderViaWhatsApp(props: OrderViaWhatsAppProps) {
     }).format(totalPrice);
 
     const message = encodeURIComponent(`
-                                Hello ShoePedi, I'm interested in ordering:
+                                Hello ShoeStar, I'm interested in ordering:
                                 - Product: ${props.productName}
                                 - Variant: ${props.color} / Size: ${props.size}
                                 - Quantity: ${props.quantity || 1}
@@ -45,7 +45,12 @@ export default function OrderViaWhatsApp(props: OrderViaWhatsAppProps) {
       className="bg-green-500 hover:bg-green-600 text-white rounded-full w-full"
     >
       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-        <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={22} height={22} />
+        <Image
+          src="/icons/whatsapp.svg"
+          alt="WhatsApp"
+          width={22}
+          height={22}
+        />
         Order via WhatsApp
       </a>
     </Button>

@@ -2,12 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftRight, Undo2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,7 +14,7 @@ import {
 import Pagination from "@/components/shared/pagination";
 import { getUserWalletHistoryAdmin } from "@/lib/actions/wallet.actions";
 import { getServerSession } from "@/lib/get-session";
-import { formatDateTime, formatId, formatNumberWithTwoDecimals } from "@/lib/utils";
+import { formatDateTime, formatNumberWithTwoDecimals } from "@/lib/utils";
 import WalletAdjustDialog from "../wallet-adjust-dialog";
 
 const formatAmount = (value: number) => formatNumberWithTwoDecimals(value);
@@ -73,7 +68,10 @@ export default async function AdminUserWalletHistoryPage({
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/wallet">Back to Wallet List</Link>
           </Button>
-          <WalletAdjustDialog userId={id} currentBalance={data.user.walletBalance || 0} />
+          <WalletAdjustDialog
+            userId={id}
+            currentBalance={data.user.walletBalance || 0}
+          />
         </div>
       </div>
 
@@ -121,28 +119,43 @@ export default async function AdminUserWalletHistoryPage({
           <TableBody>
             {events.length > 0 ? (
               events.map((event) => {
-                const isNegative = ["redeemed", "adjustment_deduct"].includes(event.type);
+                const isNegative = ["redeemed", "adjustment_deduct"].includes(
+                  event.type,
+                );
                 return (
                   <TableRow key={event.id}>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDateTime(event.date).dateTime}
                     </TableCell>
-                    <TableCell className="capitalize">{String(event.type).replaceAll("_", " ")}</TableCell>
-                    <TableCell className={isNegative ? "text-destructive font-medium" : "text-emerald-600 font-medium"}>
+                    <TableCell className="capitalize">
+                      {String(event.type).replaceAll("_", " ")}
+                    </TableCell>
+                    <TableCell
+                      className={
+                        isNegative
+                          ? "text-destructive font-medium"
+                          : "text-emerald-600 font-medium"
+                      }
+                    >
                       {isNegative ? "-" : "+"}
                       {formatAmount(event.amount)}
                     </TableCell>
                     <TableCell>{event.reason}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {event.orderId ? (
-                        <Link href={`/admin/orders/${event.orderId}`} className="underline">
+                        <Link
+                          href={`/admin/orders/${event.orderId}`}
+                          className="underline"
+                        >
                           View Order
                         </Link>
                       ) : event.admin ? (
                         <span>By {event.admin.name || event.admin.email}</span>
-                      ) : event.balanceBefore !== undefined && event.balanceAfter !== undefined ? (
+                      ) : event.balanceBefore !== undefined &&
+                        event.balanceAfter !== undefined ? (
                         <span>
-                          {formatAmount(event.balanceBefore)} → {formatAmount(event.balanceAfter)}
+                          {formatAmount(event.balanceBefore)} →{" "}
+                          {formatAmount(event.balanceAfter)}
                         </span>
                       ) : event.balanceBefore !== undefined ? (
                         <span>{formatAmount(event.balanceBefore)}</span>
@@ -157,7 +170,10 @@ export default async function AdminUserWalletHistoryPage({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No wallet history found for this user.
                 </TableCell>
               </TableRow>
@@ -166,7 +182,9 @@ export default async function AdminUserWalletHistoryPage({
         </Table>
       </div>
 
-      {data.totalPages > 1 && <Pagination page={String(currentPage)} totalPages={data.totalPages} />}
+      {data.totalPages > 1 && (
+        <Pagination page={String(currentPage)} totalPages={data.totalPages} />
+      )}
     </div>
   );
 }

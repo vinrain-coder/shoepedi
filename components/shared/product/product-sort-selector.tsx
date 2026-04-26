@@ -41,7 +41,7 @@ export default function ProductSortSelector({
       }}
       value={sort}
     >
-      <SelectTrigger>
+      <SelectTrigger className="cursor-pointer">
         <SelectValue>
           Sort By: {sortOrders.find((s) => s.value === sort)?.name}
         </SelectValue>

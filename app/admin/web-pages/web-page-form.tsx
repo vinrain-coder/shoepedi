@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createWebPage, updateWebPage } from "@/lib/actions/web-page.actions";
-import { IWebPage } from "@/lib/db/models/web-page.model";
 import { WebPageInputSchema, WebPageUpdateSchema } from "@/lib/validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toSlug } from "@/lib/utils";
@@ -46,19 +45,21 @@ const webPageDefaultValues =
         content: "",
       };
 
+type WebPageFormValues = z.infer<typeof WebPageInputSchema>;
+
 const WebPageForm = ({
   type,
   webPage,
   webPageId,
 }: {
   type: "Create" | "Update";
-  webPage?: IWebPage;
+  webPage?: WebPageFormValues;
   webPageId?: string;
 }) => {
   const { theme } = useTheme();
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof WebPageInputSchema>>({
+  const form = useForm<WebPageFormValues>({
     resolver:
       type === "Update"
         ? zodResolver(WebPageUpdateSchema)
@@ -67,7 +68,7 @@ const WebPageForm = ({
       webPage && type === "Update" ? webPage : webPageDefaultValues,
   });
 
-  async function onSubmit(values: z.infer<typeof WebPageInputSchema>) {
+  async function onSubmit(values: WebPageFormValues) {
     if (type === "Create") {
       const res = await createWebPage(values);
       if (!res.success) {

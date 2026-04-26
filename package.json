@@ -1,9 +1,10 @@
 {
-  "name": "shoepedi",
+  "name": "shoestar",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "lint": "eslint . --ignore-pattern .next --ignore-pattern node_modules",
     "build": "next build",
     "start": "next start",
     "seed": "npx tsx lib/db/seed.ts"

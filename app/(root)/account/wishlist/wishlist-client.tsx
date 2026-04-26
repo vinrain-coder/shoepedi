@@ -25,11 +25,7 @@ export default function WishlistClient({ products }: { products: IProduct[] }) {
   }
 
   useEffect(() => {
-    const normalized = products.map((p: any) => ({
-      ...p,
-      _id: p._id.toString(),
-    }));
-    setProducts(normalized);
+    setProducts(products);
   }, [products, setProducts]);
 
   return (
@@ -39,7 +35,7 @@ export default function WishlistClient({ products }: { products: IProduct[] }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {wishlistProducts.map((product) => (
             <ProductCard
-              key={product._id}
+              key={product._id.toString()}
               product={product}
               isInWishlist
               hideDetails

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AffiliatePayoutInputSchema } from "@/lib/validator";
 import { createPayoutRequest } from "@/lib/actions/affiliate.actions";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -18,10 +17,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingButton } from "../shared/loading-button";
 
-export default function PayoutRequestForm({ currentBalance, minAmount }: { currentBalance: number, minAmount: number }) {
+export default function PayoutRequestForm({
+  currentBalance,
+  minAmount,
+}: {
+  currentBalance: number;
+  minAmount: number;
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,15 +42,15 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
       amount: minAmount,
       paymentMethod: "M-Pesa",
       paymentDetails: {
-          recipient: ""
+        recipient: "",
       },
     },
   });
 
   async function onSubmit(values: any) {
     if (values.amount > currentBalance) {
-        toast.error("Insufficient balance");
-        return;
+      toast.error("Insufficient balance");
+      return;
     }
     setIsSubmitting(true);
     const res = await createPayoutRequest(values);
@@ -82,7 +93,10 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Payment Method</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a payment method" />
@@ -91,7 +105,9 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
                     <SelectContent>
                       <SelectItem value="M-Pesa">M-Pesa</SelectItem>
                       <SelectItem value="PayPal">PayPal</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Bank Transfer">
+                        Bank Transfer
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -100,29 +116,31 @@ export default function PayoutRequestForm({ currentBalance, minAmount }: { curre
             />
 
             <FormField
-                control={form.control}
-                name="paymentDetails.recipient"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Account/Phone Details</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Enter your payment details (e.g. phone or account #)" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
+              control={form.control}
+              name="paymentDetails.recipient"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account/Phone Details</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your payment details (e.g. phone or account #)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
-            <Button type="submit" className="w-full" disabled={isSubmitting || currentBalance < minAmount}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Requesting...
-                </>
-              ) : (
-                "Submit Payout Request"
-              )}
-            </Button>
+            <LoadingButton
+              type="submit"
+              className="w-full font-semibold"
+              loading={isSubmitting}
+              loadingText="Requesting..."
+              disabled={isSubmitting}
+            >
+              Submit Payout Request
+            </LoadingButton>
           </form>
         </Form>
       </CardContent>

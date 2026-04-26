@@ -136,11 +136,13 @@ const AsyncBlogSlider = async () => {
 };
 
 // Skeleton fallbacks
-const SkeletonCarousel = () => <Skeleton className="aspect-[16/8] md:aspect-[16/6] w-full rounded-none" />;
+const SkeletonCarousel = () => (
+  <Skeleton className="aspect-16/8 md:aspect-16/5 w-full rounded-none" />
+);
 const SkeletonCard = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
     {[1, 2, 3, 4].map((i) => (
-      <Skeleton key={i} className="h-[400px] w-full rounded-2xl" />
+      <Skeleton key={i} className="h-100 w-full rounded-2xl" />
     ))}
   </div>
 );
@@ -180,7 +182,7 @@ export default async function HomePage() {
         <AsyncHomeCarousel />
       </Suspense>
 
-      <div className="max-w-7xl mx-auto py-8 md:py-16 space-y-10 md:space-y-16 px-2 md:px-0">
+      <div className="max-w-7xl mx-auto py-6 md:py-12 space-y-8 md:space-y-12 px-2 md:px-4cp">
         {/* Home Cards: New Arrivals / Categories / Featured / Best Sellers */}
         <section>
           <Suspense fallback={<SkeletonCard />}>

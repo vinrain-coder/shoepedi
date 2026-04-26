@@ -52,6 +52,17 @@ export default async function Page({
     );
   }
 
+  const stats = statsData.data ?? {
+    total: { count: 0, amount: 0 },
+    paid: { count: 0, amount: 0 },
+    pending: { count: 0, amount: 0 },
+    processing: { count: 0, amount: 0 },
+    rejected: { count: 0, amount: 0 },
+  };
+  const payouts = payoutsData.data ?? [];
+  const totalPages = payoutsData.totalPages ?? 1;
+  const totalPayouts = payoutsData.totalPayouts ?? payouts.length;
+
   return (
     <div className="w-full space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -67,13 +78,13 @@ export default async function Page({
         </div>
       </div>
 
-      <StatusCards stats={statsData.data} currentStatus={status} />
+      <StatusCards stats={stats} currentStatus={status} />
 
       <PayoutsAdminPage
-        payouts={payoutsData.data}
-        totalPages={payoutsData.totalPages}
+        payouts={payouts}
+        totalPages={totalPages}
         currentPage={Number(page)}
-        totalPayouts={payoutsData.totalPayouts}
+        totalPayouts={totalPayouts}
       />
     </div>
   );

@@ -2,12 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import {
-  Hash,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Hash, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -17,9 +12,7 @@ interface TagStatsCardsProps {
   };
 }
 
-export default function TagStatsCards({
-  stats,
-}: TagStatsCardsProps) {
+export default function TagStatsCards({ stats }: TagStatsCardsProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   const statConfig = [
@@ -67,7 +60,7 @@ export default function TagStatsCards({
                 key={stat.id}
                 className={cn(
                   "transition-all hover:ring-2 hover:ring-primary/20",
-                  "opacity-80 shadow-none border-dashed"
+                  "opacity-80 shadow-none border-dashed",
                 )}
               >
                 <CardContent className="flex flex-col items-center justify-center p-3 text-center">

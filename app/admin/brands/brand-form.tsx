@@ -20,8 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import SubmitButton from "@/components/shared/submit-button";
 
-import BrandImageUploader from "./brand-image-uploader";
-
 import { BrandInputSchema } from "@/lib/validator";
 import { toSlug } from "@/lib/utils";
 import { createBrand, updateBrand } from "@/lib/actions/brand.actions";
@@ -37,12 +35,7 @@ interface BrandFormProps {
   brandsList?: { _id: string; name: string }[];
 }
 
-export default function BrandForm({
-  type,
-  brand,
-  brandId,
-  brandsList = [],
-}: BrandFormProps) {
+export default function BrandForm({ type, brand, brandId }: BrandFormProps) {
   const router = useRouter();
 
   const form = useForm<BrandFormValues>({
@@ -214,7 +207,7 @@ export default function BrandForm({
                     value={field.value?.join(", ") || ""}
                     onChange={(e) =>
                       field.onChange(
-                        e.target.value.split(",").map((k) => k.trim())
+                        e.target.value.split(",").map((k) => k.trim()),
                       )
                     }
                   />

@@ -41,7 +41,15 @@ export default function BlogSlider({
               key={blog._id}
               className="pl-4 basis-[75%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
             >
-              <BlogCard blog={blog} />
+              <BlogCard
+                blog={{
+                  ...blog,
+                  createdAt:
+                    typeof blog.createdAt === "string"
+                      ? blog.createdAt
+                      : blog.createdAt.toISOString(),
+                }}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>

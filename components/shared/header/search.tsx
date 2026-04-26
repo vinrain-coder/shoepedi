@@ -51,6 +51,7 @@ export default function Search({
           page: 1,
           tag: "all",
           brand: "all",
+          gender: "all",
           color: "all",
           size: "all",
         });

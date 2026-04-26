@@ -2,11 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getServerSession } from "@/lib/get-session";
-import { redirect } from "next/navigation";
-import { toSignInPath } from "@/lib/redirects";
 
 import { Metadata } from "next";
-import Link from "next/link";
 import { unauthorized } from "next/navigation";
 import { PasswordForm } from "./password-form";
 import Breadcrumb from "@/components/shared/breadcrumb";

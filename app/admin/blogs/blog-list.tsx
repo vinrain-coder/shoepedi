@@ -12,8 +12,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { deleteBlog, SerializedBlog } from "@/lib/actions/blog.actions";
-import { cn, formatDateTime, formatId } from "@/lib/utils";
-import { EyeIcon, PenBox, ThumbsUp, MessageSquare, BarChart3 } from "lucide-react";
+import { formatDateTime, formatId } from "@/lib/utils";
+import {
+  EyeIcon,
+  PenBox,
+  ThumbsUp,
+  MessageSquare,
+  BarChart3,
+} from "lucide-react";
 import Image from "next/image";
 import Pagination from "@/components/shared/pagination";
 
@@ -87,7 +93,9 @@ const BlogList = ({ data, page }: BlogListProps) => {
                     >
                       {blog.title}
                     </Link>
-                    <p className="text-[10px] text-muted-foreground truncate">{blog.slug}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {blog.slug}
+                    </p>
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
@@ -97,19 +105,25 @@ const BlogList = ({ data, page }: BlogListProps) => {
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <BarChart3 className="size-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">{blog.views || 0}</span>
+                      <span className="text-sm font-medium">
+                        {blog.views || 0}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <ThumbsUp className="size-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">{blog.likesCount || 0}</span>
+                      <span className="text-sm font-medium">
+                        {blog.likesCount || 0}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <MessageSquare className="size-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">{blog.commentsCount || 0}</span>
+                      <span className="text-sm font-medium">
+                        {blog.commentsCount || 0}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>

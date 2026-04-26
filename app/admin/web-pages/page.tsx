@@ -11,7 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteWebPage, getAllWebPages, getWebPageStats } from "@/lib/actions/web-page.actions";
+import {
+  deleteWebPage,
+  getAllWebPages,
+  getWebPageStats,
+} from "@/lib/actions/web-page.actions";
 import { IWebPage } from "@/lib/db/models/web-page.model";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { Plus, Search, FileText, ExternalLink } from "lucide-react";
@@ -34,7 +38,9 @@ export default async function AdminWebPage(props: {
   const searchParams = await props.searchParams;
   const page = Math.max(1, Math.floor(Number(searchParams.page) || 1));
   const query = searchParams.query || "";
-  const isPublished = ["all", "true", "false"].includes(searchParams.isPublished as string)
+  const isPublished = ["all", "true", "false"].includes(
+    searchParams.isPublished as string,
+  )
     ? (searchParams.isPublished as string)
     : "all";
 
@@ -53,7 +59,8 @@ export default async function AdminWebPage(props: {
         <div>
           <h1 className="h1-bold text-3xl">Web Pages</h1>
           <p className="text-muted-foreground">
-            Manage your store's static content like About Us, FAQs, and Terms
+            Manage your store&apos;s static content like About Us, FAQs, and
+            Terms
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -66,7 +73,9 @@ export default async function AdminWebPage(props: {
               defaultValue={query}
               className="pl-9"
             />
-            {isPublished !== "all" && <input type="hidden" name="isPublished" value={isPublished} />}
+            {isPublished !== "all" && (
+              <input type="hidden" name="isPublished" value={isPublished} />
+            )}
           </Form>
           <Button asChild>
             <Link href="/admin/web-pages/create">
@@ -83,7 +92,7 @@ export default async function AdminWebPage(props: {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead className="w-25">ID</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Status</TableHead>
@@ -94,14 +103,14 @@ export default async function AdminWebPage(props: {
           <TableBody>
             {data.data.length > 0 ? (
               data.data.map((webPage: IWebPage) => (
-                <TableRow key={webPage._id}>
+                <TableRow key={webPage._id.toString()}>
                   <TableCell className="font-mono text-xs text-muted-foreground">
-                    {formatId(webPage._id)}
+                    {formatId(webPage._id.toString())}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                       <FileText className="size-4 text-muted-foreground" />
-                       <span className="font-medium">{webPage.title}</span>
+                      <FileText className="size-4 text-muted-foreground" />
+                      <span className="font-medium">{webPage.title}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -115,26 +124,38 @@ export default async function AdminWebPage(props: {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={webPage.isPublished ? "default" : "secondary"}>
+                    <Badge
+                      variant={webPage.isPublished ? "success" : "secondary"}
+                    >
                       {webPage.isPublished ? "Published" : "Draft"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {webPage.updatedAt ? formatDateTime(webPage.updatedAt).dateTime : "-"}
+                    {webPage.updatedAt
+                      ? formatDateTime(webPage.updatedAt).dateTime
+                      : "-"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/web-pages/${webPage._id}`}>Edit</Link>
+                        <Link href={`/admin/web-pages/${webPage._id}`}>
+                          Edit
+                        </Link>
                       </Button>
-                      <DeleteDialog id={webPage._id} action={deleteWebPage} />
+                      <DeleteDialog
+                        id={webPage._id.toString()}
+                        action={deleteWebPage}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No web pages found matching the criteria.
                 </TableCell>
               </TableRow>

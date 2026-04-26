@@ -73,7 +73,7 @@ export function NavMain({
                   className={cn(
                     "transition-all duration-200",
                     isActive &&
-                      "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary"
+                      "bg-linear-to-r from-primary/10 via-primary/5 to-transparent border-r-2 border-primary",
                   )}
                 >
                   <Link

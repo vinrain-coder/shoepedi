@@ -29,16 +29,11 @@ import { useRouter } from "next/navigation";
 
 export function NavUser() {
   const router = useRouter();
-
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile } = useSidebar();
 
   const { data: session, isPending } = authClient.useSession();
 
-  if (isPending)
-    return <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />; // placeholder
-  if (!session?.user) return null;
-
-  const initials = getEmailInitials(session.user.email);
+  const initials = getEmailInitials(session?.user?.email);
 
   const onLogout = () => {
     authClient.signOut({
@@ -51,42 +46,21 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="size-8 rounded-lg">
-                {session.user.image ? (
-                  <AvatarImage
-                    src={session.user.image}
-                    alt={session.user.email}
-                  />
-                ) : null}
-                <AvatarFallback className="rounded-lg">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">
-                  {session.user.name}
-                </span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {session.user.email}
-                </span>
-              </div>
-              <IconDotsVertical className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+        {isPending ? (
+          <SidebarMenuButton size="lg">
+            <div className="w-8 h-8 rounded-lg bg-gray-200 animate-pulse" />
+            <div className="flex-1 space-y-1">
+              <div className="h-3 w-24 bg-gray-200 animate-pulse rounded" />
+              <div className="h-2 w-32 bg-gray-200 animate-pulse rounded" />
+            </div>
+          </SidebarMenuButton>
+        ) : !session?.user ? null : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
                 <Avatar className="size-8 rounded-lg">
                   {session.user.image ? (
                     <AvatarImage
@@ -98,6 +72,7 @@ export function NavUser() {
                     {initials}
                   </AvatarFallback>
                 </Avatar>
+
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
                     {session.user.name}
@@ -106,30 +81,70 @@ export function NavUser() {
                     {session.user.email}
                   </span>
                 </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
+
+                <IconDotsVertical className="ml-auto size-4" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              align="end"
+              sideOffset={4}
+            >
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="size-8 rounded-lg">
+                    {session.user.image ? (
+                      <AvatarImage
+                        src={session.user.image}
+                        alt={session.user.email}
+                      />
+                    ) : null}
+                    <AvatarFallback className="rounded-lg">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">
+                      {session.user.name}
+                    </span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {session.user.email}
+                    </span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <IconUserCircle />
+                  Account
+                </DropdownMenuItem>
+
+                <DropdownMenuItem>
+                  <IconCreditCard />
+                  Billing
+                </DropdownMenuItem>
+
+                <DropdownMenuItem>
+                  <IconNotification />
+                  Notifications
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={onLogout}>
+                <IconLogout />
+                Log out
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onLogout}>
-              <IconLogout />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );

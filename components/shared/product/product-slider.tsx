@@ -29,7 +29,7 @@ export default function ProductSlider({
         <CarouselContent className="-ml-4">
           {products.map((product) => (
             <CarouselItem
-              key={product._id}
+              key={product._id.toString()}
               className={[
                 "pl-4 basis-[70%] sm:basis-1/2",
                 hideDetails

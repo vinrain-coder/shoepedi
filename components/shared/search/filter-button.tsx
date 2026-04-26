@@ -23,12 +23,13 @@ export default function FilterButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "border px-2 py-1 rounded-full transition-colors",
+        "px-2 py-0.5 rounded-full transition-colors cursor-pointer",
         {
           "text-primary border-primary bg-primary/10": active,
-          "hover:border-primary hover:text-primary hover:bg-primary/10": !active,
+          "hover:border-primary hover:text-primary hover:bg-primary/10":
+            !active,
         },
-        className
+        className,
       )}
       {...props}
     >

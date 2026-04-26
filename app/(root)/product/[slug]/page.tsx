@@ -27,9 +27,8 @@ import ReadMore from "@/components/shared/read-more";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { Factory, Layers, RotateCcw, Tag, Truck, Wallet } from "lucide-react";
+import { Factory, Layers, Tag } from "lucide-react";
 import CompareButton from "@/components/shared/product/compare-button";
-import DeliveryEstimator from "@/components/shared/product/delivery-estimator";
 
 export async function generateMetadata({
   params,
@@ -143,7 +142,7 @@ function RelatedLoading() {
 export default async function ProductDetails({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
-  const [product, { site, availableDeliveryDates }] = await Promise.all([
+  const [product, { site }] = await Promise.all([
     getProductBySlug(slug),
     getSetting(),
   ]);
@@ -170,7 +169,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
     sku: product._id.toString(),
     brand: {
       "@type": "Brand",
-      name: product.brand || "ShoePedi",
+      name: product.brand || `${site.name}`,
     },
     offers: {
       "@type": "Offer",
@@ -251,7 +250,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
             <ProductGallery
               images={
                 product.images?.filter(
-                  (img: string) => img && img.trim() !== ""
+                  (img: string) => img && img.trim() !== "",
                 ) || []
               }
             />
@@ -401,7 +400,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                         initialWishlist={[]}
                       />
 
-                      <CompareButton product={product}/>
+                      <CompareButton product={product} />
                     </div>
                   </div>
                 )}

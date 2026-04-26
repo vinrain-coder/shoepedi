@@ -20,6 +20,15 @@ const UpdateCategory = async (props: UpdateCategoryProps) => {
 
   const category = await getCategoryById(id);
   if (!category) notFound();
+  const normalizedCategory = {
+    ...category,
+    parent:
+      typeof category.parent === "string" || category.parent === null
+        ? category.parent
+        : category.parent
+          ? String(category.parent)
+          : null,
+  };
 
   return (
     <main className="max-w-4xl mx-auto p-4">
@@ -40,8 +49,8 @@ const UpdateCategory = async (props: UpdateCategoryProps) => {
       <div className="my-8">
         <CategoryForm
           type="Update"
-          category={category}
-          categoryId={category._id.toString()}
+          category={normalizedCategory}
+          categoryId={String(category._id)}
         />
       </div>
     </main>

@@ -1,17 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { getServerSession } from "@/lib/get-session";
-import WalletTransaction, { IWalletTransaction } from "@/lib/db/models/wallet-transaction.model";
+import WalletTransaction, {
+  IWalletTransaction,
+} from "@/lib/db/models/wallet-transaction.model";
 import User from "@/lib/db/models/user.model";
-import Order from "@/lib/db/models/order.model";
 import WalletPayout from "@/lib/db/models/wallet-payout.model";
 import { escapeRegExp, formatError, round2, formatCurrency } from "@/lib/utils";
 import { getSetting } from "./setting.actions";
 import { WalletPayoutInputSchema } from "../validator";
-import { sendAdminEventNotification, sendWalletAdjustmentNotification, sendWalletPayoutStatusNotification } from "../email/transactional";
+import {
+  sendAdminEventNotification,
+  sendWalletAdjustmentNotification,
+  sendWalletPayoutStatusNotification,
+} from "../email/transactional";
 import { z } from "zod";
 
 const MAX_TOPUP = 100000; // Define a sensible max top-up limit (e.g. 100k KES)
@@ -89,7 +93,7 @@ export async function getWalletEarnersAdmin({
     User.countDocuments(query),
   ]);
 
-  const sanitizedUsers = (users as any[]).map(u => ({
+  const sanitizedUsers = (users as any[]).map((u) => ({
     ...u,
     _id: u._id.toString(),
     walletBalance: Number(u.walletBalance || 0),
@@ -122,7 +126,10 @@ export async function getWalletAdminStats() {
         },
       },
     ]),
-    User.findOne({ walletBalance: { $gt: 0 } }).sort({ walletBalance: -1 }).select("name walletBalance").lean(),
+    User.findOne({ walletBalance: { $gt: 0 } })
+      .sort({ walletBalance: -1 })
+      .select("name walletBalance")
+      .lean(),
     WalletTransaction.countDocuments({ source: "admin_adjustment" }),
   ]);
 
@@ -165,7 +172,9 @@ export async function getUserWalletHistoryAdmin({
   const currentPage = Math.max(1, Math.floor(page || 1));
   const skip = (currentPage - 1) * currentLimit;
 
-  const user = await User.findById(userId).select("name email walletBalance").lean();
+  const user = await User.findById(userId)
+    .select("name email walletBalance")
+    .lean();
   if (!user) throw new Error("User not found");
 
   const [transactions, totalEvents] = await Promise.all([
@@ -173,22 +182,34 @@ export async function getUserWalletHistoryAdmin({
       .populate("admin", "name email")
       .populate({
         path: "order",
-        select: "trackingNumber status totalPrice"
+        select: "trackingNumber status totalPrice",
       })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(currentLimit)
       .lean() as unknown as (IWalletTransaction & {
-        admin?: { name: string; email: string },
-        order?: { _id: string; trackingNumber: string; status: string; totalPrice: number }
-      })[],
-    WalletTransaction.countDocuments({ user: userId })
+      admin?: { name: string; email: string };
+      order?: {
+        _id: string;
+        trackingNumber: string;
+        status: string;
+        totalPrice: number;
+      };
+    })[],
+    WalletTransaction.countDocuments({ user: userId }),
   ]);
 
   const history = transactions.map((tx) => ({
     id: tx._id.toString(),
     date: tx.createdAt,
-    type: tx.source === "refund" || tx.source === "wallet_payment" ? (tx.amount >= 0 ? "refund" : "redeemed") : (tx.amount >= 0 ? "adjustment_add" : "adjustment_deduct"),
+    type:
+      tx.source === "refund" || tx.source === "wallet_payment"
+        ? tx.amount >= 0
+          ? "refund"
+          : "redeemed"
+        : tx.amount >= 0
+          ? "adjustment_add"
+          : "adjustment_deduct",
     amount: round2(Math.abs(tx.amount)),
     signedAmount: round2(tx.amount),
     reason: tx.reason,
@@ -251,7 +272,7 @@ export async function adjustUserWalletAdmin({
     const updatedUser = await User.findOneAndUpdate(
       query,
       { $inc: { walletBalance: normalizedAmount } },
-      { new: true }
+      { new: true },
     ).select("_id name email walletBalance addresses");
 
     if (!updatedUser) {
@@ -281,7 +302,10 @@ export async function adjustUserWalletAdmin({
 
     // Send user notification
     try {
-      const defaultAddress = (updatedUser.addresses as any[] || []).find((a: any) => a.isDefault) || (updatedUser.addresses as any[] || [])[0];
+      const defaultAddress =
+        ((updatedUser.addresses as any[]) || []).find(
+          (a: any) => a.isDefault,
+        ) || ((updatedUser.addresses as any[]) || [])[0];
       await sendWalletAdjustmentNotification({
         email: updatedUser.email,
         name: updatedUser.name || "Customer",
@@ -477,7 +501,9 @@ export async function completeWalletTopup(
   }
 }
 
-export async function createWalletPayoutRequest(data: z.infer<typeof WalletPayoutInputSchema>) {
+export async function createWalletPayoutRequest(
+  data: z.infer<typeof WalletPayoutInputSchema>,
+) {
   const connection = await connectToDatabase();
   const session = await connection.startSession();
   session.startTransaction();
@@ -505,7 +531,7 @@ export async function createWalletPayoutRequest(data: z.infer<typeof WalletPayou
           status: "pending",
         },
       ],
-      { session }
+      { session },
     );
 
     const balanceBefore = round2(user.walletBalance);
@@ -525,7 +551,7 @@ export async function createWalletPayoutRequest(data: z.infer<typeof WalletPayou
           balanceAfter,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -589,8 +615,10 @@ export async function getAllWalletPayouts({
       const regex = new RegExp(escapedQuery, "i");
       const users = await User.find({
         $or: [{ name: regex }, { email: regex }],
-      }).select("_id");
-      const userIds = users.map((u: any) => u._id);
+      })
+        .select("_id")
+        .lean();
+      const userIds = users.map((u: any) => u._id.toString());
       filter.user = { $in: userIds };
     }
 
@@ -622,7 +650,7 @@ export async function getAllWalletPayouts({
 export async function updateWalletPayoutStatus(
   id: string,
   status: "paid" | "rejected",
-  adminNote?: string
+  adminNote?: string,
 ) {
   const connection = await connectToDatabase();
   const session = await connection.startSession();
@@ -663,7 +691,7 @@ export async function updateWalletPayoutStatus(
               balanceAfter,
             },
           ],
-          { session }
+          { session },
         );
       }
     } else if (status === "paid") {
@@ -677,9 +705,13 @@ export async function updateWalletPayoutStatus(
 
     // Send user notification
     try {
-      const user = await User.findById(payout.user).select("name email addresses");
+      const user = await User.findById(payout.user).select(
+        "name email addresses",
+      );
       if (user) {
-        const defaultAddress = (user.addresses as any[] || []).find((a: any) => a.isDefault) || (user.addresses as any[] || [])[0];
+        const defaultAddress =
+          ((user.addresses as any[]) || []).find((a: any) => a.isDefault) ||
+          ((user.addresses as any[]) || [])[0];
         await sendWalletPayoutStatusNotification({
           email: user.email,
           name: user.name || "Customer",
@@ -691,7 +723,10 @@ export async function updateWalletPayoutStatus(
         });
       }
     } catch (notifyErr) {
-      console.error("Failed to notify user of payout status update:", notifyErr);
+      console.error(
+        "Failed to notify user of payout status update:",
+        notifyErr,
+      );
     }
 
     revalidatePath("/admin/wallet/payouts");
@@ -740,7 +775,7 @@ export async function deleteWalletPayoutRequest(id: string) {
               balanceAfter,
             },
           ],
-          { session }
+          { session },
         );
       }
     }

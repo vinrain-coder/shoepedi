@@ -9,8 +9,10 @@ import PurchaseReceiptEmail from "./templates/transactional/purchase-receipt";
 import { buildOrderReceiptPdf } from "@/lib/order-receipt-pdf";
 import type { SerializedOrder } from "@/lib/actions/order.actions";
 import AdminEventNotificationEmail from "./templates/transactional/admin-event-notification";
-import { getAdminSmsRecipients, sendAfricasTalkingSms } from "../sms/africas-talking";
-import { SENDER_EMAIL, SENDER_NAME } from "../constants";
+import {
+  getAdminSmsRecipients,
+  sendAfricasTalkingSms,
+} from "../sms/africas-talking";
 import NewsletterConfirmationEmail from "./templates/transactional/newsletter-confirmation";
 import SupportTicketReplyEmail from "./templates/transactional/support-ticket-reply";
 import WelcomeNewUserEmail from "./templates/transactional/welcome-new-user";
@@ -114,7 +116,9 @@ export const sendAdminEventNotification = async ({
 export const sendPurchaseReceipt = async (order: IOrder) => {
   const userEmail = resolveOrderEmail(order);
   if (!userEmail) {
-    console.error(`Cannot send purchase receipt for order ${order._id}: User email not found`);
+    console.error(
+      `Cannot send purchase receipt for order ${order._id}: User email not found`,
+    );
     return;
   }
 
@@ -138,7 +142,9 @@ export const sendPurchaseReceipt = async (order: IOrder) => {
 export const sendAskReviewOrderItems = async (order: IOrder) => {
   const userEmail = resolveOrderEmail(order);
   if (!userEmail) {
-    console.error(`Cannot send review request for order ${order._id}: User email not found`);
+    console.error(
+      `Cannot send review request for order ${order._id}: User email not found`,
+    );
     return;
   }
 
@@ -201,7 +207,6 @@ export const sendNewsletterConfirmationEmail = async ({
     message: "Newsletter confirmation email sent successfully",
   };
 };
-
 
 export const sendWelcomeNewUserEmail = async ({
   email,
@@ -485,18 +490,20 @@ export const sendWalletPayoutStatusNotification = async ({
   const safePaymentMethod = escapeHTML(paymentMethod);
   const safeAdminNote = escapeHTML(adminNote || "");
 
-  const subject = status === "paid"
-    ? `Wallet Payout Processed - ${site.name}`
-    : `Wallet Payout Rejected - ${site.name}`;
+  const subject =
+    status === "paid"
+      ? `Wallet Payout Processed - ${site.name}`
+      : `Wallet Payout Rejected - ${site.name}`;
 
-  const messageHtml = status === "paid"
-    ? `
+  const messageHtml =
+    status === "paid"
+      ? `
       <p>Hello ${safeName},</p>
       <p>Your wallet payout of <strong>${formattedAmount}</strong> has been successfully processed via ${safePaymentMethod}.</p>
       ${adminNote ? `<p><strong>Admin Note:</strong> ${safeAdminNote}</p>` : ""}
       <p>Best regards,<br/>The ${site.name} Team</p>
     `
-    : `
+      : `
       <p>Hello ${safeName},</p>
       <p>Your wallet payout request of <strong>${formattedAmount}</strong> was not approved at this time.</p>
       <p>The funds have been returned to your wallet balance.</p>
@@ -512,9 +519,10 @@ export const sendWalletPayoutStatusNotification = async ({
   });
 
   if (phone) {
-    const smsMessage = status === "paid"
-      ? `Your wallet payout of ${formattedAmount} via ${paymentMethod} has been processed.`
-      : `Your wallet payout of ${formattedAmount} was rejected. Funds returned to your wallet. Reason: ${adminNote || "N/A"}`;
+    const smsMessage =
+      status === "paid"
+        ? `Your wallet payout of ${formattedAmount} via ${paymentMethod} has been processed.`
+        : `Your wallet payout of ${formattedAmount} was rejected. Funds returned to your wallet. Reason: ${adminNote || "N/A"}`;
 
     await sendAfricasTalkingSms({
       to: phone,
@@ -604,8 +612,12 @@ export const sendCoinAdjustmentNotification = async ({
 }) => {
   const { site } = await getSetting();
   const absAmount = Math.abs(amount);
-  const formattedAbsAmount = Number.isInteger(absAmount) ? String(absAmount) : absAmount.toFixed(2);
-  const formattedNewBalance = Number.isInteger(newBalance) ? String(newBalance) : newBalance.toFixed(2);
+  const formattedAbsAmount = Number.isInteger(absAmount)
+    ? String(absAmount)
+    : absAmount.toFixed(2);
+  const formattedNewBalance = Number.isInteger(newBalance)
+    ? String(newBalance)
+    : newBalance.toFixed(2);
 
   const safeName = escapeHTML(name);
   const safeReason = escapeHTML(reason);

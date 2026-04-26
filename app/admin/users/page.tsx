@@ -12,7 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deleteUser, getAllUsers, getUserStats } from "@/lib/actions/user.actions";
+import {
+  deleteUser,
+  getAllUsers,
+  getUserStats,
+} from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/db/models/user.model";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { getServerSession } from "@/lib/get-session";
@@ -94,7 +98,7 @@ export default async function AdminUserPage(props: {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead className="w-25">ID</TableHead>
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
@@ -111,34 +115,46 @@ export default async function AdminUserPage(props: {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                       <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <UserIcon className="size-4 text-primary" />
-                       </div>
-                       <span className="font-medium">{user.name}</span>
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <UserIcon className="size-4 text-primary" />
+                      </div>
+                      <span className="font-medium">{user.name}</span>
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant={user.role === "ADMIN" ? "destructive" : "secondary"}>
+                    <Badge
+                      variant={
+                        user.role === "ADMIN" ? "destructive" : "secondary"
+                      }
+                    >
                       {user.role}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {user.createdAt ? formatDateTime(user.createdAt).dateOnly : "-"}
+                    {user.createdAt
+                      ? formatDateTime(user.createdAt).dateOnly
+                      : "-"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/admin/users/${user._id}`}>View</Link>
                       </Button>
-                      <DeleteDialog id={user._id.toString()} action={deleteUser} />
+                      <DeleteDialog
+                        id={user._id.toString()}
+                        action={deleteUser}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No users found matching the criteria.
                 </TableCell>
               </TableRow>

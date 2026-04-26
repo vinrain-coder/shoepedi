@@ -80,20 +80,20 @@ export default function OverviewReport() {
 
         {/* Main Chart Row */}
         <div>
-          <Skeleton className="h-[400px] w-full rounded-xl" />
+          <Skeleton className="h-100 w-full rounded-xl" />
         </div>
 
         {/* Secondary Charts Row */}
         <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-[350px] w-full rounded-xl" />
+            <Skeleton key={index} className="h-87.5 w-full rounded-xl" />
           ))}
         </div>
 
         {/* Categories and Status Row */}
         <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-[350px] w-full rounded-xl" />
+            <Skeleton key={index} className="h-87.5 w-full rounded-xl" />
           ))}
         </div>
       </div>

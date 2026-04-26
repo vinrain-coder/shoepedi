@@ -32,13 +32,13 @@ export interface IOrderShipment {
 
 export interface IOrder extends Document {
   _id: Types.ObjectId;
-  user?: Types.ObjectId;
+  user?: Types.ObjectId | { _id?: string; email?: string; name?: string };
   isGuest: boolean;
   userEmail?: string;
   userName?: string;
   accessToken?: string;
   items: Array<{
-    product: Types.ObjectId;
+    product: Types.ObjectId | string;
     clientId: string;
     name: string;
     slug: string;
@@ -78,7 +78,7 @@ export interface IOrder extends Document {
   createdAt: Date;
   updatedAt: Date;
   coupon?: ICouponInfo;
-  affiliate?: Types.ObjectId;
+  affiliate?: Types.ObjectId | string;
   affiliateCode?: string;
   status: OrderTrackingStatus;
   trackingNumber: string;

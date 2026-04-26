@@ -539,18 +539,9 @@ export const useCheckoutForm = (
       }
 
       const order = res.data as SerializedOrder;
-      toast.success("Order created!", {
-        action: {
-          label: "View Order",
-          onClick: () => {
-            router.push(
-              order.isGuest
-                ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
-                : `/account/orders/${order._id}/placed`
-            );
-          },
-        },
-      });
+      const successPath = order.isGuest
+        ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
+        : `/account/orders/${order._id}/placed`;
 
       if (order.isGuest && order.accessToken) {
         Cookies.set(`guest_order_access_${order._id}`, order.accessToken, {
@@ -559,18 +550,14 @@ export const useCheckoutForm = (
         });
       }
 
-      clearCart();
-
-      const successPath = order.isGuest
-        ? `/account/orders/${order._id}/placed?accessToken=${order.accessToken}`
-        : `/account/orders/${order._id}/placed`;
-
       if (isCardOrMobileMoneyMethod(order.paymentMethod)) {
         setCreatedOrder(order);
-        toast.success("Opening payment... Please wait.");
-      } else {
-        window.location.href = successPath;
+        toast.success("Order created. Complete secure payment in the next window.");
+        return;
       }
+
+      clearCart();
+      window.location.href = successPath;
     } catch (error: unknown) {
       console.error("Error placing order:", error);
       toast.error(getErrorMessage(error));
@@ -589,6 +576,22 @@ export const useCheckoutForm = (
     : Number((session?.user as { walletBalance?: number } | undefined)?.walletBalance ?? 0);
 
   const coinsToEarn = Math.round(itemsPrice * (common.coinsRewardRate / 100) * 100) / 100;
+
+  const handleCompletePayment = () => {
+    if (!createdOrder) return;
+
+    const successPath = createdOrder.isGuest
+      ? `/account/orders/${createdOrder._id}/placed?accessToken=${createdOrder.accessToken}`
+      : `/account/orders/${createdOrder._id}/placed`;
+
+    clearCart();
+    router.push(successPath);
+  };
+
+  const handlePaymentFailure = (error?: unknown) => {
+    console.error("Payment failure:", error);
+    toast.error("Payment was not completed. You can retry from this page.");
+  };
 
   const hasCompleteShippingAddress = useMemo(
     () =>
@@ -709,6 +712,8 @@ export const useCheckoutForm = (
     handlePlaceOrder,
     handleSelectPaymentMethod,
     handleSelectShippingAddress,
+    handleCompletePayment,
+    handlePaymentFailure,
     setIsAddressSelected,
     setIsPaymentMethodSelected,
     setIsDeliveryDateSelected,

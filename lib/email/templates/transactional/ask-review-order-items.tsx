@@ -16,12 +16,48 @@ import {
 } from "@react-email/components";
 
 import { formatCurrency } from "@/lib/utils";
-import { IOrder } from "@/lib/db/models/order.model";
 import { getSetting } from "@/lib/actions/setting.actions";
 import SocialLinks from "./social-links";
 
+type ReviewEmailOrder = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  isPaid?: boolean;
+  paidAt?: Date | string;
+  totalPrice: number;
+  itemsPrice: number;
+  taxPrice: number;
+  shippingPrice: number;
+  user?: {
+    name?: string;
+    email?: string;
+  } | { toString(): string };
+  expectedDeliveryDate?: Date | string;
+  isDelivered?: boolean;
+  shippingAddress: {
+    fullName: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    phone: string;
+    province: string;
+  };
+  items: Array<{
+    clientId: string;
+    name: string;
+    image: string;
+    price: number;
+    quantity: number;
+    product: { toString(): string } | string;
+    slug: string;
+    category: string;
+    countInStock: number;
+  }>;
+};
+
 type OrderInformationProps = {
-  order: IOrder;
+  order: ReviewEmailOrder;
 };
 
 AskReviewOrderItemsEmail.PreviewProps = {
@@ -61,7 +97,8 @@ AskReviewOrderItemsEmail.PreviewProps = {
     ],
     expectedDeliveryDate: new Date(),
     isDelivered: true,
-  } as IOrder,
+    createdAt: new Date(),
+  },
 } satisfies OrderInformationProps;
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
@@ -95,7 +132,7 @@ export default async function AskReviewOrderItemsEmail({
                 <Column className="w-full sm:w-1/3 mb-4">
                   <Text className="text-gray-500">Purchased On</Text>
                   <Text className="font-semibold">
-                    {dateFormatter.format(order.createdAt)}
+                    {dateFormatter.format(new Date(order.createdAt))}
                   </Text>
                 </Column>
                 <Column className="w-full sm:w-1/3 mb-4">
@@ -111,7 +148,7 @@ export default async function AskReviewOrderItemsEmail({
             <Section className="border border-gray-200 rounded-lg p-4 my-6 bg-gray-50">
               {order.items.map((item) => (
                 <Row
-                  key={item.product}
+                  key={String(item.product)}
                   className="flex items-center justify-between py-4 border-b last:border-b-0"
                 >
                   <Column className="w-20">

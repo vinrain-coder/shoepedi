@@ -14,13 +14,56 @@ import {
   Text,
 } from "@react-email/components";
 
-import { IOrder } from "@/lib/db/models/order.model";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { formatCurrency } from "@/lib/utils";
 import SocialLinks from "./social-links";
 
+type ReceiptEmailOrder = {
+  _id: { toString(): string } | string;
+  createdAt: Date | string;
+  isPaid: boolean;
+  paidAt?: Date | string;
+  totalPrice: number;
+  itemsPrice: number;
+  taxPrice: number;
+  shippingPrice: number;
+  coupon?: {
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountAmount: number;
+  };
+  user?: {
+    name?: string;
+    email?: string;
+  } | { toString(): string };
+  paymentMethod: string;
+  paymentResult?: Record<string, unknown>;
+  expectedDeliveryDate?: Date | string;
+  isDelivered?: boolean;
+  shippingAddress: {
+    fullName: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    phone: string;
+    province: string;
+  };
+  items: Array<{
+    clientId: string;
+    name: string;
+    image: string;
+    price: number;
+    quantity: number;
+    product: { toString(): string } | string;
+    slug: string;
+    category: string;
+    countInStock: number;
+  }>;
+};
+
 type OrderInformationProps = {
-  order: IOrder;
+  order: ReceiptEmailOrder;
 };
 
 PurchaseReceiptEmail.PreviewProps = {
@@ -65,12 +108,14 @@ PurchaseReceiptEmail.PreviewProps = {
     ],
     expectedDeliveryDate: new Date(),
     isDelivered: true,
-  } as unknown as IOrder,
+    createdAt: new Date(),
+    paymentMethod: "Card",
+  },
 } satisfies OrderInformationProps;
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
-const getCouponDescription = (order: IOrder) => {
+const getCouponDescription = (order: ReceiptEmailOrder) => {
   if (!order.coupon) return null;
 
   return order.coupon.discountType === "percentage"
@@ -83,6 +128,21 @@ export default async function PurchaseReceiptEmail({
 }: OrderInformationProps) {
   const { site } = await getSetting();
   const couponDescription = getCouponDescription(order);
+  const paymentResult = order.paymentResult ?? {};
+  const gateway =
+    typeof paymentResult.gateway === "string"
+      ? paymentResult.gateway
+      : "paystack";
+  const reference =
+    typeof paymentResult.paymentReference === "string"
+      ? paymentResult.paymentReference
+      : "-";
+  const transactionId =
+    typeof paymentResult.id === "string" ? paymentResult.id : "-";
+  const channel =
+    typeof paymentResult.channel === "string" ? paymentResult.channel : "-";
+  const currency =
+    typeof paymentResult.currency === "string" ? paymentResult.currency : "-";
 
   return (
     <Html>
@@ -111,7 +171,7 @@ export default async function PurchaseReceiptEmail({
                 <Column className="w-full sm:w-1/3 mb-4">
                   <Text className="text-slate-500">Purchased On</Text>
                   <Text className="font-semibold">
-                    {dateFormatter.format(order.createdAt)}
+                    {dateFormatter.format(new Date(order.createdAt))}
                   </Text>
                 </Column>
                 <Column className="w-full sm:w-1/3 mb-4">
@@ -125,7 +185,7 @@ export default async function PurchaseReceiptEmail({
             <Section className="border border-slate-200 rounded-xl p-4 my-6 bg-slate-50">
               {order.items.map((item) => (
                 <Row
-                  key={item.product}
+                  key={String(item.product)}
                   className="flex items-center justify-between py-3 border-b border-slate-200 last:border-b-0"
                 >
                   <Column className="w-20">
@@ -223,15 +283,15 @@ export default async function PurchaseReceiptEmail({
               <Text className="text-slate-600">{order.paymentMethod}</Text>
               {order.paymentResult && (
                 <Text className="text-slate-600">
-                  Gateway: {order.paymentResult.gateway ?? "paystack"}
+                  Gateway: {gateway}
                   <br />
-                  Reference: {order.paymentResult.paymentReference ?? "-"}
+                  Reference: {reference}
                   <br />
-                  Transaction ID: {order.paymentResult.id ?? "-"}
+                  Transaction ID: {transactionId}
                   <br />
-                  Channel: {order.paymentResult.channel ?? "-"}
+                  Channel: {channel}
                   <br />
-                  Currency: {order.paymentResult.currency ?? "-"}
+                  Currency: {currency}
                 </Text>
               )}
               <Text className="text-slate-500 text-sm mt-2">

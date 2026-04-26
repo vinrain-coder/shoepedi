@@ -26,7 +26,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { passwordSchema } from "@/lib/validator";
-import { convertGuestToUser } from "@/lib/actions/user.actions";
 
 const signUpSchema = z
   .object({
@@ -48,7 +47,7 @@ export function GuestSignUpForm({
   orderId,
   accessToken,
   defaultEmail,
-  defaultName
+  defaultName,
 }: {
   orderId: string;
   accessToken: string;
@@ -85,10 +84,15 @@ export function GuestSignUpForm({
     if (signUpError) {
       setError(signUpError.message || "Something went wrong");
     } else {
-      toast.success("Account created! Please verify your email to link this order.");
+      toast.success(
+        "Account created! Please verify your email to link this order.",
+      );
       // We'll let the verify-email page handle the redirect,
       // but we could also store the link intent in localStorage
-      localStorage.setItem("link_order_after_verify", JSON.stringify({ orderId, accessToken }));
+      localStorage.setItem(
+        "link_order_after_verify",
+        JSON.stringify({ orderId, accessToken }),
+      );
       router.push(`/verify-email?redirect=${encodedRedirect}`);
     }
   }
@@ -105,7 +109,10 @@ export function GuestSignUpForm({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-left">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 text-left"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -127,7 +134,11 @@ export function GuestSignUpForm({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +167,10 @@ export function GuestSignUpForm({
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <PasswordInput placeholder="Confirm password" {...field} />
+                      <PasswordInput
+                        placeholder="Confirm password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,7 +180,11 @@ export function GuestSignUpForm({
 
             {error && <div className="text-sm text-red-600">{error}</div>}
 
-            <LoadingButton type="submit" className="w-full font-semibold" loading={loading}>
+            <LoadingButton
+              type="submit"
+              className="w-full font-semibold"
+              loading={loading}
+            >
               Create account & Save order
             </LoadingButton>
           </form>

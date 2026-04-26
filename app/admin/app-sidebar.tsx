@@ -7,7 +7,6 @@ import {
   IconCategory,
   IconChecklist,
   IconClipboardList,
-  IconColorSwatch,
   IconDashboard,
   IconFileText,
   IconLayoutGrid,
@@ -148,11 +147,6 @@ const data = {
       url: "/admin/tags",
       icon: IconTags,
     },
-    {
-      title: "Colors",
-      url: "/admin/colors",
-      icon: IconColorSwatch,
-    },
   ],
   navSecondary: [
     {
@@ -172,7 +166,10 @@ export function AppSidebar({
   siteLogo,
   siteName,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { siteLogo: string; siteName: string }) {
+}: React.ComponentProps<typeof Sidebar> & {
+  siteLogo: string;
+  siteName: string;
+}) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -180,7 +177,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/" className="flex items-center gap-2">
                 <Image

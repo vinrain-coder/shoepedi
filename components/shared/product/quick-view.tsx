@@ -45,67 +45,66 @@ export default function ProductQuickView({
 
   const details = (
     <div className="flex flex-col gap-4 p-4 md:p-6">
-        <h2 className="font-semibold text-2xl">{product.name}</h2>
+      <h2 className="font-semibold text-2xl">{product.name}</h2>
 
-        <ProductPrice price={product.price} listPrice={product.listPrice} />
+      <ProductPrice price={product.price} listPrice={product.listPrice} />
 
-        <SelectVariant
-          product={product}
-          color={selectedColor}
-          size={selectedSize}
-          syncUrl={false}
-          onVariantChange={({ color, size }) => {
-            setSelectedColor(color);
-            setSelectedSize(size);
+      <SelectVariant
+        product={product}
+        color={selectedColor}
+        size={selectedSize}
+        syncUrl={false}
+        onVariantChange={({ color, size }) => {
+          setSelectedColor(color);
+          setSelectedSize(size);
+        }}
+      />
+
+      <Separator />
+      <section className="max-w-5xl mx-auto">
+        <h2 className="font-bold text-lg mb-2">Product Description</h2>
+        <ReadMore maxHeight={180}>
+          <MarkdownRenderer
+            content={product.description}
+            className="prose prose-lg max-w-none"
+          />
+        </ReadMore>
+      </section>
+
+      {product.countInStock === 0 ? (
+        <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <Badge variant="destructive" className="w-fit">
+            Out of stock
+          </Badge>
+          <p className="text-sm text-muted-foreground">
+            This item is currently unavailable. Subscribe to get notified as
+            soon as it is back in stock.
+          </p>
+          <SubscribeButton productId={product._id.toString()} />
+        </div>
+      ) : (
+        <AddToCart
+          item={{
+            clientId: generateId(),
+            product: product._id.toString(),
+            countInStock: product.countInStock,
+            name: product.name,
+            slug: product.slug,
+            category: product.category,
+            price: round2(product.price),
+            quantity: 1,
+            image: primaryImage,
+            size: selectedSize,
+            color: selectedColor,
           }}
         />
+      )}
 
-        <Separator />
-        <section className="max-w-5xl mx-auto">
-          <h2 className="font-bold text-lg mb-2">Product Description</h2>
-          <ReadMore maxHeight={180}>
-            <MarkdownRenderer
-              content={product.description}
-              className="prose prose-lg max-w-none"
-            />
-          </ReadMore>
-        </section>
-
-        {product.countInStock === 0 ? (
-          <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-            <Badge variant="destructive" className="w-fit">
-              Out of stock
-            </Badge>
-            <p className="text-sm text-muted-foreground">
-              This item is currently unavailable. Subscribe to get notified as
-              soon as it is back in stock.
-            </p>
-            <SubscribeButton productId={product._id.toString()} />
-          </div>
-        ) : (
-          <AddToCart
-            item={{
-              clientId: generateId(),
-              product: product._id.toString(),
-              countInStock: product.countInStock,
-              name: product.name,
-              slug: product.slug,
-              category: product.category,
-              price: round2(product.price),
-              quantity: 1,
-              image: primaryImage,
-              size: selectedSize,
-              color: selectedColor,
-            }}
-          />
-        )}
-
-        {product.countInStock > 0 && product.countInStock <= 3 && (
-          <div className="text-destructive font-bold">
-            Only {product.countInStock} left in stock – order soon
-          </div>
-        )}
-
+      {product.countInStock > 0 && product.countInStock <= 3 && (
+        <div className="text-destructive font-bold">
+          Only {product.countInStock} left in stock – order soon
+        </div>
+      )}
     </div>
   );
 
@@ -138,7 +137,7 @@ export default function ProductQuickView({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         forceMount
-        className="p-0 w-full h-[70vh] overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 md:gap-6 max-w-2xl md:!max-w-6xl"
+        className="p-0 w-full h-[70vh] overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 md:gap-6 max-w-2xl md:max-w-6xl!"
       >
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
 

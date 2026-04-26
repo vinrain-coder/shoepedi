@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Heart, Reply, Loader2, Send, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import {
+  MessageCircle,
+  Heart,
+  Reply,
+  Loader2,
+  Send,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+} from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -37,10 +46,10 @@ interface BlogComment extends BlogReply {
 
 function getGuestId() {
   if (typeof window === "undefined") return "";
-  const existing = window.localStorage.getItem("shoepedi-blog-guest-id");
+  const existing = window.localStorage.getItem("shoestar-blog-guest-id");
   if (existing) return existing;
   const guestId = crypto.randomUUID();
-  window.localStorage.setItem("shoepedi-blog-guest-id", guestId);
+  window.localStorage.setItem("shoestar-blog-guest-id", guestId);
   return guestId;
 }
 
@@ -60,7 +69,10 @@ function formatRelativeDate(date: string) {
   return new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: new Date(date).getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    year:
+      new Date(date).getFullYear() !== now.getFullYear()
+        ? "numeric"
+        : undefined,
   });
 }
 
@@ -142,17 +154,28 @@ export default function BlogSocial({
   const [isLikingPost, setIsLikingPost] = useState(false);
   const [likedPost, setLikedPost] = useState(false);
   const [likeAnimKey, setLikeAnimKey] = useState<string | null>(null);
-  const [pendingLikeKeys, setPendingLikeKeys] = useState<Record<string, boolean>>({});
-  const [collapsedThreads, setCollapsedThreads] = useState<Record<string, boolean>>({});
-  const [editingTarget, setEditingTarget] = useState<{ commentId: string; replyId?: string } | null>(null);
+  const [pendingLikeKeys, setPendingLikeKeys] = useState<
+    Record<string, boolean>
+  >({});
+  const [collapsedThreads, setCollapsedThreads] = useState<
+    Record<string, boolean>
+  >({});
+  const [editingTarget, setEditingTarget] = useState<{
+    commentId: string;
+    replyId?: string;
+  } | null>(null);
   const [editText, setEditText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   const signInToCommentHref = toSignInPath(`/blogs/${slug}#comments`);
 
   const commentCount = useMemo(
-    () => comments.reduce((total, comment) => total + 1 + comment.replies.length, 0),
-    [comments]
+    () =>
+      comments.reduce(
+        (total, comment) => total + 1 + comment.replies.length,
+        0,
+      ),
+    [comments],
   );
 
   const actorId = session?.user.id ?? getGuestId();
@@ -164,7 +187,10 @@ export default function BlogSocial({
     return initialLikedByGuests.includes(actorId);
   };
 
-  const isLikedByActor = (item: { likedByUsers?: string[]; likedByGuests?: string[] }) => {
+  const isLikedByActor = (item: {
+    likedByUsers?: string[];
+    likedByGuests?: string[];
+  }) => {
     if (session?.user.id) {
       return (item.likedByUsers || []).includes(session.user.id);
     }
@@ -238,8 +264,8 @@ export default function BlogSocial({
                     createdAt: now,
                   },
                 ],
-              }
-        )
+              },
+        ),
       );
     } else {
       setComments((prev) => [
@@ -260,20 +286,29 @@ export default function BlogSocial({
     }
 
     setIsSubmitting(true);
-    const response = await createBlogComment({ blogId, content: trimmed, parentCommentId });
+    const response = await createBlogComment({
+      blogId,
+      content: trimmed,
+      parentCommentId,
+    });
     setIsSubmitting(false);
 
     if (!response.success) {
       setComments((prev) =>
         prev
-          .map((c) => ({ ...c, replies: c.replies.filter((r) => r._id !== tempId) }))
-          .filter((c) => c._id !== tempId)
+          .map((c) => ({
+            ...c,
+            replies: c.replies.filter((r) => r._id !== tempId),
+          }))
+          .filter((c) => c._id !== tempId),
       );
       toast.error(response.message || "Unable to submit comment");
       return;
     }
 
-    const refreshed = await fetch(`/api/blogs/${slug}`, { cache: "no-store" }).then((res) => res.json());
+    const refreshed = await fetch(`/api/blogs/${slug}`, {
+      cache: "no-store",
+    }).then((res) => res.json());
     setComments(refreshed.comments || []);
     setCommentText("");
     setReplyDrafts({});
@@ -281,13 +316,21 @@ export default function BlogSocial({
     toast.success(response.message);
   };
 
-  const toggleCommentLike = async ({ commentId, replyId }: { commentId: string; replyId?: string }) => {
+  const toggleCommentLike = async ({
+    commentId,
+    replyId,
+  }: {
+    commentId: string;
+    replyId?: string;
+  }) => {
     const key = replyId ? `${commentId}:${replyId}` : commentId;
     if (pendingLikeKeys[key]) return;
     const findTarget = () => {
       const comment = comments.find((c) => c._id === commentId);
       if (!comment) return null;
-      return replyId ? comment.replies.find((r) => r._id === replyId) || null : comment;
+      return replyId
+        ? comment.replies.find((r) => r._id === replyId) || null
+        : comment;
     };
 
     const target = findTarget();
@@ -310,7 +353,12 @@ export default function BlogSocial({
               ? [...new Set([...(c.likedByGuests || []), actorId])]
               : (c.likedByGuests || []).filter((id) => id !== actorId)
             : c.likedByGuests || [];
-          return { ...c, likesCount: Math.max(0, c.likesCount + (nextLiked ? 1 : -1)), likedByUsers, likedByGuests };
+          return {
+            ...c,
+            likesCount: Math.max(0, c.likesCount + (nextLiked ? 1 : -1)),
+            likedByUsers,
+            likedByGuests,
+          };
         }
 
         return {
@@ -327,10 +375,15 @@ export default function BlogSocial({
                 ? [...new Set([...(r.likedByGuests || []), actorId])]
                 : (r.likedByGuests || []).filter((id) => id !== actorId)
               : r.likedByGuests || [];
-            return { ...r, likesCount: Math.max(0, r.likesCount + (nextLiked ? 1 : -1)), likedByUsers, likedByGuests };
+            return {
+              ...r,
+              likesCount: Math.max(0, r.likesCount + (nextLiked ? 1 : -1)),
+              likedByUsers,
+              likedByGuests,
+            };
           }),
         };
-      })
+      }),
     );
     setLikeAnimKey(key);
     setPendingLikeKeys((prev) => ({ ...prev, [key]: true }));
@@ -345,7 +398,9 @@ export default function BlogSocial({
 
     if (!response.success) {
       toast.error(response.message || "Unable to update like");
-      const refreshed = await fetch(`/api/blogs/${slug}`, { cache: "no-store" }).then((res) => res.json());
+      const refreshed = await fetch(`/api/blogs/${slug}`, {
+        cache: "no-store",
+      }).then((res) => res.json());
       setComments(refreshed.comments || []);
       setPendingLikeKeys((prev) => ({ ...prev, [key]: false }));
       return;
@@ -354,12 +409,17 @@ export default function BlogSocial({
     setComments((prev) =>
       prev.map((c) => {
         if (c._id !== commentId) return c;
-        if (!replyId) return { ...c, likesCount: response.likesCount ?? c.likesCount };
+        if (!replyId)
+          return { ...c, likesCount: response.likesCount ?? c.likesCount };
         return {
           ...c,
-          replies: c.replies.map((r) => (r._id === replyId ? { ...r, likesCount: response.likesCount ?? r.likesCount } : r)),
+          replies: c.replies.map((r) =>
+            r._id === replyId
+              ? { ...r, likesCount: response.likesCount ?? r.likesCount }
+              : r,
+          ),
         };
-      })
+      }),
     );
     setPendingLikeKeys((prev) => ({ ...prev, [key]: false }));
     setTimeout(() => setLikeAnimKey(null), 220);
@@ -382,12 +442,22 @@ export default function BlogSocial({
       prev.map((c) => {
         if (c._id !== commentId) return c;
         if (!replyId) return { ...c, content: trimmed };
-        return { ...c, replies: c.replies.map((r) => (r._id === replyId ? { ...r, content: trimmed } : r)) };
-      })
+        return {
+          ...c,
+          replies: c.replies.map((r) =>
+            r._id === replyId ? { ...r, content: trimmed } : r,
+          ),
+        };
+      }),
     );
 
     setIsEditing(true);
-    const response = await editBlogComment({ blogId, commentId, replyId, content: trimmed });
+    const response = await editBlogComment({
+      blogId,
+      commentId,
+      replyId,
+      content: trimmed,
+    });
     setIsEditing(false);
 
     if (!response.success) {
@@ -408,16 +478,22 @@ export default function BlogSocial({
       prev
         .map((c) => ({
           ...c,
-          replies: replyId && c._id === commentId ? c.replies.filter((r) => r._id !== replyId) : c.replies,
+          replies:
+            replyId && c._id === commentId
+              ? c.replies.filter((r) => r._id !== replyId)
+              : c.replies,
         }))
-        .filter((c) => !(c._id === commentId && !replyId))
+        .filter((c) => !(c._id === commentId && !replyId)),
     );
 
     const response = await deleteBlogComment({ blogId, commentId, replyId });
 
     if (!response.success) {
       setComments(previous);
-      return { success: false, message: response.message || "Unable to delete comment" };
+      return {
+        success: false,
+        message: response.message || "Unable to delete comment",
+      };
     }
 
     return { success: true, message: response.message || "Comment deleted" };
@@ -444,12 +520,21 @@ export default function BlogSocial({
 
       <div className="space-y-2">
         <div className="flex items-start gap-2.5 sm:gap-3">
-          {session?.user ? <UserAvatar name={session.user.name || "User"} image={session.user.image || undefined} /> : null}
+          {session?.user ? (
+            <UserAvatar
+              name={session.user.name || "User"}
+              image={session.user.image || undefined}
+            />
+          ) : null}
           <div className="flex-1 space-y-2">
             <Textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder={session?.user.id ? "Add a comment..." : "Sign in to add a comment"}
+              placeholder={
+                session?.user.id
+                  ? "Add a comment..."
+                  : "Sign in to add a comment"
+              }
               disabled={!session?.user.id || isSubmitting}
               className="min-h-20 resize-none border-border/60"
             />
@@ -457,8 +542,17 @@ export default function BlogSocial({
             {session?.user.id ? (
               commentText.trim() ? (
                 <div className="flex justify-end">
-                  <Button size="sm" onClick={() => submitComment(commentText)} disabled={isSubmitting} className="gap-2">
-                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                  <Button
+                    size="sm"
+                    onClick={() => submitComment(commentText)}
+                    disabled={isSubmitting}
+                    className="gap-2"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Send className="size-4" />
+                    )}
                     Post
                   </Button>
                 </div>
@@ -476,7 +570,9 @@ export default function BlogSocial({
 
       <div className="space-y-5">
         {comments.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">No comments yet. Start the conversation.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No comments yet. Start the conversation.
+          </p>
         ) : null}
 
         {comments.map((comment) => {
@@ -491,24 +587,45 @@ export default function BlogSocial({
 
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="text-sm font-medium text-foreground">{comment.userName}</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {comment.userName}
+                    </span>
                     <span>{formatRelativeDate(comment.createdAt)}</span>
                   </div>
 
-                  {editingTarget?.commentId === comment._id && !editingTarget.replyId ? (
+                  {editingTarget?.commentId === comment._id &&
+                  !editingTarget.replyId ? (
                     <div className="space-y-2">
-                      <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="min-h-16 text-sm" />
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="min-h-16 text-sm"
+                      />
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setEditingTarget(null)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingTarget(null)}
+                        >
                           Cancel
                         </Button>
-                        <Button size="sm" onClick={saveEdit} disabled={isEditing || !editText.trim()}>
-                          {isEditing ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+                        <Button
+                          size="sm"
+                          onClick={saveEdit}
+                          disabled={isEditing || !editText.trim()}
+                        >
+                          {isEditing ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            "Save"
+                          )}
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{comment.content}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {comment.content}
+                    </p>
                   )}
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -517,19 +634,28 @@ export default function BlogSocial({
                       liked={isLikedByActor(comment)}
                       pending={Boolean(pendingLikeKeys[commentLikeKey])}
                       animate={likeAnimKey === commentLikeKey}
-                      onClick={() => toggleCommentLike({ commentId: comment._id })}
+                      onClick={() =>
+                        toggleCommentLike({ commentId: comment._id })
+                      }
                     />
 
                     {session?.user.id ? (
                       <button
                         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                        onClick={() => setActiveReplyId(activeReplyId === comment._id ? null : comment._id)}
+                        onClick={() =>
+                          setActiveReplyId(
+                            activeReplyId === comment._id ? null : comment._id,
+                          )
+                        }
                       >
                         <Reply className="size-3.5" />
                         Reply
                       </button>
                     ) : (
-                      <Link href={signInToCommentHref} className="text-xs text-muted-foreground underline-offset-2 hover:underline">
+                      <Link
+                        href={signInToCommentHref}
+                        className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                      >
                         Sign in to reply
                       </Link>
                     )}
@@ -538,7 +664,9 @@ export default function BlogSocial({
                       <>
                         <button
                           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                          onClick={() => startEdit(comment._id, comment.content)}
+                          onClick={() =>
+                            startEdit(comment._id, comment.content)
+                          }
                         >
                           <Pencil className="size-3" /> Edit
                         </button>
@@ -556,11 +684,20 @@ export default function BlogSocial({
                       <button
                         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                         onClick={() =>
-                          setCollapsedThreads((prev) => ({ ...prev, [comment._id]: !threadCollapsed }))
+                          setCollapsedThreads((prev) => ({
+                            ...prev,
+                            [comment._id]: !threadCollapsed,
+                          }))
                         }
                       >
-                        {threadCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
-                        {threadCollapsed ? `Show ${comment.replies.length} replies` : "Hide replies"}
+                        {threadCollapsed ? (
+                          <ChevronRight className="size-3" />
+                        ) : (
+                          <ChevronDown className="size-3" />
+                        )}
+                        {threadCollapsed
+                          ? `Show ${comment.replies.length} replies`
+                          : "Hide replies"}
                       </button>
                     )}
                   </div>
@@ -572,30 +709,55 @@ export default function BlogSocial({
                   {comment.replies.map((reply) => {
                     const isReplyOwner = session?.user.id === reply.userId;
                     const replyLikeKey = `${comment._id}:${reply._id}`;
-                    const replyBeingEdited = editingTarget?.commentId === comment._id && editingTarget?.replyId === reply._id;
+                    const replyBeingEdited =
+                      editingTarget?.commentId === comment._id &&
+                      editingTarget?.replyId === reply._id;
                     return (
                       <div key={reply._id} className="flex gap-2.5 sm:gap-3">
-                        <UserAvatar name={reply.userName} image={reply.userImage} />
+                        <UserAvatar
+                          name={reply.userName}
+                          image={reply.userImage}
+                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="text-sm font-medium text-foreground">{reply.userName}</span>
+                            <span className="text-sm font-medium text-foreground">
+                              {reply.userName}
+                            </span>
                             <span>{formatRelativeDate(reply.createdAt)}</span>
                           </div>
 
                           {replyBeingEdited ? (
                             <div className="space-y-2">
-                              <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="min-h-16 text-sm" />
+                              <Textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="min-h-16 text-sm"
+                              />
                               <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => setEditingTarget(null)}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingTarget(null)}
+                                >
                                   Cancel
                                 </Button>
-                                <Button size="sm" onClick={saveEdit} disabled={isEditing || !editText.trim()}>
-                                  {isEditing ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+                                <Button
+                                  size="sm"
+                                  onClick={saveEdit}
+                                  disabled={isEditing || !editText.trim()}
+                                >
+                                  {isEditing ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : (
+                                    "Save"
+                                  )}
                                 </Button>
                               </div>
                             </div>
                           ) : (
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{reply.content}</p>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                              {reply.content}
+                            </p>
                           )}
 
                           <div className="flex flex-wrap items-center gap-3">
@@ -604,19 +766,32 @@ export default function BlogSocial({
                               liked={isLikedByActor(reply)}
                               pending={Boolean(pendingLikeKeys[replyLikeKey])}
                               animate={likeAnimKey === replyLikeKey}
-                              onClick={() => toggleCommentLike({ commentId: comment._id, replyId: reply._id })}
+                              onClick={() =>
+                                toggleCommentLike({
+                                  commentId: comment._id,
+                                  replyId: reply._id,
+                                })
+                              }
                             />
                             {isReplyOwner && (
                               <>
                                 <button
                                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                                  onClick={() => startEdit(comment._id, reply.content, reply._id)}
+                                  onClick={() =>
+                                    startEdit(
+                                      comment._id,
+                                      reply.content,
+                                      reply._id,
+                                    )
+                                  }
                                 >
                                   <Pencil className="size-3" /> Edit
                                 </button>
                                 <DeleteDialog
                                   id={`${comment._id}:${reply._id}`}
-                                  onDelete={() => removeComment(comment._id, reply._id)}
+                                  onDelete={() =>
+                                    removeComment(comment._id, reply._id)
+                                  }
                                   triggerLabel="Delete reply"
                                   title="Delete reply?"
                                   description="This will permanently remove your reply."
@@ -635,7 +810,12 @@ export default function BlogSocial({
                 <div className="ml-7 space-y-2 border-l border-border/70 pl-3 sm:ml-11 sm:pl-4">
                   <Textarea
                     value={replyDrafts[comment._id] || ""}
-                    onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [comment._id]: e.target.value }))}
+                    onChange={(e) =>
+                      setReplyDrafts((prev) => ({
+                        ...prev,
+                        [comment._id]: e.target.value,
+                      }))
+                    }
                     placeholder={`Reply to ${comment.userName}...`}
                     className="min-h-16 resize-none text-sm"
                     autoFocus
@@ -659,18 +839,31 @@ export default function BlogSocial({
 
                     <Button
                       size="sm"
-                      onClick={() => submitComment(replyDrafts[comment._id] || "", comment._id)}
-                      disabled={!(replyDrafts[comment._id] || "").trim() || isSubmitting}
+                      onClick={() =>
+                        submitComment(
+                          replyDrafts[comment._id] || "",
+                          comment._id,
+                        )
+                      }
+                      disabled={
+                        !(replyDrafts[comment._id] || "").trim() || isSubmitting
+                      }
                       className="gap-2"
                     >
-                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                      {isSubmitting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Send className="size-4" />
+                      )}
                       Reply
                     </Button>
                   </div>
                 </div>
               )}
 
-              {comment !== comments[comments.length - 1] ? <Separator className="!mt-5" /> : null}
+              {comment !== comments[comments.length - 1] ? (
+                <Separator className="!mt-5" />
+              ) : null}
             </div>
           );
         })}

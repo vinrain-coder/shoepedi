@@ -34,10 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ICategory } from "@/lib/db/models/category.model";
-import { IBrand } from "@/lib/db/models/brand.model";
 import TagsInput from "./tag-input";
-import MediaUploader from "@/components/shared/media-uploader";
+import { Textarea } from "@/components/ui/textarea";
 
 const handleKeyDown = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -51,12 +49,11 @@ const productDefaultValues: IProductInput =
         name: "Sample Product",
         slug: "sample-product",
         category: "Sample Category",
-        subcategory: "Men",
-        minicategory: "Sneakers",
         gender: "unisex",
         images: ["/images/p11-1.jpg"],
         brand: "Sample Brand",
         videoLink: "https://youtube.com",
+        shortDescription: "This is a sample short description.",
         description: "This is a sample description of the product.",
         price: 99.99,
         listPrice: 0,
@@ -75,12 +72,11 @@ const productDefaultValues: IProductInput =
         name: "",
         slug: "",
         category: "",
-        subcategory: "",
-        minicategory: "",
         gender: null,
         images: [],
         brand: "",
         videoLink: "",
+        shortDescription: "",
         description: "",
         price: 0,
         listPrice: 0,
@@ -106,8 +102,8 @@ const ProductForm = ({
   type: "Create" | "Update";
   product?: IProduct;
   productId?: string;
-  categories: ICategory[];
-  brands: IBrand[];
+  categories: { _id: string; name: string }[];
+  brands: { _id: string; name: string }[];
 }) => {
   const { theme } = useTheme();
   const router = useRouter();
@@ -382,15 +378,24 @@ const ProductForm = ({
           />
         </div>
 
-        {/* <MediaUploader
-          form={form}
-          name="images"
-          label="Product Media"
-          uploadRoute="products"
-          multiple
-          />*/}
-
         <ImageUploader form={form} />
+
+        <FormField
+          control={form.control}
+          name="shortDescription"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Short Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter short product description"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div>
           <FormField

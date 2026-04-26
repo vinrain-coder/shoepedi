@@ -108,6 +108,12 @@ function getActorSets(input: z.infer<typeof BlogLikeInputSchema>) {
     : { key: "likedByGuests" as const, actorId: input.guestId! };
 }
 
+const findCommentById = (comments: IBlogComment[] | undefined, id: string) =>
+  (comments || []).find((comment) => String(comment._id) === id);
+
+const findReplyById = (replies: IBlogReply[] | undefined, id: string) =>
+  (replies || []).find((reply) => String(reply._id) === id);
+
 async function getServerSessionLazy() {
   const { getServerSession } = await import("../get-session");
   return getServerSession();
@@ -119,8 +125,8 @@ export async function createBlog(data: z.infer<typeof BlogInputSchema>) {
     await connectToDatabase();
     await Blog.create(blog);
 
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidateTag("blogs");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidateTag("blogs", "max");
 
     return { success: true, message: "Blog created successfully" };
   } catch {
@@ -134,8 +140,8 @@ export async function updateBlog(data: z.infer<typeof BlogUpdateSchema>) {
     await connectToDatabase();
     await Blog.findByIdAndUpdate(blog._id, blog);
 
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidateTag("blogs");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidateTag("blogs", "max");
 
     return { success: true, message: "Blog updated successfully" };
   } catch {
@@ -149,8 +155,8 @@ export async function deleteBlog(id: string) {
     const res = await Blog.findByIdAndDelete(id);
     if (!res) throw new Error("Blog not found");
 
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidateTag("blogs");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidateTag("blogs", "max");
 
     return { success: true, message: "Blog deleted successfully" };
   } catch {
@@ -489,7 +495,7 @@ export async function incrementBlogViews(slug: string) {
       { new: true }
     );
     if (!blog) return { success: false, message: "Blog not found" };
-    revalidateTag("blogs");
+    revalidateTag("blogs", "max");
     return { success: true, views: blog.views };
   } catch {
     return { success: false, message: "Failed to update views" };
@@ -519,10 +525,10 @@ export async function toggleBlogLike(input: z.infer<typeof BlogLikeInputSchema>)
     blog[key] = Array.from(set) as never;
     await blog.save();
 
-    revalidateTag("blogs");
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidatePath(`/blogs/${blog.slug}`);
-    revalidatePath("/blogs");
+    revalidateTag("blogs", "max");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
+    revalidatePath("/blogs", "page");
 
     return { success: true, liked: !hasLiked, likesCount: blog.likesCount };
   } catch (error) {
@@ -556,7 +562,7 @@ export async function createBlogComment(input: z.infer<typeof BlogCommentInputSc
     };
 
     if (data.parentCommentId) {
-      const comment = blog.comments.id(data.parentCommentId);
+      const comment = findCommentById(blog.comments, data.parentCommentId);
       if (!comment) throw new Error("Parent comment not found");
       comment.replies.push(payload as never);
     } else {
@@ -565,9 +571,9 @@ export async function createBlogComment(input: z.infer<typeof BlogCommentInputSc
 
     await blog.save();
 
-    revalidateTag("blogs");
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidateTag("blogs", "max");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
     return { success: true, message: data.parentCommentId ? "Reply added" : "Comment added" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -594,10 +600,12 @@ export async function toggleBlogCommentLike(input: z.infer<typeof BlogLikeInputS
     const blog = await Blog.findById(data.blogId);
     if (!blog) throw new Error("Blog not found");
 
-    const comment = blog.comments.id(data.commentId);
+    const comment = findCommentById(blog.comments, data.commentId);
     if (!comment) throw new Error("Comment not found");
 
-    const target = data.replyId ? comment.replies.id(data.replyId) : comment;
+    const target = data.replyId
+      ? findReplyById(comment.replies, data.replyId)
+      : comment;
     if (!target) throw new Error("Reply not found");
 
     const set = new Set((target[key] || []).map(String));
@@ -614,9 +622,9 @@ export async function toggleBlogCommentLike(input: z.infer<typeof BlogLikeInputS
     target[key] = Array.from(set) as never;
     await blog.save();
 
-    revalidateTag("blogs");
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidateTag("blogs", "max");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
 
     return { success: true, liked: !hasLiked, likesCount: target.likesCount };
   } catch (error) {
@@ -647,11 +655,11 @@ export async function editBlogComment(input: {
     const blog = await Blog.findById(data.blogId);
     if (!blog) throw new Error("Blog not found");
 
-    const comment = blog.comments.id(data.commentId);
+    const comment = findCommentById(blog.comments, data.commentId);
     if (!comment) throw new Error("Comment not found");
 
     if (data.replyId) {
-      const reply = comment.replies.id(data.replyId);
+      const reply = findReplyById(comment.replies, data.replyId);
       if (!reply) throw new Error("Reply not found");
       if (reply.userId !== session.user.id) throw new Error("You can only edit your own replies");
       reply.content = data.content;
@@ -663,9 +671,9 @@ export async function editBlogComment(input: {
     }
 
     await blog.save();
-    revalidateTag("blogs");
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidateTag("blogs", "max");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
     return { success: true, message: "Comment updated" };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -693,23 +701,27 @@ export async function deleteBlogComment(input: {
     const blog = await Blog.findById(data.blogId);
     if (!blog) throw new Error("Blog not found");
 
-    const comment = blog.comments.id(data.commentId);
+    const comment = findCommentById(blog.comments, data.commentId);
     if (!comment) throw new Error("Comment not found");
 
     if (data.replyId) {
-      const reply = comment.replies.id(data.replyId);
+      const reply = findReplyById(comment.replies, data.replyId);
       if (!reply) throw new Error("Reply not found");
       if (reply.userId !== session.user.id) throw new Error("You can only delete your own replies");
-      reply.deleteOne();
+      comment.replies = comment.replies.filter(
+        (candidate) => String(candidate._id) !== data.replyId,
+      ) as never;
     } else {
       if (comment.userId !== session.user.id) throw new Error("You can only delete your own comments");
-      comment.deleteOne();
+      blog.comments = blog.comments.filter(
+        (candidate) => String(candidate._id) !== data.commentId,
+      ) as never;
     }
 
     await blog.save();
-    revalidateTag("blogs");
-    revalidatePath(BLOG_ADMIN_PATH);
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidateTag("blogs", "max");
+    revalidatePath(BLOG_ADMIN_PATH, "page");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
     return { success: true, message: "Comment deleted" };
   } catch (error) {
     return { success: false, message: formatError(error) };

@@ -6,7 +6,22 @@ import { connectToDatabase } from "@/lib/db";
 import { formatError, escapeRegExp } from "@/lib/utils";
 import { BrandInputSchema, BrandUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
-import Brand, { IBrand } from "../db/models/brand.model";
+import Brand from "../db/models/brand.model";
+
+export type SerializedBrand = {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isFeatured?: boolean;
+  image?: string;
+  logo?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  createdAt: string;
+  updatedAt: string;
+};
 
 /* ---------------------------------
    CREATE BRAND
@@ -91,7 +106,7 @@ export async function deleteBrand(id: string) {
 /* ---------------------------------
                                                                                                                                                                                                                         GET BRAND BY ID
                                                                                                                                                                                                                         ---------------------------------- */
-export async function getBrandById(id: string) {
+export async function getBrandById(id: string): Promise<SerializedBrand | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("brands");
@@ -103,9 +118,19 @@ export async function getBrandById(id: string) {
     if (!brand) return null;
 
     return {
-      ...brand,
       _id: brand._id.toString(),
-    } as IBrand;
+      name: brand.name,
+      slug: brand.slug,
+      description: brand.description,
+      isFeatured: brand.isFeatured,
+      image: brand.image,
+      logo: brand.logo,
+      seoTitle: brand.seoTitle,
+      seoDescription: brand.seoDescription,
+      seoKeywords: brand.seoKeywords,
+      createdAt: brand.createdAt.toISOString(),
+      updatedAt: brand.updatedAt.toISOString(),
+    };
   } catch (error) {
     console.error("Error fetching brand by ID:", error);
     return null;
@@ -198,9 +223,11 @@ export async function getAllBrandsForAdminProductInput() {
   cacheTag("brands");
   await connectToDatabase();
 
-  const brands = await Brand.find().sort({ name: 1 }).populate("name").lean();
-
-  return brands;
+  const brands = await Brand.find().sort({ name: 1 }).select("_id name").lean();
+  return brands.map((brand) => ({
+    _id: brand._id.toString(),
+    name: brand.name,
+  }));
 }
 
 /* ---------------------------------
@@ -219,7 +246,7 @@ export async function getAllBrandsForStore() {
       .select("name slug image logo description isFeatured")
       .lean();
 
-    return brands.map((brand: any) => ({
+    return brands.map((brand) => ({
       ...brand,
       _id: brand._id.toString(),
     }));
@@ -237,5 +264,18 @@ export async function getBrandBySlug(slug: string) {
   await connectToDatabase();
   const brand = await Brand.findOne({ slug }).lean();
   if (!brand) return notFound();
-  return JSON.parse(JSON.stringify(brand)) as IBrand;
+  return {
+    _id: brand._id.toString(),
+    name: brand.name,
+    slug: brand.slug,
+    description: brand.description,
+    isFeatured: brand.isFeatured,
+    image: brand.image,
+    logo: brand.logo,
+    seoTitle: brand.seoTitle,
+    seoDescription: brand.seoDescription,
+    seoKeywords: brand.seoKeywords,
+    createdAt: brand.createdAt.toISOString(),
+    updatedAt: brand.updatedAt.toISOString(),
+  } satisfies SerializedBrand;
 }

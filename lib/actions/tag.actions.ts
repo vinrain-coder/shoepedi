@@ -6,7 +6,17 @@ import { connectToDatabase } from "@/lib/db";
 import { formatError, escapeRegExp } from "@/lib/utils";
 import { TagInputSchema, TagUpdateSchema } from "../validator";
 import { notFound } from "next/navigation";
-import Tag, { ITag } from "../db/models/tag.model";
+import Tag from "../db/models/tag.model";
+
+export type SerializedTag = {
+  _id: string;
+  name: string;
+  slug: string;
+  image: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 /* ---------------------------------
    CREATE TAG
@@ -86,7 +96,7 @@ export async function deleteTag(id: string) {
 /* ---------------------------------
    GET TAG BY ID
 ---------------------------------- */
-export async function getTagById(id: string) {
+export async function getTagById(id: string): Promise<SerializedTag | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("tags");
@@ -96,9 +106,14 @@ export async function getTagById(id: string) {
     const tag = await Tag.findById(id).lean();
     if (!tag) return null;
     return {
-      ...tag,
       _id: tag._id.toString(),
-    } as ITag;
+      name: tag.name,
+      slug: tag.slug,
+      image: tag.image || "",
+      description: tag.description,
+      createdAt: tag.createdAt.toISOString(),
+      updatedAt: tag.updatedAt.toISOString(),
+    };
   } catch (error) {
     console.error("Error fetching tag by ID:", error);
     return null;
@@ -211,7 +226,7 @@ export async function getAllTagsForStore() {
 
     const tags = await Tag.find().sort({ name: 1 }).select("name slug image description").lean();
 
-    return tags.map((tag: any) => ({
+    return tags.map((tag) => ({
       ...tag,
       _id: tag._id.toString(),
     }));
@@ -234,5 +249,13 @@ export async function getTagBySlug(slug: string) {
   const tag = await Tag.findOne({ slug }).lean();
   if (!tag) return notFound();
 
-  return JSON.parse(JSON.stringify(tag)) as ITag;
+  return {
+    _id: tag._id.toString(),
+    name: tag.name,
+    slug: tag.slug,
+    image: tag.image || "",
+    description: tag.description,
+    createdAt: tag.createdAt.toISOString(),
+    updatedAt: tag.updatedAt.toISOString(),
+  } satisfies SerializedTag;
 }

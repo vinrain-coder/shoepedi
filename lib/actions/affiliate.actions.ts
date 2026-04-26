@@ -28,7 +28,9 @@ export async function registerAffiliate(data: any) {
     const validatedData = AffiliateInputSchema.parse(data);
     const normalizedCode = validatedData.affiliateCode.trim().toUpperCase();
 
-    const existingAffiliate = await Affiliate.findOne({ user: session.user.id });
+    const existingAffiliate = await Affiliate.findOne({
+      user: session.user.id,
+    });
 
     if (existingAffiliate) {
       if (existingAffiliate.status !== "rejected") {
@@ -78,7 +80,9 @@ export async function registerAffiliate(data: any) {
       };
     }
 
-    const existingCode = await Affiliate.findOne({ affiliateCode: normalizedCode });
+    const existingCode = await Affiliate.findOne({
+      affiliateCode: normalizedCode,
+    });
     if (existingCode) {
       throw new Error("Affiliate code is already taken");
     }
@@ -99,20 +103,28 @@ export async function registerAffiliate(data: any) {
     });
 
     revalidatePath("/affiliate/dashboard");
-    return { success: true, message: "Application submitted successfully", data: JSON.parse(JSON.stringify(affiliate)) };
+    return {
+      success: true,
+      message: "Application submitted successfully",
+      data: JSON.parse(JSON.stringify(affiliate)),
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
 }
 
-export async function getAffiliateDashboardData(params?: { payoutPage?: number; payoutLimit?: number }) {
+export async function getAffiliateDashboardData(params?: {
+  payoutPage?: number;
+  payoutLimit?: number;
+}) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
     if (!session) throw new Error("User not authenticated");
 
     const affiliate = await Affiliate.findOne({ user: session.user.id });
-    if (!affiliate) return { success: false, message: "Affiliate profile not found" };
+    if (!affiliate)
+      return { success: false, message: "Affiliate profile not found" };
 
     const earnings = await AffiliateEarning.find({ affiliate: affiliate._id })
       .sort({ createdAt: -1 })
@@ -120,7 +132,10 @@ export async function getAffiliateDashboardData(params?: { payoutPage?: number; 
       .populate("order", "trackingNumber totalPrice status");
 
     const payoutPage = Math.max(1, Math.floor(Number(params?.payoutPage) || 1));
-    const payoutLimit = Math.max(1, Math.floor(Number(params?.payoutLimit) || 10));
+    const payoutLimit = Math.max(
+      1,
+      Math.floor(Number(params?.payoutLimit) || 10),
+    );
     const skipPayouts = (payoutPage - 1) * payoutLimit;
 
     const payouts = await AffiliatePayout.find({ affiliate: affiliate._id })
@@ -128,7 +143,9 @@ export async function getAffiliateDashboardData(params?: { payoutPage?: number; 
       .skip(skipPayouts)
       .limit(payoutLimit);
 
-    const totalPayouts = await AffiliatePayout.countDocuments({ affiliate: affiliate._id });
+    const totalPayouts = await AffiliatePayout.countDocuments({
+      affiliate: affiliate._id,
+    });
 
     return {
       success: true,
@@ -146,7 +163,17 @@ export async function getAffiliateDashboardData(params?: { payoutPage?: number; 
 
 export async function getAffiliateByCode(code: string) {
   await connectToDatabase();
-  return await Affiliate.findOne({ affiliateCode: code, status: "approved" });
+  const affiliate = await Affiliate.findOne({
+    affiliateCode: code,
+    status: "approved",
+  }).lean();
+  if (!affiliate) return null;
+  return {
+    ...affiliate,
+    _id: affiliate._id.toString(),
+    createdAt: affiliate.createdAt?.toISOString(),
+    updatedAt: affiliate.updatedAt?.toISOString(),
+  };
 }
 
 export async function isApprovedAffiliate() {
@@ -200,7 +227,9 @@ export async function createPayoutRequest(data: any) {
     const validatedData = AffiliatePayoutInputSchema.parse(data);
 
     if (validatedData.amount < settings.minWithdrawalAmount) {
-      throw new Error(`Minimum withdrawal amount is ${settings.minWithdrawalAmount}`);
+      throw new Error(
+        `Minimum withdrawal amount is ${settings.minWithdrawalAmount}`,
+      );
     }
 
     if (validatedData.amount > affiliate.earningsBalance) {
@@ -228,7 +257,11 @@ export async function createPayoutRequest(data: any) {
     });
 
     revalidatePath("/affiliate/payouts");
-    return { success: true, message: "Payout request submitted", data: JSON.parse(JSON.stringify(payout)) };
+    return {
+      success: true,
+      message: "Payout request submitted",
+      data: JSON.parse(JSON.stringify(payout)),
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -278,23 +311,34 @@ export async function getAllAffiliates({
       }).select("_id");
       const userIds = users.map((u: any) => u._id);
 
-      filter.$or = [
-        { affiliateCode: regex },
-        { user: { $in: userIds } },
-      ];
+      filter.$or = [{ affiliateCode: regex }, { user: { $in: userIds } }];
     }
 
     const affiliates = await Affiliate.find(filter)
       .populate("user", "name email")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
+
+    const safeAffiliates = affiliates.map((affiliate) => ({
+      ...affiliate,
+      _id: affiliate._id.toString(),
+      createdAt: affiliate.createdAt?.toISOString(),
+      updatedAt: affiliate.updatedAt?.toISOString(),
+      user: affiliate.user
+        ? {
+            ...affiliate.user,
+            _id: (affiliate.user as any)._id?.toString(),
+          }
+        : affiliate.user,
+    }));
 
     const count = await Affiliate.countDocuments(filter);
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(affiliates)),
+      data: safeAffiliates,
       totalPages: Math.ceil(count / limit),
       totalAffiliates: count,
     };
@@ -416,7 +460,9 @@ export async function getAffiliateAdminStats(dateRange?: {
     ]);
 
     // 6. Highest earners of all time
-    const allTimeLeaderboard = await Affiliate.find({ totalEarnings: { $gt: 0 } })
+    const allTimeLeaderboard = await Affiliate.find({
+      totalEarnings: { $gt: 0 },
+    })
       .populate("user", "name")
       .sort({ totalEarnings: -1 })
       .limit(10)
@@ -437,7 +483,9 @@ export async function getAffiliateAdminStats(dateRange?: {
         totalEarnedInPeriod,
         totalDue,
         monthlyPayouts: JSON.parse(JSON.stringify(monthlyPayouts)),
-        allTimeLeaderboard: JSON.parse(JSON.stringify(formattedAllTimeLeaderboard)),
+        allTimeLeaderboard: JSON.parse(
+          JSON.stringify(formattedAllTimeLeaderboard),
+        ),
       },
     };
   } catch (error) {
@@ -445,7 +493,11 @@ export async function getAffiliateAdminStats(dateRange?: {
   }
 }
 
-export async function updateAffiliateStatus(id: string, status: "approved" | "rejected", adminNote?: string) {
+export async function updateAffiliateStatus(
+  id: string,
+  status: "approved" | "rejected",
+  adminNote?: string,
+) {
   const connection = await connectToDatabase();
   const session = await connection.startSession();
   session.startTransaction();
@@ -464,7 +516,10 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
       update.adminNote = ""; // Clear stale notes on approval
     }
 
-    const affiliate = await Affiliate.findByIdAndUpdate(id, update, { new: true, session }).populate("user", "name email");
+    const affiliate = await Affiliate.findByIdAndUpdate(id, update, {
+      new: true,
+      session,
+    }).populate("user", "name email");
     if (!affiliate) throw new Error("Affiliate not found");
 
     // Sync isAffiliate status to User model
@@ -473,12 +528,16 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
       {
         isAffiliate: status === "approved",
       },
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
 
-    const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
+    const user = affiliate.user as unknown as {
+      email: string;
+      name: string;
+      addresses?: any[];
+    };
     const phone = user.addresses?.[0]?.phone;
 
     if (status === "approved") {
@@ -501,7 +560,11 @@ export async function updateAffiliateStatus(id: string, status: "approved" | "re
     }
 
     revalidatePath("/admin/affiliates");
-    return { success: true, message: `Affiliate ${status}`, data: JSON.parse(JSON.stringify(affiliate)) };
+    return {
+      success: true,
+      message: `Affiliate ${status}`,
+      data: JSON.parse(JSON.stringify(affiliate)),
+    };
   } catch (error) {
     await session.abortTransaction();
     return { success: false, message: formatError(error) };
@@ -605,7 +668,13 @@ export async function getPayoutAdminStats(dateRange?: {
 
     const stats = await AffiliatePayout.aggregate([
       { $match: filter },
-      { $group: { _id: "$status", count: { $sum: 1 }, amount: { $sum: "$amount" } } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          amount: { $sum: "$amount" },
+        },
+      },
     ]);
 
     const statusStats = {
@@ -619,10 +688,14 @@ export async function getPayoutAdminStats(dateRange?: {
     stats.forEach((s) => {
       statusStats.total.count += s.count;
       statusStats.total.amount += s.amount;
-      if (s._id === "paid") statusStats.paid = { count: s.count, amount: s.amount };
-      if (s._id === "pending") statusStats.pending = { count: s.count, amount: s.amount };
-      if (s._id === "processing") statusStats.processing = { count: s.count, amount: s.amount };
-      if (s._id === "rejected") statusStats.rejected = { count: s.count, amount: s.amount };
+      if (s._id === "paid")
+        statusStats.paid = { count: s.count, amount: s.amount };
+      if (s._id === "pending")
+        statusStats.pending = { count: s.count, amount: s.amount };
+      if (s._id === "processing")
+        statusStats.processing = { count: s.count, amount: s.amount };
+      if (s._id === "rejected")
+        statusStats.rejected = { count: s.count, amount: s.amount };
     });
 
     return {
@@ -654,7 +727,10 @@ export async function deleteAffiliate(id: string) {
     await Affiliate.findByIdAndDelete(id);
 
     revalidatePath("/admin/affiliates");
-    return { success: true, message: "Affiliate and related data deleted successfully" };
+    return {
+      success: true,
+      message: "Affiliate and related data deleted successfully",
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -678,7 +754,9 @@ export async function deletePayoutRequest(id: string) {
     }
 
     // Refund affiliate balance before deletion
-    const affiliate = await Affiliate.findById(payout.affiliate).session(session);
+    const affiliate = await Affiliate.findById(payout.affiliate).session(
+      session,
+    );
     if (affiliate) {
       affiliate.earningsBalance += payout.amount;
       await affiliate.save({ session });
@@ -691,7 +769,10 @@ export async function deletePayoutRequest(id: string) {
     revalidatePath("/affiliate/payouts");
     revalidatePath("/affiliate/dashboard");
 
-    return { success: true, message: "Payout request deleted and balance refunded successfully" };
+    return {
+      success: true,
+      message: "Payout request deleted and balance refunded successfully",
+    };
   } catch (error) {
     await session.abortTransaction();
     return { success: false, message: formatError(error) };
@@ -700,7 +781,11 @@ export async function deletePayoutRequest(id: string) {
   }
 }
 
-export async function updatePayoutStatus(id: string, status: "paid" | "rejected", adminNote?: string) {
+export async function updatePayoutStatus(
+  id: string,
+  status: "paid" | "rejected",
+  adminNote?: string,
+) {
   try {
     await connectToDatabase();
     const session = await getServerSession();
@@ -732,14 +817,20 @@ export async function updatePayoutStatus(id: string, status: "paid" | "rejected"
     await payout.save();
 
     if (status === "paid") {
-      const populatedPayout = await AffiliatePayout.findById(payout._id).populate({
+      const populatedPayout = await AffiliatePayout.findById(
+        payout._id,
+      ).populate({
         path: "affiliate",
         populate: { path: "user", select: "name email" },
       });
 
       if (populatedPayout) {
         const affiliate = populatedPayout.affiliate as any;
-        const user = affiliate.user as unknown as { email: string; name: string; addresses?: any[] };
+        const user = affiliate.user as unknown as {
+          email: string;
+          name: string;
+          addresses?: any[];
+        };
         const phone = user.addresses?.[0]?.phone;
         await sendAffiliatePayoutNotification({
           email: user.email,

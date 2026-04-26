@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 export default function ReadMore({
   children,
   maxHeight = 180,
-  className,
 }: {
   children: React.ReactNode;
   maxHeight?: number;
@@ -28,7 +27,7 @@ export default function ReadMore({
         ref={contentRef}
         className={cn(
           "transition-all duration-300 overflow-hidden",
-          !expanded && "relative"
+          !expanded && "relative",
         )}
         style={{
           maxHeight: expanded ? contentRef.current?.scrollHeight : maxHeight,
