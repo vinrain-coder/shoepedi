@@ -14,26 +14,27 @@ export default function ProductGallery({ images }: { images: string[] }) {
   const blurImage = "/icons/logo.svg";
 
   // Validate images
-  const validImages = useMemo(
-    () =>
-      (images || []).filter(
-        (img) => typeof img === "string" && img.trim() !== ""
-      ),
-    [images]
-  );
+  const safeImages = useMemo(() => {
+    const valid = (images || []).filter(
+      (img) => typeof img === "string" && img.trim() !== "",
+    );
+    return valid.length ? valid : [blurImage];
+  }, [images]);
 
-  const safeImages = validImages.length ? validImages : [blurImage];
-
+  // Selected (clicked) image
   const [selectedImage, setSelectedImage] = useState(0);
+
+  // Hover preview image
+  const [hoveredImage, setHoveredImage] = useState<number | null>(null);
+
+  const activeImage = hoveredImage !== null ? hoveredImage : selectedImage;
+
   const [carouselApi, setCarouselApi] = useState<any>(null);
-
-
 
   return (
     <>
       {/* ==================== MOBILE VIEW ==================== */}
       <div className="md:hidden relative w-full">
-        {/* Counter */}
         <div className="absolute top-3 right-2 z-20 bg-black/60 text-white text-sm px-2 py-1 rounded-full">
           {selectedImage + 1} / {safeImages.length}
         </div>
@@ -50,8 +51,6 @@ export default function ProductGallery({ images }: { images: string[] }) {
             };
 
             api.on("select", handleSelect);
-
-            // set initial selected index when mounted
             handleSelect();
           }}
         >
@@ -64,13 +63,12 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 <Zoom>
                   <Image
                     src={image}
-                    alt={`${image} ${index + 1}`}
+                    alt={`Product image ${index + 1}`}
                     fill
                     sizes="100vw"
                     className="object-contain"
-                    //unoptimized
                     placeholder="blur"
-                    blurDataURL="/icons/logo.svg"
+                    blurDataURL={blurImage}
                     priority={index === 0}
                   />
                 </Zoom>
@@ -79,63 +77,68 @@ export default function ProductGallery({ images }: { images: string[] }) {
           </CarouselContent>
         </Carousel>
 
-        {/* Dot Indicators */}
+        {/* Dots */}
         <div className="flex justify-center gap-2 mt-3">
           {safeImages.map((_, index) => (
             <button
               key={index}
               className={`w-3 h-3 rounded-full transition-all ${
-                selectedImage === index
-                  ? "bg-primary scale-110"
-                  : "bg-gray-300"
+                selectedImage === index ? "bg-primary scale-110" : "bg-gray-300"
               }`}
-              onClick={() => carouselApi?.scrollTo(index)}
+              onClick={() => setSelectedImage(index)}
             />
           ))}
         </div>
       </div>
 
       {/* ==================== DESKTOP VIEW ==================== */}
-      <div className="hidden md:flex gap-2">
-        {/* Thumbnails */}
-        <div className="flex flex-col gap-2 mt-8">
+      <div className="hidden md:flex gap-4 items-start">
+        {/* THUMBNAILS */}
+        <div className="flex flex-col gap-3 mt-4">
           {safeImages.map((image, index) => (
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
-              onMouseOver={() => setSelectedImage(index)}
-              className={`bg-white rounded-lg overflow-hidden ${
-                selectedImage === index
-                  ? "ring-2 ring-primary"
-                  : "ring-1 ring-gray-300"
-              }`}
+              onMouseEnter={() => setHoveredImage(index)}
+              onMouseLeave={() => setHoveredImage(null)}
+              className={`
+                relative w-16 h-16 rounded-lg overflow-hidden
+                border transition-all duration-200
+                hover:scale-[1.05] hover:border-primary
+                focus:outline-none focus:ring-2 focus:ring-primary
+                cursor-pointer
+                ${
+                  activeImage === index
+                    ? "border-primary ring-2 ring-primary/40"
+                    : "border-gray-200"
+                }
+              `}
             >
               <Image
                 src={image}
                 alt={`Thumbnail ${index + 1}`}
-                width={48}
-                height={48}
-                unoptimized
+                fill
+                className="object-cover"
+                sizes="64px"
               />
             </button>
           ))}
         </div>
 
-        {/* Main Image */}
+        {/* MAIN IMAGE */}
         <div className="w-full">
           <Zoom>
-            <div className="relative h-125">
+            <div className="relative h-130 w-full transition-opacity duration-300">
               <Image
-                key={safeImages[selectedImage]}
-                src={safeImages[selectedImage]}
-                alt={`Product image ${selectedImage + 1}`}
+                key={safeImages[activeImage]}
+                src={safeImages[activeImage]}
+                alt={`Product image ${activeImage + 1}`}
                 fill
                 sizes="90vw"
-                className="object-contain"
+                className="object-contain transition-opacity duration-300"
                 priority
-                //unoptimized
                 placeholder="blur"
-                blurDataURL="/icons/logo.svg"
+                blurDataURL={blurImage}
               />
             </div>
           </Zoom>
@@ -144,3 +147,4 @@ export default function ProductGallery({ images }: { images: string[] }) {
     </>
   );
 }
+  

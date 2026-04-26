@@ -57,7 +57,9 @@ export default function SignUpPromptDialog() {
 
     const knownUser = localStorage.getItem(KNOWN_USER_KEY) === "1";
     const dismissed = localStorage.getItem(PROMPT_DISMISSED_KEY) === "1";
-    const lastShown = Number(localStorage.getItem(PROMPT_LAST_SHOWN_KEY) || "0");
+    const lastShown = Number(
+      localStorage.getItem(PROMPT_LAST_SHOWN_KEY) || "0",
+    );
     const withinCooldown = Date.now() - lastShown < PROMPT_COOLDOWN_MS;
 
     if (knownUser || dismissed || withinCooldown) {
@@ -67,7 +69,7 @@ export default function SignUpPromptDialog() {
     const timer = window.setTimeout(() => {
       localStorage.setItem(PROMPT_LAST_SHOWN_KEY, String(Date.now()));
       setOpen(true);
-    }, 10000);
+    }, 20000);
 
     return () => window.clearTimeout(timer);
   }, [isPending, pathname, session?.user?.id]);
@@ -84,14 +86,17 @@ export default function SignUpPromptDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md rounded-2xl border-primary/20 bg-gradient-to-b from-background to-muted/30">
+      <DialogContent className="sm:max-w-md rounded-2xl border-primary/20 bg-linear-to-b from-background to-muted/30 z-100">
         <DialogHeader>
           <div className="mx-auto mb-3 inline-flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Sparkles className="size-5" />
           </div>
-          <DialogTitle className="text-center">Unlock a better shopping experience</DialogTitle>
+          <DialogTitle className="text-center">
+            Unlock a better shopping experience
+          </DialogTitle>
           <DialogDescription className="text-center text-sm leading-6">
-            Create a free account to save your wishlist, track orders faster, checkout more smoothly, and get up to 20% off your first purchase.
+            Create a free account to save your wishlist, track orders faster,
+            checkout more smoothly, and get up to 20% off your first purchase.
           </DialogDescription>
         </DialogHeader>
 

@@ -62,8 +62,12 @@ export default function CartPage() {
                 <ShoppingBag className="h-12 w-12 text-muted-foreground" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Your cart is empty</h2>
-                <p className="text-muted-foreground">Looks like you haven&apos;t added anything to your cart yet.</p>
+                <h2 className="text-3xl font-bold tracking-tight">
+                  Your cart is empty
+                </h2>
+                <p className="text-muted-foreground">
+                  Looks like you haven&apos;t added anything to your cart yet.
+                </p>
               </div>
               <Button asChild size="lg" className="rounded-full px-8">
                 <Link href="/search">Start Shopping</Link>
@@ -74,8 +78,14 @@ export default function CartPage() {
           <>
             <div className="lg:col-span-3 space-y-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
-                <Button variant="ghost" asChild className="text-muted-foreground">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Shopping Cart
+                </h1>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="text-muted-foreground"
+                >
                   <Link href="/search" className="flex items-center gap-2">
                     <ChevronLeft className="h-4 w-4" />
                     Continue Shopping
@@ -98,7 +108,10 @@ export default function CartPage() {
                         className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 hover:bg-muted/5 transition-colors"
                       >
                         <div className="col-span-1 md:col-span-6 flex gap-4">
-                          <Link href={`/product/${item.slug}`} className="shrink-0">
+                          <Link
+                            href={`/product/${item.slug}`}
+                            className="shrink-0"
+                          >
                             <div className="relative aspect-square w-24 h-24 sm:w-32 sm:h-32 rounded-lg border bg-white overflow-hidden">
                               <Image
                                 src={item.image}
@@ -135,7 +148,7 @@ export default function CartPage() {
                                           item,
                                           item.quantity,
                                           value,
-                                          item.size
+                                          item.size,
                                         )
                                       }
                                     >
@@ -146,7 +159,7 @@ export default function CartPage() {
                                         {(() => {
                                           const product = products.find(
                                             (p) =>
-                                              p._id.toString() === item.product
+                                              p._id.toString() === item.product,
                                           );
                                           return product?.colors?.length
                                             ? product.colors.map((color) => (
@@ -183,7 +196,7 @@ export default function CartPage() {
                                           item,
                                           item.quantity,
                                           item.color,
-                                          value
+                                          value,
                                         )
                                       }
                                     >
@@ -194,7 +207,7 @@ export default function CartPage() {
                                         {(() => {
                                           const product = products.find(
                                             (p) =>
-                                              p._id.toString() === item.product
+                                              p._id.toString() === item.product,
                                           );
                                           return product?.sizes?.length
                                             ? product.sizes.map((size) => (
@@ -240,10 +253,15 @@ export default function CartPage() {
                         </div>
 
                         <div className="col-span-1 md:col-span-3 flex items-center justify-between md:justify-end">
-                          <span className="md:hidden text-sm font-medium text-muted-foreground uppercase">Total</span>
+                          <span className="md:hidden text-sm font-medium text-muted-foreground uppercase">
+                            Total
+                          </span>
                           <div className="text-right">
                             <div className="font-bold text-lg">
-                              <ProductPrice price={item.price * item.quantity} plain />
+                              <ProductPrice
+                                price={item.price * item.quantity}
+                                plain
+                              />
                             </div>
                             {item.quantity > 1 && (
                               <div className="text-xs text-muted-foreground mt-0.5">
@@ -260,19 +278,24 @@ export default function CartPage() {
             </div>
 
             <div className="mt-8 lg:mt-0 space-y-6">
-              <Card className="rounded-xl border-border/60 shadow-sm sticky top-4">
+              <Card className="rounded-xl border-border/60 shadow-sm sticky top-4 z-100">
                 <CardHeader>
                   <CardTitle className="text-xl">Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Items ({items.reduce((acc, item) => acc + item.quantity, 0)})</span>
+                      <span className="text-muted-foreground">
+                        Items (
+                        {items.reduce((acc, item) => acc + item.quantity, 0)})
+                      </span>
                       <ProductPrice price={itemsPrice} plain />
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
-                      <span className="text-green-600 font-medium">Calculated at checkout</span>
+                      <span className="text-green-600 font-medium">
+                        Calculated at checkout
+                      </span>
                     </div>
                     <div className="border-t pt-2 mt-4 flex justify-between items-baseline">
                       <span className="font-bold text-lg">Subtotal</span>
@@ -284,15 +307,18 @@ export default function CartPage() {
 
                   {itemsPrice < freeShippingMinPrice ? (
                     <div className="rounded-lg bg-primary/5 p-3 text-sm text-primary">
-                      Add <span className="font-bold">
+                      Add{" "}
+                      <span className="font-bold">
                         <ProductPrice
                           price={freeShippingMinPrice - itemsPrice}
                           plain
                         />
-                      </span> more to qualify for <span className="font-bold uppercase">Free Shipping</span>
+                      </span>{" "}
+                      more to qualify for{" "}
+                      <span className="font-bold uppercase">Free Shipping</span>
                     </div>
                   ) : (
-                    <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700 font-medium flex items-center gap-2">
+                    <div className=" bg-green-50 p-3 text-sm text-green-700 font-medium flex items-center gap-2 animate-pulse rounded-full">
                       <div className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
                       Your order qualifies for FREE Shipping
                     </div>

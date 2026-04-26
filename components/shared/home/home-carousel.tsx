@@ -52,7 +52,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
         {items.map((item, index) => (
           <CarouselItem key={item.title}>
             <Link href={item.url}>
-              <div className="flex aspect-16/8 md:aspect-16/5 items-center justify-center p-4 relative overflow-hidden">
+              <div className="flex aspect-16/6 md:aspect-16/4 items-center justify-center p-4 relative overflow-hidden">
                 <Image
                   src={item.image}
                   alt={item.title}

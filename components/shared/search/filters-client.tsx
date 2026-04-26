@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/accordion";
 import PriceControl from "./price-control";
 import FilterButton from "./filter-button";
+import { Input } from "@/components/ui/input";
+import ProductLoadingOverlay from "../product/product-loading-overlay";
+import ProductLayoutSwitcher from "../product/product-layout-switcher";
+import useProductLayoutStore from "@/hooks/use-product-layout-store";
 
 type ParamsShape = {
   q?: string;
@@ -135,6 +139,8 @@ export default function FiltersClient({
     defaultAccordionValues,
   );
 
+  const { layout } = useProductLayoutStore();
+
   // --- Helpers ---
   function buildSearchUrl(params: ParamsShape) {
     const p = new URLSearchParams();
@@ -212,14 +218,14 @@ export default function FiltersClient({
         visible: !lockCategory && !lockBrand,
         content: (
           <>
-            <input
+            <Input
               placeholder="Search categories…"
               value={categorySearch}
               onChange={(e) => setCategorySearch(e.target.value)}
-              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+              className="rounded-full"
             />
 
-            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <div className="overflow-y-auto flex flex-wrap gap-2 pr-1">
               <FilterButton
                 disabled={current.category === "all"}
                 active={current.category === "all"}
@@ -314,7 +320,7 @@ export default function FiltersClient({
         title: "Tags",
         visible: !lockTag,
         content: (
-          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+          <div className="overflow-y-auto flex flex-wrap gap-2 pr-1">
             <FilterButton
               disabled={current.tag === "all"}
               active={current.tag === "all"}
@@ -341,14 +347,14 @@ export default function FiltersClient({
         visible: !lockBrand,
         content: (
           <>
-            <input
+            <Input
               placeholder="Search brands…"
               value={brandSearch}
               onChange={(e) => setBrandSearch(e.target.value)}
-              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+              className="rounded-full"
             />
 
-            <div className="max-h-40 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <div className="overflow-y-auto flex flex-wrap gap-2 pr-1">
               <FilterButton
                 disabled={current.brand === "all"}
                 active={current.brand === "all"}
@@ -376,14 +382,14 @@ export default function FiltersClient({
         visible: true,
         content: (
           <>
-            <input
+            <Input
               placeholder="Search colors…"
               value={colorSearch}
               onChange={(e) => setColorSearch(e.target.value)}
-              className="mb-2 w-full rounded-md border px-2 py-1 text-sm"
+              className="rounded-full"
             />
 
-            <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+            <div className="overflow-y-auto flex flex-wrap gap-2 pr-1">
               <FilterButton
                 disabled={current.color === "all"}
                 active={current.color === "all"}
@@ -416,7 +422,7 @@ export default function FiltersClient({
         title: "Sizes",
         visible: true,
         content: (
-          <div className="max-h-32 overflow-y-auto flex flex-wrap gap-2 pr-1">
+          <div className="overflow-y-auto flex flex-wrap gap-2 pr-1">
             <FilterButton
               disabled={current.size === "all"}
               active={current.size === "all"}
@@ -446,7 +452,7 @@ export default function FiltersClient({
             .filter((s) => s.visible)
             .map((s) => (
               <div key={s.id} className="space-y-3">
-                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
+                <h3 className="font-bold text-sm uppercase tracking-wider">
                   {s.title}
                 </h3>
                 {s.content}
@@ -479,18 +485,6 @@ export default function FiltersClient({
 
   return (
     <>
-      {/* Loading overlay during transition */}
-      {isPending && (
-        <div className="fixed inset-0 z-100 bg-background/70 backdrop-blur-sm flex items-center justify-center">
-          <div className="animate-in fade-in zoom-in-95 duration-150 rounded-xl bg-card px-6 py-5 shadow-lg border flex flex-col items-center gap-3">
-            <Loader className="h-6 w-6 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">
-              Updating results…
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Mobile */}
       <div className="md:hidden mb-2">
         <Sheet open={open} onOpenChange={setOpen}>
@@ -555,7 +549,7 @@ export default function FiltersClient({
 
       {/* Desktop */}
       <aside className="hidden md:block md:col-span-1">
-        <div className="sticky top-20 h-[calc(100vh-5rem)] overflow-auto p-4 border rounded-lg bg-card">
+        <div className="sticky top-10 h-[calc(100vh-5rem)] overflow-auto p-4 border rounded-lg bg-card">
           <div className="mb-3">
             <div className="font-bold">Filters</div>
           </div>

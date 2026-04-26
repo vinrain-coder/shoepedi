@@ -344,6 +344,11 @@ export default async function ProductDetails({ params, searchParams }: Props) {
               color={selectedColor}
               size={selectedSize}
             />
+            {product.shortDescription && (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {product.shortDescription}
+              </p>
+            )}
           </div>
 
           {/* RIGHT: buy card (fast to show) */}

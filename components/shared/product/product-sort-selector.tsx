@@ -49,7 +49,7 @@ export default function ProductSortSelector({
 
       <SelectContent>
         {sortOrders.map((s) => (
-          <SelectItem key={s.value} value={s.value}>
+          <SelectItem key={s.value} value={s.value} className="cursor-pointer">
             {s.name}
           </SelectItem>
         ))}

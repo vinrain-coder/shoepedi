@@ -43,6 +43,17 @@ const ProductCard = ({
   const primaryImage = mainImage;
   const hoverImage = product.images?.[1] ?? mainImage;
   const productPath = `/product/${product.slug}`;
+  const rawShortDescription =
+    product.shortDescription ??
+    (product as unknown as { shortdescription?: string }).shortdescription ??
+    (product as unknown as { short_description?: string }).short_description;
+  const shortDescription =
+    rawShortDescription?.trim() ||
+    product.description
+      ?.replace(/[#*_`>\-]/g, "")
+      .trim()
+      .slice(0, 210) ||
+    "Premium quality product designed for comfort and style.";
 
   const prefetchProductDetails = () => {
     router.prefetch(productPath);
@@ -234,8 +245,7 @@ const ProductCard = ({
               </Link>
 
               <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
-                {product.shortDescription ||
-                  "Premium quality product designed for comfort and style."}
+                {shortDescription}
               </p>
 
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">

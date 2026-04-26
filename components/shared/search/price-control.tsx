@@ -15,7 +15,8 @@ export default function PriceControl({
   const [range, setRange] = useState<[number, number]>(() => {
     if (!initialPrice || initialPrice === "all") return [100, 10000];
     const parts = initialPrice.split("-").map(Number);
-    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return [parts[0], parts[1]];
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]))
+      return [parts[0], parts[1]];
     return [100, 10000];
   });
 
@@ -40,6 +41,7 @@ export default function PriceControl({
           min={0}
           max={20000}
           step={50}
+          className="mt-2"
         />
       </div>
       <div className="flex gap-2">
@@ -49,7 +51,8 @@ export default function PriceControl({
             const val = e.target.value.replace(/[^\d]/g, "");
             setMinInput(val);
             const n = Number(val || 0);
-            if (!isNaN(n) && n <= Number(maxInput || 0)) setRange([n, range[1]]);
+            if (!isNaN(n) && n <= Number(maxInput || 0))
+              setRange([n, range[1]]);
           }}
           aria-label="Minimum price"
         />
@@ -59,7 +62,8 @@ export default function PriceControl({
             const val = e.target.value.replace(/[^\d]/g, "");
             setMaxInput(val);
             const n = Number(val || 0);
-            if (!isNaN(n) && n >= Number(minInput || 0)) setRange([range[0], n]);
+            if (!isNaN(n) && n >= Number(minInput || 0))
+              setRange([range[0], n]);
           }}
           aria-label="Maximum price"
         />
@@ -67,5 +71,4 @@ export default function PriceControl({
       </div>
     </div>
   );
-    }
-                                           
+}

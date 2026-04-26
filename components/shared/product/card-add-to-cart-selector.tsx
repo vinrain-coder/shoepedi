@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Minus, Plus, ShoppingCart, Sparkles } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,13 +24,23 @@ import useCartStore from "@/hooks/use-cart-store";
 import { IProduct } from "@/lib/db/models/product.model";
 import { cn, generateId, round2 } from "@/lib/utils";
 
-export default function CardAddToCartSelector({ product }: { product: IProduct }) {
+export default function CardAddToCartSelector({
+  product,
+}: {
+  product: IProduct;
+}) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const { addItem } = useCartStore();
 
-  const sizes = useMemo(() => product.sizes?.filter(Boolean) ?? [], [product.sizes]);
-  const colors = useMemo(() => product.colors?.filter(Boolean) ?? [], [product.colors]);
+  const sizes = useMemo(
+    () => product.sizes?.filter(Boolean) ?? [],
+    [product.sizes],
+  );
+  const colors = useMemo(
+    () => product.colors?.filter(Boolean) ?? [],
+    [product.colors],
+  );
 
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +73,13 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
       setOpen(false);
       toast.success("Item added to cart", {
         description: `${product.name} x ${quantity}`,
-        action: <Button onClick={() => router.push("/cart")}>Go to Cart</Button>,
+        action: (
+          <Button onClick={() => router.push("/cart")}>Go to Cart</Button>
+        ),
       });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unable to add item";
+      const message =
+        error instanceof Error ? error.message : "Unable to add item";
       toast.error(`Could not add item: ${message}`);
     } finally {
       setIsLoading(false);
@@ -86,7 +106,9 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold leading-none">Quick add</p>
-              <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{product.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                {product.name}
+              </p>
             </div>
             <Badge variant="outline" className="rounded-full">
               {product.countInStock} in stock
@@ -95,7 +117,9 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
 
           {!!sizes.length && (
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Size</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Size
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {sizes.map((size) => (
                   <Button
@@ -115,7 +139,9 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
 
           {!!colors.length && (
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Color</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Color
+              </p>
               <div className="flex flex-wrap gap-2">
                 {colors.map((color) => (
                   <button
@@ -124,7 +150,8 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
                     onClick={() => setSelectedColor(color)}
                     className={cn(
                       "relative h-7 w-7 rounded-full border-2 border-background ring-1 ring-border transition",
-                      selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                      selectedColor === color &&
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     )}
                     style={{ backgroundColor: color }}
                     aria-label={color}
@@ -140,7 +167,9 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
           )}
 
           <div className="flex items-center justify-between rounded-xl border p-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Quantity</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Quantity
+            </p>
             <div className="flex items-center gap-1 rounded-full border p-0.5">
               <Button
                 type="button"
@@ -152,13 +181,17 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
               >
                 <Minus className="size-3.5" />
               </Button>
-              <span className="min-w-7 text-center text-sm font-medium">{quantity}</span>
+              <span className="min-w-7 text-center text-sm font-medium">
+                {quantity}
+              </span>
               <Button
                 type="button"
                 size="icon"
                 variant="ghost"
                 className="size-7 rounded-full"
-                onClick={() => setQuantity((prev) => Math.min(maxQuantity, prev + 1))}
+                onClick={() =>
+                  setQuantity((prev) => Math.min(maxQuantity, prev + 1))
+                }
                 disabled={quantity >= maxQuantity}
               >
                 <Plus className="size-3.5" />
@@ -171,7 +204,11 @@ export default function CardAddToCartSelector({ product }: { product: IProduct }
             disabled={isLoading || product.countInStock < 1}
             className="w-full rounded-full"
           >
-            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+            {isLoading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
             Add to cart
           </Button>
         </div>

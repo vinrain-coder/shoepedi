@@ -27,8 +27,12 @@ export default function SelectVariant({
   const defaultColor = color || product.colors?.[0];
   const defaultSize = size || product.sizes?.[0];
 
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(defaultColor);
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(defaultSize);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(
+    defaultColor,
+  );
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(
+    defaultSize,
+  );
 
   useEffect(() => {
     setSelectedColor(defaultColor);
@@ -74,8 +78,8 @@ export default function SelectVariant({
               variant="outline"
               className={
                 selectedColor === variantColor
-                  ? "border-2 border-primary dark:border-primary"
-                  : "border-2"
+                  ? "border-2 border-primary dark:border-primary rounded-full"
+                  : "border-2 rounded-full"
               }
               onClick={() => updateVariant(variantColor, selectedSize)}
             >
@@ -98,8 +102,8 @@ export default function SelectVariant({
               variant="outline"
               className={
                 selectedSize === variantSize
-                  ? "border-2 border-primary dark:border-primary"
-                  : "border-2"
+                  ? "border-2 border-primary dark:border-primary rounded-full"
+                  : "border-2 rounded-full"
               }
               onClick={() => updateVariant(selectedColor, variantSize)}
             >

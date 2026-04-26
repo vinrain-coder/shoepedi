@@ -14,6 +14,7 @@ import Breadcrumb from "@/components/shared/breadcrumb";
 import { Metadata } from "next";
 import { getSetting } from "@/lib/actions/setting.actions";
 import ProductLayoutSwitcher from "@/components/shared/product/product-layout-switcher";
+import SearchProductsClient from "@/components/shared/search/search-products-client";
 
 export async function generateMetadata(props: {
   searchParams: Promise<any>;
@@ -106,9 +107,9 @@ export default async function SearchPage(props: {
   ]);
 
   return (
-    <div className="space-y-2 md:space-y-4">
+    <div className="space-y-1 md:space-y-2">
       <Breadcrumb />
-      <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex flex-col md:flex-row md:items-center justify-between gap-2.5 md:gap-3">
+      <div className="my-1 rounded-xl bg-card md:border-b md:rounded-none flex flex-col md:flex-row md:items-center justify-between gap-2.5 md:gap-3">
         <div className="text-sm text-muted-foreground">
           {data.totalProducts === 0
             ? "No results"
@@ -116,7 +117,7 @@ export default async function SearchPage(props: {
           results
         </div>
 
-        <div className="w-full md:w-auto md:ml-auto">
+        <div className="w-full md:w-auto md:ml-auto mb-1">
           <ProductSortSelector
             sortOrders={sortOrders}
             sort={sort}
@@ -126,7 +127,7 @@ export default async function SearchPage(props: {
         </div>
       </div>
 
-      <div className="bg-card grid md:grid-cols-5 md:gap-6 py-2 md:py-3">
+      <div className="bg-card grid md:grid-cols-5 py-1 md:py-2 md:gap-6">
         <FiltersClient
           initialParams={params}
           categories={categories}
@@ -137,7 +138,7 @@ export default async function SearchPage(props: {
           basePath="/search"
         />
         <div className="md:col-span-4 space-y-4">
-          <ProductLayoutSwitcher products={data.products as IProduct[]} />
+          <SearchProductsClient products={data?.products ?? []} />
           {data.totalPages > 1 && (
             <Pagination page={page} totalPages={data.totalPages} />
           )}

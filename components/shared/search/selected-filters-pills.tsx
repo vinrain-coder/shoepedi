@@ -50,7 +50,7 @@ export default function SelectedFiltersPills({
         <button
           key={p.key}
           onClick={() => onRemove(p.key)}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
           aria-label={`Remove filter ${p.label}`}
         >
           <span className="text-sm">{p.label}</span>
