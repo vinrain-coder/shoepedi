@@ -117,7 +117,7 @@ export default function AffiliateStats({ stats }: AffiliateStatsProps) {
                   <History className="h-4 w-4" /> Monthly Payouts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="h-75">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.monthlyPayouts}>
                     <CartesianGrid

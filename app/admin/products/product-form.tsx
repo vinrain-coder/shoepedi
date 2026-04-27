@@ -458,6 +458,7 @@ const ProductForm = ({
             className="button col-span-2 w-full cursor-pointer"
             loadingText="Submitting..."
             size="lg"
+            disabled={form.formState.isSubmitting}
           >
             {type} Product
           </SubmitButton>

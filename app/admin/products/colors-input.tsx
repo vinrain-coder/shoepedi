@@ -4,11 +4,7 @@ import { useMemo, useState } from "react";
 import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
@@ -32,18 +28,15 @@ export default function ColorInput({ field, label }: ColorInputProps) {
   const selected = field.value ?? [];
 
   const filteredColors = useMemo(
-    () =>
-      REACT_NATIVE_COLORS.filter((c) =>
-        c.includes(search.toLowerCase())
-      ),
-    [search]
+    () => REACT_NATIVE_COLORS.filter((c) => c.includes(search.toLowerCase())),
+    [search],
   );
 
   const toggleColor = (color: string) => {
     field.onChange(
       selected.includes(color)
         ? selected.filter((c) => c !== color)
-        : [...selected, color]
+        : [...selected, color],
     );
   };
 
@@ -97,7 +90,7 @@ export default function ColorInput({ field, label }: ColorInputProps) {
                   key={color}
                   type="button"
                   onClick={() => toggleColor(color)}
-                  className={`relative h-8 w-8 rounded-full border transition
+                  className={`relative h-8 w-8 rounded-full border transition cursor-pointer
                     focus:outline-none focus:ring-2 focus:ring-primary
                     ${isSelected ? "ring-2 ring-primary" : ""}`}
                   style={{ backgroundColor: color }}
@@ -138,13 +131,11 @@ export default function ColorInput({ field, label }: ColorInputProps) {
                 className="h-3 w-3 rounded-full border"
                 style={{ backgroundColor: color }}
               />
-              <span className="max-w-[120px] truncate">
-                {color}
-              </span>
+              <span className="max-w-30 truncate">{color}</span>
               <button
                 type="button"
                 onClick={() => removeColor(color)}
-                className="text-muted-foreground hover:text-destructive"
+                className="text-muted-foreground hover:text-destructive cursor-pointer"
               >
                 <X size={14} />
               </button>
@@ -156,5 +147,4 @@ export default function ColorInput({ field, label }: ColorInputProps) {
       <FormMessage />
     </FormItem>
   );
-    }
-    
+}

@@ -21,6 +21,12 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         elevated:
           "bg-background shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 border dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        pending:
+          "border-transparent bg-amber-600 text-white [a&]:hover:bg-amber-500/90",
+        success:
+          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-500/90",
+        black:
+          "bg-black text-white hover:bg-black/90 active:bg-black/95 focus-visible:ring-black transition-colors",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

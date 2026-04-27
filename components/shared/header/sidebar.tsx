@@ -1,12 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  X,
-  ChevronRight,
-  UserCircle,
-  MenuIcon,
-} from "lucide-react";
+import { X, ChevronRight, UserCircle, MenuIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,13 +26,13 @@ export default function Sidebar({ categories }: SidebarProps) {
   return (
     <Drawer direction="left">
       {/* Trigger */}
-      <DrawerTrigger className="header-button flex items-center gap-2 !p-2 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+      <DrawerTrigger className="header-button flex items-center gap-2 p-2! rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
         <MenuIcon className="h-5 w-5" />
         <span className="text-base font-medium">All</span>
       </DrawerTrigger>
 
       {/* Drawer Content */}
-      <DrawerContent className="w-[350px] shadow-lg">
+      <DrawerContent className="w-87.5 shadow-lg">
         <div className="flex h-full flex-col">
           {/* ---------------- Header / User Section ---------------- */}
           <div className="flex items-center justify-between p-4 text-foreground">
@@ -76,9 +71,7 @@ export default function Sidebar({ categories }: SidebarProps) {
           {/* ---------------- Categories ---------------- */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-4">
-              <h2 className="text-lg font-semibold">
-                Shop By Category
-              </h2>
+              <h2 className="text-lg font-semibold">Shop By Category</h2>
             </div>
 
             <nav className="flex flex-col gap-2 px-4 pb-4">
@@ -124,5 +117,4 @@ export default function Sidebar({ categories }: SidebarProps) {
       </DrawerContent>
     </Drawer>
   );
-          }
-              
+}

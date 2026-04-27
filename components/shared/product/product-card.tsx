@@ -20,6 +20,7 @@ import ImageHover from "./image-hover";
 import WishlistIcon from "./wishlist-icon";
 import { Badge } from "@/components/ui/badge";
 import CardAddToCartSelector from "./card-add-to-cart-selector";
+import SubscribeButton from "./stock-subscription-button";
 
 const ProductCard = ({
   product,
@@ -244,9 +245,12 @@ const ProductCard = ({
                 {product.name}
               </Link>
 
-              <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+              <Link
+                href={productPath}
+                className="line-clamp-2 text-xs text-muted-foreground sm:text-sm"
+              >
                 {shortDescription}
-              </p>
+              </Link>
 
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
                 <Rating rating={product.avgRating} size={15} />
@@ -305,8 +309,12 @@ const ProductCard = ({
                   className="text-lg sm:text-xl"
                 />
 
-                {!hideAddToCart && (
-                  <AddButton className="text-left [&>button]:w-full [&>button]:sm:w-auto" />
+                {product.countInStock === 0 ? (
+                  <SubscribeButton productId={product._id.toString()} />
+                ) : (
+                  !hideAddToCart && (
+                    <AddButton className="text-left [&>button]:w-full [&>button]:sm:w-auto" />
+                  )
                 )}
               </div>
             </div>
@@ -343,12 +351,7 @@ const ProductCard = ({
 
               <CardFooter className="mb-2 -mt-5">
                 {product.countInStock === 0 ? (
-                  <Badge
-                    variant="destructive"
-                    className="mx-auto px-3 py-2 text-sm font-semibold rounded-full hidden"
-                  >
-                    Out of Stock
-                  </Badge>
+                  <SubscribeButton productId={product._id.toString()} />
                 ) : (
                   !hideAddToCart && <AddButton />
                 )}

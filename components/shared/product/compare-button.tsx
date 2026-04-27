@@ -52,7 +52,7 @@ export default function CompareButton({
         title={inCompare ? "Remove from compare" : "Add to compare"}
         className={cn(
           "rounded-full bg-background p-1.5 shadow transition hover:bg-muted",
-          inCompare && "bg-primary text-primary-foreground hover:bg-primary/90",
+          inCompare && "bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/90",
           className
         )}
         onClick={toggleCompare}
@@ -65,7 +65,7 @@ export default function CompareButton({
   return (
     <Button
       type="button"
-      variant={inCompare ? "default" : "outline"}
+      variant={inCompare ? "secondary" : "outline"}
       className={cn("flex items-center gap-2 w-full rounded-full", className)}
       onClick={toggleCompare}
     >

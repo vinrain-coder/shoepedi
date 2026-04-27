@@ -35,7 +35,7 @@ const ProductPrice = ({
   // Formatting logic for prices using Intl.NumberFormat for commas
   const formattedPrice = new Intl.NumberFormat().format(price);
   const formattedListPrice = new Intl.NumberFormat().format(listPrice);
-  
+
   const stringValue = formattedPrice.toString();
   const [intValue, floatValue] = stringValue.includes(".")
     ? stringValue.split(".")
@@ -76,13 +76,16 @@ const ProductPrice = ({
         <div
           className={`flex ${forListing ? justifyClass : "justify-start"} items-center gap-2 flex-wrap`}
         >
-          <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+          <div
+            className={cn("text-2xl sm:text-3xl wrap-break-word", className)}
+          >
             <span className="text-xs align-super">{currency.symbol}</span>
             {intValue}
             <span className="text-xs align-super">{floatValue}</span>
           </div>
           <div className="text-muted-foreground text-xs whitespace-nowrap">
-            Was: {currency.code}. <span className="line-through">{formattedListPrice}</span>
+            Was: {currency.code}.{" "}
+            <span className="line-through">{formattedListPrice}</span>
           </div>
         </div>
       </div>
@@ -96,14 +99,17 @@ const ProductPrice = ({
         <div className="text-2xl sm:text-3xl text-orange-700 whitespace-nowrap">
           -{discountPercent}%
         </div>
-        <div className={cn("text-2xl sm:text-3xl break-words", className)}>
+        <div className={cn("text-2xl sm:text-3xl wrap-break-word", className)}>
           <span className="text-xs align-super">{currency.symbol}</span>
           {intValue}
           <span className="text-xs align-super">{floatValue}</span>
         </div>
       </div>
       <div className="text-muted-foreground text-xs py-2 whitespace-nowrap">
-        List price: <span className="line-through">{currency.code} {formattedListPrice}</span>
+        List price:{" "}
+        <span className="line-through">
+          {currency.code} {formattedListPrice}
+        </span>
       </div>
     </div>
   );

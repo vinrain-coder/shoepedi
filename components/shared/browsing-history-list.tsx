@@ -19,14 +19,18 @@ export default function BrowsingHistoryList({
 
   // Memoized values
   const ids = useMemo(
-    () => products.map((p) => p.id).filter(Boolean).join(","),
-    [products]
+    () =>
+      products
+        .map((p) => p.id)
+        .filter(Boolean)
+        .join(","),
+    [products],
   );
 
   const categories = useMemo(
     () =>
       [...new Set(products.map((p) => p.category).filter(Boolean))].join(","),
-    [products]
+    [products],
   );
 
   const [data, setData] = useState<{
@@ -62,7 +66,7 @@ export default function BrowsingHistoryList({
         });
 
         const res = await fetch(
-          `/api/products/browsing-history?${query.toString()}`
+          `/api/products/browsing-history?${query.toString()}`,
         );
 
         if (!res.ok) throw new Error("Request failed");
@@ -99,14 +103,10 @@ export default function BrowsingHistoryList({
       {/* RELATED SECTION */}
       {showRelated && (
         <>
-          <div className="flex justify-between items-end mb-2 px-1">
-            <h2 className="h2-bold">Related to items you&apos;ve viewed</h2>
-            <Link
-              href="/browsing-history"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              View or edit your browsing history
-            </Link>
+          <div className="flex justify-between items-center px-1 mt-4 gap-4">
+            <h2 className="h2-bold leading-tight">
+              Related to items you&apos;ve viewed
+            </h2>
           </div>
           <Separator className={cn("mb-4", className)} />
           <ProductSection
@@ -121,8 +121,19 @@ export default function BrowsingHistoryList({
       {showHistory && (
         <>
           <Separator className="mb-4" />
+
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="h2-bold">Your browsing history</h2>
+
+            <Link
+              href="/browsing-history"
+              className="text-md text-blue-600 hover:underline whitespace-nowrap"
+            >
+              View or edit
+            </Link>
+          </div>
+
           <ProductSection
-            title="Your browsing history"
             products={historyProducts}
             hideDetails
             loading={loading}
@@ -152,7 +163,7 @@ function ProductSection({
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-1/2 sm:w-40 md:w-48 lg:w-56 h-60 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"
+            className="shrink-0 w-1/2 sm:w-40 md:w-48 lg:w-56 h-60 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"
           />
         ))}
       </div>
@@ -169,5 +180,4 @@ function ProductSection({
       showTitle={showTitle}
     />
   );
-      }
-  
+}

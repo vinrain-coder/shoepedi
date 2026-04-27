@@ -12,10 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import {
@@ -48,7 +45,7 @@ export function UserSidebar() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger className="cursor-pointer" asChild>
             <button className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
               <Avatar className="size-8 rounded-lg">
                 {session.user.image ? (
@@ -104,7 +101,7 @@ export function UserSidebar() {
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account"
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full cursor-pointer"
                 >
                   <UserIcon className="h-4 w-4" />
                   Your Account
@@ -113,7 +110,7 @@ export function UserSidebar() {
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account/orders"
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full cursor-pointer"
                 >
                   <ShoppingCartIcon className="h-4 w-4" />
                   Orders
@@ -122,7 +119,7 @@ export function UserSidebar() {
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account/wishlist"
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full cursor-pointer"
                 >
                   <HeartIcon className="h-4 w-4" />
                   Wishlist
@@ -131,7 +128,7 @@ export function UserSidebar() {
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account/reviews"
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full cursor-pointer"
                 >
                   <Star className="h-4 w-4" />
                   My Reviews
@@ -140,7 +137,7 @@ export function UserSidebar() {
               <DropdownMenuItem asChild onSelect={handleSelect}>
                 <Link
                   href="/account/comments"
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full cursor-pointer"
                 >
                   <MessageCircle className="h-4 w-4" />
                   My Comments
@@ -150,7 +147,7 @@ export function UserSidebar() {
                 <DropdownMenuItem asChild onSelect={handleSelect}>
                   <Link
                     href="/affiliate/dashboard"
-                    className="flex items-center gap-2 w-full"
+                    className="flex items-center gap-2 w-full cursor-pointer"
                   >
                     <Users className="h-4 w-4" />
                     Affiliate Dashboard
@@ -161,7 +158,7 @@ export function UserSidebar() {
                 <DropdownMenuItem asChild onSelect={handleSelect}>
                   <Link
                     href="/admin/overview"
-                    className="flex items-center gap-2 w-full"
+                    className="flex items-center gap-2 w-full cursor-pointer"
                   >
                     <ShieldIcon className="h-4 w-4" />
                     Admin

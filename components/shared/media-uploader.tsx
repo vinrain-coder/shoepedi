@@ -64,7 +64,7 @@ function MediaPreview({
           event.stopPropagation();
           onRemove();
         }}
-        className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white shadow hover:bg-black"
+        className="absolute right-4 top-4 rounded-full bg-black/70 p-1 text-white shadow hover:bg-black"
       >
         <X size={14} />
       </button>

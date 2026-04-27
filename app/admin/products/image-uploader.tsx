@@ -58,7 +58,7 @@ function MediaPreview({
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute -top-2 -right-2 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow"
+        className="absolute top-0 right-0 bg-black/70 hover:bg-black text-white rounded-full p-1 shadow cursor-pointer"
       >
         <X size={14} />
       </button>
@@ -72,7 +72,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
     (url: string) => ({
       url,
       type: url.match(/\.(mp4|webm|mov|ogg)$/i) ? "video" : "image",
-    })
+    }),
   );
 
   const [media, setMedia] = useState<MediaItem[]>(initialMedia);
@@ -81,7 +81,7 @@ export default function ImageUploader({ form }: ImageUploaderProps) {
   useEffect(() => {
     form.setValue(
       "images",
-      media.map((m) => m.url)
+      media.map((m) => m.url),
     );
   }, [media, form]);
 

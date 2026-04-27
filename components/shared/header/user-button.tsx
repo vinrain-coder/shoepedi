@@ -68,38 +68,54 @@ export default function UserButton() {
 
             <DropdownMenuGroup>
               <Link href="/account" className="w-full">
-                <DropdownMenuItem>Account</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Account
+                </DropdownMenuItem>
               </Link>
 
               <Link href="/account/orders" className="w-full">
-                <DropdownMenuItem>Orders</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Orders
+                </DropdownMenuItem>
               </Link>
 
               <Link href="/account/wishlist" className="w-full">
-                <DropdownMenuItem>Wishlist</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Wishlist
+                </DropdownMenuItem>
               </Link>
 
               <Link href="/account/reviews" className="w-full">
-                <DropdownMenuItem>My Reviews</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  My Reviews
+                </DropdownMenuItem>
               </Link>
 
               <Link href="/account/comments" className="w-full">
-                <DropdownMenuItem>My Comments</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  My Comments
+                </DropdownMenuItem>
               </Link>
 
               <Link href="/browsing-history" className="w-full">
-                <DropdownMenuItem>Browsing History</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Browsing History
+                </DropdownMenuItem>
               </Link>
 
               {isAffiliate && (
                 <Link href="/affiliate/dashboard" className="w-full">
-                  <DropdownMenuItem>Affiliate Dashboard</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    Affiliate Dashboard
+                  </DropdownMenuItem>
                 </Link>
               )}
 
               {session.user.role === "ADMIN" && (
-                <Link href="/admin/overview" className="w-full">
-                  <DropdownMenuItem>Admin</DropdownMenuItem>
+                <Link href="/admin/overview" className="w-full cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer">
+                    Admin
+                  </DropdownMenuItem>
                 </Link>
               )}
             </DropdownMenuGroup>

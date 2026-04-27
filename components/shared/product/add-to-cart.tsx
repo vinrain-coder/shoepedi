@@ -155,7 +155,7 @@ export default function AddToCart({
 
       {/* Buy Now */}
       <Button
-        variant="secondary"
+        variant="black"
         onClick={handleBuyNow}
         disabled={isBuyNowLoading}
         className="w-full rounded-full cursor-pointer flex items-center justify-center gap-2"

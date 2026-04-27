@@ -1,18 +1,54 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { getServerSession } from "@/lib/get-session";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { getServerSession } from "@/lib/get-session";
 
 import Breadcrumb from "@/components/shared/breadcrumb";
+import { User, Mail, Lock } from "lucide-react";
 
 const PAGE_TITLE = "Login & Security";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
 };
+
+function Row({
+  icon: Icon,
+  title,
+  value,
+  href,
+}: {
+  icon: any;
+  title: string;
+  value: string;
+  href: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 p-4 rounded-xl hover:bg-muted/50 transition">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-muted">
+          <Icon className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-sm">{title}</h3>
+          <p className="text-sm text-muted-foreground break-all">{value}</p>
+        </div>
+      </div>
+
+      <Link href={href}>
+        <Button
+          variant="outline"
+          className="rounded-full"
+        >
+          Edit
+        </Button>
+      </Link>
+    </div>
+  );
+}
 
 export default async function ProfilePage() {
   const session = await getServerSession();
@@ -21,47 +57,39 @@ export default async function ProfilePage() {
     <div className="mb-24">
       <Breadcrumb />
 
-      <h1 className="h1-bold py-4">{PAGE_TITLE}</h1>
+      <div className="mb-6 mt-2">
+        <h1 className="font-bold tracking-tight">{PAGE_TITLE}</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Manage your account details and security settings
+        </p>
+      </div>
 
-      <Card className="max-w-2xl">
-        <CardContent className="p-4 flex justify-between flex-wrap">
-          <div>
-            <h3 className="font-bold">Name</h3>
-            <p>{session?.user?.name ?? "-"}</p>
-          </div>
-          <Link href="/account/manage/name">
-            <Button className="rounded-full w-32" variant="outline">
-              Edit
-            </Button>
-          </Link>
-        </CardContent>
+      <Card className="rounded-2xl border shadow-sm">
+        <CardContent className="p-2">
+          <Row
+            icon={User}
+            title="Name"
+            value={session?.user?.name ?? "-"}
+            href="/account/manage/name"
+          />
 
-        <Separator />
+          <Separator />
 
-        <CardContent className="p-4 flex justify-between flex-wrap">
-          <div>
-            <h3 className="font-bold">Email</h3>
-            <p>{session?.user?.email ?? "-"}</p>
-          </div>
-          <Link href="/account/manage/email">
-            <Button className="rounded-full w-32" variant="outline">
-              Edit
-            </Button>
-          </Link>
-        </CardContent>
+          <Row
+            icon={Mail}
+            title="Email"
+            value={session?.user?.email ?? "-"}
+            href="/account/manage/email"
+          />
 
-        <Separator />
+          <Separator />
 
-        <CardContent className="p-4 flex justify-between flex-wrap">
-          <div>
-            <h3 className="font-bold">Password</h3>
-            <p>************</p>
-          </div>
-          <Link href="/account/manage/password">
-            <Button className="rounded-full w-32" variant="outline">
-              Edit
-            </Button>
-          </Link>
+          <Row
+            icon={Lock}
+            title="Password"
+            value="************"
+            href="/account/manage/password"
+          />
         </CardContent>
       </Card>
     </div>

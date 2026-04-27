@@ -183,8 +183,8 @@ export function AppSidebar({
                 <Image
                   src={siteLogo || "/icons/logo.svg"}
                   alt={`${siteName} logo`}
-                  width={36}
-                  height={36}
+                  width={52}
+                  height={52}
                   className="rounded"
                 />
                 <span className="text-base font-semibold">{siteName}</span>

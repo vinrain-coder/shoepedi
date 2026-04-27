@@ -40,10 +40,7 @@ export default function OrderViaWhatsApp(props: OrderViaWhatsAppProps) {
   if (!whatsappUrl) return null; // prevent mismatched SSR
 
   return (
-    <Button
-      asChild
-      className="bg-green-500 hover:bg-green-600 text-white rounded-full w-full"
-    >
+    <Button asChild variant="success" className="rounded-full">
       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
         <Image
           src="/icons/whatsapp.svg"

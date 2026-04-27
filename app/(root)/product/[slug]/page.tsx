@@ -345,8 +345,14 @@ export default async function ProductDetails({ params, searchParams }: Props) {
               size={selectedSize}
             />
             {product.shortDescription && (
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {product.shortDescription}
+              <p className="text-sm leading-relaxed text-muted-foreground my-4">
+                {product.shortDescription}{" "}
+                <Link
+                  href="#description"
+                  className="font-medium text-primary hover:underline gap-2 inline-flex items-center scroll-smooth"
+                >
+                  More
+                </Link>
               </p>
             )}
           </div>
@@ -420,8 +426,8 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         </div>
       </section>
 
-      <section className="mt-10 max-w-5xl mx-auto">
-        <h2 className="font-bold text-lg mb-2">Description</h2>
+      <section className="mt-10 max-w-5xl mx-auto" id="description">
+        <h2 className="font-bold text-lg mb-2 underline">Description</h2>
         <ReadMore maxHeight={200}>
           <MarkdownRenderer
             content={product.description}
@@ -430,12 +436,12 @@ export default async function ProductDetails({ params, searchParams }: Props) {
         </ReadMore>
       </section>
 
-      <div className="flex flex-col gap-2 my-2 mt-4">
+      <div className="flex flex-col gap-2 my-5">
         <h3 className="font-semibold">Share this product</h3>
         <ShareProduct slug={product.slug} name={product.name} />
       </div>
 
-      <section className="mt-10" id="reviews">
+      <section className="mt-8 md:mt-10" id="reviews">
         <h2 className="h2-bold mb-2">Customer Reviews</h2>
         <Suspense fallback={<ReviewsLoading />}>
           <ReviewList product={product} />

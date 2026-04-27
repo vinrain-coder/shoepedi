@@ -7,6 +7,7 @@ import {
   DialogTrigger,
   DialogClose,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Drawer,
@@ -14,15 +15,21 @@ import {
   DrawerTrigger,
   DrawerClose,
   DrawerTitle,
+  DrawerDescription,
 } from "@/components/ui/drawer";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Bell } from "lucide-react";
+
 import { StockSubscriptionSchema } from "@/lib/validator";
 import { toast } from "sonner";
 import { subscribeToStock } from "@/lib/actions/stock.actions";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LoadingButton } from "../loading-button";
+import { cn } from "@/lib/utils";
 
 type SubscribeButtonProps = {
   productId: string;
@@ -46,11 +53,14 @@ export default function SubscribeButton({
   });
 
   const onSubmit = async (data: { email: string }) => {
-    const response = await subscribeToStock({ email: data.email, productId });
+    const response = await subscribeToStock({
+      email: data.email,
+      productId,
+    });
 
     if (response.success) {
       toast.success(
-        "Subscription successful! You’ll be notified when this product is in stock."
+        "Subscribed successfully! We'll notify you once it's back in stock.",
       );
       reset();
       setIsOpen(false);
@@ -60,74 +70,115 @@ export default function SubscribeButton({
   };
 
   const FormContent = () => (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium">
-          Enter your email:
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
+      <div className="space-y-2">
+        <label htmlFor="email" className="text-sm font-medium">
+          Email address
         </label>
+
         <Input
           id="email"
           type="email"
           {...register("email")}
-          className="w-full mt-1 p-2"
           placeholder="your.email@example.com"
+          className="h-11 rounded-xl"
+          autoFocus
         />
+
         {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          <p className="text-sm text-red-500">{errors.email.message}</p>
         )}
+
+        <p className="text-xs text-muted-foreground">
+          No spam. We&apos;ll only send one alert when this item is available.
+        </p>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex gap-2 pt-1">
         {isMobile ? (
           <DrawerClose asChild>
-            <Button type="button" className="px-4 py-2 rounded-md">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+            >
               Cancel
             </Button>
           </DrawerClose>
         ) : (
           <DialogClose asChild>
-            <Button type="button" className="px-4 py-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+            >
               Cancel
             </Button>
           </DialogClose>
         )}
 
-        <Button
+        <LoadingButton
           type="submit"
+          loading={isSubmitting}
+          loadingText="Saving..."
           disabled={isSubmitting}
-          className="px-4 py-2 disabled:cursor-not-allowed"
+          className="flex-1 rounded-xl"
         >
-          {isSubmitting ? "Subscribing..." : "Subscribe"}
-        </Button>
+          <Bell className="mr-2 h-4 w-4" />
+          Notify Me
+        </LoadingButton>
       </div>
     </form>
   );
 
+  const TriggerButton = (
+    <Button
+      variant="pending"
+      className={cn(
+        "rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-all hover:shadow-md",
+        className,
+      )}
+    >
+      <Bell className="h-4 w-4" />
+      Notify Me
+    </Button>
+  );
+
   return isMobile ? (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
-        <Button className={`px-4 py-2 rounded-full w-auto ${className}`}>
-          Notify Me When Available
-        </Button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{TriggerButton}</DrawerTrigger>
 
-      <DrawerContent className="w-full max-w-none p-4 flex flex-col gap-4">
-        <DrawerTitle className="text-lg font-semibold mb-4">
-          Get Notified When Available
-        </DrawerTitle>
+      <DrawerContent className="rounded-t-3xl px-4 pb-6 pt-4">
+        <div className="space-y-1 mb-4">
+          <DrawerTitle className="text-lg font-semibold">
+            Get Restock Alerts
+          </DrawerTitle>
+
+          <DrawerDescription className="text-sm text-muted-foreground">
+            We&apos;ll notify you immediately when this product is back in
+            stock.
+          </DrawerDescription>
+        </div>
+
         <FormContent />
       </DrawerContent>
     </Drawer>
   ) : (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className={`px-4 py-2 w-auto ${className}`}>
-          Notify Me When Available
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{TriggerButton}</DialogTrigger>
 
-      <DialogContent className="p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-        <DialogTitle>Get Notified When Available</DialogTitle>
+      <DialogContent className="w-[90%] max-w-md rounded-2xl p-6 shadow-xl">
+        <div className="space-y-1 mb-4">
+          <DialogTitle className="text-lg font-semibold">
+            Get Restock Alerts
+          </DialogTitle>
+
+          <DialogDescription className="text-sm text-muted-foreground">
+            We&apos;ll notify you immediately when this product is back in
+            stock.
+          </DialogDescription>
+        </div>
+
         <FormContent />
       </DialogContent>
     </Dialog>
