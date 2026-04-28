@@ -5,12 +5,7 @@ import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
-import {
-  FieldValues,
-  Path,
-  PathValue,
-  UseFormReturn,
-} from "react-hook-form";
+import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 
 import {
   FormField,
@@ -31,6 +26,12 @@ type MediaItem = {
 const getMediaType = (url: string): MediaType =>
   /\.(mp4|webm|mov|ogg)$/i.test(url) ? "video" : "image";
 
+/* ---------------- SAFE URL CHECK ---------------- */
+const isValidUrl = (url?: string) =>
+  typeof url === "string" &&
+  url.trim() !== "" &&
+  (url.startsWith("http") || url.startsWith("/"));
+
 /* ---------------- Media Preview ---------------- */
 function MediaPreview({
   item,
@@ -39,6 +40,8 @@ function MediaPreview({
   item: MediaItem;
   onRemove: () => void;
 }) {
+  if (!isValidUrl(item.url)) return null;
+
   return (
     <div className="relative shrink-0">
       {item.type === "image" ? (
@@ -64,7 +67,7 @@ function MediaPreview({
           event.stopPropagation();
           onRemove();
         }}
-        className="absolute right-4 top-4 rounded-full bg-black/70 p-1 text-white shadow hover:bg-black"
+        className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white shadow hover:bg-black"
       >
         <X size={14} />
       </button>
@@ -100,16 +103,16 @@ export default function MediaUploader<TFieldValues extends FieldValues>({
 
   const initialMedia: MediaItem[] = Array.isArray(rawValue)
     ? (rawValue as unknown[])
-        .filter((value): value is string => typeof value === "string")
+        .filter((value): value is string => isValidUrl(value))
         .map((url) => ({
           url,
           type: getMediaType(url),
         }))
-    : typeof rawValue === "string" && rawValue
+    : isValidUrl(rawValue)
       ? [
           {
-            url: rawValue,
-            type: getMediaType(rawValue),
+            url: rawValue as string,
+            type: getMediaType(rawValue as string),
           },
         ]
       : [];
@@ -119,7 +122,10 @@ export default function MediaUploader<TFieldValues extends FieldValues>({
 
   /* Sync with RHF */
   useEffect(() => {
-    const value = multiple ? media.map((item) => item.url) : media[0]?.url || "";
+    const value = multiple
+      ? media.map((item) => item.url)
+      : media[0]?.url || "";
+
     form.setValue(name, value as PathValue<TFieldValues, Path<TFieldValues>>, {
       shouldValidate: true,
     });
@@ -130,13 +136,15 @@ export default function MediaUploader<TFieldValues extends FieldValues>({
     onClientUploadComplete: (result) => {
       if (!result?.length) return;
 
-      const uploaded: MediaItem[] = result.map((file) => ({
-        url: file.url,
-        type: getMediaType(file.url),
-      }));
+      const uploaded: MediaItem[] = result
+        .filter((file) => isValidUrl(file.url))
+        .map((file) => ({
+          url: file.url,
+          type: getMediaType(file.url),
+        }));
 
       setProgress(0);
-      setMedia((previous) => [...previous, ...uploaded]);
+      setMedia((prev) => [...prev, ...uploaded]);
 
       toast.success("Upload completed");
     },
@@ -168,11 +176,13 @@ export default function MediaUploader<TFieldValues extends FieldValues>({
         body: JSON.stringify({ url }),
       });
 
-      setMedia((previous) => previous.filter((item) => item.url !== url));
+      setMedia((prev) => prev.filter((item) => item.url !== url));
       toast.success("File deleted");
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to delete uploaded file",
+        error instanceof Error
+          ? error.message
+          : "Failed to delete uploaded file",
       );
     }
   };

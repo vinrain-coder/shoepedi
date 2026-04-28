@@ -98,9 +98,20 @@ export default async function CategoryPage({
     page = "1",
   } = sp;
 
+  /* ---------------- Get category once ---------------- */
+  const categoryData = await getCategoryBySlug(categorySlug);
+
+  if (!categoryData) {
+    return (
+      <div className="py-10 text-center">
+        <h1 className="text-xl font-bold">Category not found</h1>
+      </div>
+    );
+  }
+
   const filterParams = {
     q,
-    category: categorySlug,
+    category: categoryData.name,
     brand,
     tag,
     gender,
@@ -112,36 +123,34 @@ export default async function CategoryPage({
     page,
   };
 
-  // Fetch all data (IDENTICAL to brand page)
-  const [categories, tags, brands, colors, sizes, data, categoryData] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        category: categorySlug,
-        brand,
-        tag,
-        gender,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-      getCategoryBySlug(categorySlug),
-    ]);
+  /* ---------------- Fetch page data ---------------- */
+  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      category: categoryData.name, // FIXED
+      brand,
+      tag,
+      gender,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+  ]);
 
   /* ---------------------- Schema ----------------------- */
   const categorySchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: categoryData?.name || categorySlug.replace(/-/g, " "),
-    description: categoryData?.seoDescription || categoryData?.description,
+    name: categoryData.name,
+    description: categoryData.seoDescription || categoryData.description,
     publisher: {
       "@type": "Organization",
       name: site.name,
@@ -155,7 +164,7 @@ export default async function CategoryPage({
         position: index + 1,
         url: `${site.url}/product/${p.slug}`,
         name: p.name,
-        image: p.images[0],
+        image: p.images?.[0],
       })),
     },
   };
@@ -164,7 +173,9 @@ export default async function CategoryPage({
     <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(categorySchema),
+        }}
       />
 
       <Breadcrumb />
@@ -172,15 +183,10 @@ export default async function CategoryPage({
       {/* Header */}
       <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-3">
         <div>
-          <h1 className="text-xl font-bold capitalize">
-            {categoryData.name
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")}
-          </h1>
+          <h1 className="text-xl font-bold capitalize">{categoryData.name}</h1>
           <p>
-            Shop products in {categoryData.name.replace(/-/g, " ")}. Filter by
-            brand, price, color, size, rating, and more.
+            Shop products in {categoryData.name}. Filter by brand, price, color,
+            size, rating, and more.
           </p>
           {data.totalProducts === 0
             ? "No results"

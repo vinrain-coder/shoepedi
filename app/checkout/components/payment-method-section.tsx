@@ -101,7 +101,7 @@ export const PaymentMethodSection = ({
               <p>
                 <span className="font-medium">Cash on Delivery</span> is
                 only available for orders shipped within{" "}
-                <span className="font-semibold">Nairobi</span>.
+                <span className="font-semibold">Nairobi CBD</span>.
               </p>
             </div>
           </CardContent>

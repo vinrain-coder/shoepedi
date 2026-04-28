@@ -349,7 +349,7 @@ export default async function ProductDetails({ params, searchParams }: Props) {
                 {product.shortDescription}{" "}
                 <Link
                   href="#description"
-                  className="font-medium text-primary hover:underline gap-2 inline-flex items-center scroll-smooth"
+                  className="font-medium text-primary hover:underline gap-2 inline-flex items-center"
                 >
                   More
                 </Link>

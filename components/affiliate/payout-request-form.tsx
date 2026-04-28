@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AffiliatePayoutInputSchema } from "@/lib/validator";
+import { z } from "zod";
+
 import { createPayoutRequest } from "@/lib/actions/affiliate.actions";
+
 import {
   Form,
   FormControl,
@@ -14,9 +17,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import {
   Select,
   SelectContent,
@@ -24,7 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { LoadingButton } from "../shared/loading-button";
+
+/* -----------------------------
+   ✅ TYPE DERIVED FROM ZOD
+------------------------------ */
+type AffiliatePayoutInput = z.infer<typeof AffiliatePayoutInputSchema>;
 
 export default function PayoutRequestForm({
   currentBalance,
@@ -36,7 +48,7 @@ export default function PayoutRequestForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm({
+  const form = useForm<AffiliatePayoutInput>({
     resolver: zodResolver(AffiliatePayoutInputSchema),
     defaultValues: {
       amount: minAmount,
@@ -47,13 +59,17 @@ export default function PayoutRequestForm({
     },
   });
 
-  async function onSubmit(values: any) {
+  async function onSubmit(values: AffiliatePayoutInput) {
+    // ⚠️ business rule validation (OK here)
     if (values.amount > currentBalance) {
       toast.error("Insufficient balance");
       return;
     }
+
     setIsSubmitting(true);
+
     const res = await createPayoutRequest(values);
+
     setIsSubmitting(false);
 
     if (res.success) {
@@ -70,9 +86,11 @@ export default function PayoutRequestForm({
       <CardHeader>
         <CardTitle>Request Payout</CardTitle>
       </CardHeader>
+
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* AMOUNT */}
             <FormField
               control={form.control}
               name="amount"
@@ -87,6 +105,7 @@ export default function PayoutRequestForm({
               )}
             />
 
+            {/* PAYMENT METHOD */}
             <FormField
               control={form.control}
               name="paymentMethod"
@@ -102,6 +121,7 @@ export default function PayoutRequestForm({
                         <SelectValue placeholder="Select a payment method" />
                       </SelectTrigger>
                     </FormControl>
+
                     <SelectContent>
                       <SelectItem value="M-Pesa">M-Pesa</SelectItem>
                       <SelectItem value="PayPal">PayPal</SelectItem>
@@ -115,6 +135,7 @@ export default function PayoutRequestForm({
               )}
             />
 
+            {/* RECIPIENT */}
             <FormField
               control={form.control}
               name="paymentDetails.recipient"
@@ -122,22 +143,20 @@ export default function PayoutRequestForm({
                 <FormItem>
                   <FormLabel>Account/Phone Details</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter your payment details (e.g. phone or account #)"
-                      {...field}
-                    />
+                    <Input placeholder="Phone or account number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* SUBMIT */}
             <LoadingButton
               type="submit"
               className="w-full font-semibold"
               loading={isSubmitting}
               loadingText="Requesting..."
-              disabled={isSubmitting}
+              disabled={isSubmitting || minAmount > currentBalance}
             >
               Submit Payout Request
             </LoadingButton>

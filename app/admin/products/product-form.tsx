@@ -43,6 +43,9 @@ const handleKeyDown = (e: React.KeyboardEvent) => {
   }
 };
 
+const capitalizeWords = (value: string) =>
+  value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+
 const productDefaultValues: IProductInput =
   process.env.NODE_ENV === "development"
     ? {
@@ -166,7 +169,13 @@ const ProductForm = ({
               <FormItem className="w-full">
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter product name" {...field} />
+                  <Input
+                    placeholder="Enter product name"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(capitalizeWords(e.target.value))
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

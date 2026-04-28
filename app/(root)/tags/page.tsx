@@ -87,8 +87,8 @@ export default async function TagsPage() {
             className="group block animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <Card className="overflow-hidden rounded-2xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card">
-              <div className="relative aspect-[4/3] w-full overflow-hidden">
+            <Card className="overflow-hidden rounded-xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card p-0">
+              <div className="relative aspect-4/3 w-full overflow-hidden">
                 {tag.image ? (
                   <Image
                     src={tag.image}
@@ -104,7 +104,7 @@ export default async function TagsPage() {
                 )}
 
                 {/* Refined Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
                   <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors duration-300">

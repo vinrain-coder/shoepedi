@@ -2,8 +2,13 @@ import { getAffiliateDashboardData } from "@/lib/actions/affiliate.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { formatCurrency, cn } from "@/lib/utils";
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Wallet,
+} from "lucide-react";
 import PayoutRequestForm from "@/components/affiliate/payout-request-form";
 import {
   Table,
@@ -32,20 +37,12 @@ export default async function AffiliatePayoutsPage({
       redirect(toSignInPath());
     }
 
-    let userFriendlyMessage =
-      "An unexpected error occurred; please try again later";
-    if (result.message === "Affiliate profile not found") {
-      userFriendlyMessage =
-        "Affiliate profile not found. Please register to view payouts.";
-    }
-
-    console.error("AffiliatePayoutsPage error:", result.message);
-
     return (
       <div className="container mx-auto py-10">
         <Breadcrumb />
         <div className="p-4 border border-destructive bg-destructive/10 text-destructive rounded-md">
-          {userFriendlyMessage}
+          {result.message ||
+            "An unexpected error occurred; please try again later"}
         </div>
       </div>
     );
@@ -55,27 +52,42 @@ export default async function AffiliatePayoutsPage({
   const { affiliate: settings } = await getSetting();
 
   return (
-    <div className="container mx-auto py-10 space-y-8">
+    <div className="container mx-auto py-4 space-y-4">
       <Breadcrumb />
+
       <h1 className="text-3xl font-bold">Payouts Management</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 💰 BALANCE CARD (UPGRADED) */}
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Earnings Balance</CardTitle>
+          <Card
+            className={cn(
+              "rounded-xl border-2 border-primary/20 border-dashed transition-all",
+              "hover:ring-2 hover:ring-primary/20 hover:shadow-sm",
+            )}
+          >
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm text-muted-foreground uppercase">
+                Earnings Balance
+              </CardTitle>
+              <div className="rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 p-2">
+                <Wallet className="h-4 w-4" />
+              </div>
             </CardHeader>
+
             <CardContent>
               <div className="text-3xl font-bold">
                 {formatCurrency(affiliate.earningsBalance)}
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
+
+              <p className="text-xs text-muted-foreground mt-2">
                 Minimum withdrawal amount:{" "}
                 {formatCurrency(settings.minWithdrawalAmount)}
               </p>
             </CardContent>
           </Card>
 
+          {/* REQUEST FORM */}
           {affiliate.status === "approved" && (
             <PayoutRequestForm
               currentBalance={affiliate.earningsBalance}
@@ -84,10 +96,12 @@ export default async function AffiliatePayoutsPage({
           )}
         </div>
 
-        <Card>
+        {/* 📊 HISTORY CARD */}
+        <Card className="rounded-xl border">
           <CardHeader>
             <CardTitle>Withdrawal History</CardTitle>
           </CardHeader>
+
           <CardContent>
             {recentPayouts.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">
@@ -103,6 +117,7 @@ export default async function AffiliatePayoutsPage({
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {recentPayouts.map((payout: any) => (
                     <TableRow key={payout._id}>
@@ -114,19 +129,24 @@ export default async function AffiliatePayoutsPage({
                           timeZone: "Africa/Nairobi",
                         }).format(new Date(payout.createdAt))}
                       </TableCell>
+
                       <TableCell className="font-medium">
                         {formatCurrency(payout.amount)}
                       </TableCell>
+
                       <TableCell>{payout.paymentMethod}</TableCell>
+
                       <TableCell>
                         <Badge
-                          className={
-                            payout.status === "paid"
-                              ? "badge-success"
-                              : payout.status === "rejected"
-                                ? "badge-rejected"
-                                : "badge-pending"
-                          }
+                          className={cn(
+                            "text-[10px] flex items-center gap-1 px-2 py-0.5",
+                            payout.status === "paid" &&
+                              "bg-emerald-100 text-emerald-600",
+                            payout.status === "pending" &&
+                              "bg-orange-100 text-orange-600",
+                            payout.status === "rejected" &&
+                              "bg-red-100 text-red-600",
+                          )}
                         >
                           {payout.status === "paid" && (
                             <CheckCircle2 className="h-3 w-3" />
@@ -145,6 +165,7 @@ export default async function AffiliatePayoutsPage({
                 </TableBody>
               </Table>
             )}
+
             {payoutTotalPages > 1 && (
               <div className="flex justify-center pt-4">
                 <Pagination page={pageNum} totalPages={payoutTotalPages} />

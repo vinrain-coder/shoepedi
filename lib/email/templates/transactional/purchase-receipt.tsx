@@ -32,10 +32,12 @@ type ReceiptEmailOrder = {
     discountType: "percentage" | "fixed";
     discountAmount: number;
   };
-  user?: {
-    name?: string;
-    email?: string;
-  } | { toString(): string };
+  user?:
+    | {
+        name?: string;
+        email?: string;
+      }
+    | { toString(): string };
   paymentMethod: string;
   paymentResult?: Record<string, unknown>;
   expectedDeliveryDate?: Date | string;
@@ -176,7 +178,9 @@ export default async function PurchaseReceiptEmail({
                 </Column>
                 <Column className="w-full sm:w-1/3 mb-4">
                   <Text className="text-slate-500">Price Paid</Text>
-                  <Text className="font-semibold">{formatCurrency(order.totalPrice)}</Text>
+                  <Text className="font-semibold">
+                    {formatCurrency(order.totalPrice)}
+                  </Text>
                 </Column>
               </Row>
             </Section>
@@ -230,9 +234,14 @@ export default async function PurchaseReceiptEmail({
                   <Text className="m-0 mt-1 text-sm text-emerald-800">
                     {couponDescription}
                   </Text>
-                  <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
-                    Discount: -{formatCurrency(Math.abs(order.coupon.discountAmount))}
-                  </Text>
+                  {order.coupon.discountAmount > 0 ? (
+                    <Text className="m-0 mt-2 text-sm">No Discount Used</Text>
+                  ) : (
+                    <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
+                      Discount: -
+                      {formatCurrency(Math.abs(order.coupon.discountAmount))}
+                    </Text>
+                  )}
                 </Section>
               )}
 
@@ -242,7 +251,12 @@ export default async function PurchaseReceiptEmail({
                   { name: "Tax", price: order.taxPrice },
                   { name: "Shipping", price: order.shippingPrice },
                   ...(order.coupon
-                    ? [{ name: `Coupon (${order.coupon.code})`, price: -Math.abs(order.coupon.discountAmount) }]
+                    ? [
+                        {
+                          name: `Coupon (${order.coupon.code})`,
+                          price: -Math.abs(order.coupon.discountAmount),
+                        },
+                      ]
                     : []),
                   { name: "Total", price: order.totalPrice },
                 ].map(({ name, price }) => (

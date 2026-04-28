@@ -11,7 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { X, Loader } from "lucide-react";
+import { X } from "lucide-react";
 
 import SelectedFiltersPills from "./selected-filters-pills";
 import {
@@ -23,8 +23,6 @@ import {
 import PriceControl from "./price-control";
 import FilterButton from "./filter-button";
 import { Input } from "@/components/ui/input";
-import ProductLoadingOverlay from "../product/product-loading-overlay";
-import ProductLayoutSwitcher from "../product/product-layout-switcher";
 import useProductLayoutStore from "@/hooks/use-product-layout-store";
 
 type ParamsShape = {
@@ -490,7 +488,7 @@ export default function FiltersClient({
         <Sheet open={open} onOpenChange={setOpen}>
           <div className="flex items-center gap-2 py-2">
             <SheetTrigger asChild>
-              <Button variant="elevated" className="rounded-full">
+              <Button variant="pending" className="rounded-full">
                 Filters
               </Button>
             </SheetTrigger>

@@ -41,11 +41,12 @@ export default function PriceControl({
           min={0}
           max={20000}
           step={50}
-          className="mt-2"
+          className="mt-2 cursor-pointer"
         />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-row md:flex-col gap-2">
         <Input
+          type="number"
           value={minInput}
           onChange={(e) => {
             const val = e.target.value.replace(/[^\d]/g, "");
@@ -55,8 +56,11 @@ export default function PriceControl({
               setRange([n, range[1]]);
           }}
           aria-label="Minimum price"
+          className="min-w-0 py-2 rounded-full flex-1"
         />
+
         <Input
+          type="number"
           value={maxInput}
           onChange={(e) => {
             const val = e.target.value.replace(/[^\d]/g, "");
@@ -66,8 +70,15 @@ export default function PriceControl({
               setRange([range[0], n]);
           }}
           aria-label="Maximum price"
+          className="min-w-0 py-2 rounded-full flex-1"
         />
-        <Button onClick={applyPrice}>Apply</Button>
+
+        <Button
+          className="rounded-full bg-primary/60 shrink-0"
+          onClick={applyPrice}
+        >
+          Apply
+        </Button>
       </div>
     </div>
   );

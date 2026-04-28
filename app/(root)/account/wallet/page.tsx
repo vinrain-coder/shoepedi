@@ -7,23 +7,27 @@ import User from "@/lib/db/models/user.model";
 import WalletTransaction, {
   IWalletTransaction,
 } from "@/lib/db/models/wallet-transaction.model";
+
 import { Metadata } from "next";
-import { formatDateTime, formatNumberWithTwoDecimals } from "@/lib/utils";
+import Script from "next/script";
+import Link from "next/link";
+
+import { formatDateTime, formatNumberWithTwoDecimals, cn } from "@/lib/utils";
+
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Pagination from "@/components/shared/pagination";
+import Breadcrumb from "@/components/shared/breadcrumb";
+
 import {
   Wallet as WalletIcon,
   ArrowUpCircle,
   ArrowDownCircle,
-  CheckCircle2,
 } from "lucide-react";
-import Breadcrumb from "@/components/shared/breadcrumb";
-import Link from "next/link";
-import Pagination from "@/components/shared/pagination";
-import { getSetting } from "@/lib/actions/setting.actions";
+
 import { WalletTopupDialog } from "./wallet-topup-dialog";
 import { WalletPayoutDialog } from "./wallet-payout-dialog";
-import Script from "next/script";
-import { Badge } from "@/components/ui/badge";
+import { getSetting } from "@/lib/actions/setting.actions";
 
 export const metadata: Metadata = {
   title: "My Wallet",
@@ -35,13 +39,12 @@ export default async function WalletPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page = "1" } = await searchParams;
-  const pageNum = Math.max(1, Math.floor(parseInt(page, 10) || 1));
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
 
   await connectToDatabase();
+
   const session = await getServerSession();
-  if (!session?.user) {
-    redirect(toSignInPath());
-  }
+  if (!session?.user) redirect(toSignInPath());
 
   const {
     common: { pageSize },
@@ -51,13 +54,15 @@ export default async function WalletPage({
     .select("walletBalance")
     .lean();
 
-  // Fetch all wallet transactions with DB-side pagination
   const totalCount = await WalletTransaction.countDocuments({
     user: session.user.id,
   });
+
   const skipAmount = (pageNum - 1) * pageSize;
 
-  const transactions = (await WalletTransaction.find({ user: session.user.id })
+  const transactions = (await WalletTransaction.find({
+    user: session.user.id,
+  })
     .populate({
       path: "order",
       select: "_id trackingNumber",
@@ -71,7 +76,7 @@ export default async function WalletPage({
 
   const history = transactions.map((tx) => ({
     id: tx._id.toString(),
-    date: tx.createdAt ? tx.createdAt.toISOString() : new Date().toISOString(),
+    date: tx.createdAt?.toISOString() || new Date().toISOString(),
     type:
       tx.source === "refund" ||
       tx.source === "deposit" ||
@@ -80,108 +85,137 @@ export default async function WalletPage({
         : "redeemed",
     amount: Math.abs(tx.amount || 0),
     orderId: tx.order?._id?.toString(),
-    description: tx.reason,
+    description: tx.reason || "Wallet transaction",
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
+
       <Breadcrumb />
+
+      {/* HEADER */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="h1-bold text-3xl flex items-center gap-2">
-            <WalletIcon className="h-8 w-8 text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <WalletIcon className="h-7 w-7 text-primary" />
             My Wallet
           </h1>
-          <p className="text-muted-foreground">
-            View your refund balance and transaction history.
+          <p className="text-sm text-muted-foreground">
+            Track your balance and transactions
           </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex gap-3">
           <WalletPayoutDialog currentBalance={user?.walletBalance || 0} />
           <WalletTopupDialog />
         </div>
       </div>
 
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
-        <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-4 rounded-full bg-primary/10">
-            <WalletIcon className="h-12 w-12 text-primary animate-pulse" />
-          </div>
-          <div>
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              Current Balance
-            </p>
-            <h2 className="text-5xl font-extrabold text-foreground">
-              KES {formatNumberWithTwoDecimals(user?.walletBalance || 0)}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Available for future purchases
-            </p>
-          </div>
+      {/* BALANCE CARD */}
+      <Card className="border-primary/20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
+        <CardContent className="p-8 text-center space-y-2">
+          <WalletIcon className="h-10 w-10 mx-auto text-primary animate-pulse" />
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            Current Balance
+          </p>
+          <h2 className="text-4xl font-extrabold">
+            KES {formatNumberWithTwoDecimals(user?.walletBalance || 0)}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Available for future purchases
+          </p>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6">
+      {/* HISTORY */}
+      <div id="wallet-history" className="space-y-4">
         <h2 className="text-xl font-bold">Transaction History</h2>
+
         {history.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
-              Your wallet history is empty.
+              No transactions found.
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {history.map((event) => (
-              <Card
-                key={event.id}
-                className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-card"
-              >
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Badge
-                      variant={
-                        event.type === "earned" ? "success" : "destructive"
-                      }
-                      className="rounded-full w-9 h-9 flex items-center justify-center p-0"
-                    >
-                      {event.type === "earned" ? (
-                        <ArrowUpCircle className="h-5 w-5" />
-                      ) : (
-                        <ArrowDownCircle className="h-5 w-5" />
-                      )}
-                    </Badge>
-                    <div>
-                      <p className="font-semibold">{event.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTime(new Date(event.date)).dateTime}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-lg font-bold flex items-center justify-end gap-1 ${event.type === "earned" ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {event.type === "earned" && (
-                        <CheckCircle2 className="h-4 w-4" />
-                      )}
-                      {event.type === "earned" ? "+" : "-"}
-                      {formatNumberWithTwoDecimals(event.amount)}
-                    </p>
-                    {event.orderId && (
-                      <Link
-                        href={`/account/orders/${event.orderId}`}
-                        className="text-xs text-blue-600 hover:underline"
+          <div className="overflow-x-auto rounded-xl border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="p-3">Type</th>
+                  <th className="p-3">Description</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3 text-right">Amount</th>
+                  <th className="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {history.map((tx) => (
+                  <tr
+                    key={tx.id}
+                    className="border-t hover:bg-muted/40 transition"
+                  >
+                    {/* TYPE */}
+                    <td className="p-3">
+                      <Badge
+                        variant={
+                          tx.type === "earned" ? "success" : "destructive"
+                        }
+                        className="flex items-center gap-1 w-fit"
                       >
-                        View Order
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        {tx.type === "earned" ? (
+                          <ArrowUpCircle className="h-4 w-4" />
+                        ) : (
+                          <ArrowDownCircle className="h-4 w-4" />
+                        )}
+                        {tx.type}
+                      </Badge>
+                    </td>
+
+                    {/* DESCRIPTION */}
+                    <td className="p-3 font-medium">{tx.description}</td>
+
+                    {/* DATE */}
+                    <td className="p-3 text-muted-foreground">
+                      {formatDateTime(new Date(tx.date)).dateTime}
+                    </td>
+
+                    {/* AMOUNT */}
+                    <td
+                      className={cn(
+                        "p-3 text-right font-bold",
+                        tx.type === "earned"
+                          ? "text-green-600"
+                          : "text-red-600",
+                      )}
+                    >
+                      {tx.type === "earned" ? "+" : "-"}
+                      {formatNumberWithTwoDecimals(tx.amount)}
+                    </td>
+
+                    {/* ACTION */}
+                    <td className="p-3 text-right">
+                      {tx.orderId ? (
+                        <Link
+                          href={`?page=${page}#wallet-history`}
+                          className="text-blue-600 hover:underline text-xs"
+                        >
+                          View Order
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
+
+        {/* PAGINATION (IMPORTANT: HASH SCROLL FIX) */}
         {totalCount > pageSize && (
           <div className="flex justify-center pt-4">
             <Pagination

@@ -51,7 +51,7 @@ export default function StockSubList({ data }: StockSubListProps) {
                       </div>
                       <Link
                         href={`/admin/products/${sub.product._id}`}
-                        className="font-medium hover:underline line-clamp-1"
+                        className="font-medium hover:underline line-clamp-1 max-w-64"
                       >
                         {sub.product.name}
                       </Link>

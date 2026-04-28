@@ -1,37 +1,45 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
 import { getServerSession } from "@/lib/get-session";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Users, BarChart3, Wallet } from "lucide-react";
+import {
+  CheckCircle,
+  Users,
+  BarChart3,
+  Wallet,
+  UserPlus,
+  BadgeCheck,
+  Share2,
+  DollarSign,
+} from "lucide-react";
 import Breadcrumb from "@/components/shared/breadcrumb";
 import { getSetting } from "@/lib/actions/setting.actions";
 
 export default async function AffiliatePage() {
-  const { site } = await getSetting();
+  const { affiliate: settings, site } = await getSetting();
   const session = await getServerSession();
   const affiliateStatus = session
     ? await getAffiliateStatus()
     : { exists: false };
+  const commissionRate = settings?.commissionRate;
+  const minimumPayout = settings.minWithdrawalAmount;
 
   return (
-    <div className="container mx-auto py-10 space-y-12">
+    <div className="container mx-auto py-6 space-y-12">
       <Breadcrumb />
+
+      {/* HERO */}
       <section className="text-center space-y-4 max-w-3xl mx-auto">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-          Join the ${site?.name} Affiliate Program and Start Earning Today!
+          Join the {site?.name} Affiliate Program and Start Earning Today!
         </h1>
         <p className="text-xl text-muted-foreground">
           Partner with Kenya&apos;s premium footwear store and earn commissions
           for every sale you refer.
         </p>
+
         <div className="pt-4">
           {!session ? (
             <Button asChild size="lg">
@@ -64,11 +72,17 @@ export default async function AffiliatePage() {
                         : "destructive"
                   }
                 >
+                  <CheckCircle className="h-4 w-4" />
                   {affiliateStatus.status?.toUpperCase()}
                 </Badge>
               </div>
+
               {affiliateStatus.status === "approved" ? (
-                <Button asChild size="lg">
+                <Button
+                  asChild
+                  size="lg"
+                  className="font-semibold text-xl rounded-full"
+                >
                   <Link href="/affiliate/dashboard">Go to Dashboard</Link>
                 </Button>
               ) : affiliateStatus.status === "rejected" ? (
@@ -90,12 +104,12 @@ export default async function AffiliatePage() {
         </div>
       </section>
 
+      {/* FEATURES */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             title: "Generous Commissions",
-            description:
-              "Earn up to 10% on every successful referral purchase made using your code.",
+            description: `Earn up to ${commissionRate}% on every successful referral purchase made using your code.`,
             icon: Wallet,
           },
           {
@@ -116,42 +130,189 @@ export default async function AffiliatePage() {
               "Refer customers to authentic, premium footwear from top global brands.",
             icon: CheckCircle,
           },
-        ].map((feature, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <feature.icon className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>{feature.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base">
-                {feature.description}
-              </CardDescription>
-            </CardContent>
-          </Card>
-        ))}
+        ].map((feature, i) => {
+          const Icon = feature.icon;
+
+          return (
+            <Card
+              key={i}
+              className="group relative overflow-hidden rounded-xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/30"
+            >
+              <CardHeader className="space-y-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                  <Icon className="h-6 w-6" />
+                </div>
+
+                <CardTitle className="text-lg leading-tight">
+                  {feature.title}
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+              </CardContent>
+
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-linear-to-br from-primary/5 to-transparent pointer-events-none" />
+            </Card>
+          );
+        })}
       </section>
 
+      {/* HOW IT WORKS */}
       <section className="bg-muted rounded-2xl p-8 md:p-12">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <h2 className="text-3xl font-bold">How it Works</h2>
-          <ol className="space-y-6 list-decimal list-inside text-lg">
-            <li>
-              <span className="font-semibold">Sign Up:</span> Register for an
-              account and apply for the affiliate program.
-            </li>
-            <li>
-              <span className="font-semibold">Get Your Code:</span> Once
-              approved, receive a unique affiliate code and referral links.
-            </li>
-            <li>
-              <span className="font-semibold">Share:</span> Promote {site.name}{" "}
-              products to your audience using your code.
-            </li>
-            <li>
-              <span className="font-semibold">Earn:</span> Receive commissions
-              for every purchase made with your code.
-            </li>
-          </ol>
+        <div className="max-w-3xl mx-auto space-y-10">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold">How it Works</h2>
+            <p className="text-muted-foreground">
+              Start earning in just a few simple steps
+            </p>
+          </div>
+
+          <div className="space-y-8 relative border-l border-primary/20 pl-6">
+            {(() => {
+              const isLoggedIn = !!session;
+              const isAffiliate = (affiliateStatus as any)?.exists;
+
+              const redirectBack = "/affiliate";
+
+              const signUpUrl = `/sign-in?redirect=${encodeURIComponent(
+                "/affiliate/register",
+              )}`;
+
+              const registerUrl = "/affiliate/register";
+              const dashboardUrl = "/affiliate/dashboard";
+
+              return [
+                {
+                  title: "Sign Up",
+                  desc: "Register for an account and apply for the affiliate program.",
+                  icon: UserPlus,
+                  action: !isLoggedIn
+                    ? signUpUrl
+                    : isAffiliate
+                      ? dashboardUrl
+                      : registerUrl,
+                  actionLabel: !isLoggedIn
+                    ? "Create Account"
+                    : isAffiliate
+                      ? "Go to Dashboard"
+                      : "Apply Now",
+                },
+                {
+                  title: "Get Your Code",
+                  desc: "Once approved, receive your unique affiliate code and referral links.",
+                  icon: BadgeCheck,
+                  action: isAffiliate ? dashboardUrl : registerUrl,
+                  actionLabel: isAffiliate ? "View Code" : "Get Started",
+                },
+                {
+                  title: "Share Products",
+                  desc: `Promote ${site.name} products to your audience using your code.`,
+                  icon: Share2,
+                  action: "/search",
+                  actionLabel: "Browse Products",
+                },
+                {
+                  title: "Earn Commission",
+                  desc: "Receive commissions for every successful purchase made using your code at checkout.",
+                  icon: DollarSign,
+                  action: isAffiliate ? dashboardUrl : registerUrl,
+                  actionLabel: isAffiliate ? "View Earnings" : "Join Program",
+                },
+              ];
+            })().map((step, i) => {
+              const Icon = step.icon;
+
+              return (
+                <div key={i} className="relative pl-2 space-y-2">
+                  <div className="absolute -left-9.5 top-1">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <span className="text-xs font-bold text-muted-foreground">
+                        {String(i + 1).padStart(2, "0")}.
+                      </span>
+                      {step.title}
+                    </h3>
+
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {step.desc}
+                    </p>
+
+                    {/* CTA LINK */}
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="ghost"
+                      className="underline"
+                    >
+                      <Link href={step.action as string}>
+                        {step.actionLabel}
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ SECTION (NEW) */}
+      <section className="max-w-3xl mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
+          <p className="text-muted-foreground">
+            Everything you need to know about the affiliate program
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {[
+            {
+              q: "How do payouts work?",
+              a: `Payouts are calculated based on paid orders or sales made through your referral code. The payout amount is the ${commissionRate}% of the total price of items purchased. Note that it excludes the tax and delivery fees. Once validated, earnings are credited to your affiliate balance.`,
+            },
+            {
+              q: "When do I get paid?",
+              a: `Payments are processed weekly on Thursdays. Once you reach the minimum payout threshold of ${minimumPayout}, you can request for a payout. Earnings are credited to your provided M-Pesa account.`,
+            },
+            {
+              q: "What if a customer refunds?",
+              a: "If a customer requests a refund or cancel their order, the associated commission will be reversed to keep tracking fair and accurate.",
+            },
+            {
+              q: "How are referrals tracked?",
+              a: (
+                <>
+                  You can track your referrals in your dashboard{" "}
+                  <Link
+                    href="/affiliate/dashboard"
+                    className="underline text-blue-500"
+                  >
+                    here
+                  </Link>
+                  . When a user completes a purchase, the system attributes the
+                  sale to your account automatically.
+                </>
+              ),
+            },
+          ].map((item, i) => (
+            <Card key={i} className="rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-base">{item.q}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{item.a}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
     </div>

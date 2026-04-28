@@ -26,11 +26,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { brand: brandSlug } = await params;
   const sp = await searchParams;
+
   const brandData = await getBrandBySlug(brandSlug);
   const { site } = await getSetting();
 
   const titleBase =
     brandData?.seoTitle || brandData?.name || brandSlug.replace(/-/g, " ");
+
   const descriptionBase =
     brandData?.seoDescription ||
     brandData?.description ||
@@ -78,6 +80,7 @@ export default async function BrandPage({
 }) {
   const { brand: brandSlug } = await params;
   const sp = await searchParams;
+
   const { site } = await getSetting();
 
   const {
@@ -93,10 +96,21 @@ export default async function BrandPage({
     page = "1",
   } = sp;
 
+  /* ---------------- Get brand once ---------------- */
+  const brandData = await getBrandBySlug(brandSlug);
+
+  if (!brandData) {
+    return (
+      <div className="py-10 text-center">
+        <h1 className="text-xl font-bold">Brand not found</h1>
+      </div>
+    );
+  }
+
   const filterParams = {
     q,
     category,
-    brand: brandSlug,
+    brand: brandData.name,
     tag,
     gender,
     color,
@@ -107,36 +121,34 @@ export default async function BrandPage({
     page,
   };
 
-  // Fetch all data
-  const [categories, tags, brands, colors, sizes, data, brandData] =
-    await Promise.all([
-      getAllCategories(),
-      getAllTags(),
-      getAllBrands(),
-      getAllColors(),
-      getAllSizes(),
-      getAllProducts({
-        query: q,
-        brand: brandSlug,
-        category,
-        tag,
-        gender,
-        color,
-        size,
-        price,
-        rating,
-        sort,
-        page: Number(page),
-      }),
-      getBrandBySlug(brandSlug),
-    ]);
+  /* ---------------- Fetch page data ---------------- */
+  const [categories, tags, brands, colors, sizes, data] = await Promise.all([
+    getAllCategories(),
+    getAllTags(),
+    getAllBrands(),
+    getAllColors(),
+    getAllSizes(),
+    getAllProducts({
+      query: q,
+      brand: brandData.name, // FIXED
+      category,
+      tag,
+      gender,
+      color,
+      size,
+      price,
+      rating,
+      sort,
+      page: Number(page),
+    }),
+  ]);
 
   /* ---------------------- Schema ----------------------- */
   const brandSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: brandData?.name || brandSlug.replace(/-/g, " "),
-    description: brandData?.seoDescription || brandData?.description,
+    name: brandData.name,
+    description: brandData.seoDescription || brandData.description,
     publisher: {
       "@type": "Organization",
       name: site.name,
@@ -150,7 +162,7 @@ export default async function BrandPage({
         position: index + 1,
         url: `${site.url}/product/${p.slug}`,
         name: p.name,
-        image: p.images[0],
+        image: p.images?.[0],
       })),
     },
   };
@@ -159,7 +171,9 @@ export default async function BrandPage({
     <div className="space-y-2 md:space-y-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(brandSchema),
+        }}
       />
 
       <Breadcrumb />
@@ -167,15 +181,10 @@ export default async function BrandPage({
       {/* Header */}
       <div className="my-1 rounded-xl bg-card p-2.5 md:my-2 md:border-b md:rounded-none md:px-0 md:py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-3">
         <div>
-          <h1 className="text-xl font-bold capitalize">
-            {brandData.name
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")}
-          </h1>
-          <p className="">
-            Shop products from {brandData.name.replace(/-/g, " ")}. Filter by
-            category, price, color, size, rating, and more.
+          <h1 className="text-xl font-bold capitalize">{brandData.name}</h1>
+          <p>
+            Shop products from {brandData.name}. Filter by category, price,
+            color, size, rating, and more.
           </p>
           {data.totalProducts === 0
             ? "No results"

@@ -161,9 +161,13 @@ export default function TrackingClient({
               <p>
                 Tax: <ProductPrice price={data.taxPrice} plain />
               </p>
-              <p>
-                Discount: <ProductPrice price={data.couponDiscount} plain />
-              </p>
+              {data.couponDiscount > 0 ? (
+                <p>
+                  Discount: <ProductPrice price={data.couponDiscount} plain />
+                </p>
+              ) : (
+                <p className="text-muted-foreground">No discount used</p>
+              )}
               <p className="font-semibold">
                 Total: <ProductPrice price={data.totalPrice} plain />
               </p>

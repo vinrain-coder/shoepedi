@@ -1,4 +1,13 @@
-import { Data, IProductInput, IUserInput, ICategoryInput, IBrandInput, ITagInput, ICouponInput, IBlogInput } from "@/types";
+import {
+  Data,
+  IProductInput,
+  IUserInput,
+  ICategoryInput,
+  IBrandInput,
+  ITagInput,
+  ICouponInput,
+  IBlogInput,
+} from "@/types";
 import { toSlug } from "./utils";
 import bcrypt from "bcryptjs";
 import { DiscountType } from "./db/models/coupon.model";
@@ -7,11 +16,13 @@ const categories: ICategoryInput[] = [
   {
     name: "Running Shoes",
     slug: "running-shoes",
-    description: "High-performance running shoes for athletes and casual runners.",
+    description:
+      "High-performance running shoes for athletes and casual runners.",
     isFeatured: true,
     image: "/images/categories/running.jpg",
     seoTitle: "Best Running Shoes Online",
-    seoDescription: "Shop the latest running shoes from top brands. Comfort and performance guaranteed.",
+    seoDescription:
+      "Shop the latest running shoes from top brands. Comfort and performance guaranteed.",
   },
   {
     name: "Basketball Shoes",
@@ -20,7 +31,8 @@ const categories: ICategoryInput[] = [
     isFeatured: true,
     image: "/images/categories/basketball.jpg",
     seoTitle: "Professional Basketball Shoes",
-    seoDescription: "Dominate the court with our selection of basketball sneakers.",
+    seoDescription:
+      "Dominate the court with our selection of basketball sneakers.",
   },
   {
     name: "Casual Sneakers",
@@ -29,7 +41,8 @@ const categories: ICategoryInput[] = [
     isFeatured: true,
     image: "/images/categories/casual.jpg",
     seoTitle: "Lifestyle & Casual Sneakers",
-    seoDescription: "Find your perfect pair of casual sneakers for any occasion.",
+    seoDescription:
+      "Find your perfect pair of casual sneakers for any occasion.",
   },
   {
     name: "Training & Gym",
@@ -127,7 +140,8 @@ const blogs: IBlogInput[] = [
   {
     title: "How to Choose the Perfect Running Shoes",
     slug: "choose-perfect-running-shoes",
-    content: "Detailed guide on selecting the right running shoes based on your foot type and running style...",
+    content:
+      "Detailed guide on selecting the right running shoes based on your foot type and running style...",
     image: "/images/blog/running-guide.jpg",
     category: "Guides",
     tags: ["running", "footwear", "health"],
@@ -138,7 +152,8 @@ const blogs: IBlogInput[] = [
   {
     title: "The Evolution of Air Jordan Sneakers",
     slug: "evolution-air-jordan",
-    content: "A look back at the history and cultural impact of the Air Jordan line...",
+    content:
+      "A look back at the history and cultural impact of the Air Jordan line...",
     image: "/images/blog/jordan-history.jpg",
     category: "Culture",
     tags: ["jordan", "sneakerhead", "history"],
@@ -191,13 +206,18 @@ const products: IProductInput[] = [
     slug: toSlug("Nike Air Zoom Pegasus 40"),
     category: "Running Shoes",
     brand: "Nike",
-    images: ["/images/products/pegasus-1.jpg", "/images/products/pegasus-2.jpg"],
+    images: [
+      "/images/products/pegasus-1.jpg",
+      "/images/products/pegasus-2.jpg",
+    ],
     tags: ["new-arrival", "best-seller"],
     isPublished: true,
     price: 130.0,
     listPrice: 150.0,
     countInStock: 25,
-    description: "The workhorse with wings returns. The Nike Air Zoom Pegasus 40 provides a responsive ride for any run.",
+    description:
+      "The workhorse with wings returns. The Nike Air Zoom Pegasus 40 provides a responsive ride for any run.",
+    shortDescription: "The most versatile running shoe for every runner.",
     sizes: ["7", "8", "9", "10", "11", "12"],
     colors: ["Black/White", "Blue/Volt", "Red/Crimson"],
     avgRating: 4.8,
@@ -223,7 +243,10 @@ const products: IProductInput[] = [
     price: 190.0,
     listPrice: 190.0,
     countInStock: 15,
-    description: "Experience epic energy with the new Ultraboost Light, our lightest Ultraboost ever.",
+    shortDescription:
+      "Experience epic energy with the new Ultraboost Light, our lightest Ultraboost ever.",
+    description:
+      "Experience epic energy with the new Ultraboost Light, our lightest Ultraboost ever.",
     sizes: ["8", "9", "10", "11"],
     colors: ["Cloud White", "Core Black"],
     avgRating: 4.9,
@@ -243,13 +266,19 @@ const products: IProductInput[] = [
     slug: toSlug("Air Jordan 1 Retro High OG"),
     category: "Basketball Shoes",
     brand: "Jordan",
-    images: ["/images/products/jordan1-1.jpg", "/images/products/jordan1-2.jpg"],
+    images: [
+      "/images/products/jordan1-1.jpg",
+      "/images/products/jordan1-2.jpg",
+    ],
     tags: ["best-seller", "limited-edition"],
     isPublished: true,
     price: 180.0,
     listPrice: 180.0,
     countInStock: 5,
-    description: "The sneaker that started it all. The Air Jordan 1 Retro High OG stays true to the original 1985 design.",
+    shortDescription:
+      "The sneaker that started it all. The Air Jordan 1 Retro High OG stays true to the original 1985 design.",
+    description:
+      "The sneaker that started it all. The Air Jordan 1 Retro High OG stays true to the original 1985 design.",
     sizes: ["9", "10", "11"],
     colors: ["Chicago", "Bred", "Royal"],
     avgRating: 5.0,
@@ -270,12 +299,14 @@ const reviews = [
   {
     rating: 5,
     title: "Incredible Comfort",
-    comment: "These are the most comfortable shoes I've ever owned. Worth every penny!",
+    comment:
+      "These are the most comfortable shoes I've ever owned. Worth every penny!",
   },
   {
     rating: 4,
     title: "Great performance",
-    comment: "Solid grip and support. Slightly narrow fit but overall excellent.",
+    comment:
+      "Solid grip and support. Slightly narrow fit but overall excellent.",
   },
 ];
 
@@ -379,8 +410,14 @@ Please note that certain items, such as socks and insoles, are not eligible for 
       name: "New Arrivals",
       href: "/search?tag=new-arrival",
       subMenus: [
-        { name: "Running", href: "/search?tag=new-arrival&category=Running%20Shoes" },
-        { name: "Basketball", href: "/search?tag=new-arrival&category=Basketball%20Shoes" },
+        {
+          name: "Running",
+          href: "/search?tag=new-arrival&category=Running%20Shoes",
+        },
+        {
+          name: "Basketball",
+          href: "/search?tag=new-arrival&category=Basketball%20Shoes",
+        },
       ],
     },
     { name: "Best Sellers", href: "/search?tag=best-seller" },
@@ -460,8 +497,14 @@ Please note that certain items, such as socks and insoles, are not eligible for 
           name: "New Arrivals",
           href: "/search?tag=new-arrival",
           subMenus: [
-            { name: "Running", href: "/search?tag=new-arrival&category=Running%20Shoes" },
-            { name: "Basketball", href: "/search?tag=new-arrival&category=Basketball%20Shoes" },
+            {
+              name: "Running",
+              href: "/search?tag=new-arrival&category=Running%20Shoes",
+            },
+            {
+              name: "Basketball",
+              href: "/search?tag=new-arrival&category=Basketball%20Shoes",
+            },
           ],
         },
         { name: "Best Sellers", href: "/search?tag=best-seller", subMenus: [] },
@@ -483,7 +526,11 @@ Please note that certain items, such as socks and insoles, are not eligible for 
           ],
         },
         { name: "Blog", href: "/blog", subMenus: [] },
-        { name: "Customer Service", href: "/page/customer-service", subMenus: [] },
+        {
+          name: "Customer Service",
+          href: "/page/customer-service",
+          subMenus: [],
+        },
       ],
       availableLanguages: [{ name: "English", code: "en-US" }],
       defaultLanguage: "en-US",
@@ -499,8 +546,18 @@ Please note that certain items, such as socks and insoles, are not eligible for 
       ],
       defaultPaymentMethod: "Mpesa",
       availableDeliveryDates: [
-        { name: "Standard", daysToDeliver: 3, shippingPrice: 300, freeShippingMinPrice: 5000 },
-        { name: "Express", daysToDeliver: 1, shippingPrice: 600, freeShippingMinPrice: 10000 },
+        {
+          name: "Standard",
+          daysToDeliver: 3,
+          shippingPrice: 300,
+          freeShippingMinPrice: 5000,
+        },
+        {
+          name: "Express",
+          daysToDeliver: 1,
+          shippingPrice: 600,
+          freeShippingMinPrice: 10000,
+        },
       ],
       defaultDeliveryDate: "Standard",
       affiliate: {

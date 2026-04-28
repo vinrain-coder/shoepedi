@@ -27,7 +27,12 @@ interface OrderSummaryProps {
   resetCoupon: () => void;
   showCouponInput: boolean;
   setShowCouponInput: (show: boolean) => void;
-  firstPurchaseDiscount: { eligible: boolean; rate: number; discountAmount: number; loading: boolean };
+  firstPurchaseDiscount: {
+    eligible: boolean;
+    rate: number;
+    discountAmount: number;
+    loading: boolean;
+  };
   effectiveDiscountAmount: number;
   paymentMethod: string | undefined;
   isAddressSelected: boolean;
@@ -84,7 +89,9 @@ export const OrderSummary = ({
               onClick={handleSelectShippingAddress}
               disabled={isSubmittingAddress}
             >
-              {isSubmittingAddress ? "Saving address..." : "Ship to this address"}
+              {isSubmittingAddress
+                ? "Saving address..."
+                : "Ship to this address"}
             </Button>
             <p className="text-xs text-center py-2">
               Choose a shipping address and payment method in order to calculate
@@ -115,7 +122,7 @@ export const OrderSummary = ({
               <button
                 type="button"
                 onClick={() => setShowCouponInput(true)}
-                className="text-sm font-medium text-primary underline hover:text-primary/80 transition-colors"
+                className="text-sm font-medium text-primary underline hover:text-primary/80 transition-colors cursor-pointer"
               >
                 Got a coupon?
               </button>
@@ -130,15 +137,17 @@ export const OrderSummary = ({
                   <Input
                     type="text"
                     value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
+                    onChange={(e) =>
+                      setCouponCode(e.target.value.toUpperCase())
+                    }
                     placeholder={
                       paymentMethod === "Coins"
                         ? "Coupons not allowed with Coins"
                         : firstPurchaseDiscount.loading
-                        ? "Checking eligibility..."
-                        : firstPurchaseDiscount.eligible
-                        ? "First discount applied"
-                        : "Enter coupon code"
+                          ? "Checking eligibility..."
+                          : firstPurchaseDiscount.eligible
+                            ? "First discount applied"
+                            : "Enter coupon code"
                     }
                     disabled={
                       paymentMethod === "Coins" ||
@@ -179,13 +188,15 @@ export const OrderSummary = ({
                   Coupon{" "}
                   <span className="font-medium">{appliedCoupon.code}</span>{" "}
                   applied{" "}
-                  {(appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
+                  {(appliedCoupon.discountAmount || 0) <
+                  (firstPurchaseDiscount.discountAmount || 0)
                     ? "(first-purchase discount gives better savings)"
                     : "— you saved"}{" "}
                   <span className="text-green-600">
                     <ProductPrice
                       price={
-                        (appliedCoupon.discountAmount || 0) < (firstPurchaseDiscount.discountAmount || 0)
+                        (appliedCoupon.discountAmount || 0) <
+                        (firstPurchaseDiscount.discountAmount || 0)
                           ? firstPurchaseDiscount.discountAmount
                           : discountAmount
                       }
@@ -203,15 +214,21 @@ export const OrderSummary = ({
                 </Button>
               </div>
             )}
-            {firstPurchaseDiscount.eligible && !appliedCoupon && effectiveDiscountAmount > 0 && (
-              <div className="mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700">
-                First purchase offer applied ({firstPurchaseDiscount.rate}% off items): you save{" "}
-                <span className="font-semibold">
-                  <ProductPrice price={firstPurchaseDiscount.discountAmount} plain />
-                </span>
-                .
-              </div>
-            )}
+            {firstPurchaseDiscount.eligible &&
+              !appliedCoupon &&
+              effectiveDiscountAmount > 0 && (
+                <div className="mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700">
+                  First purchase offer applied ({firstPurchaseDiscount.rate}%
+                  off items): you save{" "}
+                  <span className="font-semibold">
+                    <ProductPrice
+                      price={firstPurchaseDiscount.discountAmount}
+                      plain
+                    />
+                  </span>
+                  .
+                </div>
+              )}
             <div className="text-lg font-bold mt-4">Order Summary</div>
             <div className="space-y-2 mt-2">
               <div className="flex justify-between text-orange-600 font-medium">
@@ -253,7 +270,8 @@ export const OrderSummary = ({
               {discountAmount > 0 && (
                 <div className="flex justify-between">
                   <span>
-                    {effectiveDiscountAmount === (firstPurchaseDiscount.discountAmount || 0)
+                    {effectiveDiscountAmount ===
+                    (firstPurchaseDiscount.discountAmount || 0)
                       ? `First Purchase Discount (${firstPurchaseDiscount.rate}%)`
                       : "Coupon Discount"}
                     :
@@ -286,17 +304,17 @@ export const OrderSummary = ({
           )}
           {createdOrder && isCardOrMobileMoneyMethod(paymentMethod) && (
             <div className="my-3 rounded-md border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-900">
-              Your order <span className="font-semibold">#{createdOrder._id}</span> has been created and is awaiting secure payment. Keep this page open until payment completes.
+              Your order{" "}
+              <span className="font-semibold">#{createdOrder._id}</span> has
+              been created and is awaiting secure payment. Keep this page open
+              until payment completes.
             </div>
           )}
           <Button
             onClick={handlePlaceOrder}
             className="rounded-full w-full cursor-pointer mt-2"
             disabled={!canPlaceOrder}
-            hidden={
-              isCardOrMobileMoneyMethod(paymentMethod) &&
-              !!createdOrder
-            }
+            hidden={isCardOrMobileMoneyMethod(paymentMethod) && !!createdOrder}
           >
             {isPlacingOrder ? (
               <>
@@ -308,8 +326,21 @@ export const OrderSummary = ({
           </Button>
           <p className="text-xs text-center py-2 text-muted-foreground">
             By placing your order, you agree to {site.name}&apos;s{" "}
-            <Link href="/page/privacy-policy" className="underline hover:text-primary">privacy notice</Link> and
-            <Link href="/page/conditions-of-use" className="underline hover:text-primary"> conditions of use</Link>.
+            <Link
+              href="/page/privacy-policy"
+              className="underline hover:text-primary"
+            >
+              privacy notice
+            </Link>{" "}
+            and
+            <Link
+              href="/page/conditions-of-use"
+              className="underline hover:text-primary"
+            >
+              {" "}
+              conditions of use
+            </Link>
+            .
           </p>
         </div>
       </CardContent>

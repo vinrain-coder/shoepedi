@@ -84,7 +84,7 @@ export default async function CategoriesPage() {
             className="group block animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <Card className="overflow-hidden rounded-2xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card">
+            <Card className="overflow-hidden rounded-xl border-none shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full bg-card p-0">
               <div className="relative aspect-4/3 w-full overflow-hidden">
                 {category.image ? (
                   <Image

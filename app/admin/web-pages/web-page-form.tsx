@@ -97,6 +97,9 @@ const WebPageForm = ({
 
   const nameValue = form.watch("title");
 
+  const capitalizeWords = (value: string) =>
+    value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+
   useEffect(() => {
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
@@ -116,7 +119,13 @@ const WebPageForm = ({
               <FormItem className="w-full">
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter title" {...field} />
+                  <Input
+                    placeholder="Enter title"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(capitalizeWords(e.target.value))
+                    }
+                  />
                 </FormControl>
 
                 <FormMessage />
@@ -138,15 +147,6 @@ const WebPageForm = ({
                       className="pl-8"
                       {...field}
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        form.setValue("slug", toSlug(form.getValues("title")));
-                      }}
-                      className="absolute right-2 top-2.5 text-white bg-primary"
-                    >
-                      Generate
-                    </button>
                   </div>
                 </FormControl>
 

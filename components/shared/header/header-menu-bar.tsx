@@ -37,7 +37,7 @@ export default function HeaderMenuBar({ headerMenus }: { headerMenus: HeaderMenu
 
         if (!hasSubMenus) {
           return (
-            <Link key={menu.href} href={menu.href} className="header-button !p-2 shrink-0 text-sm">
+            <Link key={menu.href} href={menu.href} className="header-button p-2 shrink-0 text-sm">
               {menu.name}
             </Link>
           );
@@ -127,10 +127,10 @@ function HeaderDropdownMenu({
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild className="cursor-pointer">
         <button
           type="button"
-          className="header-button !p-2 shrink-0 text-sm inline-flex items-center gap-1 outline-none"
+          className="header-button p-2 shrink-0 text-sm inline-flex items-center gap-1 outline-none"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onPointerDown={handlePointerDown}

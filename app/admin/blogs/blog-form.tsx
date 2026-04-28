@@ -84,6 +84,9 @@ const BlogForm = ({
 
   const nameValue = form.watch("title");
 
+  const capitalizeWords = (value: string) =>
+    value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+
   useEffect(() => {
     form.setValue("slug", toSlug(nameValue));
   }, [nameValue, form]);
@@ -100,7 +103,13 @@ const BlogForm = ({
               <FormItem className="w-full">
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter title" {...field} />
+                  <Input
+                    placeholder="Enter title"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(capitalizeWords(e.target.value))
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,16 +128,6 @@ const BlogForm = ({
                       className="pl-8"
                       {...field}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        form.setValue("slug", toSlug(form.getValues("title")))
-                      }
-                      className="absolute right-2 top-2.5 text-white bg-primary"
-                    >
-                      Generate
-                    </Button>
                   </div>
                 </FormControl>
                 <FormMessage />
