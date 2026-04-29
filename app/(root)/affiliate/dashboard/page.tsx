@@ -182,7 +182,7 @@ export default async function AffiliateDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <code className="block w-full pr-20 p-3 bg-muted rounded-lg border truncate text-sm">
                 {referralLink}
               </code>

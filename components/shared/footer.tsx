@@ -61,8 +61,8 @@ export default function Footer() {
           { label: "Products", href: "/search" },
           { label: "Categories", href: "/categories" },
           { label: "Our brands", href: "/brands" },
-          { label: "Today's deal", href: "/search?tag=todays-deal" },
-          { label: "Featured products", href: "/search?tag=best-seller" },
+          { label: "Today's deals", href: "/search?tag=todays-deal" },
+          { label: "Best selling products", href: "/search?tag=best-seller" },
         ],
       },
       {

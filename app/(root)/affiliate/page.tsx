@@ -5,6 +5,12 @@ import { getAffiliateStatus } from "@/lib/actions/affiliate.actions";
 import { getServerSession } from "@/lib/get-session";
 import { Badge } from "@/components/ui/badge";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   CheckCircle,
   Users,
   BarChart3,
@@ -202,7 +208,7 @@ export default async function AffiliatePage() {
                 },
                 {
                   title: "Get Your Code",
-                  desc: "Once approved, receive your unique affiliate code and referral links.",
+                  desc: "Once approved, you will create your unique affiliate code and get your referral link.",
                   icon: BadgeCheck,
                   action: isAffiliate ? dashboardUrl : registerUrl,
                   actionLabel: isAffiliate ? "View Code" : "Get Started",
@@ -265,7 +271,8 @@ export default async function AffiliatePage() {
       </section>
 
       {/* FAQ SECTION (NEW) */}
-      <section className="max-w-3xl mx-auto space-y-6">
+      {/* FAQ SECTION */}
+      <section className="max-w-5xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
           <p className="text-muted-foreground">
@@ -273,19 +280,23 @@ export default async function AffiliatePage() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full rounded-2xl border bg-card px-6"
+        >
           {[
             {
               q: "How do payouts work?",
-              a: `Payouts are calculated based on paid orders or sales made through your referral code. The payout amount is the ${commissionRate}% of the total price of items purchased. Note that it excludes the tax and delivery fees. Once validated, earnings are credited to your affiliate balance.`,
+              a: `Payouts are calculated based on paid orders or sales made through your referral code. The payout amount is ${commissionRate}% of the total price of items purchased, excluding tax and delivery fees. Once validated, earnings are credited to your affiliate balance.`,
             },
             {
               q: "When do I get paid?",
-              a: `Payments are processed weekly on Thursdays. Once you reach the minimum payout threshold of ${minimumPayout}, you can request for a payout. Earnings are credited to your provided M-Pesa account.`,
+              a: `Payments are processed weekly on Thursdays. Once you reach the minimum payout threshold of ${minimumPayout}, you can request a payout. Earnings are sent to your provided M-Pesa account.`,
             },
             {
               q: "What if a customer refunds?",
-              a: "If a customer requests a refund or cancel their order, the associated commission will be reversed to keep tracking fair and accurate.",
+              a: "If a customer requests a refund or cancels their order, the associated commission will be reversed to keep tracking fair and accurate.",
             },
             {
               q: "How are referrals tracked?",
@@ -294,26 +305,30 @@ export default async function AffiliatePage() {
                   You can track your referrals in your dashboard{" "}
                   <Link
                     href="/affiliate/dashboard"
-                    className="underline text-blue-500"
+                    className="text-primary underline"
                   >
                     here
                   </Link>
-                  . When a user completes a purchase, the system attributes the
-                  sale to your account automatically.
+                  . When a user completes a purchase, the system automatically
+                  attributes the sale to your account.
                 </>
               ),
             },
           ].map((item, i) => (
-            <Card key={i} className="rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-base">{item.q}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{item.a}</p>
-              </CardContent>
-            </Card>
+            <AccordionItem
+              key={i}
+              value={`item-${i}`}
+              className="border-b last:border-b-0"
+            >
+              <AccordionTrigger className="text-left text-base font-semibold hover:no-underline cursor-pointer">
+                {item.q}
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                {item.a}
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </section>
     </div>
   );

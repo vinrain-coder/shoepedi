@@ -118,7 +118,7 @@ function LikeButton({
         <Loader2 className={`${iconClass} animate-spin`} />
       ) : (
         <Heart
-          className={`${iconClass} transition-all duration-300 ${liked ? "fill-rose-500 text-rose-500" : "group-hover:fill-rose-200"} ${
+          className={`${iconClass} transition-all duration-300 cursor-pointer ${liked ? "fill-rose-500 text-rose-500" : "group-hover:fill-rose-200"} ${
             animate ? "scale-125" : "scale-100"
           }`}
         />
@@ -641,7 +641,7 @@ export default function BlogSocial({
 
                     {session?.user.id ? (
                       <button
-                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
                         onClick={() =>
                           setActiveReplyId(
                             activeReplyId === comment._id ? null : comment._id,
@@ -663,7 +663,7 @@ export default function BlogSocial({
                     {isCommentOwner && (
                       <>
                         <button
-                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                           onClick={() =>
                             startEdit(comment._id, comment.content)
                           }

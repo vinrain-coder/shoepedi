@@ -70,7 +70,7 @@ export default function NotFound() {
         <p className="mt-12 text-sm text-muted-foreground">
           Need help?{" "}
           <Link
-            href="/page/support"
+            href="/account/support"
             className="font-medium text-primary hover:underline"
           >
             Contact Support

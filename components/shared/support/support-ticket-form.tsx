@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { LoadingButton } from "../loading-button";
 
 type SupportFormValues = z.infer<typeof SupportTicketInputSchema>;
 
@@ -142,9 +143,14 @@ export default function SupportTicketForm({
             )}
           />
 
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Submitting..." : "Submit support request"}
-          </Button>
+          <LoadingButton
+            type="submit"
+            className="w-full"
+            loading={isPending}
+            disabled={isPending}
+          >
+            Submit Ticket
+          </LoadingButton>
         </form>
       </Form>
     </div>

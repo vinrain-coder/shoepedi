@@ -166,7 +166,7 @@ export default function TrackingClient({
                   Discount: <ProductPrice price={data.couponDiscount} plain />
                 </p>
               ) : (
-                <p className="text-muted-foreground">No discount used</p>
+                <p className="text-muted-foreground">No discount applied</p>
               )}
               <p className="font-semibold">
                 Total: <ProductPrice price={data.totalPrice} plain />

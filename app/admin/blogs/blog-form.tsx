@@ -253,7 +253,7 @@ const BlogForm = ({
           control={form.control}
           name="isPublished"
           render={({ field }) => (
-            <FormItem className="flex items-center space-x-2">
+            <FormItem className="flex items-center gap-2">
               <FormControl>
                 <Checkbox
                   checked={field.value}

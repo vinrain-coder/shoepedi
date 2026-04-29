@@ -1,5 +1,7 @@
 "use client";
 
+import { X } from "lucide-react";
+
 type ParamsShape = {
   q?: string;
   category?: string;
@@ -54,8 +56,8 @@ export default function SelectedFiltersPills({
           aria-label={`Remove filter ${p.label}`}
         >
           <span className="text-sm">{p.label}</span>
-          <span className="w-4 h-4 flex items-center justify-center bg-primary text-white rounded-full text-xs">
-            ×
+          <span className="w-6 h-4 flex items-center justify-center bg-red-500/50 text-white rounded-full text-xs">
+           <X className="size-3" />
           </span>
         </button>
       ))}

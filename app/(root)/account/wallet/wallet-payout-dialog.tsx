@@ -25,14 +25,20 @@ import { createWalletPayoutRequest } from "@/lib/actions/wallet.actions";
 import { ArrowDownToLine, Loader2 } from "lucide-react";
 import { formatNumberWithTwoDecimals } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { LoadingButton } from "@/components/shared/loading-button";
 
-export function WalletPayoutDialog({ currentBalance }: { currentBalance: number }) {
+export function WalletPayoutDialog({
+  currentBalance,
+}: {
+  currentBalance: number;
+}) {
   const router = useRouter();
   const [amount, setAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("MPESA");
   const [recipient, setRecipient] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const minAmount = 1000;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +49,35 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
       return;
     }
 
+    if (numAmount < minAmount) {
+      toast.error(`Minimum payout amount is KES ${minAmount}`);
+      return;
+    }
+
     if (numAmount > currentBalance) {
       toast.error("Insufficient balance");
+      return;
+    }
+
+    if (!paymentMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
+
+    if (paymentMethod === "MPESA" && !/^\d{10}$/.test(recipient)) {
+      toast.error("Please enter a valid 10-digit phone number for M-Pesa");
+      return;
+    }
+
+    if (paymentMethod === "BANK" && recipient.trim().split(",").length !== 3) {
+      toast.error(
+        "Please enter bank details in the format: Acc Name, Acc Number, Bank",
+      );
+      return;
+    }
+
+    if (paymentMethod === "PAYPAL" && !/\S+@\S+\.\S+/.test(recipient)) {
+      toast.error("Please enter a valid email address for PayPal");
       return;
     }
 
@@ -90,7 +123,8 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
           <DialogHeader>
             <DialogTitle>Request Payout</DialogTitle>
             <DialogDescription>
-              Request to withdraw funds from your wallet. Current balance: KES {formatNumberWithTwoDecimals(currentBalance)}
+              Request to withdraw funds from your wallet. Current balance: KES{" "}
+              {formatNumberWithTwoDecimals(currentBalance)}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -134,8 +168,8 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
                   paymentMethod === "MPESA"
                     ? "Phone number"
                     : paymentMethod === "BANK"
-                    ? "Acc Name, Acc Number, Bank"
-                    : "Email address"
+                      ? "Acc Name, Acc Number, Bank"
+                      : "Email address"
                 }
                 disabled={loading}
                 required
@@ -143,16 +177,15 @@ export function WalletPayoutDialog({ currentBalance }: { currentBalance: number 
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Request"
-              )}
-            </Button>
+            <LoadingButton
+              type="submit"
+              className="w-full"
+              loading={loading}
+              loadingText="Requesting..."
+              disabled={loading || !amount || !recipient}
+            >
+              Submit Payout Request
+            </LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

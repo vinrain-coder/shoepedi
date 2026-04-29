@@ -235,7 +235,9 @@ export default async function PurchaseReceiptEmail({
                     {couponDescription}
                   </Text>
                   {order.coupon.discountAmount > 0 ? (
-                    <Text className="m-0 mt-2 text-sm">No Discount Used</Text>
+                    <Text className="m-0 mt-2 text-sm">
+                      No Discount applied
+                    </Text>
                   ) : (
                     <Text className="m-0 mt-2 text-sm font-semibold text-emerald-900">
                       Discount: -
